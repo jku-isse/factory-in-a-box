@@ -1,8 +1,9 @@
 // Project configuration
 brick.pref {
     // Main class - Edit this according to the machine this is running on //
-    mainClass = "TurnTableApplication"
+    //mainClass = "TurnTableApplication"
     //mainClass = "motor_sensor_test.MotorTestApplication"
+    mainClass = "RobotTestApplication"
     // Brick connection parameters - The sshHost variable changes on almost every connect. Change it accordingly //
     sshHost = "10.78.115.86"
     sshUser = "robot"
