@@ -5,6 +5,7 @@ import turnTable.TurnTable;
 public class TurnTableApplication {
 
     public static void main(String[] args) {
-        new TurnTable(MotorPort.A, MotorPort.B, SensorPort.S1, 90);
+        //new TurnTable(MotorPort.A, MotorPort.B, SensorPort.S1, 90);
+        new TurnTable(MotorPort.A, MotorPort.C, SensorPort.S2, 90);
     }
 }

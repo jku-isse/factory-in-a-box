@@ -146,6 +146,7 @@ public class TurnTable extends ServerAPIBase {
      */
     private void resetToNorth() {
         //TODO add state machine transitions
+        System.out.println("Homing in progress...");
         this.turnMotor.brake();
         this.turnMotor.backward();
         while (!touchSensor.isPressed()) {
@@ -170,7 +171,7 @@ public class TurnTable extends ServerAPIBase {
                 .permit(SEND_READY_TO_RECEIVE, WAITING_FOR_UNLOADING_INITIATOR_START);
 
         turnTableConfig.configure(WAITING_FOR_LOADING_INITIATOR_REPLY).substateOf(EXECUTING)
-                .permit(SEND_LOADING_REQUEST, WAITING_FOR_LOADING_INITIATOR_REPLY);
+                .permit(SEND_LOADING_REQUEST, LOADING);
 
         turnTableConfig.configure(WAITING_FOR_UNLOADING_INITIATOR_START)
                 .permit(NEXT, LOADING);
@@ -435,7 +436,7 @@ public class TurnTable extends ServerAPIBase {
      * @throws IOException file is probably used somewhere else or not there.
      */
     private static void loadNativeLib() throws IOException {
-        String libName = "libOpcua-Java-API.so";
+        String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
         URL url = TurnTable.class.getResource("/" + libName);
         File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
         tmpDir.deleteOnExit();
