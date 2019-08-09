@@ -1,6 +1,9 @@
-package functional_unit_dummys;
+package functionalUnitDummys;
 
-import functional_unit_base.LoadingProtocolBase;
+import functionalUnitBase.LoadingProtocolBase;
+import functionalUnitDummys.loadingMethods.*;
+import open62Wrap.SWIGTYPE_p_UA_Server;
+import open62Wrap.ServerAPIBase;
 import turnTable.TurnTableOrientation;
 
 public class LoadingDummy extends LoadingProtocolBase {
@@ -28,4 +31,14 @@ public class LoadingDummy extends LoadingProtocolBase {
     public void stop() {
         System.out.println("Stopping Loading");
     }
+
+    @Override
+    public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
+        CompleteMethod.addMethod(server, serverAPIBase);
+        InitiateLoadingMethod.addMethod(server, serverAPIBase);
+        InitiateUnloadingMethod.addMethod(server, serverAPIBase);
+        ResetLoadingProtocolMethod.addMethod(server, serverAPIBase);
+        StopLoadingProtocolMethod.addMethod(server, serverAPIBase);
+    }
+
 }

@@ -1,17 +1,13 @@
-package functional_unit_base;
+package functionalUnitBase;
 
 import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 
-public abstract class ConveyorBase {
+public abstract class ProcessEngineBase {
 
-    public abstract void load();
+    public abstract void loadProcess();
 
-    public abstract void unload();
-
-    public abstract void pause();
-
-    public abstract void reset();
+    public abstract void reset();   //TODO delete this if not necessary
 
     public abstract void stop();
 

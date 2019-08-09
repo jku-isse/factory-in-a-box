@@ -1,9 +1,9 @@
-package robot_base;
+package robotBase;
 
-import functional_unit_base.ConveyorBase;
-import functional_unit_base.LoadingProtocolBase;
-import functional_unit_base.ProcessEngineBase;
-import functional_unit_base.TurningBase;
+import functionalUnitBase.ConveyorBase;
+import functionalUnitBase.LoadingProtocolBase;
+import functionalUnitBase.ProcessEngineBase;
+import functionalUnitBase.TurningBase;
 import open62Wrap.*;
 import turnTable.TurnTable;
 
@@ -58,7 +58,6 @@ public class RobotBase extends ServerAPIBase {
     public RobotBase(LoadingProtocolBase loadingProtocolBase,ConveyorBase conveyorBase){
         this.loadingProtocolBase = loadingProtocolBase;
         this.conveyorBase = conveyorBase;
-        //Runtime.getRuntime().addShutdownHook(() -> serverAPIBase.);
     }
 
     public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, TurningBase turningBase){

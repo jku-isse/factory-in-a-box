@@ -1,4 +1,4 @@
-package motor_sensor_test;
+package motorSensorTest;
 
 import ev3dev.actuators.lego.motors.EV3LargeRegulatedMotor;
 import lejos.hardware.port.MotorPort;

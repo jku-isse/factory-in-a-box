@@ -1,41 +1,14 @@
-package functional_unit_dummys;
+package functionalUnitDummys.conveyorMethods;
 
-import functional_unit_base.ConveyorBase;
+import functionalUnitDummys.ConveyorDummy;
 import open62Wrap.*;
 import utils.StringFunction;
 
-public class ConveyorDummy extends ConveyorBase {
-
-    @Override
-    public void load() {
-        System.out.println("Load was called");
-    }
-
-    @Override
-    public void unload() {
-        System.out.println("Unload was called");
-    }
-
-    @Override
-    public void pause() {
-        System.out.println("Pause was called");
-    }
-
-    @Override
-    public void reset() {
-        System.out.println("Resetting conveyor");
-    }
-
-    @Override
-    public void stop() {
-        System.out.println("Stopping conveyor");
-    }
-
-    @Override
-    public void addServerConfig(SWIGTYPE_p_UA_Server server ,ServerAPIBase serverAPIBase) {
+public class ResetConveyorMethod {
+    public static void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
-        localeIn.setText("Type in your name");
+        localeIn.setText("Reset Method");
 
         UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
@@ -43,7 +16,7 @@ public class ConveyorDummy extends ConveyorBase {
         UA_Argument input = new UA_Argument();
 
         input.setDescription(localeIn);
-        input.setName("Input");
+        input.setName("Input");     //TODO delete input as it is not necessary
         input.setDataType(serverAPIBase.getDataTypeNode(open62541.UA_TYPES_STRING));
         input.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
@@ -53,7 +26,7 @@ public class ConveyorDummy extends ConveyorBase {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("SayHello");
+        methodLocale.setText("Reset");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
@@ -61,10 +34,8 @@ public class ConveyorDummy extends ConveyorBase {
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
         serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x -> {
-            load();
-            return "Success";
+            new ConveyorDummy().reset();
+            return "Resetting Successful";
         }));
     }
-
-
 }

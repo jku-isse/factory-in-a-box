@@ -1,7 +1,6 @@
-import functional_unit_dummys.ConveyorDummy;
-import functional_unit_dummys.LoadingDummy;
-import functional_unit_dummys.ProcessDummy;
-import robot_base.RobotBase;
+import functionalUnitDummys.ConveyorDummy;
+import functionalUnitDummys.LoadingDummy;
+import robotBase.RobotBase;
 
 public class RobotTestApplication {
 
