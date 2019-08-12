@@ -1,11 +1,12 @@
 package functionalUnitDummys;
 
 import functionalUnitBase.ProcessEngineBase;
-import functionalUnitDummys.processMethods.LoadProcessMethod;
-import functionalUnitDummys.processMethods.ResetProcessMethod;
-import functionalUnitDummys.processMethods.StopProcessMethod;
 import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
+import open62Wrap.UA_NodeId;
+import uaMethods.processMethods.LoadProcessMethod;
+import uaMethods.processMethods.ResetProcessMethod;
+import uaMethods.processMethods.StopProcessMethod;
 
 public class ProcessDummy extends ProcessEngineBase {
     @Override
@@ -15,18 +16,18 @@ public class ProcessDummy extends ProcessEngineBase {
 
     @Override
     public void reset() {
-        System.out.println("Reset was called");
+        System.out.println("Reset was called in Process");
     }
 
     @Override
     public void stop() {
-        System.out.println("Stop was called");
+        System.out.println("Stop was called in Process");
     }
 
     @Override
-    public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
-        LoadProcessMethod.addMethod(server, serverAPIBase);
-        ResetProcessMethod.addMethod(server, serverAPIBase);
-        StopProcessMethod.addMethod(server, serverAPIBase);
+    public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId processFolder) {
+        new LoadProcessMethod(this).addMethod(server, serverAPIBase, processFolder);
+        new ResetProcessMethod(this).addMethod(server, serverAPIBase, processFolder);
+        new StopProcessMethod(this).addMethod(server, serverAPIBase, processFolder);
     }
 }

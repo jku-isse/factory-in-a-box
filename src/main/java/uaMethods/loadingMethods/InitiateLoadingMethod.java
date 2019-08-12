@@ -1,12 +1,19 @@
-package functionalUnitDummys.loadingMethods;
+package uaMethods.loadingMethods;
 
-import functionalUnitDummys.LoadingDummy;
+import functionalUnitBase.LoadingProtocolBase;
 import open62Wrap.*;
 import turnTable.TurnTableOrientation;
 import utils.StringFunction;
 
 public class InitiateLoadingMethod {
-    public static void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
+
+    private LoadingProtocolBase loadingProtocol;
+
+    public InitiateLoadingMethod(LoadingProtocolBase loadingProtocol) {
+        this.loadingProtocol = loadingProtocol;
+    }
+
+    public void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId loadingFolder) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
         localeIn.setText("Initiate Loading Method");
@@ -34,8 +41,8 @@ public class InitiateLoadingMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x -> {
-            new LoadingDummy().initiateLoading(TurnTableOrientation.NORTH, 0);  //TODO implement this properly
+        serverAPIBase.addMethod(server,loadingFolder, 12, input, output, methodAttributes, new StringFunction(x -> {
+            this.loadingProtocol.initiateLoading(TurnTableOrientation.NORTH, 0);  //TODO implement this properly
             return "Successfully initiated loading";
         }));
     }

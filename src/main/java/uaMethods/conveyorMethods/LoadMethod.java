@@ -1,15 +1,21 @@
-package functionalUnitDummys.conveyorMethods;
+package uaMethods.conveyorMethods;
 
-import functionalUnitDummys.ConveyorDummy;
+import functionalUnitBase.ConveyorBase;
 import open62Wrap.*;
 import utils.StringFunction;
 
-public class UnloadMethod {
+public class LoadMethod {
 
-    public static void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
+    private ConveyorBase conveyor;
+
+    public LoadMethod(ConveyorBase conveyor){
+        this.conveyor = conveyor;
+    }
+
+    public void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId conveyorFolder) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
-        localeIn.setText("Unload Method");
+        localeIn.setText("Load Method");
 
         UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
@@ -27,16 +33,17 @@ public class UnloadMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("Unload");
+        methodLocale.setText("Load");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x -> {
-            new ConveyorDummy().unload();
-            return "Unloading Successful";
+        serverAPIBase.addMethod(server,conveyorFolder , 21, input, output, methodAttributes, new StringFunction(x ->
+        {
+            this.conveyor.load();
+            return "Loading Successful";
         }));
     }
 }

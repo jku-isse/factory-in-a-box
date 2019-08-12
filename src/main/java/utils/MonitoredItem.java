@@ -4,7 +4,6 @@ import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Represents a Monitored Item for opc_ua. We can give it a method with return type void.

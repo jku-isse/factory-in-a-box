@@ -1,6 +1,7 @@
 package motorSensorTest;
 
 import ev3dev.actuators.lego.motors.EV3LargeRegulatedMotor;
+import ev3dev.sensors.EV3Key;
 import lejos.hardware.port.MotorPort;
 import lejos.utility.Delay;
 

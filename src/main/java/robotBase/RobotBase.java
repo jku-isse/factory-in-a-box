@@ -49,18 +49,29 @@ public class RobotBase extends ServerAPIBase {
     private Thread serverThread = new Thread(() -> {
         System.out.println("Starting Server...");
         serverAPIBase = new ServerAPIBase();
-        server = serverAPIBase.createServer(4840, "localhost");
-        conveyorBase.addServerConfig(server, serverAPIBase);
+        server = serverAPIBase.createServer( "localhost", 4840);
+        UA_NodeId loadingFolder = addObject(server, 10, "LoadingProtocol");
+        loadingProtocolBase.addServerConfig(server, serverAPIBase, loadingFolder);
+        UA_NodeId conveyorFolder = addObject(server, 20, "Conveyor");
+        conveyorBase.addServerConfig(server, serverAPIBase, conveyorFolder);
+        if(turningBase != null){
+            UA_NodeId turningFolder = addObject(server, 30, "Turning");
+            turningBase.addServerConfig(server, serverAPIBase, turningFolder);
+        }
+        if(processEngineBase != null){
+            UA_NodeId processFolder = addObject(server, 40, "ProcessEngine");
+            processEngineBase.addServerConfig(server, serverAPIBase, processFolder);
+        }
         System.out.println("Running Server...");
         serverAPIBase.runServer(server);
     });
 
-    public RobotBase(LoadingProtocolBase loadingProtocolBase,ConveyorBase conveyorBase){
+    public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase) {
         this.loadingProtocolBase = loadingProtocolBase;
         this.conveyorBase = conveyorBase;
     }
 
-    public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, TurningBase turningBase){
+    public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, TurningBase turningBase) {
         this.loadingProtocolBase = loadingProtocolBase;
         this.conveyorBase = conveyorBase;
         this.turningBase = turningBase;
@@ -73,25 +84,35 @@ public class RobotBase extends ServerAPIBase {
         this.processEngineBase = processEngineBase;
     }
 
-    public void reset(){
+    public void reset() {
         loadingProtocolBase.reset();
         conveyorBase.reset();
-        turningBase.reset();
-        processEngineBase.reset();
+        if (turningBase != null) {
+            turningBase.reset();
+        }
+        if (processEngineBase != null) {
+            processEngineBase.reset();
+        }
     }
 
-    public void stop(){
+    public void stop() {
         loadingProtocolBase.stop();
         conveyorBase.stop();
-        turningBase.stop();
-        processEngineBase.stop();
+        if (turningBase != null) {
+            turningBase.stop();
+        }
+        if (turningBase != null) {
+            processEngineBase.stop();
+        }
     }
 
-    public void runServer(){
+    public void runServer() {
         serverThread.start();
     }
+
     /**
      * Workaround as System.loadLibrary() is not working as expected on the ev3.
+     *
      * @throws IOException file is probably used somewhere else or not there.
      */
     private static void loadNativeLib() throws IOException {

@@ -1,15 +1,22 @@
-package functionalUnitDummys.conveyorMethods;
+package uaMethods.loadingMethods;
 
-import functionalUnitDummys.ConveyorDummy;
+import functionalUnitBase.LoadingProtocolBase;
 import open62Wrap.*;
+import turnTable.TurnTableOrientation;
 import utils.StringFunction;
 
-public class StopConveyorMethod {
+public class InitiateUnloadingMethod {
 
-    public static void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
+    private LoadingProtocolBase loadingProtocol;
+
+    public InitiateUnloadingMethod(LoadingProtocolBase loadingProtocol) {
+        this.loadingProtocol = loadingProtocol;
+    }
+
+    public void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId loadingFolder) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
-        localeIn.setText("Stop Method");
+        localeIn.setText("Initiate Unloading Method");
 
         UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
@@ -27,16 +34,17 @@ public class StopConveyorMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("Stop");
+        methodLocale.setText("InitiateUnloading");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x -> {
-            new ConveyorDummy().stop();
-            return "Stop Successful";
+        serverAPIBase.addMethod(server, loadingFolder, 13, input, output, methodAttributes, new StringFunction(x ->
+        {
+            this.loadingProtocol.initiateUnloading(TurnTableOrientation.NORTH, 0);
+            return "Successfully initiated unloading";
         }));
     }
 }

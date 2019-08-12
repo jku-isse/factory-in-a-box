@@ -1,11 +1,12 @@
 package functionalUnitDummys;
 
 import functionalUnitBase.TurningBase;
-import functionalUnitDummys.turningMethods.ResetTurningMethod;
-import functionalUnitDummys.turningMethods.StopTurningMethod;
-import functionalUnitDummys.turningMethods.TurnToMethod;
 import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
+import open62Wrap.UA_NodeId;
+import uaMethods.turningMethods.ResetTurningMethod;
+import uaMethods.turningMethods.StopTurningMethod;
+import uaMethods.turningMethods.TurnToMethod;
 import turnTable.TurnTableOrientation;
 
 public class TurningDummy extends TurningBase {
@@ -16,18 +17,18 @@ public class TurningDummy extends TurningBase {
 
     @Override
     public void reset() {
-        System.out.println("Reset was called");
+        System.out.println("Reset was called in Turning");
     }
 
     @Override
     public void stop() {
-        System.out.println("Stop was called");
+        System.out.println("Stop was called in Turning");
     }
 
     @Override
-    public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
-        TurnToMethod.addMethod(server, serverAPIBase);
-        ResetTurningMethod.addMethod(server, serverAPIBase);
-        StopTurningMethod.addMethod(server, serverAPIBase);
+    public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId turningFolder) {
+        new TurnToMethod(this).addMethod(server, serverAPIBase, turningFolder);
+        new ResetTurningMethod(this).addMethod(server, serverAPIBase, turningFolder);
+        new StopTurningMethod(this).addMethod(server, serverAPIBase, turningFolder);
     }
 }

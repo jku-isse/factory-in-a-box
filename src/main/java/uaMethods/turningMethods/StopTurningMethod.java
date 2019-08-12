@@ -1,10 +1,18 @@
-package functionalUnitDummys.processMethods;
+package uaMethods.turningMethods;
 
+import functionalUnitBase.TurningBase;
 import open62Wrap.*;
 import utils.StringFunction;
 
-public class StopProcessMethod {
-    public static void addMethod(SWIGTYPE_p_UA_Server server , ServerAPIBase serverAPIBase) {
+public class StopTurningMethod {
+
+    private TurningBase turning;
+
+    public StopTurningMethod(TurningBase turning) {
+        this.turning = turning;
+    }
+
+    public void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId turningFolder) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
         localeIn.setText("Stop Method");
@@ -25,13 +33,16 @@ public class StopProcessMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("Stop");
+        methodLocale.setText("Stop Turning");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x -> "Stop Successful"));
+        serverAPIBase.addMethod(server, turningFolder, 32, input, output, methodAttributes, new StringFunction(x -> {
+            this.turning.stop();
+            return "Stop Successful";
+        }));
     }
 }

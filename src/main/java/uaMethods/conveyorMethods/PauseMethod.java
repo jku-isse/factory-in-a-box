@@ -1,11 +1,18 @@
-package functionalUnitDummys.conveyorMethods;
+package uaMethods.conveyorMethods;
 
-import functionalUnitDummys.ConveyorDummy;
+import functionalUnitBase.ConveyorBase;
 import open62Wrap.*;
 import utils.StringFunction;
 
 public class PauseMethod {
-    public static void addMethod(SWIGTYPE_p_UA_Server server , ServerAPIBase serverAPIBase) {
+
+    private ConveyorBase conveyor;
+
+    public PauseMethod(ConveyorBase conveyor) {
+        this.conveyor = conveyor;
+    }
+
+    public void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId conveyorFolder) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
         localeIn.setText("Pause Method");
@@ -33,8 +40,8 @@ public class PauseMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x -> {
-            new ConveyorDummy().pause();
+        serverAPIBase.addMethod(server,conveyorFolder, 22, input, output, methodAttributes, new StringFunction(x -> {
+            this.conveyor.pause();
             return "Pause Successful";
         }));
     }

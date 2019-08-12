@@ -1,15 +1,21 @@
-package functionalUnitDummys.loadingMethods;
+package uaMethods.conveyorMethods;
 
-import functionalUnitDummys.LoadingDummy;
+import functionalUnitBase.ConveyorBase;
 import open62Wrap.*;
-import turnTable.TurnTableOrientation;
 import utils.StringFunction;
 
-public class InitiateUnloadingMethod {
-    public static void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
+public class StopConveyorMethod {
+
+    private ConveyorBase conveyor;
+
+    public StopConveyorMethod(ConveyorBase conveyor) {
+        this.conveyor = conveyor;
+    }
+
+    public void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId conveyorFolder) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
-        localeIn.setText("Initiate Unloading Method");
+        localeIn.setText("Stop Method Conveyor");
 
         UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
@@ -27,17 +33,16 @@ public class InitiateUnloadingMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("InitiateUnloading");
+        methodLocale.setText("Stop Conveyor");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x ->
-        {
-            new LoadingDummy().initiateUnloading(TurnTableOrientation.NORTH, 0);
-            return "Successfully initiated unloading";
+        serverAPIBase.addMethod(server,conveyorFolder, 24, input, output, methodAttributes, new StringFunction(x -> {
+            this.conveyor.stop();
+            return "Stop Successful";
         }));
     }
 }

@@ -19,8 +19,8 @@ public class StringFunction extends ServerAPIBase {
     }
 
     @Override
-    public void methods_callback(ServerAPIBase jAPIBase, UA_NodeId methodId, UA_NodeId objectId, String input, String output) {
-        super.methods_callback(jAPIBase, methodId, objectId, input, output);
-        jAPIBase.setMethodOutput(function.apply(input));
+    public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
+        //super.methods_callback(methodId, objectId, input, output, jAPIBase);
+        setMethodOutput(function.apply(input));
     }
 }

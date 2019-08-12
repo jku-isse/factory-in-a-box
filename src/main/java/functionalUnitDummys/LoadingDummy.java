@@ -1,9 +1,10 @@
 package functionalUnitDummys;
 
 import functionalUnitBase.LoadingProtocolBase;
-import functionalUnitDummys.loadingMethods.*;
 import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
+import open62Wrap.UA_NodeId;
+import uaMethods.loadingMethods.*;
 import turnTable.TurnTableOrientation;
 
 public class LoadingDummy extends LoadingProtocolBase {
@@ -24,21 +25,21 @@ public class LoadingDummy extends LoadingProtocolBase {
 
     @Override
     public void reset() {
-        System.out.println("Resetting Loading");
+        System.out.println("Reset was called in Loading");
     }
 
     @Override
     public void stop() {
-        System.out.println("Stopping Loading");
+        System.out.println("Stop was called in Loading");
     }
 
     @Override
-    public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
-        CompleteMethod.addMethod(server, serverAPIBase);
-        InitiateLoadingMethod.addMethod(server, serverAPIBase);
-        InitiateUnloadingMethod.addMethod(server, serverAPIBase);
-        ResetLoadingProtocolMethod.addMethod(server, serverAPIBase);
-        StopLoadingProtocolMethod.addMethod(server, serverAPIBase);
+    public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId loadingFolder) {
+        new CompleteMethod(this).addMethod(server, serverAPIBase, loadingFolder);
+        new InitiateLoadingMethod(this).addMethod(server, serverAPIBase, loadingFolder);
+        new InitiateUnloadingMethod(this).addMethod(server, serverAPIBase, loadingFolder);
+        new ResetLoadingProtocolMethod(this).addMethod(server, serverAPIBase, loadingFolder);
+        new StopLoadingProtocolMethod(this).addMethod(server, serverAPIBase, loadingFolder);
     }
 
 }

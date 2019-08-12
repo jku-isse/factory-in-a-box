@@ -16,7 +16,7 @@ import java.nio.file.Files;
 import static turnTable.TurnTableOrientation.NORTH;
 import static turnTable.TurnTableStates.*;
 import static turnTable.TurnTableTriggers.*;
-//TODO refactoring!!!!
+//TODO delete package after finishing new architecture
 
 /**
  * The TurnTable class currently contains all logic, but will be split into smaller parts to make the code more readable.
@@ -66,7 +66,7 @@ public class TurnTable extends ServerAPIBase {
     private Thread serverThread = new Thread(() -> {
         System.out.println("Starting Server...");
         serverAPIBase = new ServerAPIBase();
-        server = serverAPIBase.createServer(4840, "localhost");
+        server = serverAPIBase.createServer("localhost", 4840);
         statusNodeID = serverAPIBase.manuallyDefineIMM(server);
         serverAPIBase.addMonitoredItem(server, statusNodeID, this);
 
@@ -98,7 +98,7 @@ public class TurnTable extends ServerAPIBase {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, this);
+        serverAPIBase.addMethod(server, statusNodeID, 44, input, output, methodAttributes, this);
         serverAPIBase.writeVariable(server, statusNodeID, 0);
         System.out.println("Running Server...");
         serverAPIBase.runServer(server);
@@ -409,6 +409,7 @@ public class TurnTable extends ServerAPIBase {
      * When a opc_ua method gets called, check if we are idle, then if successful, give a new task to the turnTable.7
      * Currently it parses a string to get two integers. This is subject to change.
      * In case the machine is busy, return the error message and do nothing.
+     *
      * @param jAPIBase
      * @param methodId
      * @param objectId
@@ -416,8 +417,8 @@ public class TurnTable extends ServerAPIBase {
      * @param output
      */
     @Override
-    public void methods_callback(ServerAPIBase jAPIBase, UA_NodeId methodId, UA_NodeId objectId,
-                                 String input, String output) {
+    public void methods_callback(UA_NodeId methodId, UA_NodeId objectId,
+                                 String input, String output, ServerAPIBase jAPIBase) {
 
         System.out.println("Method called with arguments: " + input.substring(0, 1) + " and " +
                 input.substring(1, 2));
@@ -433,6 +434,7 @@ public class TurnTable extends ServerAPIBase {
 
     /**
      * Workaround as System.loadLibrary() is not working as expected on the ev3.
+     *
      * @throws IOException file is probably used somewhere else or not there.
      */
     private static void loadNativeLib() throws IOException {

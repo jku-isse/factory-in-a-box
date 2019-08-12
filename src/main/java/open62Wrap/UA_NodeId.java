@@ -52,6 +52,15 @@ public class UA_NodeId {
     return UA_NodeIdType.swigToEnum(open62541JNI.UA_NodeId_identifierType_get(swigCPtr, this));
   }
 
+  public void setIdentifier(Identifier value) {
+    open62541JNI.UA_NodeId_identifier_set(swigCPtr, this, Identifier.getCPtr(value), value);
+  }
+
+  public Identifier getIdentifier() {
+    long cPtr = open62541JNI.UA_NodeId_identifier_get(swigCPtr, this);
+    return (cPtr == 0) ? null : new Identifier(cPtr, false);
+  }
+
   public UA_NodeId() {
     this(open62541JNI.new_UA_NodeId(), true);
   }

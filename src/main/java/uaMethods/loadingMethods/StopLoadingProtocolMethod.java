@@ -1,13 +1,21 @@
-package functionalUnitDummys.processMethods;
+package uaMethods.loadingMethods;
 
+import functionalUnitBase.LoadingProtocolBase;
 import open62Wrap.*;
 import utils.StringFunction;
 
-public class LoadProcessMethod {
-    public static void addMethod(SWIGTYPE_p_UA_Server server , ServerAPIBase serverAPIBase) {
+public class StopLoadingProtocolMethod {
+
+    private LoadingProtocolBase loadingProtocol;
+
+    public StopLoadingProtocolMethod(LoadingProtocolBase loadingProtocol) {
+        this.loadingProtocol = loadingProtocol;
+    }
+
+    public void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId loadingFolder) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
-        localeIn.setText("Load Process Method");
+        localeIn.setText("Stop Method Loading Protocol");
 
         UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
@@ -25,13 +33,16 @@ public class LoadProcessMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("LoadProcess");
+        methodLocale.setText("Stop Loading Protocol");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x -> "Successfully loaded process"));
+        serverAPIBase.addMethod(server,loadingFolder, 15, input, output, methodAttributes, new StringFunction(x -> {
+            this.loadingProtocol.stop();
+            return "Stop Successful";
+        }));
     }
 }

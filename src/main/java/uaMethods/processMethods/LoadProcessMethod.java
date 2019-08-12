@@ -1,14 +1,21 @@
-package functionalUnitDummys.turningMethods;
+package uaMethods.processMethods;
 
+import functionalUnitBase.ProcessEngineBase;
 import open62Wrap.*;
 import utils.StringFunction;
 
-public class StopTurningMethod {
+public class LoadProcessMethod {
 
-    public static void addMethod(SWIGTYPE_p_UA_Server server , ServerAPIBase serverAPIBase) {
+    private ProcessEngineBase processEngine;
+
+    public LoadProcessMethod(ProcessEngineBase processEngine) {
+        this.processEngine = processEngine;
+    }
+
+    public void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId processFolder) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
-        localeIn.setText("Stop Method");
+        localeIn.setText("Load Process Method");
 
         UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
@@ -26,13 +33,16 @@ public class StopTurningMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("Stop");
+        methodLocale.setText("LoadProcess");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x -> "Stop Successful"));
+        serverAPIBase.addMethod(server,processFolder, 41, input, output, methodAttributes, new StringFunction(x -> {
+            processEngine.loadProcess();
+            return "Successfully loaded process";
+        }));
     }
 }

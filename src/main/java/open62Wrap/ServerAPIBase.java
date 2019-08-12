@@ -9,169 +9,150 @@
 package open62Wrap;
 
 public class ServerAPIBase {
-	private transient long swigCPtr;
-	protected transient boolean swigCMemOwn;
+  private transient long swigCPtr;
+  protected transient boolean swigCMemOwn;
 
-	protected ServerAPIBase(long cPtr, boolean cMemoryOwn) {
-		swigCMemOwn = cMemoryOwn;
-		swigCPtr = cPtr;
-	}
+  protected ServerAPIBase(long cPtr, boolean cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+  }
 
-	protected static long getCPtr(ServerAPIBase obj) {
-		return (obj == null) ? 0 : obj.swigCPtr;
-	}
+  protected static long getCPtr(ServerAPIBase obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
 
-	@SuppressWarnings("deprecation")
-	protected void finalize() {
-		delete();
-	}
+  @SuppressWarnings("deprecation")
+  protected void finalize() {
+    delete();
+  }
 
-	public synchronized void delete() {
-		if (swigCPtr != 0) {
-			if (swigCMemOwn) {
-				swigCMemOwn = false;
-				open62541JNI.delete_ServerAPIBase(swigCPtr);
-			}
-			swigCPtr = 0;
-		}
-	}
+  public synchronized void delete() {
+    if (swigCPtr != 0) {
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
+        open62541JNI.delete_ServerAPIBase(swigCPtr);
+      }
+      swigCPtr = 0;
+    }
+  }
 
-	protected void swigDirectorDisconnect() {
-		swigCMemOwn = false;
-		delete();
-	}
+  protected void swigDirectorDisconnect() {
+    swigCMemOwn = false;
+    delete();
+  }
 
-	public void swigReleaseOwnership() {
-		swigCMemOwn = false;
-		open62541JNI.ServerAPIBase_change_ownership(this, swigCPtr, false);
-	}
+  public void swigReleaseOwnership() {
+    swigCMemOwn = false;
+    open62541JNI.ServerAPIBase_change_ownership(this, swigCPtr, false);
+  }
 
-	public void swigTakeOwnership() {
-		swigCMemOwn = true;
-		open62541JNI.ServerAPIBase_change_ownership(this, swigCPtr, true);
-	}
+  public void swigTakeOwnership() {
+    swigCMemOwn = true;
+    open62541JNI.ServerAPIBase_change_ownership(this, swigCPtr, true);
+  }
 
-	public void setD(Object value) {
-		open62541JNI.ServerAPIBase_d_set(swigCPtr, this, value);
-	}
+  public void setD(java.lang.Object value) {
+    open62541JNI.ServerAPIBase_d_set(swigCPtr, this, value);
+  }
 
-	public Object getD() {
-		return open62541JNI.ServerAPIBase_d_get(swigCPtr, this);
-	}
+  public java.lang.Object getD() {
+    return open62541JNI.ServerAPIBase_d_get(swigCPtr, this);
+  }
 
-	public static ServerAPIBase Get() {
-		long cPtr = open62541JNI.ServerAPIBase_Get();
-		return (cPtr == 0) ? null : new ServerAPIBase(cPtr, false);
-	}
+  public void setRunning(boolean value) {
+    open62541JNI.ServerAPIBase_running_set(swigCPtr, this, value);
+  }
 
-	public static void stopHandler(int sig) {
-		open62541JNI.ServerAPIBase_stopHandler(sig);
-	}
+  public boolean getRunning() {
+    return open62541JNI.ServerAPIBase_running_get(swigCPtr, this);
+  }
 
-	public SWIGTYPE_p_UA_Server createServerDefaultConfig() {
-		long cPtr = open62541JNI.ServerAPIBase_createServerDefaultConfig(swigCPtr, this);
-		return (cPtr == 0) ? null : new SWIGTYPE_p_UA_Server(cPtr, false);
-	}
+  public static ServerAPIBase Get() {
+    long cPtr = open62541JNI.ServerAPIBase_Get();
+    return (cPtr == 0) ? null : new ServerAPIBase(cPtr, false);
+  }
 
-	public SWIGTYPE_p_UA_Server createServer(int port, String host) {
-		long cPtr = open62541JNI.ServerAPIBase_createServer(swigCPtr, this, port, host);
-		return (cPtr == 0) ? null : new SWIGTYPE_p_UA_Server(cPtr, false);
-	}
+  public static void stopHandler(int sig) {
+    open62541JNI.ServerAPIBase_stopHandler(sig);
+  }
 
-	public SWIGTYPE_p_UA_Server runServer(SWIGTYPE_p_UA_Server server) {
-		long cPtr = open62541JNI.ServerAPIBase_runServer(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server));
-		return (cPtr == 0) ? null : new SWIGTYPE_p_UA_Server(cPtr, false);
-	}
+  public SWIGTYPE_p_UA_Server createServerDefaultConfig() {
+    long cPtr = open62541JNI.ServerAPIBase_createServerDefaultConfig(swigCPtr, this);
+    return (cPtr == 0) ? null : new SWIGTYPE_p_UA_Server(cPtr, false);
+  }
 
-	public void addMonitoredItem(SWIGTYPE_p_UA_Server server, UA_NodeId immId, ServerAPIBase jAPIBase) {
-		open62541JNI.ServerAPIBase_addMonitoredItem(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server),
-				UA_NodeId.getCPtr(immId), immId, ServerAPIBase.getCPtr(jAPIBase), jAPIBase);
-	}
+  public SWIGTYPE_p_UA_Server createServer(String host, int port) {
+    long cPtr = open62541JNI.ServerAPIBase_createServer(swigCPtr, this, host, port);
+    return (cPtr == 0) ? null : new SWIGTYPE_p_UA_Server(cPtr, false);
+  }
 
-	public UA_NodeId addObject(SWIGTYPE_p_UA_Server server, String name) {
-		return new UA_NodeId(
-				open62541JNI.ServerAPIBase_addObject(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), name), true);
-	}
+  public int runServer(SWIGTYPE_p_UA_Server server) {
+    return open62541JNI.ServerAPIBase_runServer(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server));
+  }
 
-	public UA_NodeId addVariableNode(SWIGTYPE_p_UA_Server server, UA_NodeId objectId, String name, int typeId,
-			int accessLevel) {
-		return new UA_NodeId(open62541JNI.ServerAPIBase_addVariableNode(swigCPtr, this,
-				SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(objectId), objectId, name, typeId, accessLevel),
-				true);
-	}
+  public void addMonitoredItem(SWIGTYPE_p_UA_Server server, UA_NodeId immId, ServerAPIBase jAPIBase) {
+    open62541JNI.ServerAPIBase_addMonitoredItem(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(immId), immId, ServerAPIBase.getCPtr(jAPIBase), jAPIBase);
+  }
 
-	public UA_NodeId manuallyDefineIMM(SWIGTYPE_p_UA_Server server) {
-		return new UA_NodeId(
-				open62541JNI.ServerAPIBase_manuallyDefineIMM(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server)),
-				true);
-	}
+  public UA_NodeId addObject(SWIGTYPE_p_UA_Server server, int requestedNewNodeId, String name) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_addObject(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), requestedNewNodeId, name), true);
+  }
 
-	public UA_NodeId manuallyDefineRobot(SWIGTYPE_p_UA_Server server) {
-		return new UA_NodeId(
-				open62541JNI.ServerAPIBase_manuallyDefineRobot(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server)),
-				true);
-	}
+  public UA_NodeId addVariableNode(SWIGTYPE_p_UA_Server server, UA_NodeId objectId, int requestedNewNodeId, String name, int typeId, int accessLevel) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_addVariableNode(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(objectId), objectId, requestedNewNodeId, name, typeId, accessLevel), true);
+  }
 
-	public int writeVariable(SWIGTYPE_p_UA_Server server, UA_NodeId nodeId, int intValue) {
-		return open62541JNI.ServerAPIBase_writeVariable__SWIG_0(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server),
-				UA_NodeId.getCPtr(nodeId), nodeId, intValue);
-	}
+  public UA_NodeId manuallyDefineIMM(SWIGTYPE_p_UA_Server server) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_manuallyDefineIMM(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server)), true);
+  }
 
-	public int writeVariable(SWIGTYPE_p_UA_Server server, UA_NodeId nodeId, String stringValue) {
-		return open62541JNI.ServerAPIBase_writeVariable__SWIG_1(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server),
-				UA_NodeId.getCPtr(nodeId), nodeId, stringValue);
-	}
+  public UA_NodeId manuallyDefineRobot(SWIGTYPE_p_UA_Server server) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_manuallyDefineRobot(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server)), true);
+  }
 
-	public int writeVariable(SWIGTYPE_p_UA_Server server, UA_NodeId nodeId, double doubleValue) {
-		return open62541JNI.ServerAPIBase_writeVariable__SWIG_2(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server),
-				UA_NodeId.getCPtr(nodeId), nodeId, doubleValue);
-	}
+  public int writeVariable(SWIGTYPE_p_UA_Server server, UA_NodeId nodeId, int intValue) {
+    return open62541JNI.ServerAPIBase_writeVariable__SWIG_0(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(nodeId), nodeId, intValue);
+  }
 
-	public UA_NodeId getDataTypeNode(int typeId) {
-		return new UA_NodeId(open62541JNI.ServerAPIBase_getDataTypeNode(swigCPtr, this, typeId), true);
-	}
+  public int writeVariable(SWIGTYPE_p_UA_Server server, UA_NodeId nodeId, String stringValue) {
+    return open62541JNI.ServerAPIBase_writeVariable__SWIG_1(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(nodeId), nodeId, stringValue);
+  }
 
-	public void addMethod(SWIGTYPE_p_UA_Server server, UA_Argument inputArgument, UA_Argument outputArgument,
-			UA_MethodAttributes methodAttr, ServerAPIBase jAPIBase) {
-		open62541JNI.ServerAPIBase_addMethod(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server),
-				UA_Argument.getCPtr(inputArgument), inputArgument, UA_Argument.getCPtr(outputArgument), outputArgument,
-				UA_MethodAttributes.getCPtr(methodAttr), methodAttr, ServerAPIBase.getCPtr(jAPIBase), jAPIBase);
-	}
+  public int writeVariable(SWIGTYPE_p_UA_Server server, UA_NodeId nodeId, double doubleValue) {
+    return open62541JNI.ServerAPIBase_writeVariable__SWIG_2(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(nodeId), nodeId, doubleValue);
+  }
 
-	public void setData(Object arg0) {
-		open62541JNI.ServerAPIBase_setData(swigCPtr, this, arg0);
-	}
+  public UA_NodeId getDataTypeNode(int typeId) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_getDataTypeNode(swigCPtr, this, typeId), true);
+  }
 
-	public Object getData() {
-		return open62541JNI.ServerAPIBase_getData(swigCPtr, this);
-	}
+  public UA_NodeId addMethod(SWIGTYPE_p_UA_Server server, UA_NodeId objectId, int requestedNewNodeId, UA_Argument inputArgument, UA_Argument outputArgument, UA_MethodAttributes methodAttr, ServerAPIBase jAPIBase) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_addMethod(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(objectId), objectId, requestedNewNodeId, UA_Argument.getCPtr(inputArgument), inputArgument, UA_Argument.getCPtr(outputArgument), outputArgument, UA_MethodAttributes.getCPtr(methodAttr), methodAttr, ServerAPIBase.getCPtr(jAPIBase), jAPIBase), true);
+  }
 
-	public void setMethodOutput(String output) {
-		open62541JNI.ServerAPIBase_setMethodOutput(swigCPtr, this, output);
-	}
+  public void setData(java.lang.Object arg0) {
+    open62541JNI.ServerAPIBase_setData(swigCPtr, this, arg0);
+  }
 
-	public void monitored_itemChanged(UA_NodeId nodeId, int value) {
-		if (getClass() == ServerAPIBase.class)
-			open62541JNI.ServerAPIBase_monitored_itemChanged(swigCPtr, this, UA_NodeId.getCPtr(nodeId), nodeId, value);
-		else
-			open62541JNI.ServerAPIBase_monitored_itemChangedSwigExplicitServerAPIBase(swigCPtr, this,
-					UA_NodeId.getCPtr(nodeId), nodeId, value);
-	}
+  public java.lang.Object getData() {
+    return open62541JNI.ServerAPIBase_getData(swigCPtr, this);
+  }
 
-	public void methods_callback(ServerAPIBase jAPIBase, UA_NodeId methodId, UA_NodeId objectId, String input,
-			String output) {
-		if (getClass() == ServerAPIBase.class)
-			open62541JNI.ServerAPIBase_methods_callback(swigCPtr, this, ServerAPIBase.getCPtr(jAPIBase), jAPIBase,
-					UA_NodeId.getCPtr(methodId), methodId, UA_NodeId.getCPtr(objectId), objectId, input, output);
-		else
-			open62541JNI.ServerAPIBase_methods_callbackSwigExplicitServerAPIBase(swigCPtr, this,
-					ServerAPIBase.getCPtr(jAPIBase), jAPIBase, UA_NodeId.getCPtr(methodId), methodId,
-					UA_NodeId.getCPtr(objectId), objectId, input, output);
-	}
+  public void setMethodOutput(String output) {
+    open62541JNI.ServerAPIBase_setMethodOutput(swigCPtr, this, output);
+  }
 
-	public ServerAPIBase() {
-		this(open62541JNI.new_ServerAPIBase(), true);
-		open62541JNI.ServerAPIBase_director_connect(this, swigCPtr, true, true);
-	}
+  public void monitored_itemChanged(UA_NodeId nodeId, int value) {
+    if (getClass() == ServerAPIBase.class) open62541JNI.ServerAPIBase_monitored_itemChanged(swigCPtr, this, UA_NodeId.getCPtr(nodeId), nodeId, value); else open62541JNI.ServerAPIBase_monitored_itemChangedSwigExplicitServerAPIBase(swigCPtr, this, UA_NodeId.getCPtr(nodeId), nodeId, value);
+  }
+
+  public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
+    if (getClass() == ServerAPIBase.class) open62541JNI.ServerAPIBase_methods_callback(swigCPtr, this, UA_NodeId.getCPtr(methodId), methodId, UA_NodeId.getCPtr(objectId), objectId, input, output, ServerAPIBase.getCPtr(jAPIBase), jAPIBase); else open62541JNI.ServerAPIBase_methods_callbackSwigExplicitServerAPIBase(swigCPtr, this, UA_NodeId.getCPtr(methodId), methodId, UA_NodeId.getCPtr(objectId), objectId, input, output, ServerAPIBase.getCPtr(jAPIBase), jAPIBase);
+  }
+
+  public ServerAPIBase() {
+    this(open62541JNI.new_ServerAPIBase(), true);
+    open62541JNI.ServerAPIBase_director_connect(this, swigCPtr, true, true);
+  }
 
 }

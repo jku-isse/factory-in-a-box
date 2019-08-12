@@ -1,14 +1,22 @@
-package functionalUnitDummys.loadingMethods;
+package uaMethods.turningMethods;
 
-import functionalUnitDummys.LoadingDummy;
+import functionalUnitBase.TurningBase;
 import open62Wrap.*;
+import turnTable.TurnTableOrientation;
 import utils.StringFunction;
 
-public class CompleteMethod {
-    public static void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase) {
+public class TurnToMethod {
+
+    private TurningBase turning;
+
+    public TurnToMethod(TurningBase turning) {
+        this.turning = turning;
+    }
+
+    public void addMethod(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId turningFolder) {
         UA_LocalizedText localeIn = new UA_LocalizedText();
         localeIn.setLocale("en-US");
-        localeIn.setText("Complete Method");
+        localeIn.setText("TurnTo Method");
 
         UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
@@ -16,7 +24,7 @@ public class CompleteMethod {
         UA_Argument input = new UA_Argument();
 
         input.setDescription(localeIn);
-        input.setName("Input");     //TODO delete input as it is not necessary
+        input.setName("Input");     //TODO see data type of input and change accordingly
         input.setDataType(serverAPIBase.getDataTypeNode(open62541.UA_TYPES_STRING));
         input.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
@@ -26,16 +34,16 @@ public class CompleteMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("Complete");
+        methodLocale.setText("TurnTo");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, input, output, methodAttributes, new StringFunction(x -> {
-            new LoadingDummy().complete();
-            return "Complete Successful";
+        serverAPIBase.addMethod(server,turningFolder, 33, input, output, methodAttributes, new StringFunction(x -> {
+            this.turning.turnTo(TurnTableOrientation.createFromInt(Integer.parseInt(x)));
+            return "Turned to " + x;
         }));
     }
 }
