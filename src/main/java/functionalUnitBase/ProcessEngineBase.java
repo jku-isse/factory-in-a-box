@@ -5,9 +5,10 @@ import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
 
-public abstract class ProcessEngineBase {
+import java.util.HashMap;
+import java.util.function.Function;
 
-    private StateMachine stateMachine; //TODO add type
+public abstract class ProcessEngineBase {
 
     public abstract void loadProcess();
 

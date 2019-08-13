@@ -7,6 +7,9 @@ import open62Wrap.UA_NodeId;
 import uaMethods.loadingMethods.*;
 import turnTable.TurnTableOrientation;
 
+import java.util.HashMap;
+import java.util.function.Function;
+
 public class LoadingDummy extends LoadingProtocolBase {
     @Override
     public void initiateLoading(TurnTableOrientation direction, int orderId) {

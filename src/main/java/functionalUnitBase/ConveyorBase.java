@@ -5,9 +5,29 @@ import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
 
+import java.util.HashMap;
+import java.util.function.Function;
+
 public abstract class ConveyorBase {
 
-    private StateMachine stateMachine;  //TODO add type
+    private SWIGTYPE_p_UA_Server server;
+    private ServerAPIBase serverAPIBase;
+
+    public void setServer(SWIGTYPE_p_UA_Server server) {
+        this.server = server;
+    }
+
+    public void setServerAPIBase(ServerAPIBase serverAPIBase) {
+        this.serverAPIBase = serverAPIBase;
+    }
+
+    public SWIGTYPE_p_UA_Server getServer() {
+        return server;
+    }
+
+    public ServerAPIBase getServerAPIBase() {
+        return serverAPIBase;
+    }
 
     public abstract void load();
 

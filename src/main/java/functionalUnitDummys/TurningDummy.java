@@ -9,6 +9,9 @@ import uaMethods.turningMethods.StopTurningMethod;
 import uaMethods.turningMethods.TurnToMethod;
 import turnTable.TurnTableOrientation;
 
+import java.util.HashMap;
+import java.util.function.Function;
+
 public class TurningDummy extends TurningBase {
     @Override
     public void turnTo(TurnTableOrientation orientation) {

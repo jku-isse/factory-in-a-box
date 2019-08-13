@@ -6,9 +6,10 @@ import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
 import turnTable.TurnTableOrientation;
 
-public abstract class TurningBase {
+import java.util.HashMap;
+import java.util.function.Function;
 
-    private StateMachine stateMachine; //TODO add type
+public abstract class TurningBase {
 
     public abstract void turnTo(TurnTableOrientation orientation);
 

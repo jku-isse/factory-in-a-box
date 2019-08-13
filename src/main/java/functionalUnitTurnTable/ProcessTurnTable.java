@@ -5,6 +5,9 @@ import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
 
+import java.util.HashMap;
+import java.util.function.Function;
+
 public class ProcessTurnTable extends ProcessEngineBase {
     @Override
     public void loadProcess() {

@@ -8,6 +8,9 @@ import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
 import turnTable.TurnTableOrientation;
 
+import java.util.HashMap;
+import java.util.function.Function;
+
 public class TurningTurnTable extends TurningBase {
     private final EV3LargeRegulatedMotor turnMotor;
     private final EV3TouchSensor touchSensor;

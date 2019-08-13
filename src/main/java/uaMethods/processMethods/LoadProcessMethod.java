@@ -40,9 +40,17 @@ public class LoadProcessMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server,processFolder, 41, input, output, methodAttributes, new StringFunction(x -> {
+        /*serverAPIBase.addMethod(server,processFolder, 41, input, output, methodAttributes, new StringFunction(x -> {
             processEngine.loadProcess();
             return "Successfully loaded process";
-        }));
+        }));*/
+        serverAPIBase.addMethod(server, processFolder, 41, input, output, methodAttributes, new ServerAPIBase(){
+            @Override
+            public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
+                //super.methods_callback(methodId, objectId, input, output, jAPIBase);
+                processEngine.loadProcess();
+                setMethodOutput("Successfully loaded process");
+            }
+        });
     }
 }

@@ -18,6 +18,10 @@ public class StringFunction extends ServerAPIBase {
         this.function = function;
     }
 
+    public Function<String, String> getFunction() {
+        return function;
+    }
+
     @Override
     public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
         //super.methods_callback(methodId, objectId, input, output, jAPIBase);

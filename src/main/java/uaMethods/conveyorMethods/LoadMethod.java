@@ -4,11 +4,14 @@ import functionalUnitBase.ConveyorBase;
 import open62Wrap.*;
 import utils.StringFunction;
 
+import java.util.HashMap;
+import java.util.function.Function;
+
 public class LoadMethod {
 
     private ConveyorBase conveyor;
 
-    public LoadMethod(ConveyorBase conveyor){
+    public LoadMethod(ConveyorBase conveyor) {
         this.conveyor = conveyor;
     }
 
@@ -40,10 +43,19 @@ public class LoadMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server,conveyorFolder , 21, input, output, methodAttributes, new StringFunction(x ->
+        /*serverAPIBase.addMethod(server,conveyorFolder , 21, input, output, methodAttributes, new StringFunction(x ->
         {
             this.conveyor.load();
             return "Loading Successful";
-        }));
+        }));*/
+        serverAPIBase.addMethod(server, conveyorFolder, 21, input, output, methodAttributes, new LoadMethodCallback());
+    }
+
+    class LoadMethodCallback extends ServerAPIBase {
+        @Override
+        public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
+            conveyor.load();
+            this.setMethodOutput("Loading Successful");
+        }
     }
 }

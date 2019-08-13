@@ -40,19 +40,22 @@ public class RobotBase extends ServerAPIBase {
     private TurningBase turningBase;
     private ProcessEngineBase processEngineBase;
 
-    private ServerAPIBase serverAPIBase;
-    private SWIGTYPE_p_UA_Server server;
+    protected ServerAPIBase serverAPIBase;
+    protected SWIGTYPE_p_UA_Server server;
 
     /**
      * The Server-Thread. Here we define how the server should be set up.
      */
     private Thread serverThread = new Thread(() -> {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
         System.out.println("Starting Server...");
         serverAPIBase = new ServerAPIBase();
         server = serverAPIBase.createServer( "localhost", 4840);
         UA_NodeId loadingFolder = addObject(server, 10, "LoadingProtocol");
-        loadingProtocolBase.addServerConfig(server, serverAPIBase, loadingFolder);
+        //loadingProtocolBase.addServerConfig(server, serverAPIBase, loadingFolder);
         UA_NodeId conveyorFolder = addObject(server, 20, "Conveyor");
+        conveyorBase.setServer(server);
+        conveyorBase.setServerAPIBase(serverAPIBase);
         conveyorBase.addServerConfig(server, serverAPIBase, conveyorFolder);
         if(turningBase != null){
             UA_NodeId turningFolder = addObject(server, 30, "Turning");

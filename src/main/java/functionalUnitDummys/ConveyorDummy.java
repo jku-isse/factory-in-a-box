@@ -4,6 +4,9 @@ import functionalUnitBase.ConveyorBase;
 import uaMethods.conveyorMethods.*;
 import open62Wrap.*;
 
+import java.util.HashMap;
+import java.util.function.Function;
+
 public class ConveyorDummy extends ConveyorBase {
 
     @Override
