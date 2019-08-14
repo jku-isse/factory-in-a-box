@@ -10,6 +10,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import shopfloor.agents.impl.MachineAgent;
 import shopfloor.agents.impl.OrderAgent;
+import shopfloor.agents.messages.OrderDocument;
 import shopfloor.agents.messages.ProductionStateUpdate;
 import shopfloor.agents.messages.ProductionStateUpdate.ProductionState;
 
@@ -28,7 +29,8 @@ public class ShopfloorControl {
 			job2machineDict.put("DrawTree", m1);
 			job2machineDict.put("DrawSun", m2);
 			job2machineDict.put("DrawLake", m1);
-			final ActorRef orderActor = system.actorOf(OrderAgent.props("Order1", jobs, job2machineDict));			
+			OrderDocument order1 = new OrderDocument("Order1", jobs);
+			final ActorRef orderActor = system.actorOf(OrderAgent.props(order1, job2machineDict));			
 			orderActor.tell(new ProductionStateUpdate(ProductionState.COMPLETED, "INITJOB", Instant.now()), ActorRef.noSender());
 
 			System.out.println(">>> Press ENTER to exit <<<");
