@@ -4,6 +4,7 @@ import com.github.oxo42.stateless4j.StateMachine;
 import ev3dev.actuators.lego.motors.EV3MediumRegulatedMotor;
 import ev3dev.sensors.ev3.EV3TouchSensor;
 import functionalUnitBase.ConveyorBase;
+import io.vertx.core.Vertx;
 import lejos.hardware.port.Port;
 import lejos.utility.Delay;
 import open62Wrap.SWIGTYPE_p_UA_Server;
@@ -16,6 +17,7 @@ import turnTable.TurnTableTriggers;
 import uaMethods.conveyorMethods.LoadMethod;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 
 import static turnTable.TurnTableStates.IDLE;
 import static turnTable.TurnTableTriggers.NEXT;
@@ -35,62 +37,79 @@ public class ConveyorTurnTable extends ConveyorBase {
         Runtime.getRuntime().addShutdownHook(new Thread(mediumRegulatedMotor::stop));
     }
 
+    private void updateState() {
+        getServerAPIBase().writeVariable(getServer(), node, conveyorStateMachine.getState().getValue());
+    }
+
     @Override
     public void load() {
-        if (!conveyorStateMachine.canFire(START)) {
-            System.out.println("Conveyor is busy");
-            return;
-        }
-        conveyorStateMachine.fire(START);
-        getServerAPIBase().writeVariable(getServer(), node, conveyorStateMachine.getState().getValue());
-        System.out.println("Executing: loadBelt");
-        CountDownLatch latch = new CountDownLatch(1);
-        new Thread(() -> {
+        Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
+        vertx.executeBlocking(promise -> {
+            if (!conveyorStateMachine.canFire(START)) {
+                System.out.println("Conveyor is busy");
+                return;
+            }
+            conveyorStateMachine.fire(START);
+            updateState();
+            System.out.println("Executing: loadBelt");
             this.mediumRegulatedMotor.brake();
             this.mediumRegulatedMotor.backward();
             while (!touchSensor.isPressed()) {
                 //TODO replace empty while loop with something not as ugly
             }
+            System.out.println("Button pressed");
             this.mediumRegulatedMotor.stop();
-            latch.countDown();
-        }).start();
-        try {
-            latch.await();
             if (conveyorStateMachine.canFire(NEXT)) {
                 conveyorStateMachine.fire(NEXT);
-                getServerAPIBase().writeVariable(getServer(), node, conveyorStateMachine.getState().getValue());
+                updateState();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
+        }, res -> {
+        });
     }
 
     @Override
     public void unload() {
-        System.out.println("Executing: loadBelt");
-        this.mediumRegulatedMotor.brake();
-        this.mediumRegulatedMotor.forward();
-        while (!touchSensor.isPressed()) {
-            //TODO replace empty while loop with something not as ugly
-        }
-        this.mediumRegulatedMotor.stop();
+        Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
+        vertx.executeBlocking(promise -> {
+            if (!conveyorStateMachine.canFire(START)) {
+                System.out.println("Conveyor is busy");
+                return;
+            }
+            conveyorStateMachine.fire(START);
+            updateState();
+            System.out.println("Executing: loadBelt");
+            this.mediumRegulatedMotor.brake();
+            this.mediumRegulatedMotor.forward();
+            while (!touchSensor.isPressed()) {
+                //TODO replace empty while loop with something not as ugly
+            }
+            System.out.println("Button pressed");
+            this.mediumRegulatedMotor.stop();
+            if (conveyorStateMachine.canFire(NEXT)) {
+                conveyorStateMachine.fire(NEXT);
+                updateState();
+            }
+        }, res -> {
+        });
     }
 
     @Override
     public void pause() {
+        System.out.println("Executing: pause");
         this.mediumRegulatedMotor.brake();
         this.mediumRegulatedMotor.hold();
     }
 
     @Override
     public void reset() {
+        System.out.println("Executing: reset");
         this.mediumRegulatedMotor.brake();
         this.mediumRegulatedMotor.rotateTo(0);
     }
 
     @Override
     public void stop() {
+        System.out.println("Executing: stop");
         this.mediumRegulatedMotor.stop();
     }
 
@@ -98,6 +117,7 @@ public class ConveyorTurnTable extends ConveyorBase {
     public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId conveyorFolder) {
         new LoadMethod(this).addMethod(server, serverAPIBase, conveyorFolder);
         int b = open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ;
-        node = getServerAPIBase().addVariableNode(getServer(), conveyorFolder, 56, "Status", open62541.UA_TYPES_INT32, b);
+        node = getServerAPIBase().addVariableNode(getServer(), conveyorFolder, 56,
+                "ConveyorStatus", open62541.UA_TYPES_INT32, b);
     }
 }

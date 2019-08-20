@@ -10,6 +10,25 @@ import java.util.function.Function;
 
 public abstract class ProcessEngineBase {
 
+    private SWIGTYPE_p_UA_Server server;
+    private ServerAPIBase serverAPIBase;
+
+    public void setServer(SWIGTYPE_p_UA_Server server) {
+        this.server = server;
+    }
+
+    public void setServerAPIBase(ServerAPIBase serverAPIBase) {
+        this.serverAPIBase = serverAPIBase;
+    }
+
+    public SWIGTYPE_p_UA_Server getServer() {
+        return server;
+    }
+
+    public ServerAPIBase getServerAPIBase() {
+        return serverAPIBase;
+    }
+
     public abstract void loadProcess();
 
     public abstract void reset();   //TODO delete this if not necessary

@@ -52,17 +52,23 @@ public class RobotBase extends ServerAPIBase {
         serverAPIBase = new ServerAPIBase();
         server = serverAPIBase.createServer( "localhost", 4840);
         UA_NodeId loadingFolder = addObject(server, 10, "LoadingProtocol");
-        //loadingProtocolBase.addServerConfig(server, serverAPIBase, loadingFolder);
+        loadingProtocolBase.setServer(server);
+        loadingProtocolBase.setServerAPIBase(serverAPIBase);
+        loadingProtocolBase.addServerConfig(server, serverAPIBase, loadingFolder);
         UA_NodeId conveyorFolder = addObject(server, 20, "Conveyor");
         conveyorBase.setServer(server);
         conveyorBase.setServerAPIBase(serverAPIBase);
         conveyorBase.addServerConfig(server, serverAPIBase, conveyorFolder);
         if(turningBase != null){
             UA_NodeId turningFolder = addObject(server, 30, "Turning");
+            turningBase.setServer(server);
+            turningBase.setServerAPIBase(serverAPIBase);
             turningBase.addServerConfig(server, serverAPIBase, turningFolder);
         }
         if(processEngineBase != null){
             UA_NodeId processFolder = addObject(server, 40, "ProcessEngine");
+            processEngineBase.setServer(server);
+            processEngineBase.setServerAPIBase(serverAPIBase);
             processEngineBase.addServerConfig(server, serverAPIBase, processFolder);
         }
         System.out.println("Running Server...");
