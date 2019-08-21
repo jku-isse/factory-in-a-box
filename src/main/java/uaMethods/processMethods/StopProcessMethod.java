@@ -40,16 +40,10 @@ public class StopProcessMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        /*serverAPIBase.addMethod(server, processFolder, 43, input, output, methodAttributes, new StringFunction(x ->{
-            processEngine.stop();
-            return "Stop Successful";
-        } ));*/
-        serverAPIBase.addMethod(server, processFolder, 43, input, output, methodAttributes, new ServerAPIBase(){
-            @Override
-            public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
-                processEngine.stop();
-                setMethodOutput("Stop Successful");
-            }
-        });
+        serverAPIBase.addMethod(server, processFolder, open62541.UA_NODEID_NUMERIC(1, 43),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    processEngine.stop();
+                    return "Stop Process Successful";
+                }));
     }
 }

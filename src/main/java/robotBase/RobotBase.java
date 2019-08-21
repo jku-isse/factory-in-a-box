@@ -51,22 +51,22 @@ public class RobotBase extends ServerAPIBase {
         System.out.println("Starting Server...");
         serverAPIBase = new ServerAPIBase();
         server = serverAPIBase.createServer( "localhost", 4840);
-        UA_NodeId loadingFolder = addObject(server, 10, "LoadingProtocol");
+        UA_NodeId loadingFolder = addObject(server, open62541.UA_NODEID_NUMERIC(1, 10), "LoadingProtocol");
         loadingProtocolBase.setServer(server);
         loadingProtocolBase.setServerAPIBase(serverAPIBase);
         loadingProtocolBase.addServerConfig(server, serverAPIBase, loadingFolder);
-        UA_NodeId conveyorFolder = addObject(server, 20, "Conveyor");
+        UA_NodeId conveyorFolder = addObject(server,  open62541.UA_NODEID_NUMERIC(1, 20), "Conveyor");
         conveyorBase.setServer(server);
         conveyorBase.setServerAPIBase(serverAPIBase);
         conveyorBase.addServerConfig(server, serverAPIBase, conveyorFolder);
         if(turningBase != null){
-            UA_NodeId turningFolder = addObject(server, 30, "Turning");
+            UA_NodeId turningFolder = addObject(server, open62541.UA_NODEID_NUMERIC(1, 30), "Turning");
             turningBase.setServer(server);
             turningBase.setServerAPIBase(serverAPIBase);
             turningBase.addServerConfig(server, serverAPIBase, turningFolder);
         }
         if(processEngineBase != null){
-            UA_NodeId processFolder = addObject(server, 40, "ProcessEngine");
+            UA_NodeId processFolder = addObject(server,open62541.UA_NODEID_NUMERIC(1, 40), "ProcessEngine");
             processEngineBase.setServer(server);
             processEngineBase.setServerAPIBase(serverAPIBase);
             processEngineBase.addServerConfig(server, serverAPIBase, processFolder);
@@ -84,6 +84,12 @@ public class RobotBase extends ServerAPIBase {
         this.loadingProtocolBase = loadingProtocolBase;
         this.conveyorBase = conveyorBase;
         this.turningBase = turningBase;
+    }
+
+    public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, ProcessEngineBase processEngineBase) {
+        this.loadingProtocolBase = loadingProtocolBase;
+        this.conveyorBase = conveyorBase;
+        this.processEngineBase = processEngineBase;
     }
 
     public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, TurningBase turningBase, ProcessEngineBase processEngineBase) {

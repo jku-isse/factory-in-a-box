@@ -33,16 +33,17 @@ public class UnloadMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("Unload");
+        methodLocale.setText("Unload Conveyor");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server,conveyorFolder, 25, input, output, methodAttributes, new StringFunction(x -> {
-            this.conveyor.unload();
-            return "Unloading Successful";
-        }));
+        serverAPIBase.addMethod(server, conveyorFolder, open62541.UA_NODEID_NUMERIC(1, 25),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    this.conveyor.unload();
+                    return "Unloading Successful";
+                }));
     }
 }

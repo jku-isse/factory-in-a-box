@@ -40,9 +40,10 @@ public class StopTurningMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, turningFolder, 32, input, output, methodAttributes, new StringFunction(x -> {
-            this.turning.stop();
-            return "Stop Successful";
-        }));
+        serverAPIBase.addMethod(server, turningFolder, open62541.UA_NODEID_NUMERIC(1, 32),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    this.turning.stop();
+                    return "Stop Successful";
+                }));
     }
 }

@@ -40,9 +40,10 @@ public class StopLoadingProtocolMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server,loadingFolder, 15, input, output, methodAttributes, new StringFunction(x -> {
-            this.loadingProtocol.stop();
-            return "Stop Successful";
-        }));
+        serverAPIBase.addMethod(server, loadingFolder, open62541.UA_NODEID_NUMERIC(1, 15),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    this.loadingProtocol.stop();
+                    return "Stop Successful";
+                }));
     }
 }

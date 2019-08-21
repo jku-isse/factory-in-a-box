@@ -40,17 +40,10 @@ public class ResetProcessMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        /*serverAPIBase.addMethod(server, processFolder, 42, input, output, methodAttributes, new StringFunction(x -> {
-            processEngine.reset();
-            return "Resetting Successful";
-        }));*/
-        serverAPIBase.addMethod(server, processFolder, 42, input , output, methodAttributes, new ServerAPIBase(){
-            @Override
-            public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
-                //super.methods_callback(methodId, objectId, input, output, jAPIBase);
-                processEngine.reset();
-                setMethodOutput("Reset Process Successful");
-            }
-        });
+        serverAPIBase.addMethod(server, processFolder, open62541.UA_NODEID_NUMERIC(1, 42),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    processEngine.reset();
+                    return "Reset Process Successful";
+                }));
     }
 }

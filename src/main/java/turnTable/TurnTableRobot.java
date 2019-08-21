@@ -16,6 +16,10 @@ public class TurnTableRobot extends RobotBase {
         super(loadingProtocolBase, conveyorBase, turningBase);
     }
 
+    public TurnTableRobot(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, ProcessEngineBase processEngineBase) {
+        super(loadingProtocolBase, conveyorBase, processEngineBase);
+    }
+
     public TurnTableRobot(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, TurningBase turningBase, ProcessEngineBase processEngineBase) {
         super(loadingProtocolBase, conveyorBase, turningBase, processEngineBase);
     }

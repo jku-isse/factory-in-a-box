@@ -33,24 +33,17 @@ public class LoadProcessMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("LoadProcess");
+        methodLocale.setText("Load Process");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        /*serverAPIBase.addMethod(server,processFolder, 41, input, output, methodAttributes, new StringFunction(x -> {
-            processEngine.loadProcess();
-            return "Successfully loaded process";
-        }));*/
-        serverAPIBase.addMethod(server, processFolder, 41, input, output, methodAttributes, new ServerAPIBase(){
-            @Override
-            public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
-                //super.methods_callback(methodId, objectId, input, output, jAPIBase);
-                processEngine.loadProcess();
-                setMethodOutput("Successfully loaded process");
-            }
-        });
+        serverAPIBase.addMethod(server, processFolder, open62541.UA_NODEID_NUMERIC(1, 41),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    processEngine.loadProcess();
+                    return "Successfully loaded process";
+                }));
     }
 }

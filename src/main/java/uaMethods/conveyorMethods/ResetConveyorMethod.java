@@ -40,9 +40,10 @@ public class ResetConveyorMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server,conveyorFolder, 23, input, output, methodAttributes, new StringFunction(x -> {
-            this.conveyor.reset();
-            return "Resetting Successful";
-        }));
+        serverAPIBase.addMethod(server, conveyorFolder, open62541.UA_NODEID_NUMERIC(1, 23),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    this.conveyor.reset();
+                    return "Resetting Successful";
+                }));
     }
 }

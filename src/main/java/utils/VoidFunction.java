@@ -21,6 +21,6 @@ public class VoidFunction extends ServerAPIBase {
     @Override
     public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
         consumer.accept(input);
-        jAPIBase.setMethodOutput("Success");
+        jAPIBase.setMethodOutput(methodId, "Success");
     }
 }

@@ -98,7 +98,7 @@ public class TurnTable extends ServerAPIBase {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, statusNodeID, 44, input, output, methodAttributes, this);
+        serverAPIBase.addMethod(server, statusNodeID, open62541.UA_NODEID_STRING(44, "moveFromTo"), input, output, methodAttributes, this);
         serverAPIBase.writeVariable(server, statusNodeID, 0);
         System.out.println("Running Server...");
         serverAPIBase.runServer(server);
@@ -425,9 +425,9 @@ public class TurnTable extends ServerAPIBase {
         if (lastSignalFromHandshake == 0) {
             int source = Integer.parseInt(input.substring(0, 1));
             int destination = Integer.parseInt(input.substring(1, 2));
-            jAPIBase.setMethodOutput(bringPalletFromTo(source, destination));
+            //jAPIBase.setMethodOutput(bringPalletFromTo(source, destination));
         } else {
-            jAPIBase.setMethodOutput("Machine is busy! Try again later.");
+            //jAPIBase.setMethodOutput("Machine is busy! Try again later.");
         }
         System.out.println("Finished method");
     }

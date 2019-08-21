@@ -42,10 +42,10 @@ public class CompleteMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        StringFunction method = new StringFunction(x -> {
-            this.loadingProtocol.complete();
-            return "Complete Successful";
-        });
-        serverAPIBase.addMethod(server,loadingFolder, 11, input, output, methodAttributes, method);
+        serverAPIBase.addMethod(server, loadingFolder, open62541.UA_NODEID_NUMERIC(1, 11),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    this.loadingProtocol.complete();
+                    return "Complete Successful";
+                }));
     }
 }

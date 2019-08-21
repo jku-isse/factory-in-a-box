@@ -40,9 +40,10 @@ public class ResetTurningMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, turningFolder, 31, input, output, methodAttributes, new StringFunction(x -> {
-            turning.reset();
-            return "Resetting Successful";
-        }));
+        serverAPIBase.addMethod(server, turningFolder, open62541.UA_NODEID_NUMERIC(1, 31),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    turning.reset();
+                    return "Resetting Successful";
+                }));
     }
 }

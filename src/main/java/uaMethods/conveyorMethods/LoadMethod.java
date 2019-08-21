@@ -10,6 +10,7 @@ import java.util.function.Function;
 public class LoadMethod {
 
     private ConveyorBase conveyor;
+    private UA_NodeId nodeId;
 
     public LoadMethod(ConveyorBase conveyor) {
         this.conveyor = conveyor;
@@ -36,26 +37,17 @@ public class LoadMethod {
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
 
         UA_LocalizedText methodLocale = new UA_LocalizedText();
-        methodLocale.setText("Load");
+        methodLocale.setText("Load Conveyor");
 
         UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
         methodAttributes.setDescription(methodLocale);
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        /*serverAPIBase.addMethod(server,conveyorFolder , 21, input, output, methodAttributes, new StringFunction(x ->
-        {
-            this.conveyor.load();
-            return "Loading Successful";
-        }));*/
-        serverAPIBase.addMethod(server, conveyorFolder, 21, input, output, methodAttributes, new LoadMethodCallback());
-    }
-
-    class LoadMethodCallback extends ServerAPIBase {
-        @Override
-        public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
-            conveyor.load();
-            this.setMethodOutput("Loading Successful");
-        }
+        serverAPIBase.addMethod(server, conveyorFolder, open62541.UA_NODEID_NUMERIC(1, 21),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    conveyor.load();
+                    return "Loading Successful";
+                }));
     }
 }

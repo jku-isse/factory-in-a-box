@@ -14,7 +14,7 @@ public class StringFunction extends ServerAPIBase {
 
     private final Function<String, String> function;
 
-    public StringFunction(Function<String, String> function){
+    public StringFunction(Function<String, String> function) {
         this.function = function;
     }
 
@@ -25,6 +25,6 @@ public class StringFunction extends ServerAPIBase {
     @Override
     public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
         //super.methods_callback(methodId, objectId, input, output, jAPIBase);
-        setMethodOutput(function.apply(input));
+        setMethodOutput(methodId, function.apply(input));
     }
 }

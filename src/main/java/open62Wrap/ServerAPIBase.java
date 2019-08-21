@@ -51,11 +51,11 @@ public class ServerAPIBase {
     open62541JNI.ServerAPIBase_change_ownership(this, swigCPtr, true);
   }
 
-  public void setD(java.lang.Object value) {
+  public void setD(Object value) {
     open62541JNI.ServerAPIBase_d_set(swigCPtr, this, value);
   }
 
-  public java.lang.Object getD() {
+  public Object getD() {
     return open62541JNI.ServerAPIBase_d_get(swigCPtr, this);
   }
 
@@ -90,16 +90,16 @@ public class ServerAPIBase {
     return open62541JNI.ServerAPIBase_runServer(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server));
   }
 
-  public void addMonitoredItem(SWIGTYPE_p_UA_Server server, UA_NodeId immId, ServerAPIBase jAPIBase) {
-    open62541JNI.ServerAPIBase_addMonitoredItem(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(immId), immId, ServerAPIBase.getCPtr(jAPIBase), jAPIBase);
+  public void addMonitoredItem(SWIGTYPE_p_UA_Server server, UA_NodeId monitoredItemId, ServerAPIBase jAPIBase) {
+    open62541JNI.ServerAPIBase_addMonitoredItem(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(monitoredItemId), monitoredItemId, ServerAPIBase.getCPtr(jAPIBase), jAPIBase);
   }
 
-  public UA_NodeId addObject(SWIGTYPE_p_UA_Server server, int requestedNewNodeId, String name) {
-    return new UA_NodeId(open62541JNI.ServerAPIBase_addObject(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), requestedNewNodeId, name), true);
+  public UA_NodeId addObject(SWIGTYPE_p_UA_Server server, UA_NodeId requestedNewNodeId, String name) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_addObject(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(requestedNewNodeId), requestedNewNodeId, name), true);
   }
 
-  public UA_NodeId addVariableNode(SWIGTYPE_p_UA_Server server, UA_NodeId objectId, int requestedNewNodeId, String name, int typeId, int accessLevel) {
-    return new UA_NodeId(open62541JNI.ServerAPIBase_addVariableNode(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(objectId), objectId, requestedNewNodeId, name, typeId, accessLevel), true);
+  public UA_NodeId addVariableNode(SWIGTYPE_p_UA_Server server, UA_NodeId objectId, UA_NodeId requestedNewNodeId, String name, int typeId, int accessLevel) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_addVariableNode(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(requestedNewNodeId), requestedNewNodeId, name, typeId, accessLevel), true);
   }
 
   public UA_NodeId manuallyDefineIMM(SWIGTYPE_p_UA_Server server) {
@@ -126,20 +126,20 @@ public class ServerAPIBase {
     return new UA_NodeId(open62541JNI.ServerAPIBase_getDataTypeNode(swigCPtr, this, typeId), true);
   }
 
-  public UA_NodeId addMethod(SWIGTYPE_p_UA_Server server, UA_NodeId objectId, int requestedNewNodeId, UA_Argument inputArgument, UA_Argument outputArgument, UA_MethodAttributes methodAttr, ServerAPIBase jAPIBase) {
-    return new UA_NodeId(open62541JNI.ServerAPIBase_addMethod(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(objectId), objectId, requestedNewNodeId, UA_Argument.getCPtr(inputArgument), inputArgument, UA_Argument.getCPtr(outputArgument), outputArgument, UA_MethodAttributes.getCPtr(methodAttr), methodAttr, ServerAPIBase.getCPtr(jAPIBase), jAPIBase), true);
+  public UA_NodeId addMethod(SWIGTYPE_p_UA_Server server, UA_NodeId objectId, UA_NodeId requestedNewNodeId, UA_Argument inputArgument, UA_Argument outputArgument, UA_MethodAttributes methodAttr, ServerAPIBase jAPIBase) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_addMethod(swigCPtr, this, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(requestedNewNodeId), requestedNewNodeId, UA_Argument.getCPtr(inputArgument), inputArgument, UA_Argument.getCPtr(outputArgument), outputArgument, UA_MethodAttributes.getCPtr(methodAttr), methodAttr, ServerAPIBase.getCPtr(jAPIBase), jAPIBase), true);
   }
 
-  public void setData(java.lang.Object arg0) {
+  public void setData(Object arg0) {
     open62541JNI.ServerAPIBase_setData(swigCPtr, this, arg0);
   }
 
-  public java.lang.Object getData() {
+  public Object getData() {
     return open62541JNI.ServerAPIBase_getData(swigCPtr, this);
   }
 
-  public void setMethodOutput(String output) {
-    open62541JNI.ServerAPIBase_setMethodOutput(swigCPtr, this, output);
+  public void setMethodOutput(UA_NodeId methodId, String output) {
+    open62541JNI.ServerAPIBase_setMethodOutput(swigCPtr, this, UA_NodeId.getCPtr(methodId), methodId, output);
   }
 
   public void monitored_itemChanged(UA_NodeId nodeId, int value) {

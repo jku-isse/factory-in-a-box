@@ -19,8 +19,8 @@ public class open62541JNI {
     }
   }*/
 
-  public final static native void ServerAPIBase_d_set(long jarg1, ServerAPIBase jarg1_, java.lang.Object jarg2);
-  public final static native java.lang.Object ServerAPIBase_d_get(long jarg1, ServerAPIBase jarg1_);
+  public final static native void ServerAPIBase_d_set(long jarg1, ServerAPIBase jarg1_, Object jarg2);
+  public final static native Object ServerAPIBase_d_get(long jarg1, ServerAPIBase jarg1_);
   public final static native void ServerAPIBase_running_set(long jarg1, ServerAPIBase jarg1_, boolean jarg2);
   public final static native boolean ServerAPIBase_running_get(long jarg1, ServerAPIBase jarg1_);
   public final static native long ServerAPIBase_Get();
@@ -29,18 +29,18 @@ public class open62541JNI {
   public final static native long ServerAPIBase_createServer(long jarg1, ServerAPIBase jarg1_, String jarg2, int jarg3);
   public final static native int ServerAPIBase_runServer(long jarg1, ServerAPIBase jarg1_, long jarg2);
   public final static native void ServerAPIBase_addMonitoredItem(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, long jarg4, ServerAPIBase jarg4_);
-  public final static native long ServerAPIBase_addObject(long jarg1, ServerAPIBase jarg1_, long jarg2, int jarg3, String jarg4);
-  public final static native long ServerAPIBase_addVariableNode(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, int jarg4, String jarg5, int jarg6, int jarg7);
+  public final static native long ServerAPIBase_addObject(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, String jarg4);
+  public final static native long ServerAPIBase_addVariableNode(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, long jarg4, UA_NodeId jarg4_, String jarg5, int jarg6, int jarg7);
   public final static native long ServerAPIBase_manuallyDefineIMM(long jarg1, ServerAPIBase jarg1_, long jarg2);
   public final static native long ServerAPIBase_manuallyDefineRobot(long jarg1, ServerAPIBase jarg1_, long jarg2);
   public final static native int ServerAPIBase_writeVariable__SWIG_0(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, int jarg4);
   public final static native int ServerAPIBase_writeVariable__SWIG_1(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, String jarg4);
   public final static native int ServerAPIBase_writeVariable__SWIG_2(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, double jarg4);
   public final static native long ServerAPIBase_getDataTypeNode(long jarg1, ServerAPIBase jarg1_, int jarg2);
-  public final static native long ServerAPIBase_addMethod(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, int jarg4, long jarg5, UA_Argument jarg5_, long jarg6, UA_Argument jarg6_, long jarg7, UA_MethodAttributes jarg7_, long jarg8, ServerAPIBase jarg8_);
-  public final static native void ServerAPIBase_setData(long jarg1, ServerAPIBase jarg1_, java.lang.Object jarg2);
-  public final static native java.lang.Object ServerAPIBase_getData(long jarg1, ServerAPIBase jarg1_);
-  public final static native void ServerAPIBase_setMethodOutput(long jarg1, ServerAPIBase jarg1_, String jarg2);
+  public final static native long ServerAPIBase_addMethod(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, long jarg4, UA_NodeId jarg4_, long jarg5, UA_Argument jarg5_, long jarg6, UA_Argument jarg6_, long jarg7, UA_MethodAttributes jarg7_, long jarg8, ServerAPIBase jarg8_);
+  public final static native void ServerAPIBase_setData(long jarg1, ServerAPIBase jarg1_, Object jarg2);
+  public final static native Object ServerAPIBase_getData(long jarg1, ServerAPIBase jarg1_);
+  public final static native void ServerAPIBase_setMethodOutput(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, String jarg3);
   public final static native void ServerAPIBase_monitored_itemChanged(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ServerAPIBase_monitored_itemChangedSwigExplicitServerAPIBase(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ServerAPIBase_methods_callback(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4, String jarg5, long jarg6, ServerAPIBase jarg6_);
@@ -188,6 +188,8 @@ public class open62541JNI {
   public final static native int UA_VALUERANK_ONE_DIMENSION_get();
   public final static native int UA_VALUERANK_TWO_DIMENSIONS_get();
   public final static native int UA_VALUERANK_THREE_DIMENSIONS_get();
+  public final static native long UA_NODEID_NUMERIC(int jarg1, int jarg2);
+  public final static native long UA_NODEID_STRING(int jarg1, String jarg2);
   public final static native long new_intp();
   public final static native long copy_intp(int jarg1);
   public final static native void delete_intp(long jarg1);

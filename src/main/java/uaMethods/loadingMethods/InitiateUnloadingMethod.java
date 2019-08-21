@@ -41,10 +41,10 @@ public class InitiateUnloadingMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server, loadingFolder, 13, input, output, methodAttributes, new StringFunction(x ->
-        {
-            this.loadingProtocol.initiateUnloading(TurnTableOrientation.NORTH, 0);
-            return "Successfully initiated unloading";
-        }));
+        serverAPIBase.addMethod(server, loadingFolder, open62541.UA_NODEID_NUMERIC(1, 13),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    this.loadingProtocol.initiateUnloading(TurnTableOrientation.NORTH, 0);
+                    return "Successfully initiated unloading";
+                }));
     }
 }

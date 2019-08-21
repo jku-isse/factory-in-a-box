@@ -9,67 +9,67 @@
 package open62Wrap;
 
 public class Identifier {
-	private transient long swigCPtr;
-	protected transient boolean swigCMemOwn;
+  private transient long swigCPtr;
+  protected transient boolean swigCMemOwn;
 
-	protected Identifier(long cPtr, boolean cMemoryOwn) {
-		swigCMemOwn = cMemoryOwn;
-		swigCPtr = cPtr;
-	}
+  protected Identifier(long cPtr, boolean cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+  }
 
-	protected static long getCPtr(Identifier obj) {
-		return (obj == null) ? 0 : obj.swigCPtr;
-	}
+  protected static long getCPtr(Identifier obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
 
-	@SuppressWarnings("deprecation")
-	protected void finalize() {
-		delete();
-	}
+  @SuppressWarnings("deprecation")
+  protected void finalize() {
+    delete();
+  }
 
-	public synchronized void delete() {
-		if (swigCPtr != 0) {
-			if (swigCMemOwn) {
-				swigCMemOwn = false;
-				open62541JNI.delete_Identifier(swigCPtr);
-			}
-			swigCPtr = 0;
-		}
-	}
+  public synchronized void delete() {
+    if (swigCPtr != 0) {
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
+        open62541JNI.delete_Identifier(swigCPtr);
+      }
+      swigCPtr = 0;
+    }
+  }
 
-	public void setNumeric(int value) {
-		open62541JNI.Identifier_numeric_set(swigCPtr, this, value);
-	}
+  public void setNumeric(int value) {
+    open62541JNI.Identifier_numeric_set(swigCPtr, this, value);
+  }
 
-	public int getNumeric() {
-		return open62541JNI.Identifier_numeric_get(swigCPtr, this);
-	}
+  public int getNumeric() {
+    return open62541JNI.Identifier_numeric_get(swigCPtr, this);
+  }
 
-	public void setString(String value) {
-		open62541JNI.Identifier_string_set(swigCPtr, this, value);
-	}
+  public void setString(String value) {
+    open62541JNI.Identifier_string_set(swigCPtr, this, value);
+  }
 
-	public String getString() {
-		return open62541JNI.Identifier_string_get(swigCPtr, this);
-	}
+  public String getString() {
+    return open62541JNI.Identifier_string_get(swigCPtr, this);
+  }
 
-	public void setGuid(SWIGTYPE_p_UA_Guid value) {
-		open62541JNI.Identifier_guid_set(swigCPtr, this, SWIGTYPE_p_UA_Guid.getCPtr(value));
-	}
+  public void setGuid(SWIGTYPE_p_UA_Guid value) {
+    open62541JNI.Identifier_guid_set(swigCPtr, this, SWIGTYPE_p_UA_Guid.getCPtr(value));
+  }
 
-	public SWIGTYPE_p_UA_Guid getGuid() {
-		return new SWIGTYPE_p_UA_Guid(open62541JNI.Identifier_guid_get(swigCPtr, this), true);
-	}
+  public SWIGTYPE_p_UA_Guid getGuid() {
+    return new SWIGTYPE_p_UA_Guid(open62541JNI.Identifier_guid_get(swigCPtr, this), true);
+  }
 
-	public void setByteString(SWIGTYPE_p_UA_ByteString value) {
-		open62541JNI.Identifier_byteString_set(swigCPtr, this, SWIGTYPE_p_UA_ByteString.getCPtr(value));
-	}
+  public void setByteString(SWIGTYPE_p_UA_ByteString value) {
+    open62541JNI.Identifier_byteString_set(swigCPtr, this, SWIGTYPE_p_UA_ByteString.getCPtr(value));
+  }
 
-	public SWIGTYPE_p_UA_ByteString getByteString() {
-		return new SWIGTYPE_p_UA_ByteString(open62541JNI.Identifier_byteString_get(swigCPtr, this), true);
-	}
+  public SWIGTYPE_p_UA_ByteString getByteString() {
+    return new SWIGTYPE_p_UA_ByteString(open62541JNI.Identifier_byteString_get(swigCPtr, this), true);
+  }
 
-	public Identifier() {
-		this(open62541JNI.new_Identifier(), true);
-	}
+  public Identifier() {
+    this(open62541JNI.new_Identifier(), true);
+  }
 
 }

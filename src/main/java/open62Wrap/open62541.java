@@ -9,6 +9,14 @@
 package open62Wrap;
 
 public class open62541 implements open62541Constants {
+  public static UA_NodeId UA_NODEID_NUMERIC(int nsIndex, int identifier) {
+    return new UA_NodeId(open62541JNI.UA_NODEID_NUMERIC(nsIndex, identifier), true);
+  }
+
+  public static UA_NodeId UA_NODEID_STRING(int nsIndex, String chars) {
+    return new UA_NodeId(open62541JNI.UA_NODEID_STRING(nsIndex, chars), true);
+  }
+
   public static SWIGTYPE_p_int new_intp() {
     long cPtr = open62541JNI.new_intp();
     return (cPtr == 0) ? null : new SWIGTYPE_p_int(cPtr, false);

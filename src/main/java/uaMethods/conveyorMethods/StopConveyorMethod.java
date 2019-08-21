@@ -40,9 +40,10 @@ public class StopConveyorMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server,conveyorFolder, 24, input, output, methodAttributes, new StringFunction(x -> {
-            this.conveyor.stop();
-            return "Stop Successful";
-        }));
+        serverAPIBase.addMethod(server, conveyorFolder, open62541.UA_NODEID_NUMERIC(1, 24),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    this.conveyor.stop();
+                    return "Stop Successful";
+                }));
     }
 }

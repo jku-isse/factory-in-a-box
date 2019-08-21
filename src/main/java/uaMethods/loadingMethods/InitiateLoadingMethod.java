@@ -41,9 +41,10 @@ public class InitiateLoadingMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server,loadingFolder, 12, input, output, methodAttributes, new StringFunction(x -> {
-            this.loadingProtocol.initiateLoading(TurnTableOrientation.NORTH, 0);  //TODO implement this properly
-            return "Successfully initiated loading";
-        }));
+        serverAPIBase.addMethod(server, loadingFolder, open62541.UA_NODEID_NUMERIC(1, 12),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    this.loadingProtocol.initiateLoading(TurnTableOrientation.NORTH, 0);  //TODO implement this properly
+                    return "Successfully initiated loading";
+                }));
     }
 }

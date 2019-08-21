@@ -41,9 +41,10 @@ public class TurnToMethod {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        serverAPIBase.addMethod(server,turningFolder, 33, input, output, methodAttributes, new StringFunction(x -> {
-            this.turning.turnTo(TurnTableOrientation.createFromInt(Integer.parseInt(x)));
-            return "Turned to " + x;
-        }));
+        serverAPIBase.addMethod(server, turningFolder, open62541.UA_NODEID_NUMERIC(1, 33),
+                input, output, methodAttributes, new StringFunction(x -> {
+                    this.turning.turnTo(TurnTableOrientation.createFromInt(Integer.parseInt(x)));
+                    return "Turned to " + x;
+                }));
     }
 }
