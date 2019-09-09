@@ -5,7 +5,6 @@ import functionalUnitBase.LoadingProtocolBase;
 import functionalUnitBase.ProcessEngineBase;
 import functionalUnitBase.TurningBase;
 import open62Wrap.*;
-import turnTable.TurnTable;
 
 import java.io.File;
 import java.io.IOException;
@@ -132,7 +131,7 @@ public class RobotBase extends ServerAPIBase {
      */
     private static void loadNativeLib() throws IOException {
         String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
-        URL url = TurnTable.class.getResource("/" + libName);
+        URL url = RobotBase.class.getResource("/" + libName);
         File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
         tmpDir.deleteOnExit();
         File nativeLibTmpFile = new File(tmpDir, libName);
@@ -145,4 +144,5 @@ public class RobotBase extends ServerAPIBase {
         }
         System.load(nativeLibTmpFile.getAbsolutePath());
     }
+
 }

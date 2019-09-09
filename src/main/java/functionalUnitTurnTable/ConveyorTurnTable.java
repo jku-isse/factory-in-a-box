@@ -12,13 +12,14 @@ import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
 import open62Wrap.open62541;
-import turnTable.TurnTableStateMachineConfig;
-import turnTable.TurnTableStates;
-import turnTable.TurnTableTriggers;
+import stateMachines.conveyor.ConveyorStateMachineConfig;
+import stateMachines.conveyor.ConveyorStates;
+import stateMachines.conveyor.ConveyorTriggers;
 import uaMethods.conveyorMethods.*;
 
-import static turnTable.TurnTableStates.IDLE;
-import static turnTable.TurnTableTriggers.*;
+import static stateMachines.conveyor.ConveyorStates.IDLE;
+import static stateMachines.conveyor.ConveyorStates.STOPPED;
+import static stateMachines.conveyor.ConveyorTriggers.*;
 
 public class ConveyorTurnTable extends ConveyorBase {
 
@@ -26,7 +27,7 @@ public class ConveyorTurnTable extends ConveyorBase {
     private final EV3TouchSensor touchSensor;
     private final EV3ColorSensor colorSensor;
 
-    private final StateMachine<TurnTableStates, TurnTableTriggers> conveyorStateMachine;
+    private final StateMachine<ConveyorStates, ConveyorTriggers> conveyorStateMachine;
     private UA_NodeId statusNodeId;
     private boolean stopped;
 
@@ -34,7 +35,7 @@ public class ConveyorTurnTable extends ConveyorBase {
         this.mediumRegulatedMotor = new EV3MediumRegulatedMotor(motorPort);
         this.touchSensor = new EV3TouchSensor(touchSensorPort);
         this.colorSensor = new EV3ColorSensor(colorSensorPort);
-        this.conveyorStateMachine = new StateMachine<>(IDLE, new TurnTableStateMachineConfig());
+        this.conveyorStateMachine = new StateMachine<>(STOPPED, new ConveyorStateMachineConfig());
         Runtime.getRuntime().addShutdownHook(new Thread(mediumRegulatedMotor::stop));
         this.stopped = false;
     }
@@ -47,17 +48,17 @@ public class ConveyorTurnTable extends ConveyorBase {
     public void load() {
         Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
         vertx.executeBlocking(promise -> {
-            if (!conveyorStateMachine.canFire(START)) {
+            if (!conveyorStateMachine.canFire(LOAD)) {
                 System.out.println("Conveyor is busy");
                 return;
             }
-            conveyorStateMachine.fire(START);
+            conveyorStateMachine.fire(LOAD);
             updateState();
             System.out.println("Executing: loadBelt");
             this.mediumRegulatedMotor.brake();
             this.mediumRegulatedMotor.backward();
             while (!touchSensor.isPressed()) {
-                if(stopped){
+                if (stopped) {
                     stopped = false;
                     vertx.close();
                     return;
@@ -65,10 +66,8 @@ public class ConveyorTurnTable extends ConveyorBase {
             }
             System.out.println("Button pressed");
             this.mediumRegulatedMotor.stop();
-            if (conveyorStateMachine.canFire(NEXT)) {
-                conveyorStateMachine.fire(NEXT);
-                updateState();
-            }
+            conveyorStateMachine.fire(NEXT);
+            updateState();
         }, res -> {
         });
         vertx.close();
@@ -78,17 +77,17 @@ public class ConveyorTurnTable extends ConveyorBase {
     public void unload() {
         Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
         vertx.executeBlocking(promise -> {
-            if (!conveyorStateMachine.canFire(START)) {
+            if (!conveyorStateMachine.canFire(UNLOAD)) {
                 System.out.println("Conveyor is busy");
                 return;
             }
-            conveyorStateMachine.fire(START);
+            conveyorStateMachine.fire(UNLOAD);
             updateState();
             System.out.println("Executing: loadBelt");
             this.mediumRegulatedMotor.brake();
             this.mediumRegulatedMotor.forward();
-            while (!(colorSensor.getColorID() == Color.NONE)) {
-                if(stopped){
+            while (colorSensor.getColorID() != Color.NONE) {
+                if (stopped) {
                     stopped = false;
                     vertx.close();
                     return;
@@ -96,10 +95,8 @@ public class ConveyorTurnTable extends ConveyorBase {
             }
             System.out.println("No color detected");
             this.mediumRegulatedMotor.stop();
-            if (conveyorStateMachine.canFire(NEXT)) {
-                conveyorStateMachine.fire(NEXT);
-                updateState();
-            }
+            conveyorStateMachine.fire(NEXT);
+            updateState();
         }, res -> {
         });
         vertx.close();
@@ -107,27 +104,45 @@ public class ConveyorTurnTable extends ConveyorBase {
 
     @Override
     public void pause() {
-        System.out.println("Executing: pause");
-        this.mediumRegulatedMotor.brake();
-        this.mediumRegulatedMotor.hold();
+        if (conveyorStateMachine.canFire(PAUSE)) {
+            conveyorStateMachine.fire(PAUSE);
+            updateState();
+            System.out.println("Executing: pause");
+            this.mediumRegulatedMotor.brake();
+            this.mediumRegulatedMotor.hold();
+        }
     }
 
     @Override
     public void reset() {
-        System.out.println("Executing: reset");
-        this.mediumRegulatedMotor.brake();
-        this.mediumRegulatedMotor.rotateTo(0);
+        if (conveyorStateMachine.canFire(RESET)) {
+            System.out.println("Executing: reset");
+            conveyorStateMachine.fire(RESET);
+            updateState();
+            this.mediumRegulatedMotor.brake();
+            this.mediumRegulatedMotor.stop();/*
+            if(touchSensor.isPressed()){
+                conveyorStateMachine.fire(NEXT_FULL);
+            }else if(colorSensor.getColorID() != Color.NONE){
+                conveyorStateMachine.fire(NEXT_PARTIAL);
+            }else{*/
+                conveyorStateMachine.fire(NEXT);
+            //}
+            updateState();
+        }
     }
 
     @Override
     public void stop() {
+        if (!conveyorStateMachine.canFire(STOP)) {
+            return;
+        }
+        conveyorStateMachine.fire(STOP);
+        updateState();
         System.out.println("Executing: stop");
         stopped = true;
         this.mediumRegulatedMotor.stop();
-        if(conveyorStateMachine.canFire(STOP)){
-            conveyorStateMachine.fire(STOP);
-        }
-        updateState();
+
     }
 
     @Override
@@ -140,5 +155,6 @@ public class ConveyorTurnTable extends ConveyorBase {
         new PauseMethod(this).addMethod(server, serverAPIBase, conveyorFolder);
         new ResetConveyorMethod(this).addMethod(server, serverAPIBase, conveyorFolder);
         new StopConveyorMethod(this).addMethod(server, serverAPIBase, conveyorFolder);
+        updateState();
     }
 }

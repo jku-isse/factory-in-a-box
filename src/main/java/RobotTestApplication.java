@@ -16,6 +16,6 @@ public class RobotTestApplication {
     public static void main(String[] args) {
         //new RobotBase(new LoadingDummy(), new ConveyorDummy(), new TurningDummy(), new ProcessDummy()).runServer();
         new TurnTableRobot(new LoadingTurnTable(), new ConveyorTurnTable(MotorPort.A, SensorPort.S2, SensorPort.S3),
-                new TurningTurnTable(MotorPort.B, SensorPort.S1, 90), new ProcessTurnTable()).runServer();
+                new TurningTurnTable(MotorPort.D, SensorPort.S4, 90), new ProcessTurnTable()).runServer();
     }
 }
