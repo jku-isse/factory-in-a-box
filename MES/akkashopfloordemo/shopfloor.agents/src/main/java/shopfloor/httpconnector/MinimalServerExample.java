@@ -30,6 +30,7 @@ import akka.stream.javadsl.Source;
 import akka.util.Timeout;
 import scala.concurrent.duration.FiniteDuration;
 import shopfloor.agents.eventbus.OrderEventBus;
+import shopfloor.agents.eventbus.OrderEventBusActorWrapper;
 import shopfloor.agents.events.OrderEvent;
 import shopfloor.agents.messages.FrontEndMessages.OrderStatusRequest;
 import shopfloor.agents.messages.FrontEndMessages.OrderStatusResponse;
@@ -77,6 +78,7 @@ public class MinimalServerExample extends AllDirectives {
   
   public MinimalServerExample(final ActorSystem system) {
 	  shopfloor = system.actorOf(ShopfloorDiscovery.props(orderEvents));
+	  ActorRef orderEventsWrapper = system.actorOf(OrderEventBusActorWrapper.props(orderEvents), "OrderEventBusActorWrapper");
   }
   
   private static int bufferSize = 10;
