@@ -10,6 +10,7 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import shopfloor.agents.eventbus.OrderEventBus;
 import shopfloor.agents.impl.MachineAgent;
 import shopfloor.agents.impl.OrderAgent;
 import shopfloor.agents.messages.FrontEndMessages.OrderStatusRequest;
@@ -24,14 +25,17 @@ public class ShopfloorDiscovery extends AbstractActor{
 	private boolean isScanning = false;
 	private HashMap<String, ActorRef> job2machineDict = new HashMap<>();
 	private final AtomicInteger orderId = new AtomicInteger(0);
-		
-	private HashMap<String, ActorRef> orderActors = new HashMap<>();
+	private OrderEventBus eventBus;
 	
-	static public Props props() {
-	    return Props.create(ShopfloorDiscovery.class, () -> new ShopfloorDiscovery());
+	private HashMap<String, ActorRef> orderActors = new HashMap<>();
+	private HashMap<String, ActorRef> machineActors = new HashMap<>();
+	
+	static public Props props(OrderEventBus eventBus) {
+	    return Props.create(ShopfloorDiscovery.class, () -> new ShopfloorDiscovery(eventBus));
 	}
 	
-	public ShopfloorDiscovery() {
+	public ShopfloorDiscovery(OrderEventBus eventBus) {
+		this.eventBus = eventBus;
 		scanShopfloor();
 	}
 		
@@ -52,6 +56,10 @@ public class ShopfloorDiscovery extends AbstractActor{
 			            		log.info("Still scanning, ignoring scan request");
 			            	}			            		
 			            })
+			        .matchEquals("GetAllOrders", p -> {
+			        	sender().tell(orderActors.keySet(), getSelf());
+			        	// need to figure out how to collect order information from all order actors, perhaps a separate actors is needed for that
+			        	})
 			        .match(OrderDocument.class, doc -> {			        	
 			        	String orderId = getNextOrderId();
 			        	log.info("Processing Order with Id: "+orderId);
@@ -75,7 +83,9 @@ public class ShopfloorDiscovery extends AbstractActor{
 	
 	protected void scanShopfloor() {
 		final ActorRef m1 = getContext().actorOf(MachineAgent.props("Machine1"));
+		machineActors.put("Machine1", m1);
 		final ActorRef m2 = getContext().actorOf(MachineAgent.props("Machine2"));
+		machineActors.put("Machine2", m2);
 		
 		job2machineDict.put("DrawTree", m1);
 		job2machineDict.put("DrawSun", m2);
@@ -86,12 +96,16 @@ public class ShopfloorDiscovery extends AbstractActor{
 		return Optional.ofNullable(this.orderActors.get(orderId));
 	}
 	
+	public Optional<ActorRef> getActorForMachine(String capabilityId) {
+		return Optional.ofNullable(this.machineActors.get(capabilityId));
+	}
+	
 	private String getNextOrderId() {
 		return "Order"+orderId.incrementAndGet();
 	}
 	
 	protected void addOrder(OrderDocument orderDoc) {		
-		final ActorRef orderActor = getContext().actorOf(OrderAgent.props(orderDoc, job2machineDict));			
+		final ActorRef orderActor = getContext().actorOf(OrderAgent.props(orderDoc, job2machineDict, eventBus));			
 		orderActors.put(orderDoc.getId(), orderActor);
 		orderActor.tell(new ProductionStateUpdate(ProductionState.COMPLETED, "INITJOB", Instant.now()), ActorRef.noSender());		
 	}

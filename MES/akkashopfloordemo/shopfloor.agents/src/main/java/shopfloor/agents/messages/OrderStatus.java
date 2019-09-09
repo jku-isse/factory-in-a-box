@@ -2,8 +2,11 @@ package shopfloor.agents.messages;
 
 import java.util.HashMap;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class OrderStatus {
 	String orderId;
+	@JsonProperty("jobStatus")
 	HashMap<String,JobStatus> job2status = new HashMap<>();
 	
 	public OrderStatus(OrderDocument doc) {
@@ -34,5 +37,5 @@ public class OrderStatus {
 		this.job2status = job2status;
 	}
 
-	public static enum JobStatus { IDLE, INPROGRESS, COMPLETED } 				
+	public static enum JobStatus { IDLE, INPROGRESS, CANCELED, HALTED, COMPLETED } 				
 }
