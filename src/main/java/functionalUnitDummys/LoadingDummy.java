@@ -4,12 +4,11 @@ import functionalUnitBase.LoadingProtocolBase;
 import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
-import uaMethods.loadingMethods.*;
 import turnTable.TurnTableOrientation;
-
-import java.util.HashMap;
-import java.util.function.Function;
-
+import uaMethods.loadingMethods.*;
+/**
+ * Dummy class for the Loading Protocol. Used to test whether the server config is working properly
+ */
 public class LoadingDummy extends LoadingProtocolBase {
     @Override
     public void initiateLoading(TurnTableOrientation direction, int orderId) {

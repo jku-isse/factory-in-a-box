@@ -1,14 +1,10 @@
 package functionalUnitTurnTable;
 
 import com.github.oxo42.stateless4j.StateMachine;
-import ev3dev.actuators.lego.motors.EV3LargeRegulatedMotor;
-import ev3dev.sensors.ev3.EV3TouchSensor;
 import functionalUnitBase.TurningBase;
+import hardware.motors.Motor;
+import hardware.sensors.Sensor;
 import io.vertx.core.Vertx;
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.Port;
-import lejos.hardware.port.SensorPort;
-import lejos.utility.Delay;
 import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
@@ -21,26 +17,28 @@ import uaMethods.turningMethods.ResetTurningMethod;
 import uaMethods.turningMethods.StopTurningMethod;
 import uaMethods.turningMethods.TurnToMethod;
 
-import static stateMachines.turning.TurningStates.*;
+import static stateMachines.turning.TurningStates.STOPPED;
 import static stateMachines.turning.TurningTriggers.*;
 
+/**
+ * TurnTable implementation for the Turning FU.
+ * It uses one turnMotor and a sensor for homing.
+ * The state machine tracks the state and guarantees stability
+ */
 public class TurningTurnTable extends TurningBase {
-    /**
-     * TODO fix reset as it does not work properly anymore :(
-     */
-    private final EV3LargeRegulatedMotor turnMotor;
-    private final EV3TouchSensor touchSensor;
 
-    private UA_NodeId statusNodeId;
+    private final Motor turnMotor;
+    private final Sensor resetSensor;
+    private final StateMachine<TurningStates, TurningTriggers> turningStateMachine;
 
     private TurnTableOrientation orientation;
-    private final StateMachine<TurningStates, TurningTriggers> turningStateMachine;
+    private UA_NodeId statusNodeId;
     private boolean stopped;
 
-    public TurningTurnTable(Port motorPort, Port sensorPort, int rotationToNext) {
-        this.turnMotor = new EV3LargeRegulatedMotor(motorPort);
+    public TurningTurnTable(Motor turnMotor, Sensor resetSensor) {
+        this.turnMotor = turnMotor;
         turnMotor.setSpeed(200);
-        this.touchSensor = new EV3TouchSensor(sensorPort);
+        this.resetSensor = resetSensor;
         turningStateMachine = new StateMachine<>(STOPPED, new TurningStateMachineConfig());
         Runtime.getRuntime().addShutdownHook(new Thread(turnMotor::stop));
         stopped = false;
@@ -55,9 +53,8 @@ public class TurningTurnTable extends TurningBase {
      */
     private void turnLeft() {
         System.out.println("Executing: turnLeft");
-        this.turnMotor.brake();
         this.turnMotor.backward();
-        Delay.msDelay(1400);
+        this.turnMotor.waitMs(1400);
         this.turnMotor.stop();
         //this.turnMotor.rotate(-rotationToNext);
         this.orientation = orientation.getNextCounterClockwise(orientation);
@@ -69,10 +66,8 @@ public class TurningTurnTable extends TurningBase {
      */
     private void turnRight() {
         System.out.println("Executing: turnRight");
-        this.turnMotor.brake();
-        //this.turnMotor.rotate(rotationToNext);
         this.turnMotor.forward();
-        Delay.msDelay(1400);
+        this.turnMotor.waitMs(1400);
         this.turnMotor.stop();
         this.orientation = orientation.getNextClockwise(orientation);
         System.out.println("Orientation is now: " + orientation);
@@ -141,9 +136,8 @@ public class TurningTurnTable extends TurningBase {
                     turningStateMachine.fire(RESET);
                     updateState();
                     System.out.println("Executing: reset");
-                    turnMotor.brake();
                     turnMotor.backward();
-                    while (!touchSensor.isPressed()) {
+                    while (!resetSensor.detectedInput()) {
                         if (stopped) {
                             stopped = false;
                             return;

@@ -8,8 +8,6 @@ import java.util.function.Consumer;
 /**
  * Represents a Monitored Item for opc_ua. We can give it a method with return type void.
  * When the monitored item changes, the method gets fired.
- * TODO test and later add other input types when they are available
- *
  */
 public class MonitoredItem extends ServerAPIBase {
 

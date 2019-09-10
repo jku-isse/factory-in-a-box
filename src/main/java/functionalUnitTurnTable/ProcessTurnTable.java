@@ -9,9 +9,9 @@ import uaMethods.processMethods.LoadProcessMethod;
 import uaMethods.processMethods.ResetProcessMethod;
 import uaMethods.processMethods.StopProcessMethod;
 
-import java.util.HashMap;
-import java.util.function.Function;
-
+/**
+ * TurnTable implementation of the Process Engine
+ */
 public class ProcessTurnTable extends ProcessEngineBase {
     private UA_NodeId statusNodeId;
     @Override

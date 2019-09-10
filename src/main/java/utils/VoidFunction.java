@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 /**
  * Represents a void function for opc_ua.
  * The Method needs a String input in order to work properly and currently only supports one argument.
- * TODO test and later add other input/output types when they are available
  */
 public class VoidFunction extends ServerAPIBase {
 

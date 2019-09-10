@@ -13,11 +13,10 @@ import java.net.URL;
 import java.nio.file.Files;
 
 /**
- * TODO finish designing and implement dummy for all bases
- * TODO add all server/client functionality to robot base
- * TODO create more method implementations for opc_ua methods
- * TODO build state machines
- * TODO test!!!
+ * This class Represents a basic robot with server capabilities. On startup, all functional units are added and so
+ * are their server methods and variables.
+ * TODO add client capabilities
+ * TODO implement global reset/stop
  */
 public class RobotBase extends ServerAPIBase {
     /**
@@ -26,7 +25,7 @@ public class RobotBase extends ServerAPIBase {
     static {
         try {
             System.out.println("Looking for native lib");
-            loadNativeLib();
+            loadNativeLib();    //change the library in this method depending on your platform
             System.out.println("Found native lib");
         } catch (IOException e) {
             System.out.println("Cannot find native lib");

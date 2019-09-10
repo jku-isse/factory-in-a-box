@@ -9,7 +9,7 @@ import static stateMachines.turning.TurningTriggers.*;
 public class TurningStateMachineConfig extends StateMachineConfig<TurningStates, TurningTriggers> {
 
     public TurningStateMachineConfig(){
-        configure(IDLE).permit(TURN_TO, STARTING).permit(STOP, STOPPING).permitReentry(RESET);
+        configure(IDLE).permit(TURN_TO, STARTING).permit(STOP, STOPPING).permitReentry(RESET).ignore(NEXT);
         configure(STARTING).permit(EXECUTE, EXECUTING).permit(STOP, STOPPING);
         configure(EXECUTING).permit(NEXT, COMPLETING).permit(STOP, STOPPING);
         configure(COMPLETING).permit(NEXT, COMPLETE).permit(STOP, STOPPING);

@@ -1,13 +1,13 @@
 package functionalUnitBase;
 
-import com.github.oxo42.stateless4j.StateMachine;
 import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
 
-import java.util.HashMap;
-import java.util.function.Function;
-
+/**
+ * Abstract base class for the process engine functional Unit
+ * All process engine FUs should extend this class
+ */
 public abstract class ProcessEngineBase {
 
     private SWIGTYPE_p_UA_Server server;

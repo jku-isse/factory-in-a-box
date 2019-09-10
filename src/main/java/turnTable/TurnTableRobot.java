@@ -6,8 +6,11 @@ import functionalUnitBase.ProcessEngineBase;
 import functionalUnitBase.TurningBase;
 import robotBase.RobotBase;
 
+/**
+ * Extends the RobotBase to represent a TurnTableRobot. May have some functionality added later
+ */
 public class TurnTableRobot extends RobotBase {
-    //TODO implement addConfiguration methods in turnTable FUs
+
     public TurnTableRobot(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase) {
         super(loadingProtocolBase, conveyorBase);
     }

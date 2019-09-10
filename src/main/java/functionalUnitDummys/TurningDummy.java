@@ -4,14 +4,13 @@ import functionalUnitBase.TurningBase;
 import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_NodeId;
+import turnTable.TurnTableOrientation;
 import uaMethods.turningMethods.ResetTurningMethod;
 import uaMethods.turningMethods.StopTurningMethod;
 import uaMethods.turningMethods.TurnToMethod;
-import turnTable.TurnTableOrientation;
-
-import java.util.HashMap;
-import java.util.function.Function;
-
+/**
+ * Dummy class for the Turning FU. Used to test whether the server config is working properly
+ */
 public class TurningDummy extends TurningBase {
     @Override
     public void turnTo(TurnTableOrientation orientation) {

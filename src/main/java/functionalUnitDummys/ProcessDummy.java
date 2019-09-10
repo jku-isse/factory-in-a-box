@@ -8,8 +8,9 @@ import uaMethods.processMethods.LoadProcessMethod;
 import uaMethods.processMethods.ResetProcessMethod;
 import uaMethods.processMethods.StopProcessMethod;
 
-import java.util.HashMap;
-import java.util.function.Function;
+/**
+ * Dummy class for the Process Engine. Used to test whether the server config is working properly
+ */
 
 public class ProcessDummy extends ProcessEngineBase {
     @Override

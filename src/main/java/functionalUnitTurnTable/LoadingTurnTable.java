@@ -8,9 +8,9 @@ import open62Wrap.open62541;
 import turnTable.TurnTableOrientation;
 import uaMethods.loadingMethods.*;
 
-import java.util.HashMap;
-import java.util.function.Function;
-
+/**
+ * TurnTable implementation of the Loading Protocol FU.
+ */
 public class LoadingTurnTable extends LoadingProtocolBase {
 
     private UA_NodeId statusNodeId;

@@ -10,7 +10,8 @@ public class ConveyorStateMachineConfig extends StateMachineConfig<ConveyorState
     public ConveyorStateMachineConfig(){
         configure(IDLE)
                 .permit(LOAD, LOADING)
-                .permitReentry(STOP);
+                .permitReentry(STOP)
+                .ignore(NEXT);
         configure(LOADING)
                 .permit(PAUSE, SUSPENDED)
                 .permit(NEXT, FULLY_OCCUPIED)

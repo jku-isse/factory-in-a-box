@@ -1,12 +1,14 @@
 package functionalUnitDummys;
 
 import functionalUnitBase.ConveyorBase;
+import open62Wrap.SWIGTYPE_p_UA_Server;
+import open62Wrap.ServerAPIBase;
+import open62Wrap.UA_NodeId;
 import uaMethods.conveyorMethods.*;
-import open62Wrap.*;
 
-import java.util.HashMap;
-import java.util.function.Function;
-
+/**
+ * Dummy class for the Conveyor. Used to test whether the server config is working properly
+ */
 public class ConveyorDummy extends ConveyorBase {
 
     @Override

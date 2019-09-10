@@ -8,7 +8,6 @@ import java.util.function.Function;
 /**
  * Represents a string function for opc_ua.
  * The Method needs a String input and output in order to work properly and currently only supports one argument.
- * TODO test and later add other input/output types when they are available
  */
 public class StringFunction extends ServerAPIBase {
 
