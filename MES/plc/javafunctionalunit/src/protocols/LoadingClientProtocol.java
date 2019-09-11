@@ -12,23 +12,24 @@
 
 package protocols;
 
-import static helper.LoadingStates.COMPLETED;
-import static helper.LoadingStates.COMPLETING;
-import static helper.LoadingStates.EXECUTE;
-import static helper.LoadingStates.IDLE;
-import static helper.LoadingStates.INITIATED;
-import static helper.LoadingStates.INITIATING;
-import static helper.LoadingStates.READY;
-import static helper.LoadingStates.STARTING;
-import static helper.LoadingStates.STOPPED;
-import static helper.LoadingStates.STOPPING;
+import static helper.ClientLoadingStates.COMPLETED;
+import static helper.ClientLoadingStates.COMPLETING;
+import static helper.ClientLoadingStates.EXECUTE;
+import static helper.ClientLoadingStates.IDLE;
+import static helper.ClientLoadingStates.INITIATED;
+import static helper.ClientLoadingStates.INITIATING;
+import static helper.ClientLoadingStates.READY;
+import static helper.ClientLoadingStates.STARTING;
+import static helper.ClientLoadingStates.STOPPED;
+import static helper.ClientLoadingStates.STOPPING;
 
 import communication.Communication;
-import helper.LoadingStates;
+import helper.ClientLoadingStates;
 
 public class LoadingClientProtocol extends Protocol {
 	int currentState;
 	String serverPath;
+	String orderId;
 
 	public LoadingClientProtocol() {
 		// super();
@@ -111,7 +112,7 @@ public class LoadingClientProtocol extends Protocol {
 
 	}
 
-	public void fireTrigger(LoadingStates states) {
+	public void fireTrigger(ClientLoadingStates states) {
 
 		switch (states) {
 		case IDLE:
@@ -164,5 +165,9 @@ public class LoadingClientProtocol extends Protocol {
 
 	public void setServerPath(String serverPath) {
 		this.serverPath = serverPath;
+	}
+
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
 	}
 }

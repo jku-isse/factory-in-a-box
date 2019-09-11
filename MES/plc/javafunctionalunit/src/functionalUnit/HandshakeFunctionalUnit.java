@@ -25,16 +25,22 @@ import java.util.Map;
 import helper.CapabilityId;
 import helper.CapabilityInstanceId;
 import helper.HandshakeStates;
+import helper.ClientLoadingStates;
 import protocols.LoadingClientProtocol;
-import protocols.Protocol;
+import protocols.LoadingServerProtocol;
 
 public class HandshakeFunctionalUnit extends FunctionalUnit {
 	Map<CapabilityInstanceId, CapabilityId> capabilityMap;
 	Map<CapabilityInstanceId, String> wiringMap;
-	Map<CapabilityInstanceId, Protocol> protocolMap;
+	public final static boolean DEBUG = true;
+	// Map<CapabilityInstanceId, Protocol> protocolMap;
+	LoadingClientProtocol clientProtocol;
+	LoadingServerProtocol serverProtocol;
+	int loadingMechanism;
 
 	public HandshakeFunctionalUnit() {
-
+		clientProtocol = null;
+		serverProtocol = null;
 	}
 
 	static int currentState;
@@ -92,6 +98,9 @@ public class HandshakeFunctionalUnit extends FunctionalUnit {
 	}
 
 	public void starting() {
+		if (loadingMechanism == 1) {
+			clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
+		}
 
 	}
 
@@ -119,16 +128,27 @@ public class HandshakeFunctionalUnit extends FunctionalUnit {
 
 	}
 
-	public void initiateUnloading(String direction, String OrderId) {
+	public void initiateUnloading(String direction, String orderId) {
 		// gageInUnLoading = new LoadingClientProtocol();
 	}
 
-	void initiateLoading(String direction, String OrderId) {
+	void initiateLoading(CapabilityInstanceId instanceId, String orderId) {
+		loadingMechanism = 1;
+		// this.protocolMap.get(instanceId)
+		if (this.getCurrentState() != IDLE.ordinal()) {
+			log("Not Idle - Wrong State. !");
+			return;
+		}
 
+		clientProtocol.setServerPath(this.wiringMap.get(instanceId));
+		clientProtocol.setOrderId(orderId);
+		this.fireTrigger(STARTING);
 	}
 
 	public void setRequiredCapability(CapabilityInstanceId instanceId, CapabilityId typeId) {
 		this.capabilityMap.put(instanceId, typeId);
+		// this.protocolMap.put(instanceId, initCapability(instanceId));
+		initCapability(instanceId);
 	}
 
 	public void setWiring(CapabilityInstanceId localCapabilityId, String remoteCapabilityId) {
@@ -136,4 +156,27 @@ public class HandshakeFunctionalUnit extends FunctionalUnit {
 
 	}
 
+	public void initCapability(CapabilityInstanceId instanceId) {
+		/*
+		 * } if (instanceId.toString().contains("SERVER")) return new
+		 * LoadingServerProtocol(); else return new LoadingClientProtocol();
+		 */
+		if (instanceId.toString().contains("SERVER") && serverProtocol == null) {
+			serverProtocol = new LoadingServerProtocol();
+
+		} else if (clientProtocol == null) {
+			clientProtocol = new LoadingClientProtocol();
+		}
+	}
+
+	public static void log(String message) {
+		if (DEBUG) {
+			String fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
+			String className = fullClassName.substring(fullClassName.lastIndexOf(".") + 1);
+			String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+			int lineNumber = Thread.currentThread().getStackTrace()[2].getLineNumber();
+
+			System.out.println(className + "." + methodName + "(): " + lineNumber + "  " + message);
+		}
+	}
 }
