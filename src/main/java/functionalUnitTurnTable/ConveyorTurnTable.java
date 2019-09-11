@@ -32,6 +32,12 @@ public class ConveyorTurnTable extends ConveyorBase {
     private UA_NodeId statusNodeId;
     private boolean stopped, suspended;
 
+    /**
+     * Creates a new Conveyor FU for a TurnTable.
+     * @param conveyorMotor conveyor motor used. If turning in the wrong direction replace forward with backward
+     * @param sensorLoading sensor to check if the pallet is loaded
+     * @param sensorUnloading sensor to check if pallet is unloaded
+     */
     public ConveyorTurnTable(Motor conveyorMotor, Sensor sensorLoading, Sensor sensorUnloading) {
         this.conveyorMotor = conveyorMotor;
         this.sensorLoading = sensorLoading;
@@ -41,10 +47,16 @@ public class ConveyorTurnTable extends ConveyorBase {
         this.stopped = false;
     }
 
+    /**
+     * Updates the state on the server
+     */
     private void updateState() {
         getServerAPIBase().writeVariable(getServer(), statusNodeId, conveyorStateMachine.getState().getValue());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void load() {
         Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
@@ -74,6 +86,9 @@ public class ConveyorTurnTable extends ConveyorBase {
         vertx.close();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unload() {
         Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
@@ -103,6 +118,9 @@ public class ConveyorTurnTable extends ConveyorBase {
         vertx.close();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void pause() {
         if (conveyorStateMachine.canFire(PAUSE)) {
@@ -114,6 +132,9 @@ public class ConveyorTurnTable extends ConveyorBase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void reset() {
         if (conveyorStateMachine.canFire(RESET)) {
@@ -134,6 +155,9 @@ public class ConveyorTurnTable extends ConveyorBase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stop() {
         if (!conveyorStateMachine.canFire(STOP)) {
@@ -148,6 +172,9 @@ public class ConveyorTurnTable extends ConveyorBase {
         updateState();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId conveyorFolder) {
         int b = open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ;

@@ -13,23 +13,37 @@ import uaMethods.processMethods.StopProcessMethod;
  * TurnTable implementation of the Process Engine
  */
 public class ProcessTurnTable extends ProcessEngineBase {
+
     private UA_NodeId statusNodeId;
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void loadProcess() {
-        //TODO figure out what to do here
+        //TODO create mock process
         System.out.println("Loaded Process");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void reset() {
         System.out.println("Reset Process was called");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stop() {
         System.out.println("Stop Process was called");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId processFolder) {
         int b = open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ;

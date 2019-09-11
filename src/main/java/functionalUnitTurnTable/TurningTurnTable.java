@@ -35,6 +35,11 @@ public class TurningTurnTable extends TurningBase {
     private UA_NodeId statusNodeId;
     private boolean stopped;
 
+    /**
+     * Turning FU for a TurnTable.
+     * @param turnMotor motor to specify turning. If turning in wrong direction, exchange forward with backwards.
+     * @param resetSensor motor used for homing
+     */
     public TurningTurnTable(Motor turnMotor, Sensor resetSensor) {
         this.turnMotor = turnMotor;
         turnMotor.setSpeed(200);
@@ -44,6 +49,9 @@ public class TurningTurnTable extends TurningBase {
         stopped = false;
     }
 
+    /**
+     * Updates the current state on the server
+     */
     private void updateState() {
         getServerAPIBase().writeVariable(getServer(), statusNodeId, turningStateMachine.getState().getValue());
     }
@@ -73,6 +81,9 @@ public class TurningTurnTable extends TurningBase {
         System.out.println("Orientation is now: " + orientation);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void turnTo(TurnTableOrientation target) {
         if (!turningStateMachine.canFire(TURN_TO)) {
@@ -126,6 +137,9 @@ public class TurningTurnTable extends TurningBase {
         vertx.close();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void reset() {
         if (!turningStateMachine.canFire(RESET)) {
@@ -153,6 +167,9 @@ public class TurningTurnTable extends TurningBase {
         vertx.close();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stop() {
         if (!turningStateMachine.canFire(STOP)) {
@@ -167,6 +184,9 @@ public class TurningTurnTable extends TurningBase {
         updateState();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId turningFolder) {
         int b = open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ;

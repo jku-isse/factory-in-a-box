@@ -15,32 +15,49 @@ public class LoadingTurnTable extends LoadingProtocolBase {
 
     private UA_NodeId statusNodeId;
 
-    //TODO implement handshake
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void initiateLoading(TurnTableOrientation direction, int orderId) {
         System.out.println("Initiate loading was called");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void initiateUnloading(TurnTableOrientation direction, int orderId) {
         System.out.println("Initiate unloading was called");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void complete() {
         System.out.println("Complete was called");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void reset() {
         System.out.println("Loading: Reset was called");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stop() {
         System.out.println("Loading: Stop was called");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void addServerConfig(SWIGTYPE_p_UA_Server server, ServerAPIBase serverAPIBase, UA_NodeId loadingFolder) {
         int b = open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ;

@@ -16,10 +16,9 @@ import java.nio.file.Files;
  * This class Represents a basic robot with server capabilities. On startup, all functional units are added and so
  * are their server methods and variables.
  * TODO add client capabilities
- * TODO implement global reset/stop
  */
 public class RobotBase extends ServerAPIBase {
-    /**
+    /*
      * Loads the native libraries using a workaround as the ev3 currently has troubles with finding them.
      */
     static {
@@ -73,23 +72,47 @@ public class RobotBase extends ServerAPIBase {
         serverAPIBase.runServer(server);
     });
 
+    /**
+     * Creates a Robot with a loading and conveyor FU
+     * @param loadingProtocolBase loading protocol to use
+     * @param conveyorBase conveyor to use
+     */
     public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase) {
         this.loadingProtocolBase = loadingProtocolBase;
         this.conveyorBase = conveyorBase;
     }
 
+    /**
+     * Creates a Robot with a loading, conveyor and turning FU
+     * @param loadingProtocolBase loading protocol to use
+     * @param conveyorBase conveyor to use
+     * @param turningBase turning implementation to use
+     */
     public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, TurningBase turningBase) {
         this.loadingProtocolBase = loadingProtocolBase;
         this.conveyorBase = conveyorBase;
         this.turningBase = turningBase;
     }
 
+    /**
+     * Creates a Robot with a loading, conveyor and process engine
+     * @param loadingProtocolBase loading protocol to use
+     * @param conveyorBase conveyor to use
+     * @param processEngineBase process engine to use
+     */
     public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, ProcessEngineBase processEngineBase) {
         this.loadingProtocolBase = loadingProtocolBase;
         this.conveyorBase = conveyorBase;
         this.processEngineBase = processEngineBase;
     }
 
+    /**
+     * Creates a Robot with a loading, conveyor, turning and process engine FU
+     * @param loadingProtocolBase loading protocol to use
+     * @param conveyorBase conveyor to use
+     * @param turningBase turning implementation to use
+     * @param processEngineBase process engine to be used
+     */
     public RobotBase(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, TurningBase turningBase, ProcessEngineBase processEngineBase) {
         this.loadingProtocolBase = loadingProtocolBase;
         this.conveyorBase = conveyorBase;
@@ -97,7 +120,11 @@ public class RobotBase extends ServerAPIBase {
         this.processEngineBase = processEngineBase;
     }
 
+    /**
+     * Global reset. Resets all registered functional units
+     */
     public void reset() {
+        //TODO add to server as method
         loadingProtocolBase.reset();
         conveyorBase.reset();
         if (turningBase != null) {
@@ -108,7 +135,11 @@ public class RobotBase extends ServerAPIBase {
         }
     }
 
+    /**
+     * Global stop. Stops all registered functional units
+     */
     public void stop() {
+        //TODO add to server as method
         loadingProtocolBase.stop();
         conveyorBase.stop();
         if (turningBase != null) {
@@ -119,6 +150,9 @@ public class RobotBase extends ServerAPIBase {
         }
     }
 
+    /**
+     * Starts the server
+     */
     public void runServer() {
         serverThread.start();
     }
