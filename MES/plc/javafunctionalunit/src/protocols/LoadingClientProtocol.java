@@ -27,7 +27,8 @@ import communication.Communication;
 import helper.LoadingStates;
 
 public class LoadingClientProtocol extends Protocol {
-	static int currentState;;
+	int currentState;
+	String serverPath;
 
 	public LoadingClientProtocol() {
 		// super();
@@ -161,4 +162,7 @@ public class LoadingClientProtocol extends Protocol {
 		}
 	}
 
+	public void setServerPath(String serverPath) {
+		this.serverPath = serverPath;
+	}
 }

@@ -11,19 +11,6 @@
 **/
 package functionalUnit;
 
-import helper.Capability;
-import helper.CapabilityInstanceId;
-
 public class FunctionalUnit {
-
-	Capability capability;
-
-	CapabilityInstanceId localCapabilityId;
-	String remoteCapabilityId;
-	CapabilityInstanceId localRole;
-
-	FunctionalUnit() {
-		this.capability = new Capability();
-	}
 
 }

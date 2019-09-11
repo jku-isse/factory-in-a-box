@@ -20,12 +20,18 @@ import static helper.HandshakeStates.STARTING;
 import static helper.HandshakeStates.STOPPED;
 import static helper.HandshakeStates.STOPPING;
 
+import java.util.Map;
+
 import helper.CapabilityId;
 import helper.CapabilityInstanceId;
 import helper.HandshakeStates;
 import protocols.LoadingClientProtocol;
+import protocols.Protocol;
 
 public class HandshakeFunctionalUnit extends FunctionalUnit {
+	Map<CapabilityInstanceId, CapabilityId> capabilityMap;
+	Map<CapabilityInstanceId, String> wiringMap;
+	Map<CapabilityInstanceId, Protocol> protocolMap;
 
 	public HandshakeFunctionalUnit() {
 
@@ -114,7 +120,7 @@ public class HandshakeFunctionalUnit extends FunctionalUnit {
 	}
 
 	public void initiateUnloading(String direction, String OrderId) {
-		EngageInUnLoading = new LoadingClientProtocol();
+		// gageInUnLoading = new LoadingClientProtocol();
 	}
 
 	void initiateLoading(String direction, String OrderId) {
@@ -122,16 +128,12 @@ public class HandshakeFunctionalUnit extends FunctionalUnit {
 	}
 
 	public void setRequiredCapability(CapabilityInstanceId instanceId, CapabilityId typeId) {
-		this.capability.setInstanceId(instanceId);
-		this.capability.setTypeId(typeId);
-
+		this.capabilityMap.put(instanceId, typeId);
 	}
 
-	public void setWiring(CapabilityInstanceId localCapabilityId, String remoteCapabilityId,
-			CapabilityInstanceId localRole) {
-		this.localCapabilityId = localCapabilityId;
-		this.remoteCapabilityId = remoteCapabilityId;
-		this.localRole = localRole;
+	public void setWiring(CapabilityInstanceId localCapabilityId, String remoteCapabilityId) {
+		this.wiringMap.put(localCapabilityId, remoteCapabilityId);
+
 	}
 
 }

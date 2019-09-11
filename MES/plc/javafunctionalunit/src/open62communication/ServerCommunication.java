@@ -18,44 +18,60 @@ import open62Wrap.UA_Argument;
 import open62Wrap.UA_MethodAttributes;
 import open62Wrap.UA_NodeId;
 
-public class ServerCommunication {
+public class ServerCommunication extends ServerAPIBase {
+	@Override
+	public void monitored_itemChanged(UA_NodeId nodeId, int value) {
+		System.out.println("iiiiii FROM JAVA 2: monitored_itemChanged::monitored_itemChanged() invoked." + value
+				+ nodeId.getIdentifierType() + nodeId.getIdentifier().getString());
 
-	public static Object CreateServer(String host, int port) {
+	}
+
+	@Override
+	public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output,
+			ServerAPIBase jAPIBase) {
+		System.out.println(" iiiii Got a methods_callback With input 2:" + input);
+		jAPIBase.SetMethodOutput(methodId, "FROM JAVA 2: " + input + " " + methodId.getIdentifier().getNumeric());
+		// System.out.println(" iiiii Got a methods_callback setting the output " +
+		// jAPIBase.getData());
+
+	}
+
+	public static Object createServer(String host, int port) {
 		return ServerAPIBase.CreateServer(host, port);
 	}
 
-	public static int RunServer(Object server) {
+	public static int runServer(Object server) {
 		return ServerAPIBase.RunServer((SWIGTYPE_p_UA_Server) server);
 	}
 
-	public void AddMonitoredItem(Object jAPIBase, Object server, Object immId) {
+	public void addMonitoredItem(Object jAPIBase, Object server, Object immId) {
 		ServerAPIBase.AddMonitoredItem((ServerAPIBase) jAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) immId);
 	}
 
-	public static Object AddObject(Object server, Object requestedNewNodeId, String name) {
+	public static Object addObject(Object server, Object requestedNewNodeId, String name) {
 		return ServerAPIBase.AddObject((SWIGTYPE_p_UA_Server) server, (UA_NodeId) requestedNewNodeId, name);
 	}
 
-	public static Object AddVariableNode(Object server, Object objectId, Object requestedNewNodeId, String name,
+	public static Object addVariableNode(Object server, Object objectId, Object requestedNewNodeId, String name,
 			int typeId, int accessLevel) {
 		return ServerAPIBase.AddVariableNode((SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
 				(UA_NodeId) requestedNewNodeId, name, typeId, accessLevel);
 	}
 
-	public static int WriteVariable(Object server, Object nodeId, int intValue) {
+	public static int writeVariable(Object server, Object nodeId, int intValue) {
 		return ServerAPIBase.WriteVariable((SWIGTYPE_p_UA_Server) server, (UA_NodeId) nodeId, intValue);
 	}
 
-	public int WriteVariable(Object server, Object nodeId, String stringValue) {
+	public int writeVariable(Object server, Object nodeId, String stringValue) {
 		return ServerAPIBase.WriteVariable((SWIGTYPE_p_UA_Server) server, (UA_NodeId) nodeId, stringValue);
 	}
 
-	public int WriteVariable(Object server, Object nodeId, double doubleValue) {
+	public int writeVariable(Object server, Object nodeId, double doubleValue) {
 
 		return ServerAPIBase.WriteVariable((SWIGTYPE_p_UA_Server) server, (UA_NodeId) nodeId, doubleValue);
 	}
 
-	public static Object AddMethod(Object jAPIBase, Object server, Object objectId, Object requestedNewNodeId,
+	public static Object addMethod(Object jAPIBase, Object server, Object objectId, Object requestedNewNodeId,
 			Object inputArgument, Object outputArgument, Object methodAttr) {
 
 		return ServerAPIBase.AddMethod((ServerAPIBase) jAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
@@ -64,7 +80,7 @@ public class ServerCommunication {
 
 	}
 
-	public void SetMethodOutput(Object nodeId, String output) {
+	public void setMethodOutput(Object nodeId, String output) {
 
 		ServerAPIBase.SetMethodOutput((UA_NodeId) nodeId, output);
 	}
