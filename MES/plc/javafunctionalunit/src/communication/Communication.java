@@ -16,14 +16,25 @@ import open62communication.ServerCommunication;
 
 public class Communication {
 
-	ClientCommunication clientCommunication = new ClientCommunication();
-	ServerCommunication serverCommunication = new ServerCommunication();
+	private ClientCommunication clientCommunication = null;
+	private ServerCommunication serverCommunication = null;
+
+	public Communication() {
+		// clientCommunication = new ClientCommunication();
+		// serverCommunication = new ServerCommunication();
+	}
 
 	public ClientCommunication getClientCommunication() {
-		return new ClientCommunication();
+		if (clientCommunication == null) {
+			clientCommunication = new ClientCommunication();
+		}
+		return clientCommunication;
 	}
 
 	public ServerCommunication getServerCommunication() {
+		if (serverCommunication == null) {
+			serverCommunication = new ServerCommunication();
+		}
 		return serverCommunication;
 	}
 

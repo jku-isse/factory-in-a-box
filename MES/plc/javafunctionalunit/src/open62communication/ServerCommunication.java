@@ -15,8 +15,10 @@ package open62communication;
 import open62Wrap.SWIGTYPE_p_UA_Server;
 import open62Wrap.ServerAPIBase;
 import open62Wrap.UA_Argument;
+import open62Wrap.UA_LocalizedText;
 import open62Wrap.UA_MethodAttributes;
 import open62Wrap.UA_NodeId;
+import open62Wrap.open62541;
 
 public class ServerCommunication extends ServerAPIBase {
 	@Override
@@ -36,11 +38,11 @@ public class ServerCommunication extends ServerAPIBase {
 
 	}
 
-	public static Object createServer(String host, int port) {
+	public Object createServer(String host, int port) {
 		return ServerAPIBase.CreateServer(host, port);
 	}
 
-	public static int runServer(Object server) {
+	public int runServer(Object server) {
 		return ServerAPIBase.RunServer((SWIGTYPE_p_UA_Server) server);
 	}
 
@@ -48,17 +50,17 @@ public class ServerCommunication extends ServerAPIBase {
 		ServerAPIBase.AddMonitoredItem((ServerAPIBase) jAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) immId);
 	}
 
-	public static Object addObject(Object server, Object requestedNewNodeId, String name) {
+	public Object addObject(Object server, Object requestedNewNodeId, String name) {
 		return ServerAPIBase.AddObject((SWIGTYPE_p_UA_Server) server, (UA_NodeId) requestedNewNodeId, name);
 	}
 
-	public static Object addVariableNode(Object server, Object objectId, Object requestedNewNodeId, String name,
-			int typeId, int accessLevel) {
+	public Object addVariableNode(Object server, Object objectId, Object requestedNewNodeId, String name, int typeId,
+			int accessLevel) {
 		return ServerAPIBase.AddVariableNode((SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
 				(UA_NodeId) requestedNewNodeId, name, typeId, accessLevel);
 	}
 
-	public static int writeVariable(Object server, Object nodeId, int intValue) {
+	public int writeVariable(Object server, Object nodeId, int intValue) {
 		return ServerAPIBase.WriteVariable((SWIGTYPE_p_UA_Server) server, (UA_NodeId) nodeId, intValue);
 	}
 
@@ -71,12 +73,49 @@ public class ServerCommunication extends ServerAPIBase {
 		return ServerAPIBase.WriteVariable((SWIGTYPE_p_UA_Server) server, (UA_NodeId) nodeId, doubleValue);
 	}
 
-	public static Object addMethod(Object jAPIBase, Object server, Object objectId, Object requestedNewNodeId,
+	public Object addMethod(Object jAPIBase, Object server, Object objectId, Object requestedNewNodeId,
 			Object inputArgument, Object outputArgument, Object methodAttr) {
 
 		return ServerAPIBase.AddMethod((ServerAPIBase) jAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
 				(UA_NodeId) requestedNewNodeId, (UA_Argument) inputArgument, (UA_Argument) outputArgument,
 				(UA_MethodAttributes) methodAttr);
+
+	}
+
+	public Object createNodeNumeric(int nameSpace, int id) {
+		return open62541.UA_NODEID_NUMERIC(nameSpace, id);
+	}
+
+	public Object addMethod_string(Object jAPIBase, Object server, Object objectId, int methodId, String methodTitle,
+			String inputTitle, String outputTitle) {
+		UA_LocalizedText locale = new UA_LocalizedText();
+		locale.setLocale("en-US");
+		locale.setText("A String");
+
+		UA_Argument input = new UA_Argument();
+		input.setDescription(locale);
+		input.setName(inputTitle);
+		input.setDataType(ServerAPIBase.GetDataTypeNode(open62541.UA_TYPES_STRING));
+		input.setValueRank(open62541.UA_VALUERANK_SCALAR);
+
+		UA_Argument output = new UA_Argument();
+		output.setDescription(locale);
+		output.setName(outputTitle);
+		output.setDataType(ServerAPIBase.GetDataTypeNode(open62541.UA_TYPES_STRING));
+		output.setValueRank(open62541.UA_VALUERANK_SCALAR);
+
+		UA_LocalizedText methodLocale = new UA_LocalizedText();
+		methodLocale.setLocale("en-US");
+		methodLocale.setText(methodTitle);
+
+		UA_MethodAttributes methodAttr = new UA_MethodAttributes();
+		methodAttr.setDescription(methodLocale);
+		methodAttr.setDisplayName(methodLocale);
+		methodAttr.setExecutable(true);
+		methodAttr.setUserExecutable(true);
+
+		return ServerAPIBase.AddMethod((ServerAPIBase) jAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+				open62541.UA_NODEID_NUMERIC(1, methodId), input, output, methodAttr);
 
 	}
 

@@ -20,12 +20,14 @@ import static helper.HandshakeStates.STARTING;
 import static helper.HandshakeStates.STOPPED;
 import static helper.HandshakeStates.STOPPING;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import communication.Communication;
 import helper.CapabilityId;
 import helper.CapabilityInstanceId;
-import helper.HandshakeStates;
 import helper.ClientLoadingStates;
+import helper.HandshakeStates;
 import protocols.LoadingClientProtocol;
 import protocols.LoadingServerProtocol;
 
@@ -38,9 +40,44 @@ public class HandshakeFunctionalUnit extends FunctionalUnit {
 	LoadingServerProtocol serverProtocol;
 	int loadingMechanism;
 
-	public HandshakeFunctionalUnit() {
+	// opcua
+	private Communication opcua_comm;
+	private Object opcua_server;
+	private Object opcua_object;
+	private int unique_id;
+
+	private int getUnique_id() {
+		return unique_id += 1;
+	}
+
+	public HandshakeFunctionalUnit(String host, int port) {
 		clientProtocol = null;
 		serverProtocol = null;
+		capabilityMap = new HashMap<>();
+		wiringMap = new HashMap<CapabilityInstanceId, String>();
+		unique_id = 9;
+		// OPCUA EXPOSE
+		opcua_comm = new Communication();
+		opcua_server = opcua_comm.getServerCommunication().createServer(host, port);
+		Object rootObjectId = opcua_comm.getServerCommunication().createNodeNumeric(1, getUnique_id());
+		opcua_object = opcua_comm.getServerCommunication().addObject(opcua_server, rootObjectId, "Handshak FU");
+
+		opcua_comm.getServerCommunication().addMethod_string(opcua_comm.getServerCommunication(), opcua_server,
+				opcua_object, getUnique_id(), "initiate_Loading", "input", "output");
+		opcua_comm.getServerCommunication().addMethod_string(opcua_comm.getServerCommunication(), opcua_server,
+				opcua_object, getUnique_id(), "initiate_Unloading", "input", "output");
+
+		opcua_comm.getServerCommunication().addMethod_string(opcua_comm.getServerCommunication(), opcua_server,
+				opcua_object, getUnique_id(), "setWiring", "input", "output");
+
+		opcua_comm.getServerCommunication().addMethod_string(opcua_comm.getServerCommunication(), opcua_server,
+				opcua_object, getUnique_id(), "complete", "input", "output");
+		opcua_comm.getServerCommunication().addMethod_string(opcua_comm.getServerCommunication(), opcua_server,
+				opcua_object, getUnique_id(), "stop", "input", "output");
+		opcua_comm.getServerCommunication().addMethod_string(opcua_comm.getServerCommunication(), opcua_server,
+				opcua_object, getUnique_id(), "reset", "input", "output");
+
+		fireTrigger(IDLE);
 	}
 
 	static int currentState;
@@ -94,7 +131,12 @@ public class HandshakeFunctionalUnit extends FunctionalUnit {
 	}
 
 	public void idle() {
-
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				opcua_comm.getServerCommunication().runServer(opcua_server);
+			}
+		}).start();
 	}
 
 	public void starting() {
@@ -151,8 +193,8 @@ public class HandshakeFunctionalUnit extends FunctionalUnit {
 		initCapability(instanceId);
 	}
 
-	public void setWiring(CapabilityInstanceId localCapabilityId, String remoteCapabilityId) {
-		this.wiringMap.put(localCapabilityId, remoteCapabilityId);
+	public void setWiring(CapabilityInstanceId localCapabilityId, String remoteCapabiltyEntryPoint) { // Serveraddress+NodeID
+		this.wiringMap.put(localCapabilityId, remoteCapabiltyEntryPoint);
 
 	}
 

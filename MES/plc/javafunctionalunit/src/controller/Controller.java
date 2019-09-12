@@ -12,6 +12,8 @@
 package controller;
 
 import functionalUnit.HandshakeFunctionalUnit;
+import helper.CapabilityId;
+import helper.CapabilityInstanceId;
 
 public class Controller {
 
@@ -21,8 +23,12 @@ public class Controller {
 	 */
 	public static void main(String[] args) {
 
-		HandshakeFunctionalUnit hsFU = new HandshakeFunctionalUnit();
-		hsFU.initiateUnloading("", "");
+		HandshakeFunctionalUnit hsFU = new HandshakeFunctionalUnit("localhost", 4840);
+
+		// Process Engine
+		hsFU.setRequiredCapability(CapabilityInstanceId.NORTH_CLIENT, CapabilityId.EngageInUnLoading);
+		hsFU.setWiring(CapabilityInstanceId.NORTH_CLIENT, "opc.tcp://localhost:4840");
+		hsFU.initiateUnloading("NORTH", "0001");
 		System.err.println("Controller Main Started");
 
 	}

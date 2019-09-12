@@ -30,31 +30,15 @@ public class LoadingClientProtocol extends Protocol {
 	int currentState;
 	String serverPath;
 	String orderId;
+	Object opcua_client;
 
 	public LoadingClientProtocol() {
 		// super();
 		comm = new Communication();
-		Object opcua_client = comm.getClientCommunication().initClient();
+		opcua_client = comm.getClientCommunication().initClient();
 
 		// .getClientCommunication().initClient();
 		// Object opcua_client = ;
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				comm.getClientCommunication().clientConnect(comm.getClientCommunication(), opcua_client,
-						"opc.tcp://localhost:4840");
-
-			}
-		}).start();
-
-		Object statusNodeID = comm.getClientCommunication().getNodeByName(opcua_client, "Status"); // get
-
-		System.out.println(statusNodeID); // server by name
-		// int subId =
-		// comm.getClientCommunication().clientSubtoNode(comm.getClientCommunication(),
-		// opcua_client, statusNodeID); // subscribe
-		// to
-		// changes at the
 
 	}
 
@@ -67,6 +51,14 @@ public class LoadingClientProtocol extends Protocol {
 	}
 
 	public void starting() {
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				comm.getClientCommunication().clientConnect(comm.getClientCommunication(), opcua_client, serverPath);
+
+			}
+		}).start();
 
 	}
 
