@@ -55,6 +55,6 @@ public class MachineAgent extends AbstractActor{
 		        .build();
 	}
 
-	// todo: all the internal communication with the actual machine via OPC-UA
+	// todo: all the internal main.java.communication with the actual machine via OPC-UA
 	
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id="factoryInABox" external.linked.project.path="$MODULE_DIR$/../../MES/plc/javafunctionalunit/src" external.root.project.path="$MODULE_DIR$/../../MES/plc/javafunctionalunit/src" external.system.id="GRADLE" external.system.module.group="jku.isse" external.system.module.version="1.0-SNAPSHOT" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../MES/plc/javafunctionalunit/src">
+      <sourceFolder url="file://$MODULE_DIR$/../../MES/plc/javafunctionalunit/src/main/java" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/../../MES/plc/javafunctionalunit/src/.gradle" />
+      <excludeFolder url="file://$MODULE_DIR$/../../MES/plc/javafunctionalunit/src/build" />
+      <excludeFolder url="file://$MODULE_DIR$/../../MES/plc/javafunctionalunit/src/out" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Gradle: com.github.oxo42:stateless4j:2.5.0" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-core:3.8.0" level="project" />
+    <orderEntry type="library" name="Gradle: com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3" level="project" />
+    <orderEntry type="library" name="Gradle: com.github.ev3dev-lang-java:lejos-commons:0.7.3" level="project" />
+  </component>
+</module>

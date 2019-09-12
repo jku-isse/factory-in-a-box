@@ -23,3 +23,10 @@
 hs_err_pid*
 .settings/org.eclipse.jdt.core.prefs
 .project
+
+# EV3 Files
+
+/src/.gradle/
+/src/build/
+/src/main/java/hardware/actuators/motorsEV3/
+/src/main/java/hardware/sensors/sensorsEV3/
