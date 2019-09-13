@@ -59,10 +59,27 @@ public class LoadingTurnTable extends LoadingProtocolBase {
     public void addServerConfig() {
         statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(),
                 new RequestedNodePair<>(1, 55), "LoadingProtocolStatus");
-        /*new CompleteMethod(this).addMethod();
-        new InitiateLoadingMethod(this).addMethod();
-        new InitiateUnloadingMethod(this).addMethod();
-        new ResetLoadingProtocolMethod(this).addMethod();
-        new StopLoadingProtocolMethod(this).addMethod();*/
+        addStringMethodToServer(new RequestedNodePair<>(1, 11), "CompleteLoadingMethod", x -> {
+            complete();
+            return "Complete Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 12), "InitiateLoadingMethod", x -> {
+            initiateLoading(TurnTableOrientation.createFromInt(Integer.parseInt(x.substring(0, 1))),
+                    Integer.parseInt(x.substring(1)));
+            return "Initiate Loading Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 13), "InitiateUnloadingMethod", x -> {
+            initiateUnloading(TurnTableOrientation.createFromInt(Integer.parseInt(x.substring(0, 1))),
+                    Integer.parseInt(x.substring(1)));
+            return "Initiate Unloading Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 14), "ResetLoadingMethod", x -> {
+            reset();
+            return "Resetting Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 15), "StopLoadingMethod", x -> {
+            stop();
+            return "Stopping Successful";
+        });
     }
 }

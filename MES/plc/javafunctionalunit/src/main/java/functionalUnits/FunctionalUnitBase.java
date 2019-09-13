@@ -1,6 +1,9 @@
 package functionalUnits;
 
 import communication.open62communication.ServerCommunication;
+import communication.utils.RequestedNodePair;
+
+import java.util.function.Function;
 
 public abstract class FunctionalUnitBase {
 
@@ -43,5 +46,11 @@ public abstract class FunctionalUnitBase {
         this.serverCommunication = serverCommunication;
         this.server = server;
         this.Object = folder;
+    }
+
+    protected Object addStringMethodToServer(RequestedNodePair<Integer, Integer> requestedNodePair, String methodName,
+                                   Function<String, String> function) {
+        return getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                requestedNodePair, methodName, function);
     }
 }

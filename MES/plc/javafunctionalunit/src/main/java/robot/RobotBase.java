@@ -25,7 +25,7 @@ public class RobotBase extends ServerAPIBase {
      * Loads the native libraries using a workaround as the ev3 currently has troubles with finding them.
      * Uncomment this and comment the loadLib from open62Wrap/open62541JNI if using EV3
      */
-    /*
+
     static {
         try {
             System.out.println("Looking for native lib");
@@ -35,7 +35,7 @@ public class RobotBase extends ServerAPIBase {
             System.out.println("Cannot find native lib");
             e.printStackTrace();
         }
-    }*/
+    }
 
     private LoadingProtocolBase loadingProtocolBase;
     private ConveyorBase conveyorBase;

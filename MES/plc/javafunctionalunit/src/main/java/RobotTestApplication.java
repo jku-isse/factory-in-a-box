@@ -3,7 +3,9 @@ import functionalUnits.functionalUnitTurnTable.LoadingTurnTable;
 import functionalUnits.functionalUnitTurnTable.ProcessTurnTable;
 import functionalUnits.functionalUnitTurnTable.TurningTurnTable;
 import hardware.actuators.MockMotor;
+
 import hardware.sensors.MockSensor;
+
 import robot.turnTable.TurnTableRobot;
 
 /**
@@ -23,8 +25,8 @@ public class RobotTestApplication {
                 new ConveyorTurnTable(new MediumMotorEV3(MotorPort.A),
                         new TouchSensorEV3(SensorPort.S2) ,new ColorSensorEV3(SensorPort.S3)),
                 new TurningTurnTable(new LargeMotorEV3(MotorPort.D) ,new TouchSensorEV3(SensorPort.S4)),
-                new ProcessTurnTable()).runServer();*/
-
+                new ProcessTurnTable()).runServer();
+*/
         //Run this to simulate the hardware
         new TurnTableRobot(new LoadingTurnTable(),
                 new ConveyorTurnTable(new MockMotor(), new MockSensor(), new MockSensor()),

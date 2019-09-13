@@ -10,6 +10,8 @@ import stateMachines.conveyor.ConveyorStateMachineConfig;
 import stateMachines.conveyor.ConveyorStates;
 import stateMachines.conveyor.ConveyorTriggers;
 
+import java.util.function.Function;
+
 import static stateMachines.conveyor.ConveyorStates.STOPPED;
 import static stateMachines.conveyor.ConveyorTriggers.*;
 import static stateMachines.conveyor.ConveyorTriggers.LOAD;
@@ -182,21 +184,26 @@ public class ConveyorTurnTable extends ConveyorBase {
     public void addServerConfig() {
         statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(), new RequestedNodePair<>(1, 56),
                 "ConveyorStatus");
-        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
-                new RequestedNodePair<>(1, 21), "LoadMethod", x -> {
-                    load();
-                    return "Loading Successful";
-                });
-        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
-                new RequestedNodePair<>(1, 22), "UnloadMethod", x -> {
-                    unload();
-                    return "Unloading Successful";
-                });
-        /*new LoadMethod(this).addMethod();
-        new UnloadMethod(this).addMethod();
-        new PauseMethod(this).addMethod();
-        new ResetConveyorMethod(this).addMethod();
-        new StopConveyorMethod(this).addMethod();*/
+        addStringMethodToServer(new RequestedNodePair<>(1, 21), "LoadConveyorMethod", x -> {
+            load();
+            return "Loading Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 22), "PauseConveyorMethod", x -> {
+            pause();
+            return "Pausing Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 23), "ResetConveyorMethod", x -> {
+            reset();
+            return "Resetting Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 24), "StopConveyorMethod", x -> {
+            stop();
+            return "Loading Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 25), "UnloadConveyorMethod", x -> {
+            unload();
+            return "Unloading Successful";
+        });
         updateState();
     }
 }

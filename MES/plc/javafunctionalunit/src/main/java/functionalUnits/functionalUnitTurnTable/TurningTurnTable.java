@@ -12,6 +12,8 @@ import stateMachines.turning.TurningTriggers;
 import robot.turnTable.TurnTableOrientation;
 
 
+import java.util.function.Function;
+
 import static stateMachines.turning.TurningStates.STOPPED;
 import static stateMachines.turning.TurningTriggers.*;
 import static stateMachines.turning.TurningTriggers.EXECUTE;
@@ -37,7 +39,8 @@ public class TurningTurnTable extends TurningBase {
 
     /**
      * Turning FU for a TurnTable.
-     * @param turnMotor motor to specify turning. If turning in wrong direction, exchange forward with backwards.
+     *
+     * @param turnMotor   motor to specify turning. If turning in wrong direction, exchange forward with backwards.
      * @param resetSensor motor used for homing
      */
     public TurningTurnTable(Motor turnMotor, Sensor resetSensor) {
@@ -53,7 +56,7 @@ public class TurningTurnTable extends TurningBase {
      * Updates the current state on the server
      */
     private void updateState() {
-       getServerCommunication().writeVariable(getServer(), statusNodeId, turningStateMachine.getState().getValue());
+        getServerCommunication().writeVariable(getServer(), statusNodeId, turningStateMachine.getState().getValue());
     }
 
     /**
@@ -191,10 +194,21 @@ public class TurningTurnTable extends TurningBase {
     public void addServerConfig() {
         statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(),
                 new RequestedNodePair<>(1, 57), "TurningStatus");
-        /*ServerCommunication.addMethod()
-        new ResetTurningMethod(this).addMethod();
-        new StopTurningMethod(this).addMethod();
-        new TurnToMethod(this).addMethod();
-        updateState();*/
+        addStringMethodToServer(new RequestedNodePair<>(1, 31), "ResetTurningMethod", x -> {
+            reset();
+            return "Resetting Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 32), "StopTurningMethod", x -> {
+            reset();
+            return "Stopping Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 33), "TurnToMethod", x -> {
+            if(x.matches("^[0-3]$")){
+                turnTo(TurnTableOrientation.createFromInt(Integer.parseInt(x)));
+                return "Turning to " + TurnTableOrientation.createFromInt(Integer.parseInt(x)) + " Successful";
+            }
+            return "Invalid input";
+        });
+        updateState();
     }
 }

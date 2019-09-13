@@ -40,14 +40,19 @@ public class ProcessTurnTable extends ProcessEngineBase {
      */
     @Override
     public void addServerConfig() {
-          /*
-        statusNodeId = ServerCommunication.addIntegerVariableNode(getServer(), getConveyorFolder(), new Pair<>(1, 56),
-                "ConveyorStatus");
-         */
-        statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(),new RequestedNodePair<>(1, 58),
-                "ProcessEngineStatus");
-        /*new LoadProcessMethod(this).addMethod();
-        new ResetProcessMethod(this).addMethod();
-        new StopProcessMethod(this).addMethod();*/
+        statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(),
+                new RequestedNodePair<>(1, 58), "ProcessEngineStatus");
+        addStringMethodToServer(new RequestedNodePair<>(1, 41), "LoadProcessMethod", x -> {
+            loadProcess();
+            return "Load Process Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 42), "ResetProcessMethod", x -> {
+            reset();
+            return "Resetting Successful";
+        });
+        addStringMethodToServer(new RequestedNodePair<>(1, 43), "StopProcessMethod", x -> {
+            stop();
+            return "Stopping Successful";
+        });
     }
 }
