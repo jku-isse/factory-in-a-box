@@ -23,3 +23,14 @@
 hs_err_pid*
 .settings/org.eclipse.jdt.core.prefs
 .project
+/.idea/
+.gradle/
+.idea/$PRODUCT_WORKSPACE_FILE$
+MES/plc/javafunctionalunit/.gradle/
+MES/plc/javafunctionalunit/build/generated/
+MES/plc/javafunctionalunit/build/resources/
+MES/plc/javafunctionalunit/build/tmp/
+MES/plc/javafunctionalunit/gradle/wrapper/gradle-wrapper.properties
+MES/plc/javafunctionalunit/src/gradle/wrapper/gradle-wrapper.properties
+MES/plc/javafunctionalunit/src/test/
+/.gradle/
