@@ -13,6 +13,9 @@ package communication;
 
 import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
+import communication.utils.RequestedNodePair;
+
+import java.util.function.Function;
 
 public class Communication {
 
@@ -37,5 +40,13 @@ public class Communication {
 		}
 		return serverCommunication;
 	}
+
+
+	public Object addStringMethodToServer( Object server, Object object,RequestedNodePair<Integer, Integer> requestedNodePair, String methodName,
+											  Function<String, String> function) {
+		return getServerCommunication().addStringMethod(getServerCommunication(), server, object,
+				requestedNodePair, methodName, function);
+	}
+
 
 }

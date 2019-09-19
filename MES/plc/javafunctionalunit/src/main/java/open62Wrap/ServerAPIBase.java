@@ -91,7 +91,11 @@ public class ServerAPIBase {
   }
 
   public static UA_NodeId AddObject(SWIGTYPE_p_UA_Server server, UA_NodeId requestedNewNodeId, String name) {
-    return new UA_NodeId(open62541JNI.ServerAPIBase_AddObject(SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(requestedNewNodeId), requestedNewNodeId, name), true);
+    return new UA_NodeId(open62541JNI.ServerAPIBase_AddObject__SWIG_0(SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(requestedNewNodeId), requestedNewNodeId, name), true);
+  }
+
+  public static UA_NodeId AddObject(SWIGTYPE_p_UA_Server server, UA_NodeId parent, UA_NodeId requestedNewNodeId, String name) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_AddObject__SWIG_1(SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(parent), parent, UA_NodeId.getCPtr(requestedNewNodeId), requestedNewNodeId, name), true);
   }
 
   public static UA_NodeId AddVariableNode(SWIGTYPE_p_UA_Server server, UA_NodeId objectId, UA_NodeId requestedNewNodeId, String name, int typeId, int accessLevel) {

@@ -12,7 +12,7 @@
 package protocols;
 
 import communication.Communication;
-import helper.CapabilityId;
+import helper.CapabilityType;
 
 import java.util.List;
 
@@ -22,12 +22,12 @@ public class Protocol {
 		comm = new Communication();
 	}
 
-	CapabilityId typeId;
+	CapabilityType typeId;
 	List<String> methods;
 	List<String> monitoredItems;
 	Communication comm;
 
-	public Protocol(CapabilityId typeid, List<String> methods, List<String> monitoredItems) {
+	public Protocol(CapabilityType typeid, List<String> methods, List<String> monitoredItems) {
 		this.methods = methods;
 		this.monitoredItems = monitoredItems;
 		this.typeId = typeid;

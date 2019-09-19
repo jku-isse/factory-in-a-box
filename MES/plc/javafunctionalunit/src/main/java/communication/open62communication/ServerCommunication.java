@@ -21,6 +21,11 @@ import java.util.function.Function;
 public class ServerCommunication extends ServerAPIBase {
 
     private HashMap<Integer, Function<String, String>> functionMap;
+    private int unique_id = 10;
+
+    public int getUnique_id() {
+        return unique_id += 1;
+    }
 
     public ServerCommunication() {
         functionMap = new HashMap<>();
@@ -58,7 +63,6 @@ public class ServerCommunication extends ServerAPIBase {
      * @param methodId method id
      * @param objectId object id
      * @param input    input
-     * @param output   output
      * @param jAPIBase serverAPIBase of the server
      */
     @Override
@@ -78,8 +82,13 @@ public class ServerCommunication extends ServerAPIBase {
         ServerAPIBase.AddMonitoredItem((ServerAPIBase) serverAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) immId);
     }
 
+
     public Object addObject(Object server, Object requestedNewNodeId, String name) {
         return ServerAPIBase.AddObject((SWIGTYPE_p_UA_Server) server, (UA_NodeId) requestedNewNodeId, name);
+    }
+
+    public Object addNestedObject(Object server, Object parent, Object requestedNewNodeId, String name) {
+        return ServerAPIBase.AddObject((SWIGTYPE_p_UA_Server) server, (UA_NodeId) parent, (UA_NodeId) requestedNewNodeId, name);
     }
 
     public Object addVariableNode(Object server, Object objectId, RequestedNodePair<Integer, Integer> requestedNewNodeId, String name,
@@ -92,6 +101,12 @@ public class ServerCommunication extends ServerAPIBase {
         return ServerAPIBase.AddVariableNode((SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name,
                 open62541.UA_TYPES_INT32, (open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ));
+    }
+
+    public Object addStringVariableNode(Object server, Object objectId, RequestedNodePair<Integer, Integer> requestedNewNodeId, String name) {
+        return ServerAPIBase.AddVariableNode((SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+                open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name,
+                open62541.UA_TYPES_STRING, (open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ));
     }
 
     public int writeVariable(Object server, Object nodeId, int intValue) {
@@ -144,9 +159,9 @@ public class ServerCommunication extends ServerAPIBase {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        UA_NodeId reqMethodId =  open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
+        UA_NodeId reqMethodId = open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
         Object methodId = ServerAPIBase.AddMethod((ServerAPIBase) serverAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
-                reqMethodId ,
+                reqMethodId,
                 input, output, methodAttributes);
         addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
         return methodId;
@@ -154,5 +169,9 @@ public class ServerCommunication extends ServerAPIBase {
 
     public void setMethodOutput(Object nodeId, String output) {
         ServerAPIBase.SetMethodOutput((UA_NodeId) nodeId, output);
+    }
+
+    public Object createNodeNumeric(int nameSpace, int id) {
+        return open62541.UA_NODEID_NUMERIC(nameSpace, id);
     }
 }

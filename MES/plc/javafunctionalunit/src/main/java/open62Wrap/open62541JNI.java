@@ -9,7 +9,7 @@
 package open62Wrap;
 
 public class open62541JNI {
-/*
+
   static {
     try {
         System.loadLibrary("opcua_java_api");
@@ -18,7 +18,7 @@ public class open62541JNI {
       System.exit(1);
     }
   }
-*/
+
   public final static native void ServerAPIBase_running_set(long jarg1, ServerAPIBase jarg1_, boolean jarg2);
   public final static native boolean ServerAPIBase_running_get(long jarg1, ServerAPIBase jarg1_);
   public final static native long ServerAPIBase_Get();
@@ -28,7 +28,8 @@ public class open62541JNI {
   public final static native long ServerAPIBase_CreateServer(String jarg1, int jarg2);
   public final static native int ServerAPIBase_RunServer(long jarg1);
   public final static native void ServerAPIBase_AddMonitoredItem(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_);
-  public final static native long ServerAPIBase_AddObject(long jarg1, long jarg2, UA_NodeId jarg2_, String jarg3);
+  public final static native long ServerAPIBase_AddObject__SWIG_0(long jarg1, long jarg2, UA_NodeId jarg2_, String jarg3);
+  public final static native long ServerAPIBase_AddObject__SWIG_1(long jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4);
   public final static native long ServerAPIBase_AddVariableNode(long jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4, int jarg5, int jarg6);
   public final static native long ServerAPIBase_ManuallyDefineIMM(long jarg1);
   public final static native long ServerAPIBase_ManuallyDefineRobot(long jarg1);

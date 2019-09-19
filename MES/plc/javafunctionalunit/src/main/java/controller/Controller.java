@@ -11,24 +11,58 @@
 **/
 package controller;
 
-import functionalUnit.HandshakeFunctionalUnit;
+import capabilities.HandshakeCapability;
+import capabilities.HandshakeFU;
+import communication.Communication;
+import communication.utils.RequestedNodePair;
+import helper.CapabilityRole;
+import helper.CapabilityType;
 import helper.CapabilityId;
-import helper.CapabilityInstanceId;
 
 public class Controller {
+
+
+
+	public static void turn() {
+
+		System.out.println("Turning Callback stop");
+
+	}
 
 	/**
 	 * main method for testing purposes. calling the constructor then running the
 	 * server in a separate thread.
 	 */
+
+
 	public static void main(String[] args) {
 
-		HandshakeFunctionalUnit hsFU = new HandshakeFunctionalUnit("localhost", 4840);
+		//Turning Table
+		Communication opcua_comm = new Communication();
+		Object opcua_server = opcua_comm.getServerCommunication().createServer("localhost", 4840);
+		Object rootObjectId = opcua_comm.getServerCommunication().createNodeNumeric(1, opcua_comm.getServerCommunication().getUnique_id());
+		Object opcua_object = opcua_comm.getServerCommunication().addObject(opcua_server, rootObjectId, "Turntable");
 
+
+		//should be moved to the base class
+		opcua_comm.addStringMethodToServer(opcua_server,opcua_object,new RequestedNodePair<>(1, opcua_comm.getServerCommunication().getUnique_id()), "Turn", x -> {
+			turn();
+			return "this.instanceId is now set to this.path";
+		});
+
+
+
+		HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH, CapabilityRole.Provided);
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				opcua_comm.getServerCommunication().runServer(opcua_server);
+			}
+		}).start();
 		// Process Engine
-		hsFU.setRequiredCapability(CapabilityInstanceId.NORTH_CLIENT, CapabilityId.EngageInUnLoading);
-		hsFU.setWiring(CapabilityInstanceId.NORTH_CLIENT, "opc.tcp://localhost:4840");
-		hsFU.initiateUnloading("NORTH", "0001");
+		//hsFU.setRequiredCapability(CapabilityId.NORTH_CLIENT, CapabilityType.EngageInUnLoading);
+		//hsFU.setWiring(CapabilityId.NORTH_CLIENT, "opc.tcp://localhost:4840");
+		//hsFU.initiateUnloading("NORTH", "0001");
 		System.err.println("Controller Main Started");
 
 	}

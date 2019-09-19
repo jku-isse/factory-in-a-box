@@ -49,7 +49,7 @@ public abstract class FunctionalUnitBase {
     }
 
     protected Object addStringMethodToServer(RequestedNodePair<Integer, Integer> requestedNodePair, String methodName,
-                                   Function<String, String> function) {
+                                             Function<String, String> function) {
         return getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
                 requestedNodePair, methodName, function);
     }
