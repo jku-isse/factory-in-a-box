@@ -9,7 +9,7 @@ public abstract class FunctionalUnitBase {
 
     private ServerCommunication serverCommunication;
     private Object server;
-    private Object Object;
+    private Object object;
 
     public ServerCommunication getServerCommunication() {
         return serverCommunication;
@@ -35,17 +35,17 @@ public abstract class FunctionalUnitBase {
     }
 
     public Object getObject() {
-        return Object;
+        return object;
     }
 
     public void setConveyorFolder(Object conveyorFolder) {
-        this.Object = conveyorFolder;
+        this.object = conveyorFolder;
     }
 
     public void setServerAndFolder(ServerCommunication serverCommunication, Object server, Object folder){
         this.serverCommunication = serverCommunication;
         this.server = server;
-        this.Object = folder;
+        this.object = folder;
     }
 
     protected Object addStringMethodToServer(RequestedNodePair<Integer, Integer> requestedNodePair, String methodName,

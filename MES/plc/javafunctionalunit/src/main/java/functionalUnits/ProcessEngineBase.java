@@ -1,10 +1,31 @@
 package functionalUnits;
 
+import communication.open62communication.ClientCommunication;
+
 /**
  * Abstract base class for the process engine functional Unit
  * All process engine FUs should extend this class
  */
 public abstract class ProcessEngineBase extends FunctionalUnitBase {
+
+    private ClientCommunication clientCommunication;
+    private Object client;
+
+    public ClientCommunication getClientCommunication() {
+        return clientCommunication;
+    }
+
+    public void setClientCommunication(ClientCommunication clientCommunication) {
+        this.clientCommunication = clientCommunication;
+    }
+
+    public Object getClient() {
+        return client;
+    }
+
+    public void setClient(Object client) {
+        this.client = client;
+    }
 
     /**
      * Loads a process.

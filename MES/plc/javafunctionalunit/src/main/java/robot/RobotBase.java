@@ -25,7 +25,7 @@ public class RobotBase extends ServerAPIBase {
      * Loads the native libraries using a workaround as the ev3 currently has troubles with finding them.
      * Uncomment this and comment the loadLib from open62Wrap/open62541JNI if using EV3
      */
-
+/*
     static {
         try {
             System.out.println("Looking for native lib");
@@ -36,7 +36,7 @@ public class RobotBase extends ServerAPIBase {
             e.printStackTrace();
         }
     }
-
+*/
     private LoadingProtocolBase loadingProtocolBase;
     private ConveyorBase conveyorBase;
     private TurningBase turningBase;
@@ -51,7 +51,6 @@ public class RobotBase extends ServerAPIBase {
     private Thread serverThread = new Thread(() -> {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
         System.out.println("Starting Server...");
-        //serverAPIBase = new ServerAPIBase();
         Object server = serverCommunication.createServer("localhost", 4840);
         Object loadingFolder = serverCommunication.addObject(server, open62541.UA_NODEID_NUMERIC(1, 10), "LoadingProtocol");
         loadingProtocolBase.setServerAndFolder(serverCommunication, server, loadingFolder);
@@ -71,6 +70,17 @@ public class RobotBase extends ServerAPIBase {
         }
         System.out.println("Running Server...");
         serverCommunication.runServer(server);
+    });
+
+    private Thread clientThread = new Thread(() -> {
+        System.out.println("Starting Client...");
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
+        if (processEngineBase != null) {
+            Object client = clientCommunication.initClient();
+            processEngineBase.setClient(client);
+            clientCommunication.clientConnect(clientCommunication, client, "opc.tcp://localhost:4840/");
+        }
+        System.out.println("Running Client...");
     });
 
     /**
@@ -172,6 +182,16 @@ public class RobotBase extends ServerAPIBase {
      */
     public void runServer() {
         serverThread.start();
+    }
+
+    public void runServerAndClient() {
+        serverThread.start();
+        //clientThread.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> ClientCommunication.stopHandler(0)));
+        Object client = clientCommunication.initClient();
+        processEngineBase.setClientCommunication(clientCommunication);
+        processEngineBase.setClient(client);
+        clientCommunication.clientConnect(clientCommunication, processEngineBase.getClient(), "opc.tcp://localhost:4840/");
     }
 
     /**

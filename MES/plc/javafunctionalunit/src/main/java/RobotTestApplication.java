@@ -25,12 +25,12 @@ public class RobotTestApplication {
                 new ConveyorTurnTable(new MediumMotorEV3(MotorPort.A),
                         new TouchSensorEV3(SensorPort.S2) ,new ColorSensorEV3(SensorPort.S3)),
                 new TurningTurnTable(new LargeMotorEV3(MotorPort.D) ,new TouchSensorEV3(SensorPort.S4)),
-                new ProcessTurnTable()).runServer();
+                new ProcessTurnTable()).runServerAndClient();
 */
         //Run this to simulate the hardware
         new TurnTableRobot(new LoadingTurnTable(),
                 new ConveyorTurnTable(new MockMotor(), new MockSensor(), new MockSensor()),
                 new TurningTurnTable(new MockMotor(), new MockSensor()),
-                new ProcessTurnTable()).runServer();
+                new ProcessTurnTable()).runServerAndClient();
     }
 }

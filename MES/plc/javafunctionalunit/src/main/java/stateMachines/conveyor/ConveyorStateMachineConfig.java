@@ -24,7 +24,7 @@ public class ConveyorStateMachineConfig extends StateMachineConfig<ConveyorState
     public ConveyorStateMachineConfig(){
         configure(IDLE)
                 .permit(LOAD, LOADING)
-                .permitReentry(STOP)
+                .permit(STOP, STOPPING)
                 .ignore(NEXT);
         configure(LOADING)
                 .permit(PAUSE, SUSPENDED)
@@ -47,7 +47,7 @@ public class ConveyorStateMachineConfig extends StateMachineConfig<ConveyorState
                 .permit(NEXT, IDLE)
                 .permit(STOP, STOPPING);
         configure(STOPPING)
-                .permit(NEXT, STOPPED);
-        configure(STOPPED).permit(RESET, RESETTING);
+                .permit(NEXT, STOPPED).ignore(STOP);
+        configure(STOPPED).permit(RESET, RESETTING).ignore(STOP).ignore(NEXT);
     }
 }

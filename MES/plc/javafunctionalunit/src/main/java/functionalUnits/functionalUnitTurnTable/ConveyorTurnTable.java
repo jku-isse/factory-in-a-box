@@ -165,9 +165,6 @@ public class ConveyorTurnTable extends ConveyorBase {
      */
     @Override
     public void stop() {
-        if (!conveyorStateMachine.canFire(STOP)) {
-            return;
-        }
         conveyorStateMachine.fire(STOP);
         updateState();
         System.out.println("Executing: stop");
@@ -198,7 +195,7 @@ public class ConveyorTurnTable extends ConveyorBase {
         });
         addStringMethodToServer(new RequestedNodePair<>(1, 24), "StopConveyorMethod", x -> {
             stop();
-            return "Loading Successful";
+            return "Stop Successful";
         });
         addStringMethodToServer(new RequestedNodePair<>(1, 25), "UnloadConveyorMethod", x -> {
             unload();

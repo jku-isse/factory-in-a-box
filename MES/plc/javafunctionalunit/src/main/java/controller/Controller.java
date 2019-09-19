@@ -52,7 +52,7 @@ public class Controller {
 
 
 
-		HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH, CapabilityRole.Provided);
+		//HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH, CapabilityRole.Provided);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
