@@ -65,3 +65,6 @@ MES/plc/javafunctionalunit/src/test/
 gradle/wrapper/gradle-wrapper.properties
 gradlew
 gradlew.bat
+MES/plc/javafunctionalunit/src/main/resources/opcua_java_api.pdb
+MES/plc/javafunctionalunit/src/main/resources/opcua_java_api.ipdb
+MES/plc/javafunctionalunit/src/main/resources/opcua_java_api.iobj
