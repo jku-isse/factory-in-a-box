@@ -43,8 +43,6 @@ public class Capability {
         this.parentObject = parentObject;
         capabilityOpcuaNodeId = serverCommunication.createNodeNumeric(1, serverCommunication.getUnique_id()); //need to implement a controller level Enum
 
-        String name = "REQUIRED ";
-        if(capabilityRole.compareTo(CapabilityRole.Provided) == 0 ) name = "PROVIDED";
 
         capabilityObject = serverCommunication.addNestedObject(opcua_server,parentObject, capabilityOpcuaNodeId, "CAPABILTY");
 

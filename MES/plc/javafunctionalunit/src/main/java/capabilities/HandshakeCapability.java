@@ -21,17 +21,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import communication.Communication;
+import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
-import helper.CapabilityType;
-import helper.CapabilityId;
-import helper.HandshakeStates;
-import helper.ClientLoadingStates;
+import helper.*;
 import protocols.LoadingClientProtocol;
 import protocols.LoadingServerProtocol;
 
-public class HandshakeCapability  {
-    Map<CapabilityId, CapabilityType> capabilityMap;
-    Map<CapabilityId, String> wiringMap;
+public class HandshakeCapability extends Capability {
+
     public final static boolean DEBUG = true;
     // Map<CapabilityInstanceId, Protocol> protocolMap;
     LoadingClientProtocol clientProtocol;
@@ -39,16 +36,6 @@ public class HandshakeCapability  {
     int loadingMechanism;
 
     // opcua
-    private Communication opcua_comm;
-    private Object opcua_server;
-    private Object parentObjectId;
-	private Object opcua_object;
-
-    private int unique_id;
-
-    private int getUnique_id() {
-        return unique_id += 1;
-    }
 
     public void setWiring() {
 
@@ -68,54 +55,35 @@ public class HandshakeCapability  {
 
     }
 
-    public HandshakeCapability(Communication opcua_comm, Object opcua_server, Object parentObjectId, int unique_id) {
-       // super();
+    public HandshakeCapability(ServerCommunication serverCommunication, Object server, Object parentObject, CapabilityId capabilityId, CapabilityRole capabilityRole) {
+        super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, capabilityRole);
+
         clientProtocol = null;
         serverProtocol = null;
-        capabilityMap = new HashMap<>();
-        wiringMap = new HashMap<CapabilityId, String>();
 
-        this.opcua_comm = opcua_comm;
-        this.opcua_server = opcua_server;
-        this.parentObjectId = parentObjectId;
-        this.unique_id = unique_id;
-
-
-
-
-		Object rewquestedHandshakeId = opcua_comm.getServerCommunication().createNodeNumeric(1, getUnique_id());
-        opcua_object = opcua_comm.getServerCommunication().addNestedObject(opcua_server, parentObjectId, rewquestedHandshakeId, "Handshak FU");
-
-		Object endpoint_reqId = opcua_comm.getServerCommunication().createNodeNumeric(1, getUnique_id());
-		Object endpoint_object = opcua_comm.getServerCommunication().addNestedObject(opcua_server, opcua_object, endpoint_reqId, "END_POINT");
-
-		Object requiredCapability_reqId = opcua_comm.getServerCommunication().createNodeNumeric(1, getUnique_id());
-		Object requiredCapability_object = opcua_comm.getServerCommunication().addNestedObject(opcua_server, opcua_object, endpoint_object, "Required_Capability");
-
-		Object endpoint2_reqId = opcua_comm.getServerCommunication().createNodeNumeric(1, getUnique_id());
-		Object endpoint2_object = opcua_comm.getServerCommunication().addNestedObject(opcua_server, opcua_object, endpoint2_reqId, "END_POINT");
-
-		Object providedCapability_reqId = opcua_comm.getServerCommunication().createNodeNumeric(1, getUnique_id());
-		Object providedCapability_object = opcua_comm.getServerCommunication().addNestedObject(opcua_server, opcua_object, endpoint2_object, "Provided_Capability");
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "START",
+                opcuaMethodInput -> {
+                    return start(opcuaMethodInput);
+                });
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "STOP",
+                opcuaMethodInput -> {
+                    return stop(opcuaMethodInput);
+                });
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "RESET",
+                opcuaMethodInput -> {
+                    return reset(opcuaMethodInput);
+                });
 
 
-		Object west_reqId = opcua_comm.getServerCommunication().createNodeNumeric(1, getUnique_id());
-		Object west_object = opcua_comm.getServerCommunication().addNestedObject(opcua_server, requiredCapability_object, west_reqId, "WEST");
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_Loading",
+                opcuaMethodInput -> {
+                    return initiateLoading(opcuaMethodInput);
+                });
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_Unloading",
+                opcuaMethodInput -> {
+                    return initiateUnloading(opcuaMethodInput);
+                });
 
-		//should be moved to the base class
-        opcua_comm.addStringMethodToServer(opcua_server, west_object, new RequestedNodePair<>(1, getUnique_id()), "Set_Wiring", x -> {
-            setWiring();
-            return "this.instanceId is now set to this.path";
-        });
-
-        opcua_comm.addStringMethodToServer(opcua_server, west_object, new RequestedNodePair<>(1, getUnique_id()), "initiate_Loading", x -> {
-            initLoading();
-            return "Loading was successful";
-        });
-        opcua_comm.addStringMethodToServer(opcua_server, west_object, new RequestedNodePair<>(1, getUnique_id()), "initiate_Unloading", x -> {
-            initUnloading();
-            return "unLoading was successful";
-        });
 
 
         fireTrigger(IDLE);
@@ -133,7 +101,7 @@ public class HandshakeCapability  {
                 break;
             case STARTING:
                 currentState = STARTING.ordinal();
-                starting();
+                start("");
                 break;
             case EXECUTE:
                 currentState = EXECUTE.ordinal();
@@ -175,16 +143,28 @@ public class HandshakeCapability  {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                opcua_comm.getServerCommunication().runServer(opcua_server);
+                //       opcua_comm.getServerCommunication().runServer(opcua_server);
             }
         }).start();
     }
 
-    public void starting() {
+    public String start(String inputPram) {
         if (loadingMechanism == 1) {
-            clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
+        //    clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
         }
-
+        return "Start Complete";
+    }
+    public String stop(String inputPram) {
+        if (loadingMechanism == 1) {
+          //  clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
+        }
+        return "Stop Complete";
+    }
+    public String reset(String inputPram) {
+        if (loadingMechanism == 1) {
+         //   clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
+        }
+        return "Reset Complete";
     }
 
     public void execute() {
@@ -211,33 +191,61 @@ public class HandshakeCapability  {
 
     }
 
-    public void initiateUnloading(String direction, String orderId) {
-        // gageInUnLoading = new LoadingClientProtocol();
+    public String initiateUnloading(String inputPram) {
+        String[] inputParamters = inputPram.split(";");
+        System.out.println(inputParamters.toString());
+        if (inputParamters.length == 1)
+            return "Wrong Parameters, Please separate the CabilityID and OrderID with ';'";
+        else {
+            try {
+                CapabilityId localCapabilityId = CapabilityId.valueOf(inputParamters[0]);
+                String orderId = inputParamters[1];
+                //   this.wiringMap.put(localCapabilityId, orderId);
+            } catch (IllegalArgumentException e) {
+                return "Wrong Parameters, Could not Match CabilityID";
+            }
+        }
+        return "initiateLoading was Successful";
     }
 
-    void initiateLoading(CapabilityId instanceId, String orderId) {
+    public String initiateLoading(String inputPram) {
+        String[] inputParamters = inputPram.split(";");
+        System.out.println(inputParamters.toString());
+        if (inputParamters.length == 1)
+            return "Wrong Parameters, Please separate the CabilityID and OrderID with ';'";
+        else {
+            try {
+                CapabilityId localCapabilityId = CapabilityId.valueOf(inputParamters[0]);
+                String orderId = inputParamters[1];
+             //   this.wiringMap.put(localCapabilityId, orderId);
+            } catch (IllegalArgumentException e) {
+                return "Wrong Parameters, Could not Match CabilityID";
+            }
+        }
+        return "initiateLoading was Successful";
+    /*    //(CapabilityId instanceId, String orderId) {
         loadingMechanism = 1;
         // this.protocolMap.get(instanceId)
         if (this.getCurrentState() != IDLE.ordinal()) {
             log("Not Idle - Wrong State. !");
-            return;
+            return "";
         }
 
-        clientProtocol.setServerPath(this.wiringMap.get(instanceId));
-        clientProtocol.setOrderId(orderId);
+        //   clientProtocol.setServerPath(this.wiringMap.get(instanceId));
+        //   clientProtocol.setOrderId(orderId);
         this.fireTrigger(STARTING);
+
+        return "";
+
+     */
     }
 
     public void setRequiredCapability(CapabilityId instanceId, CapabilityType typeId) {
-        this.capabilityMap.put(instanceId, typeId);
+        //      this.capabilityMap.put(instanceId, typeId);
         // this.protocolMap.put(instanceId, initCapability(instanceId));
         initCapability(instanceId);
     }
 
-    public void setWiring(CapabilityId localCapabilityId, String remoteCapabiltyEntryPoint) { // Serveraddress+NodeID
-        this.wiringMap.put(localCapabilityId, remoteCapabiltyEntryPoint);
-
-    }
 
     public void initCapability(CapabilityId instanceId) {
         /*

@@ -45,14 +45,14 @@ public class Controller {
 
 
 		//should be moved to the base class
-		opcua_comm.addStringMethodToServer(opcua_server,opcua_object,new RequestedNodePair<>(1, opcua_comm.getServerCommunication().getUnique_id()), "Turn", x -> {
+		opcua_comm.getServerCommunication().addStringMethod(opcua_comm.getServerCommunication(),opcua_server,opcua_object,new RequestedNodePair<>(1, opcua_comm.getServerCommunication().getUnique_id()), "Turn", x -> {
 			turn();
 			return "this.instanceId is now set to this.path";
 		});
 
 
 
-		HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH, CapabilityRole.Provided);
+		HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH_SERVER, CapabilityRole.Provided);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {

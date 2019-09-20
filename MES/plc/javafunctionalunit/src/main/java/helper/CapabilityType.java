@@ -1,7 +1,7 @@
 package helper;
 
 public enum CapabilityType {
-	HANDSHAKE_FU,
+	HANDSHAKE,
 	WIRING,
 	EngageInUnLoading
 }

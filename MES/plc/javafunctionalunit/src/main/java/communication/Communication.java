@@ -42,11 +42,6 @@ public class Communication {
 	}
 
 
-	public Object addStringMethodToServer( Object server, Object object,RequestedNodePair<Integer, Integer> requestedNodePair, String methodName,
-											  Function<String, String> function) {
-		return getServerCommunication().addStringMethod(getServerCommunication(), server, object,
-				requestedNodePair, methodName, function);
-	}
 
 
 }
