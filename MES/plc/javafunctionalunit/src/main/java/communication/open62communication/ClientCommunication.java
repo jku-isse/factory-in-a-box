@@ -1,26 +1,46 @@
 /**
  * @author micha
- *
+ * <p>
  * 6 Sep 2019
  */
 package communication.open62communication;
 
-import open62Wrap.ClientAPIBase;
-import open62Wrap.SWIGTYPE_p_UA_Client;
-import open62Wrap.UA_NodeId;
-import open62Wrap.open62541JNI;
+import communication.utils.RequestedNodePair;
+import open62Wrap.*;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
  * @author micha
- *
  */
 public class ClientCommunication extends ClientAPIBase {
 
-    int i = 0;
+    private int i = 0;
+    private AtomicInteger conveyorStatus;
+    private AtomicInteger turningStatus;
+    private CopyOnWriteArrayList<UA_NodeId> monitoredItemSet;
 
     public ClientCommunication() {
+        monitoredItemSet = new CopyOnWriteArrayList<>();
+        conveyorStatus = new AtomicInteger(-1);
+        turningStatus = new AtomicInteger(-1);
+    }
 
+    public int getConveyorStatus() {
+        return conveyorStatus.get();
+    }
+
+    public int getTurningStatus() {
+        return turningStatus.get();
+    }
+
+    public void addToMonitoredItems(RequestedNodePair<Integer, Integer> monitoredItem) {
+        UA_NodeId nodeId = open62541.UA_NODEID_NUMERIC(monitoredItem.getKey(), monitoredItem.getValue());
+        monitoredItemSet.add(nodeId);
     }
 
     /**
@@ -31,17 +51,17 @@ public class ClientCommunication extends ClientAPIBase {
      */
     @Override
     public void client_connected(ClientAPIBase clientAPIBase, SWIGTYPE_p_UA_Client client, String serverUrl) {
-        System.out.println("Client Connected");
-
+        System.out.println("Client Connected " + (i < 1 ? i : ""));
         if (i < 1) {
+            RequestedNodePair<Integer, Integer> conveyorNode = new RequestedNodePair<>(1, 56);
+            RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
+            clientSubToNode(clientAPIBase, client, open62541.UA_NODEID_NUMERIC(conveyorNode.getKey(), conveyorNode.getValue()));
+            //clientSubToNode(clientAPIBase, client, open62541.UA_NODEID_NUMERIC(turningNode.getKey(), turningNode.getValue()));
+            // if we subscribe to another node, the callback only uses the last node that was registered as the nodeId
             i++;
-            Object statusNodeID = getNodeByName(client, "Status"); // get Node id at the
-            System.out.println(statusNodeID); // server by name
-            int subId = clientSubtoNode(clientAPIBase, client, statusNodeID); //
-            // subscribe to
-            // changes at the
+            System.out.println("Client Connected ");
+            System.out.println(getNodeByName(client, "Status")); // server by name
         }
-
     }
 
     /**
@@ -54,8 +74,20 @@ public class ClientCommunication extends ClientAPIBase {
      */
     @Override
     public void monitored_itemChanged(UA_NodeId nodeId, int value) {
-        System.out.println("IMM FROM CLIENT Status monitored_itemChanged() invoked." + value);
-
+        //System.out.println("IMM FROM CLIENT Status monitored_itemChanged() invoked." + value);
+        RequestedNodePair<Integer, Integer> conveyorNode = new RequestedNodePair<>(1, 56);  //bad practice and will be changed later
+        RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
+        UA_NodeId conveyorId = open62541.UA_NODEID_NUMERIC(conveyorNode.getKey(), conveyorNode.getValue());
+        UA_NodeId turningId = open62541.UA_NODEID_NUMERIC(turningNode.getKey(), turningNode.getValue());
+        System.out.println("nodeId = " + nodeId.getIdentifier().getNumeric() + " | expected = " + conveyorId.getIdentifier().getNumeric() + " | value = " + value);
+        //System.out.println("nodeId = " + nodeId.getIdentifier().getNumeric() + " | expected = " + turningId.getIdentifier().getNumeric() + " | value = " + value);
+        if(nodeId.getIdentifier().getNumeric() == conveyorId.getIdentifier().getNumeric()){
+            System.out.println("Received callback for Conveyor");
+            conveyorStatus.set(value);
+        }/*else if(nodeId.getIdentifier().getNumeric() == turningId.getIdentifier().getNumeric()){
+            System.out.println("Received callback for Turning");
+            turningStatus.set(value);   //This will be called even though the conveyor was the one that changed
+        }*/
     }
 
     public Object initClient() {
@@ -72,7 +104,7 @@ public class ClientCommunication extends ClientAPIBase {
 
     }
 
-    public int clientSubtoNode(Object jClientAPIBase, Object client, Object nodeID) {
+    public int clientSubToNode(Object jClientAPIBase, Object client, Object nodeID) {
         return ClientAPIBase.ClientSubtoNode((ClientAPIBase) jClientAPIBase, (SWIGTYPE_p_UA_Client) client,
                 (UA_NodeId) nodeID);
 
@@ -90,6 +122,11 @@ public class ClientCommunication extends ClientAPIBase {
         return ClientAPIBase.ClientReadIntValue((SWIGTYPE_p_UA_Client) client, (UA_NodeId) nodeID);
     }
 
+    public int clientReadIntValueById(Object client, RequestedNodePair<Integer, Integer> nodeId) {
+        return ClientAPIBase.ClientReadIntValue((SWIGTYPE_p_UA_Client) client,
+                open62541.UA_NODEID_NUMERIC(nodeId.getKey(), nodeId.getValue()));
+    }
+
     public int clientWriteValue(String serverUrl, Object nodeId, int value) {
         return ClientAPIBase.ClientWriteValue(serverUrl, (UA_NodeId) nodeId, value);
     }
@@ -103,4 +140,11 @@ public class ClientCommunication extends ClientAPIBase {
                 argInputString);
     }
 
+    public String callStringMethod(Object client, RequestedNodePair<Integer, Integer> objectId,
+                                   RequestedNodePair<Integer, Integer> methodId, String argInputString) {
+        return ClientAPIBase.CallMethod((SWIGTYPE_p_UA_Client) client,
+                open62541.UA_NODEID_NUMERIC(objectId.getKey(), objectId.getValue()),
+                open62541.UA_NODEID_NUMERIC(methodId.getKey(), methodId.getValue()),
+                argInputString);
+    }
 }
