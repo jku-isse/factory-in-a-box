@@ -31,7 +31,7 @@ import akka.util.Timeout;
 import scala.concurrent.duration.FiniteDuration;
 import shopfloor.agents.eventbus.OrderEventBus;
 import shopfloor.agents.eventbus.OrderEventBusActorWrapper;
-import shopfloor.agents.events.OrderEvent;
+import shopfloor.agents.events.OrderStatusAllJobsUpdateEvent;
 import shopfloor.agents.messages.FrontEndMessages.OrderStatusRequest;
 import shopfloor.agents.messages.FrontEndMessages.OrderStatusResponse;
 import shopfloor.agents.messages.OrderDocument;
@@ -103,7 +103,7 @@ public class MinimalServerExample extends AllDirectives {
 				logger.info("SSE requested with orderId: "+orderId.orElse("none provided"));
 				Source<ServerSentEvent, NotUsed> source = 
 						Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
-						.map(msg -> (OrderEvent) msg)
+						.map(msg -> (OrderStatusAllJobsUpdateEvent) msg)
 						.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg) )
 						.mapMaterializedValue(actor -> { orderEvents.subscribe(actor, orderId.orElse("*")); 
 														 return NotUsed.getInstance();

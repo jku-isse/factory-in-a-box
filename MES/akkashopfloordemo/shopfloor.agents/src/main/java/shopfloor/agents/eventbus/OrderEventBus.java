@@ -2,14 +2,14 @@ package shopfloor.agents.eventbus;
 
 import akka.actor.ActorRef;
 import akka.event.japi.ScanningEventBus;
-import shopfloor.agents.events.OrderEvent;
+import shopfloor.agents.events.OrderBaseEvent;
 
-public class OrderEventBus  extends ScanningEventBus<OrderEvent, ActorRef, String>{
+public class OrderEventBus  extends ScanningEventBus<OrderBaseEvent, ActorRef, String>{
 
 	
 
 	@Override
-	public void publish(OrderEvent event, ActorRef subscriber) {
+	public void publish(OrderBaseEvent event, ActorRef subscriber) {
 		subscriber.tell(event, ActorRef.noSender());
 		
 	}
@@ -25,7 +25,7 @@ public class OrderEventBus  extends ScanningEventBus<OrderEvent, ActorRef, Strin
 	}
 
 	@Override
-	public boolean matches(String classifier, OrderEvent event) {
+	public boolean matches(String classifier, OrderBaseEvent event) {
 		if (classifier.equals("*"))
 			return true;
 		else 

@@ -36,15 +36,15 @@ public class MachineAgent extends AbstractActor{
 	public Receive createReceive() {
 		return receiveBuilder()
 		        .match(LockForOrder.class, lfo -> {
-		        	log.info(lfo.getJobId());
+		        	log.info(lfo.getStepId());
 		        	if (currentJob == null) { // we don't allow to override another order
 		        		currentJob = lfo;
 		        		// send machine configuration, resp ask machine to configure for next job
 		        		// here for mocking we immediatly send started and completed events
-		        		getSender().tell(new ProductionStateUpdate(ProductionState.STARTED, lfo.getJobId(), Instant.now()), getSelf());
+		        		getSender().tell(new ProductionStateUpdate(ProductionState.STARTED, lfo.getStepId(), Instant.now()), getSelf());
 		        		// now imitate working for 5 seconds
 		        		final ActorRef receiver = getSender();
-		        		final String jobId = lfo.getJobId();
+		        		final String jobId = lfo.getStepId();
 		        		final ActorRef sender = getSelf(); 
 		        		context().system()
 		        	    	.scheduler()

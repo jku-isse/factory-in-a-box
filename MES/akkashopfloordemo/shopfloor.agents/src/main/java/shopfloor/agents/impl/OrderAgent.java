@@ -12,8 +12,7 @@ import shopfloor.agents.messages.FrontEndMessages.OrderStatusRequest;
 import shopfloor.agents.messages.FrontEndMessages.OrderStatusResponse;
 import shopfloor.agents.messages.OrderStatus.JobStatus;
 import shopfloor.agents.eventbus.OrderEventBus;
-import shopfloor.agents.events.OrderEvent;
-import shopfloor.agents.events.OrderEvent.OrderEventType;
+import shopfloor.agents.events.OrderStatusAllJobsUpdateEvent;
 import shopfloor.agents.messages.LockForOrder;
 import shopfloor.agents.messages.NotifyAvailableForOrder;
 import shopfloor.agents.messages.OrderDocument;
@@ -45,7 +44,7 @@ public class OrderAgent extends AbstractActor{
 		this.jobList = orderDoc.getJobs();
 		this.job2machineDict = job2machineDict;
 		this.status = new OrderStatus(orderDoc);
-		eventBus.publish(new OrderEvent(this.orderId, OrderEventType.CREATED, this.status));
+		eventBus.publish(new OrderStatusAllJobsUpdateEvent(this.orderId, this.self().path().name(), shopfloor.agents.events.OrderBaseEvent.OrderEventType.CREATED, this.status));
 		this.eventBus = eventBus;
 	}
 	
@@ -64,18 +63,18 @@ public class OrderAgent extends AbstractActor{
 		        	log.info(x.toString());
 		        	if (x.getStateReached().equals(ProductionState.COMPLETED)) { // get next job, check if this message is really for previous job, we trust here that it is
 		        		status.setStatus(this.currentJobId, JobStatus.COMPLETED);
-		        		eventBus.publish(new OrderEvent(this.orderId, OrderEventType.PRODUCTION_UPDATE, this.status));
+		        		eventBus.publish(new OrderStatusAllJobsUpdateEvent(this.orderId, this.self().path().name(),shopfloor.agents.events.OrderBaseEvent.OrderEventType.PRODUCTION_UPDATE, this.status));
 		        		if (!jobList.isEmpty()) {
 		        			String nextJobId = jobList.remove(0);
 		        			job2machineDict.get(nextJobId).tell(new RegisterOrderRequest(nextJobId, null, getSelf()), getSelf());
 		        		} else {
-		        			eventBus.publish(new OrderEvent(this.orderId, OrderEventType.PRODUCTION_UPDATE, this.status));
+		        			eventBus.publish(new OrderStatusAllJobsUpdateEvent(this.orderId, this.self().path().name(),shopfloor.agents.events.OrderBaseEvent.OrderEventType.PRODUCTION_UPDATE, this.status));
 		        		}
 		        	}
 		        	if (x.getStateReached().equals(ProductionState.STARTED)) {
 		        		this.currentJobId = x.getJobId();
 		        		status.setStatus(this.currentJobId, JobStatus.INPROGRESS);
-		        		eventBus.publish(new OrderEvent(this.orderId, OrderEventType.COMPLETED, this.status));
+		        		eventBus.publish(new OrderStatusAllJobsUpdateEvent(this.orderId, this.self().path().name(),shopfloor.agents.events.OrderBaseEvent.OrderEventType.COMPLETED, this.status));
 		        	}
 		        })
 		        .match(OrderStatusRequest.class, req -> {

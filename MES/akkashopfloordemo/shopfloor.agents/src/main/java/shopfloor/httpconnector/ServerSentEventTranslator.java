@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import akka.http.javadsl.model.sse.ServerSentEvent;
-import shopfloor.agents.events.OrderEvent;
+import shopfloor.agents.events.OrderStatusAllJobsUpdateEvent;
 
 
 public class ServerSentEventTranslator{
@@ -17,7 +17,7 @@ public class ServerSentEventTranslator{
 	//public static String ORDER_STATUS_UPDATE = "ORDER_STATUS_UPDATE";
 	private static final Logger logger = LoggerFactory.getLogger(ServerSentEventTranslator.class);
 	
-	public static ServerSentEvent toServerSentEvent(OrderEvent orderEvent) {				
+	public static ServerSentEvent toServerSentEvent(OrderStatusAllJobsUpdateEvent orderEvent) {				
 		
 		try {
 			String json = om.writeValueAsString(orderEvent);

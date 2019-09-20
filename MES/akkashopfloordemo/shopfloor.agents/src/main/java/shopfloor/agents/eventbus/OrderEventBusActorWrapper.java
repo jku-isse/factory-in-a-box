@@ -5,7 +5,7 @@ import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import shopfloor.agents.events.OrderEvent;
+import shopfloor.agents.events.OrderStatusAllJobsUpdateEvent;
 
 
 
@@ -24,8 +24,9 @@ public class OrderEventBusActorWrapper  extends AbstractActor{
 	
 	@Override
 	public Receive createReceive() {
-		return receiveBuilder().match(OrderEvent.class, event -> {
+		return receiveBuilder().match(OrderStatusAllJobsUpdateEvent.class, event -> {
         	eventBus.publish(event);
+        	
         })
         .matchAny(o -> log.warning("Unsupported message of type: "+o.getClass().getSimpleName()))
         .build();
