@@ -3,12 +3,13 @@ package fiab.mes.eventbus;
 import akka.actor.ActorRef;
 import akka.event.japi.ScanningEventBus;
 import fiab.mes.general.TimedEvent;
+import fiab.mes.order.msg.OrderEvent;
 
-public class HighLevelEventBus extends ScanningEventBus<Class<? extends TimedEvent>, ActorRef, String> {
+public class HighLevelEventBus extends ScanningEventBus<Class<? extends OrderEvent>, ActorRef, String> {
 
 	
 	@Override
-	public void publish(Class<? extends TimedEvent> event, ActorRef subscriber) {
+	public void publish(Class<? extends OrderEvent> event, ActorRef subscriber) {
 		subscriber.tell(event, ActorRef.noSender());
 	}
 
@@ -22,7 +23,7 @@ public class HighLevelEventBus extends ScanningEventBus<Class<? extends TimedEve
 		return a.compareTo(b);
 	}
 
-	private <T extends TimedEvent> boolean matches(String classifier, T event) {
+	private <T extends OrderEvent> boolean matches(String classifier, T event) {
 		if (classifier.equals("*"))
 			return true;
 		else {
@@ -31,7 +32,7 @@ public class HighLevelEventBus extends ScanningEventBus<Class<? extends TimedEve
 	}
 
 	@Override
-	public boolean matches(String classifier, Class<? extends TimedEvent> event) {
+	public boolean matches(String classifier, Class<? extends OrderEvent> event) {
 		return matches(classifier, event.cast(event.getClass()));
 	}
 

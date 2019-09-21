@@ -28,10 +28,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/org.eclipse.emf_2.6.0.v20170609-0928.jar"/>
-	<classpathentry kind="lib" path="lib/org.eclipse.emf.common_2.13.0.v20170609-0707.jar"/>
-	<classpathentry kind="lib" path="lib/org.eclipse.emf.ecore_2.13.0.v20170609-0707.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-simple-1.7.25.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-api-1.7.21.jar"/>
+	<classpathentry kind="lib" path="libs/coremodel.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

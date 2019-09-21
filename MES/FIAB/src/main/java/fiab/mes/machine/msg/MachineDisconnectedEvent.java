@@ -1,9 +1,10 @@
-package fiab.mes.transport.msg;
+package fiab.mes.machine.msg;
 
 public class MachineDisconnectedEvent extends MachineEvent {
 
+	
 	public MachineDisconnectedEvent(String machineId) {
-		super(machineId, new String("DISCONNECTED"));
+		super(machineId, MachineEventType.DISCONNECTED);
 	}
-
+	
 }

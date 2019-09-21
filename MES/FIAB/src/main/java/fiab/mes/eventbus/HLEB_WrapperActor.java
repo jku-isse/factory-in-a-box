@@ -3,9 +3,8 @@ package fiab.mes.eventbus;
 import akka.actor.AbstractActor;
 import akka.actor.Props;
 import fiab.mes.general.TimedEvent;
-import fiab.mes.transport.msg.MachineEvent;
-import fiab.mes.transport.msg.SubscribeMessage;
-import fiab.mes.transport.msg.UnsubscribeMessage;
+import fiab.mes.machine.msg.MachineEvent;
+import fiab.mes.order.msg.OrderEvent;
 
 public class HLEB_WrapperActor extends AbstractActor {
 
@@ -34,8 +33,8 @@ public class HLEB_WrapperActor extends AbstractActor {
 			}
 		})
 		.matchAny(msg -> {
-			if(msg instanceof TimedEvent) {
-				hleb.publish((Class<? extends TimedEvent>) msg);
+			if(msg instanceof OrderEvent) {
+				hleb.publish((Class<? extends OrderEvent>) msg);
 			}
 		})
 		

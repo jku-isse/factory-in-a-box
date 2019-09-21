@@ -1,0 +1,22 @@
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h2>Order List</h2>
+  </div>
+  <div class="panel-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>OrderId</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let id of orderIds | async">
+          <td>{{id}}</td>
+          <td>
+              <button (click)="orderDetails(id)" class="btn btn-info" style="margin-left: 10px">OrderStatus</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

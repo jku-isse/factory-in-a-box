@@ -1,4 +1,4 @@
-package fiab.mes.transport.msg;
+package fiab.mes.eventbus;
 
 import akka.actor.ActorRef;
 

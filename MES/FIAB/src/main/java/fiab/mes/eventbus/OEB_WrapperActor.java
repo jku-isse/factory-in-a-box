@@ -2,8 +2,6 @@ package fiab.mes.eventbus;
 
 import akka.actor.AbstractActor;
 import akka.actor.Props;
-import fiab.mes.transport.msg.SubscribeMessage;
-import fiab.mes.transport.msg.UnsubscribeMessage;
 
 public class OEB_WrapperActor extends AbstractActor {
 	

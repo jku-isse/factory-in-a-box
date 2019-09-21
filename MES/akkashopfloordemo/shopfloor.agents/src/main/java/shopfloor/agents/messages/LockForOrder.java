@@ -1,20 +1,26 @@
 package shopfloor.agents.messages;
 
 public class LockForOrder {
-	protected String jobId;	
+	protected String stepId;	
+	protected String rootOrderId;
 	
-	public String getJobId() {
-		return jobId;
+	public String getStepId() {
+		return stepId;
 	}
 
-	public void setJobId(String jobId) {
-		this.jobId = jobId;
+	public void setStepId(String stepId) {
+		this.stepId = stepId;
 	}
 
-	public LockForOrder(String jobId) {
+	public LockForOrder(String stepId) {
 		super();
-		this.jobId = jobId;
+		this.stepId = stepId;
+		this.rootOrderId = stepId;
 	}	
 	
-	
+	public LockForOrder(String stepId, String rootOrderId) {
+		super();
+		this.stepId = stepId;
+		this.rootOrderId = rootOrderId;
+	}
 }
