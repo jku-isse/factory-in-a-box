@@ -18,10 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.opcua.Subscription;
 import fiab.mes.transport.MachineLevelEventBus;
 import fiab.mes.transport.actor.turntable.TransportModuleActor;
-import fiab.mes.transport.msg.MachineUpdateEvent;
 import miloBasics.org.eclipse.milo.examples.client.KeyStoreLoader;
 
 public class TransportModuleWrapper {

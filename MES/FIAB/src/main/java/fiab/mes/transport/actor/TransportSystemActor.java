@@ -11,12 +11,12 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import fiab.mes.eventbus.HLEB_WrapperActor;
 import fiab.mes.eventbus.OEB_WrapperActor;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.transport.actor.turntable.TransportModuleActor;
 import fiab.mes.transport.mockClasses.Direction;
 import fiab.mes.transport.mockClasses.TEMP_TT_Connections;
 import fiab.mes.transport.msg.COM_Transport;
-import fiab.mes.transport.msg.MachineUpdateEvent;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 
 public class TransportSystemActor extends AbstractActor {

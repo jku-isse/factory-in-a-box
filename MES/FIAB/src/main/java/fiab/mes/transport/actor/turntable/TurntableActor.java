@@ -6,8 +6,8 @@ import java.util.Map;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.actor.wrapper.TurntableWrapper;
-import fiab.mes.transport.msg.MachineUpdateEvent;
 
 public class TurntableActor extends AbstractActor {
 	private TurntableWrapper wrapper;

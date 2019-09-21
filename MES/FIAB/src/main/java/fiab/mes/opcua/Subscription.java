@@ -31,10 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.MachineLevelEventBus;
-import fiab.mes.transport.msg.MachineConnectedEvent;
-import fiab.mes.transport.msg.MachineUpdateEvent;
-//import miloBasics.org.eclipse.milo.examples.client.ClientExample;
 
 public class Subscription { //implements ClientExample {
 	private String serverAddress;

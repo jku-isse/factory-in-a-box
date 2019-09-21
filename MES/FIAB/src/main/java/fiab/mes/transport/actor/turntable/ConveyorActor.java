@@ -6,8 +6,8 @@ import java.util.Map;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.actor.wrapper.ConveyorWrapper;
-import fiab.mes.transport.msg.MachineUpdateEvent;
 
 public class ConveyorActor extends AbstractActor{
 	private ConveyorWrapper wrapper;
