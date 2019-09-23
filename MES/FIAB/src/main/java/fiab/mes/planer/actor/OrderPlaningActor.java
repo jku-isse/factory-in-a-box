@@ -15,10 +15,15 @@ import ProcessCore.ProcessStep;
 import actorprocess.ActorAllocation;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.Props;
+import akka.actor.RootActorPath;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBus;
+import fiab.mes.eventbus.OrderEventBusWrapperActor;
+import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
@@ -47,13 +52,15 @@ public class OrderPlaningActor extends AbstractActor{
 
 	protected Map<Entry<ActorRef, String>, OrderEventType> scheduleStatus = new HashMap<>();
 	
-	protected OrderEventBus eventBus;
+	protected ActorSelection orderEventBus; 	
+	protected ActorSelection machineEventBus;
 
 	static public Props props() {	    
 		return Props.create(OrderPlaningActor.class, () -> new OrderPlaningActor());
 	}
 
 	public OrderPlaningActor() {
+		getEventBusAndSubscribe();
 		
 		// obtain info on available machines/actors
 		// obtain reference to transport subsystem actor
@@ -65,7 +72,7 @@ public class OrderPlaningActor extends AbstractActor{
 				.match(RegisterProcessRequest.class, rpReq -> {
 					log.info("Received Register Order Request");		        	
 					reqIndex.put(rpReq.getRootOrderId(), rpReq);
-					eventBus.publish(new OrderEvent(rpReq.getRootOrderId(), this.self().path().name(), OrderEventType.REGISTERED));
+					orderEventBus.tell(new OrderEvent(rpReq.getRootOrderId(), this.self().path().name(), OrderEventType.REGISTERED), ActorRef.noSender());
 					if (rpReq.getProcess() instanceof MappedOrderProcess) { 
 						scheduleProcess(rpReq.getRootOrderId(), (MappedOrderProcess) rpReq.getProcess());		        		
 					} else {
@@ -97,16 +104,27 @@ public class OrderPlaningActor extends AbstractActor{
 				.build();
 	}
 
-
+	private void getEventBusAndSubscribe() {
+		SubscribeMessage orderSub = new SubscribeMessage(getSelf(), "*");		
+		orderEventBus = this.context().actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		orderEventBus.tell(orderSub, getSelf());
+		
+		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), "*");
+		machineEventBus = this.context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		machineEventBus.tell(machineSub, getSelf());
+		
+	}
+	
+	
 	private void mapProcessToMachines(RegisterProcessRequest rpReq) {
 		log.warning(String.format("OrderProcess %s has no mapped Actors based on Capabilities, this is not supported yet",rpReq.getRootOrderId()));
-		eventBus.publish(new OrderEvent(rpReq.getRootOrderId(), this.self().path().name(), OrderEventType.CANCELED));
+		orderEventBus.tell(new OrderEvent(rpReq.getRootOrderId(), this.self().path().name(), OrderEventType.CANCELED), ActorRef.noSender());
 		throw new RuntimeException("Not Implemented yet");		
 	}
 
 	private void scheduleProcess(String rootOrderId, MappedOrderProcess mop) {
 		ProcessChangeImpact pci = mop.activateProcess();
-		eventBus.publish( new OrderProcessUpdateEvent(rootOrderId, this.self().path().name(), pci) );
+		orderEventBus.tell( new OrderProcessUpdateEvent(rootOrderId, this.self().path().name(), pci), ActorRef.noSender() );
 
 		// basically we get possible steps from process (filter out flow control elements) and register first step at machine
 		List<CapabilityInvocation> stepCandidates = mop.getAvailableSteps().stream()
@@ -115,7 +133,7 @@ public class OrderPlaningActor extends AbstractActor{
 				.collect(Collectors.toList());
 		if (stepCandidates.isEmpty()) {
 			log.warning(String.format("OrderProcess %s has no available steps of type CapabilityInvocation to start with",rootOrderId));
-			eventBus.publish(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED));			
+			orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED), ActorRef.noSender());			
 		} else {
 			orders.add(mop);
 			assignExecutingMachineForProcessStep(stepCandidates, mop, rootOrderId);
@@ -131,7 +149,7 @@ public class OrderPlaningActor extends AbstractActor{
 				.collect(Collectors.toList());
 		if (aaOpts.isEmpty()) {
 			log.warning(String.format("OrderProcess %s has no available CapabilityInvocations steps match a discovered Machine/Actor, Order is paused",rootOrderId));
-			eventBus.publish(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.PAUSED));
+			orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.PAUSED), ActorRef.noSender() );
 		} else {
 
 			Optional<ActorAllocation> aaOpt = aaOpts.stream()
@@ -145,11 +163,11 @@ public class OrderPlaningActor extends AbstractActor{
 				//rootOrderAllocatedToMachine.put(rootOrderId, machine); // allocated, not yet producing
 				scheduleStatus.put(toTuple(machine,rootOrderId), OrderEventType.SCHEDULED);
 				//TODO: alternatively the machine could issue a SCHEDULED event
-				eventBus.publish(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.SCHEDULED));
+				orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.SCHEDULED), ActorRef.noSender());
 			});
 			if (!aaOpt.isPresent()) {
 				log.info(String.format("OrderProcess %s has no available CapabilityInvocations steps match an available Machine/Actor, Order is paused",rootOrderId));
-				eventBus.publish(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.PAUSED));
+				orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.PAUSED), ActorRef.noSender());
 			}
 		}
 	}
@@ -160,7 +178,8 @@ public class OrderPlaningActor extends AbstractActor{
 			//machineWorksOnOrder.put(this.getSender(), readyE.getResponseTo().getRootOrderId());
 			scheduleStatus.put(toTuple(this.getSender(),readyE.getResponseTo().getRootOrderId()), OrderEventType.ALLOCATED);
 			this.getSender().tell(new LockForOrder(readyE.getResponseTo().getProcessStepId(), readyE.getResponseTo().getRootOrderId()), this.getSelf());
-			eventBus.publish(new OrderEvent(readyE.getResponseTo().getRootOrderId(), this.self().path().name(), OrderEventType.ALLOCATED));
+			//TODO this should actually be published by the machine
+			orderEventBus.tell(new OrderEvent(readyE.getResponseTo().getRootOrderId(), this.self().path().name(), OrderEventType.ALLOCATED), ActorRef.noSender());
 		} else { // e.g., when machine needs to go down for maintenance, or some other error occured in the meantime
 			//rootOrderAllocatedToMachine.remove(readyE.getResponseTo().getRootOrderId());
 			scheduleStatus.remove(toTuple(this.getSender(),readyE.getResponseTo().getRootOrderId()));

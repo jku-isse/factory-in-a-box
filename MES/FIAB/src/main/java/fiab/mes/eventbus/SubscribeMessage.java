@@ -3,16 +3,16 @@ import akka.actor.ActorRef;
 
 public class SubscribeMessage {
 	
-	private String topic;
+	private SubscriptionClassifier classifier;
 	private ActorRef subscriber;
 	
-	public SubscribeMessage(ActorRef subscriber, String topic) {
-		this.topic = topic;
+	public SubscribeMessage(ActorRef subscriber, SubscriptionClassifier topic) {
+		this.classifier = topic;
 		this.subscriber = subscriber;
 	}
 
-	public String getTopic() {
-		return topic;
+	public SubscriptionClassifier getSubscriptionClassifier() {
+		return classifier;
 	}
 
 	public ActorRef getSubscriber() {

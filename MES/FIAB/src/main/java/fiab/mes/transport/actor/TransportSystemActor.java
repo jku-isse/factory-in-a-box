@@ -9,8 +9,8 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import fiab.mes.eventbus.HLEB_WrapperActor;
-import fiab.mes.eventbus.OEB_WrapperActor;
+import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.general.customDataTypes.TSAListElement;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.OrderEvent;
@@ -37,8 +37,8 @@ public class TransportSystemActor extends AbstractActor {
 
 	public TransportSystemActor(String id) {
 		ActorSystem system = ActorSystem.create(id);
-		hlebActor = system.actorOf(HLEB_WrapperActor.props(), "HighLevelEventBus");
-		oebActor = system.actorOf(OEB_WrapperActor.props(), "OrderEventBus");
+		hlebActor = system.actorOf(InterMachineEventBusWrapperActor.props(), "HighLevelEventBus");
+		oebActor = system.actorOf(OrderEventBusWrapperActor.props(), "OrderEventBus");
 		turntable1 = system.actorOf(TransportModuleActor.props("someaddress", system), "TURNTABLE1");
 		turntable2 = system.actorOf(TransportModuleActor.props("someaddress", system), "TURNTABLE2");
 		turntable1.tell(new String("Subscribe STATUS"), getSelf());
