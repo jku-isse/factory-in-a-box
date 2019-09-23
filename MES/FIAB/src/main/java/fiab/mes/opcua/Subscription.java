@@ -225,7 +225,7 @@ public class Subscription { //implements ClientExample {
 	private void onSubscriptionValue(UaMonitoredItem item, DataValue value) {
 		System.out.println("Change on: " + item.getReadValueId().getNodeId().toString() + " NEW VALUE: " + value.getValue().getValue().toString() );
 		
-		eventbus.publish(new MachineUpdateEvent("Server", value, item.getReadValueId().getNodeId().toString())); //TODO maybe change this form Server
+		eventbus.publish(new MachineUpdateEvent("Server", item.getReadValueId().getNodeId().toString(), "UPDATE", value.getValue().getValue().toString())); //TODO maybe change this form Server
 		
 		logger.info("subscription value received: item={}, value={}", item.getReadValueId().getNodeId(),
 				value.getValue());

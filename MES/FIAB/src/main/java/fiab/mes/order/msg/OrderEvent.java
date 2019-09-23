@@ -32,21 +32,4 @@ public class OrderEvent extends TimedEvent {
 	}
 
 }
-//enum OrderEventTypes{ //TODO overthink using enums
-//	ORDER_AT_LOCATION("NO_LOCATION_YET"), ORDER_CANCELLED, ORDER_COMPLETED, ORDER_CREATED;
-//    private String info = "";
-//    OrderEventTypes(){}
-//    OrderEventTypes(String info){
-//       this.info = info;
-//    }
-//    public String getInfo(){
-//       return this.info;
-//    }
-//    public void setInfo(String info) {
-//    	this.info = info;
-//    }
-//    @Override
-//    public String toString() {
-//       return this.info;
-//    }
-//}
+

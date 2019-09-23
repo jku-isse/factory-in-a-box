@@ -42,7 +42,7 @@ public class ProcessEngineActor extends AbstractActor {
 				}
 			})
 			.match(MachineUpdateEvent.class, msg -> {
-				serverStates.replace(msg.getNodeId(), msg.getMessage().toString());
+				serverStates.replace(msg.getNodeId(), msg.getNewValue().toString());
 			})
 			.build();
 	}

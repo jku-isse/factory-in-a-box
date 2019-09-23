@@ -22,7 +22,6 @@ import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.opcua.Subscription;
 import fiab.mes.transport.MachineLevelEventBus;
 import fiab.mes.transport.actor.turntable.TransportModuleActor;
-import miloBasics.org.eclipse.milo.examples.client.KeyStoreLoader;
 
 public class TransportModuleWrapper {
 
@@ -78,7 +77,7 @@ public class TransportModuleWrapper {
 	 * @param nodeId
 	 */
 	public void update(ActorRef actor, String nodeId) {
-		actor.tell(new MachineUpdateEvent("Server", subscription.getUppdate(nodeIdFromString(nodeId)), nodeId), ActorRef.noSender());
+		actor.tell(new MachineUpdateEvent("Server", nodeId, "UPDATE", subscription.getUppdate(nodeIdFromString(nodeId))), ActorRef.noSender());
 	}
 	
 	

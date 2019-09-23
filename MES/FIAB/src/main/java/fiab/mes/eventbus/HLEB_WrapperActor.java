@@ -34,7 +34,7 @@ public class HLEB_WrapperActor extends AbstractActor {
 		})
 		.matchAny(msg -> {
 			if(msg instanceof OrderEvent) {
-				hleb.publish((Class<? extends OrderEvent>) msg);
+				hleb.publish((Class<? extends MachineEvent>) msg);
 			}
 		})
 		
