@@ -75,7 +75,8 @@ MES/plc/javafunctionalunit/src/gradle/wrapper/gradle-wrapper.properties
 MES/plc/javafunctionalunit/src/test/
 
 # ignoring files by name :bad idea #
-*.xml
+#*.xml
+# yes bad indeed as this also filters out pom.xml !!!
 .idea/misc.xml
 .idea/libraries/Gradle__org_slf4j_slf4j_simple_1_7_25.xml
 .idea/libraries/Gradle__org_slf4j_slf4j_jdk14_1_7_7.xml
