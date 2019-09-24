@@ -12,9 +12,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
+import org.eclipse.milo.opcua.sdk.client.api.identity.AnonymousProvider;
+import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
+import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.QualifiedName;
@@ -28,21 +31,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.MachineLevelEventBus;
-import fiab.mes.transport.msg.MachineConnectedEvent;
-import fiab.mes.transport.msg.MachineUpdateEvent;
-import miloBasics.org.eclipse.milo.examples.client.ClientExample;
 
-public class Subscription implements ClientExample {
+public class Subscription { //implements ClientExample {
 	private String serverAddress;
 	private MachineLevelEventBus eventbus;
 	private OpcUaClient client;
 
-	@Override
+//	@Override
 	public String getEndpointUrl() {
 		return serverAddress;
 	}
 
+    public SecurityPolicy getSecurityPolicy() {
+        return SecurityPolicy.None;
+    }
+    
+    public IdentityProvider getIdentityProvider() {
+        return new AnonymousProvider();
+    }
+	
 	public Subscription(MachineLevelEventBus eventbus, String serveraddress) {
 		this.eventbus = eventbus;
 		this.serverAddress = serveraddress;
@@ -63,7 +73,7 @@ public class Subscription implements ClientExample {
 
 	private final AtomicLong clientHandles = new AtomicLong(1L);
 
-	@Override
+//	@Override
 	public void run(OpcUaClient client, CompletableFuture<OpcUaClient> future) throws Exception {
 //		System.out.println("WRONG METHOD CALLED ON ATS");
 //		// synchronous connect
@@ -215,7 +225,7 @@ public class Subscription implements ClientExample {
 	private void onSubscriptionValue(UaMonitoredItem item, DataValue value) {
 		System.out.println("Change on: " + item.getReadValueId().getNodeId().toString() + " NEW VALUE: " + value.getValue().getValue().toString() );
 		
-		eventbus.publish(new MachineUpdateEvent("Server", value, item.getReadValueId().getNodeId().toString())); //TODO maybe change this form Server
+		eventbus.publish(new MachineUpdateEvent("Server", item.getReadValueId().getNodeId().toString(), "UPDATE", value.getValue().getValue().toString())); //TODO maybe change this form Server
 		
 		logger.info("subscription value received: item={}, value={}", item.getReadValueId().getNodeId(),
 				value.getValue());

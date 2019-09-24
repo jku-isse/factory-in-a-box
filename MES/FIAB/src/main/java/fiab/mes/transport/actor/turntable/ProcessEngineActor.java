@@ -6,8 +6,8 @@ import java.util.Map;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.actor.wrapper.ProcessEngineWrapper;
-import fiab.mes.transport.msg.MachineUpdateEvent;
 
 public class ProcessEngineActor extends AbstractActor {
 	
@@ -42,7 +42,7 @@ public class ProcessEngineActor extends AbstractActor {
 				}
 			})
 			.match(MachineUpdateEvent.class, msg -> {
-				serverStates.replace(msg.getNodeId(), msg.getMessage().toString());
+				serverStates.replace(msg.getNodeId(), msg.getNewValue().toString());
 			})
 			.build();
 	}

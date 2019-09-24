@@ -2,7 +2,7 @@ package fiab.mes.transport;
 
 import akka.actor.ActorRef;
 import akka.event.japi.ScanningEventBus;
-import fiab.mes.transport.msg.MachineEvent;
+import fiab.mes.machine.msg.MachineEvent;
 
 public class MachineLevelEventBus extends ScanningEventBus<MachineEvent, ActorRef, String> {
 

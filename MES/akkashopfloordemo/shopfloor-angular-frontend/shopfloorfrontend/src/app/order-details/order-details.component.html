@@ -1,0 +1,26 @@
+<h2>Order Status</h2>
+
+<hr/>
+<div *ngIf="order">
+  <div>
+    <label><b>OrderId: </b></label> {{order.orderId}}
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>JobId</th>
+        <th>JobStatus</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let entry of order.jobStatus | keyvalue">
+        <td>{{entry.key}}</td>
+        <td>{{entry.value}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<br>
+<br>
+<button (click)="list()" class="btn btn-primary">Back to Order List</button><br>

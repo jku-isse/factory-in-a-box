@@ -7,15 +7,15 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import fiab.mes.eventbus.SubscribeMessage;
+import fiab.mes.eventbus.UnsubscribeMessage;
+import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.actor.wrapper.ConveyorWrapper;
 import fiab.mes.transport.actor.wrapper.ProcessEngineWrapper;
 import fiab.mes.transport.actor.wrapper.TransportModuleWrapper;
 import fiab.mes.transport.actor.wrapper.TurntableWrapper;
 import fiab.mes.transport.msg.COM_Transport;
-import fiab.mes.transport.msg.MachineConnectedEvent;
-import fiab.mes.transport.msg.MachineUpdateEvent;
-import fiab.mes.transport.msg.SubscribeMessage;
-import fiab.mes.transport.msg.UnsubscribeMessage;
 
 public class TransportModuleActor extends AbstractActor {
 	

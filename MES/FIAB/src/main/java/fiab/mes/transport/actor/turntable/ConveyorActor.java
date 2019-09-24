@@ -6,8 +6,8 @@ import java.util.Map;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.actor.wrapper.ConveyorWrapper;
-import fiab.mes.transport.msg.MachineUpdateEvent;
 
 public class ConveyorActor extends AbstractActor{
 	private ConveyorWrapper wrapper;
@@ -17,7 +17,7 @@ public class ConveyorActor extends AbstractActor{
 
 
 	/*
-	 * Got a ProcessActor I guess
+	 * Got a ProcessActor
 	 */
 
 	public ConveyorActor(ActorRef boss, ConveyorWrapper wrapper) {
@@ -39,7 +39,7 @@ public class ConveyorActor extends AbstractActor{
 				serverStates.put(string.substring(10), "");
 			}
 		}).match(MachineUpdateEvent.class, msg -> {
-			serverStates.replace(msg.getNodeId(), msg.getMessage().toString());
+			serverStates.replace(msg.getNodeId(), msg.getNewValue().toString());
 		})
 		.build();
 	}

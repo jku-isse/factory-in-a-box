@@ -1,4 +1,5 @@
 package fiab.mes.transport.actor.wrapper;
+
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 import java.io.File;
@@ -8,7 +9,6 @@ import java.util.List;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
-import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
@@ -18,11 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.opcua.Subscription;
 import fiab.mes.transport.MachineLevelEventBus;
 import fiab.mes.transport.actor.turntable.TransportModuleActor;
-import fiab.mes.transport.msg.MachineUpdateEvent;
-import miloBasics.org.eclipse.milo.examples.client.KeyStoreLoader;
 
 public class TransportModuleWrapper {
 
@@ -78,7 +77,7 @@ public class TransportModuleWrapper {
 	 * @param nodeId
 	 */
 	public void update(ActorRef actor, String nodeId) {
-		actor.tell(new MachineUpdateEvent("Server", subscription.getUppdate(nodeIdFromString(nodeId)), nodeId), ActorRef.noSender());
+		actor.tell(new MachineUpdateEvent("Server", nodeId, "UPDATE", subscription.getUppdate(nodeIdFromString(nodeId))), ActorRef.noSender());
 	}
 	
 	
