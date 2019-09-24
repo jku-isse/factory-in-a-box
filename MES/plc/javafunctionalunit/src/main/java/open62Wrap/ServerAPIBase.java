@@ -64,10 +64,6 @@ public class ServerAPIBase {
     return (cPtr == 0) ? null : new ServerAPIBase(cPtr, false);
   }
 
-  public static int GetNodeIdIndex(UA_NodeId nodeId) {
-    return open62541JNI.ServerAPIBase_GetNodeIdIndex(UA_NodeId.getCPtr(nodeId), nodeId);
-  }
-
   public static void stopHandler(int sig) {
     open62541JNI.ServerAPIBase_stopHandler(sig);
   }

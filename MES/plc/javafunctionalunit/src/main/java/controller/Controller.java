@@ -47,7 +47,7 @@ public class Controller {
 		//should be moved to the base class
 		opcua_comm.getServerCommunication().addStringMethod(opcua_comm.getServerCommunication(),opcua_server,opcua_object,new RequestedNodePair<>(1, opcua_comm.getServerCommunication().getUnique_id()), "Turn", x -> {
 			turn();
-			return "this.instanceId is now set to this.path";
+			return "Turing";
 		});
 
 

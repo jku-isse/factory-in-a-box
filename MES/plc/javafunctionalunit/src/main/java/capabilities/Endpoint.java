@@ -35,18 +35,18 @@ public class Endpoint {
         endpoint_object = opcua_comm.getServerCommunication().addObject(opcua_server, endpoint_NodeId, name);
 
 
-       // Capability  defination = new Capability(opcua_comm.getServerCommunication(), opcua_server, endpoint_object,  capabilityId, capabilityType, capabilityRole);
+        // Capability  defination = new Capability(opcua_comm.getServerCommunication(), opcua_server, endpoint_object,  capabilityId, capabilityType, capabilityRole);
         //capabilities.add(defination);
     }
 
-    public Endpoint(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId,  String name, CapabilityId capabilityId, CapabilityType capabilityType, CapabilityRole capabilityRole) {
+    public Endpoint(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId, String name, CapabilityId capabilityId, CapabilityType capabilityType, CapabilityRole capabilityRole) {
         capabilities = new ArrayList<>();
 
-       endpoint_NodeId = serverCommunication.createNodeNumeric(1, 66); //need to implement a controller level Enum
+        endpoint_NodeId = serverCommunication.createNodeNumeric(1, 66); //need to implement a controller level Enum
 
         endpoint_object = serverCommunication.addNestedObject(opcua_server, parentObjectId, endpoint_NodeId, name);
 
-     //   Capability defination = new Capability(serverCommunication, opcua_server, endpoint_object,  capabilityId, capabilityType, capabilityRole);
-      //  capabilities.add(defination);
+        //   Capability defination = new Capability(serverCommunication, opcua_server, endpoint_object,  capabilityId, capabilityType, capabilityRole);
+        //  capabilities.add(defination);
     }
 }

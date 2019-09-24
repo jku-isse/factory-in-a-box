@@ -22,7 +22,6 @@ public class open62541JNI {
   public final static native void ServerAPIBase_running_set(long jarg1, ServerAPIBase jarg1_, boolean jarg2);
   public final static native boolean ServerAPIBase_running_get(long jarg1, ServerAPIBase jarg1_);
   public final static native long ServerAPIBase_Get();
-  public final static native int ServerAPIBase_GetNodeIdIndex(long jarg1, UA_NodeId jarg1_);
   public final static native void ServerAPIBase_stopHandler(int jarg1);
   public final static native long ServerAPIBase_CreateServerDefaultConfig();
   public final static native long ServerAPIBase_CreateServer(String jarg1, int jarg2);
