@@ -11,11 +11,12 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
-import fiab.mes.general.customDataTypes.TSAListElement;
+
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.transport.actor.turntable.TransportModuleActor;
+import fiab.mes.transport.customDataTypes.TSAListElement;
 import fiab.mes.transport.mockClasses.Direction;
 import fiab.mes.transport.mockClasses.TEMP_TT_Connections;
 import fiab.mes.transport.msg.COM_Transport;
@@ -37,8 +38,8 @@ public class TransportSystemActor extends AbstractActor {
 
 	public TransportSystemActor(String id) {
 		ActorSystem system = ActorSystem.create(id);
-		hlebActor = system.actorOf(InterMachineEventBusWrapperActor.props(), "HighLevelEventBus");
-		oebActor = system.actorOf(OrderEventBusWrapperActor.props(), "OrderEventBus");
+		hlebActor = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		oebActor = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		turntable1 = system.actorOf(TransportModuleActor.props("someaddress", system), "TURNTABLE1");
 		turntable2 = system.actorOf(TransportModuleActor.props("someaddress", system), "TURNTABLE2");
 		turntable1.tell(new String("Subscribe STATUS"), getSelf());
@@ -78,20 +79,15 @@ public class TransportSystemActor extends AbstractActor {
 				//TODO handle case where order was already sent out
 			}
 		})
-		.match(OrderEvent.class, msg -> { //TODO is this the right way to proceed after an order being completed, canceled or deleted?
-			for(Map.Entry<RegisterTransportRequest, String> mapEntry: processingOrders.entrySet()) {
-				if(mapEntry.getKey().getId().equals(msg.getOrderId())) {
-					OrderEventType type = msg.getEventType();
-					if(type == OrderEventType.COMPLETED || type == OrderEventType.CANCELED || type == OrderEventType.DELETED ) {
-						handleOrder(orders.remove(0));
-					}
-					processingOrders.replace(mapEntry.getKey(), ""); //TODO useful operation
-				}
-			}
-		})
 		.build();
 	}
 	
+	/**
+	 * This is a prototype method for handling TransportRequests
+	 * The sender of the TransportRequest is also saved in the TSAListElement because if the transportrequest
+	 * is denied, the sender has to be notified
+	 * @param tle
+	 */
 	private void handleOrder(TSAListElement tle) {
 		boolean rejected = false;
 		RegisterTransportRequest currentOrder = tle.getRegisterTransportRequest();

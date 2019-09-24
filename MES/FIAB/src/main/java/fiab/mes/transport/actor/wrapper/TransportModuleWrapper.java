@@ -85,7 +85,16 @@ public class TransportModuleWrapper {
 		//TODO implement this method!
 		return null;
 	}
-
+	
+	/**
+	 * This method allows an actor to subscribe on a nodeId on the eventbus, it acts a little differently depending on
+	 * which actor is passed on (if the TransportModuleActor wants to subscribe this method has to do some extra steps)
+	 * This doesn't have to be accounted for when using this method, except for if you use this method differently
+	 * (if you want a new actor to subscribe, look into this method!)
+	 * @param actor pass the actor which should recieve the updates
+	 * @param nodeId this is the topic aka nodeId
+	 * @return
+	 */
 	public boolean subscribe(ActorRef actor, String nodeId) {
 		String subscribeNode = "";
 		// Since this is the wrapper for the
@@ -113,6 +122,10 @@ public class TransportModuleWrapper {
 		subscription.unsubscribe(actor, topic);
 	}
 
+	/**
+	 * This adds nodes to the subscription and therefore to the EventBus of the Subscription.
+	 * @param nodes Names of nodes
+	 */
 	public void addNodeForSubscription(String... nodes) {
 		for (String node : nodes) {
 			try {
@@ -122,7 +135,13 @@ public class TransportModuleWrapper {
 			}
 		}
 	}
-
+	//Needs following imports:
+	/*
+	 * org.eclipse.milo.examples.client.KeyStoreLoader
+	 * org.eclipse.milo.examples.client.KeyStoreLoader
+	 * org.eclipse.milo.opcua.stack.core.security.SecurityPolicy.getSecurityPolicyUri
+	 * 
+	 */
 	private OpcUaClient createClient() throws Exception {
 		File securityTempDir = new File(System.getProperty("java.io.tmpdir"), "security");
 		if (!securityTempDir.exists() && !securityTempDir.mkdirs()) {
