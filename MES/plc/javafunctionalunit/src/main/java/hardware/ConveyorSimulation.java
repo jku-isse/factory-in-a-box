@@ -30,41 +30,31 @@ public class ConveyorSimulation {
         this.conveyorMotor = new Motor() {
             @Override
             public void forward() {
-                if (fullyLoaded.get()) {
-                    System.out.println("Conveyor is already loaded");
+                if (fullyUnloaded.get()) {
+                    System.out.println("Conveyor is empty");
                 } else {
+                    timer.purge();
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
                             fullyLoaded.set(true);
                         }
                     }, timerMs);
-                    while (!sensorLoading.detectedInput()) {
-                        if (stopped.get()) {
-                            stopped.set(false);
-                            return;
-                        }
-                    }
                 }
             }
 
             @Override
             public void backward() {
-                if (fullyUnloaded.get()) {
-                    System.out.println("Conveyor is empty");
+                if (fullyLoaded.get()) {
+                    System.out.println("Conveyor is full");
                 } else {
+                    timer.purge();
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
                             fullyUnloaded.set(true);
                         }
                     }, timerMs);
-                    while (!sensorUnloading.detectedInput()) {
-                        if (stopped.get()) {
-                            stopped.set(false);
-                            return;
-                        }
-                    }
                 }
             }
 
@@ -93,6 +83,12 @@ public class ConveyorSimulation {
         this.sensorLoading = new Sensor() {
             @Override
             public boolean detectedInput() {
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        fullyLoaded.set(false);
+                    }
+                }, 500);
                 return fullyLoaded.get();
             }
         };
@@ -100,6 +96,12 @@ public class ConveyorSimulation {
         this.sensorUnloading = new Sensor() {
             @Override
             public boolean detectedInput() {
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        fullyLoaded.set(false);
+                    }
+                }, 500);
                 return fullyUnloaded.get();
             }
         };
