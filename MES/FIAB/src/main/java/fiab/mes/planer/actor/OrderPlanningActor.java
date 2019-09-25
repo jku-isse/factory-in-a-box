@@ -24,6 +24,7 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBus;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
+import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
@@ -39,10 +40,12 @@ import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 
 
-public class OrderPlaningActor extends AbstractActor{
+public class OrderPlanningActor extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
+	public static final String WELLKNOWN_LOOKUP_NAME = "DefaultOrderPlanningActor";
+	
 	protected Map<String, RegisterProcessRequest> reqIndex = new HashMap<>();
 	protected List<MappedOrderProcess> orders = new ArrayList<MappedOrderProcess>();
 	protected Map<AbstractActor, ActorRef> modelActors2AkkaActors = new HashMap<>();
@@ -56,10 +59,10 @@ public class OrderPlaningActor extends AbstractActor{
 	protected ActorSelection machineEventBus;
 
 	static public Props props() {	    
-		return Props.create(OrderPlaningActor.class, () -> new OrderPlaningActor());
+		return Props.create(OrderPlanningActor.class, () -> new OrderPlanningActor());
 	}
 
-	public OrderPlaningActor() {
+	public OrderPlanningActor() {
 		getEventBusAndSubscribe();
 		
 		// obtain info on available machines/actors
@@ -98,18 +101,18 @@ public class OrderPlaningActor extends AbstractActor{
 				.match(MachineUpdateEvent.class, machineEvent -> {
 					handleMachineUpdateEvent(machineEvent);
 				})
-				.match(TransportOrderResponse.class, transportResp -> {
-					
-				})
+//				.match(TransportOrderResponse.class, transportResp -> {
+//					
+//				})
 				.build();
 	}
 
 	private void getEventBusAndSubscribe() {
-		SubscribeMessage orderSub = new SubscribeMessage(getSelf(), "*");		
+		SubscribeMessage orderSub = new SubscribeMessage(getSelf(), new SubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));		
 		orderEventBus = this.context().actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		orderEventBus.tell(orderSub, getSelf());
 		
-		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), "*");
+		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new SubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
 		machineEventBus = this.context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		machineEventBus.tell(machineSub, getSelf());
 		

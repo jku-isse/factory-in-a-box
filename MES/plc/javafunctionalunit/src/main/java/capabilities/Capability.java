@@ -29,6 +29,11 @@ public class Capability {
     private ServerCommunication serverCommunication;
     private Object opcua_server;
     private Object parentObject;
+
+    public Object getCapabilityObject() {
+        return capabilityObject;
+    }
+
     private Object capabilityObject;
     private Object capabilityOpcuaNodeId;
 

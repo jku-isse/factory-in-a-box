@@ -15,5 +15,9 @@ public abstract class TimedEvent {
 		return timestamp;
 	}
 
+	public TimedEvent(ZonedDateTime timestamp) {
+		this.timestamp = timestamp;
+	}
+	
 }
 

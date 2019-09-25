@@ -75,11 +75,11 @@ public class HandshakeCapability extends Capability {
                 });
 
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_Loading",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_LOADING",
                 opcuaMethodInput -> {
                     return initiateLoading(opcuaMethodInput);
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_Unloading",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_UNLOADING",
                 opcuaMethodInput -> {
                     return initiateUnloading(opcuaMethodInput);
                 });
@@ -191,6 +191,10 @@ public class HandshakeCapability extends Capability {
 
     }
 
+    //Set initiateUnloading Method has one string input from opcua callback thus
+    // all the needed params are ';' separated
+    // the first input is CapabilityID followed by orderId
+    // the CapabilityID should match the Enum attributes found in helper/CapabilityId
     public String initiateUnloading(String inputPram) {
         String[] inputParamters = inputPram.split(";");
         System.out.println(inputParamters.toString());
@@ -207,6 +211,11 @@ public class HandshakeCapability extends Capability {
         }
         return "initiateLoading was Successful";
     }
+
+    //Set initiateUnloading Method has one string input from opcua callback thus
+    // all the needed params are ';' separated
+    // the first input is CapabilityID followed by orderId
+    // the CapabilityID should match the Enum attributes found in helper/CapabilityId
 
     public String initiateLoading(String inputPram) {
         String[] inputParamters = inputPram.split(";");
@@ -260,6 +269,8 @@ public class HandshakeCapability extends Capability {
         }
     }
 
+    // Loging method to catpture printouts if the Debug flag is set
+    //TODO shall be moved to a controller class
     public static void log(String message) {
         if (DEBUG) {
             String fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
