@@ -76,8 +76,8 @@ public class TransportModuleWrapper {
 	 * @param actor
 	 * @param nodeId
 	 */
-	public void update(ActorRef actor, String nodeId) {
-		actor.tell(new MachineUpdateEvent("Server", nodeId, "UPDATE", subscription.getUppdate(nodeIdFromString(nodeId))), ActorRef.noSender());
+	public void update(String nodeId) {
+		eventBus.publish(new MachineUpdateEvent("Server", nodeId, "UPDATE", subscription.getUppdate(nodeIdFromString(nodeId))), ActorRef.noSender());
 	}
 	
 	

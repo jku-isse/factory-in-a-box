@@ -1,4 +1,4 @@
-package fiab.mes.transport.msg;
+package fiab.mes.transport.messages;
 
 public class CancelTransportRequest {
 	private String orderId;

@@ -1,4 +1,4 @@
-package fiab.mes.transport.msg;
+package fiab.mes.transport.messages;
 
 import fiab.mes.transport.mockClasses.Direction;
 
