@@ -1,4 +1,4 @@
-package fiab.mes.general.customDataTypes;
+package fiab.mes.transport.customDataTypes;
 
 import akka.actor.ActorRef;
 import fiab.mes.transport.msg.RegisterTransportRequest;
