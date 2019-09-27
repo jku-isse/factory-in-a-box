@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import akka.http.javadsl.model.sse.ServerSentEvent;
 import fiab.mes.order.msg.OrderEvent;
+import fiab.mes.order.msg.OrderEventWrapper;
 
 
 public class ServerSentEventTranslator{
@@ -20,7 +21,7 @@ public class ServerSentEventTranslator{
 	public static ServerSentEvent toServerSentEvent(OrderEvent orderEvent) {				
 		
 		try {
-			String json = om.writeValueAsString(orderEvent);
+			String json = om.writeValueAsString(new OrderEventWrapper(orderEvent));
 			//return ServerSentEvent.create(json, orderEvent.getType().toString());
 			return ServerSentEvent.create(json, "message"); // in the angular frontend also implement addEventListener, as onmessage expects the type to be 'message'
 		} catch (JsonProcessingException e) {

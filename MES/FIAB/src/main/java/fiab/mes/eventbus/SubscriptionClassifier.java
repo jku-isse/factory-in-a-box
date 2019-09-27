@@ -9,5 +9,14 @@ public class SubscriptionClassifier {
 		super();
 		this.eventSource = eventSource;
 		this.topic = topic;
+	}
+
+	public String getEventSource() {
+		return eventSource;
+	}
+
+	public String getTopic() {
+		return topic;
 	}		
+	
 }

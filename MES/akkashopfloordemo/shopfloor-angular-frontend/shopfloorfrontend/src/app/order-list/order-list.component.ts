@@ -11,7 +11,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./order-list.component.css']
 })
 export class OrderListComponent implements OnInit {
-  orderIds: Observable<string[]>;
+  displayedColumns: string[] = ['order', 'status', 'machine', 'button'];
+  orders: Observable<object[]>;
 
   constructor(private orderService: OrderService, private router: Router) { }
 
@@ -20,7 +21,13 @@ export class OrderListComponent implements OnInit {
   }
 
   reloadData() {
-    this.orderIds = this.orderService.getOrderList();
+    this.orderService.getOrderList()
+      .subscribe(data => {
+        console.log('Order List Component', data);
+        this.orders = data;
+      }, error => console.log(error));
+    // this.orderIds = this.orderService.getOrderList();
+    // console.log('GET orderList', this.orderIds);
   }
 
   orderDetails(id: string) {

@@ -122,7 +122,7 @@ public class OrderPlanningActor extends AbstractActor{
 	private void mapProcessToMachines(RegisterProcessRequest rpReq) {
 		log.warning(String.format("OrderProcess %s has no mapped Actors based on Capabilities, this is not supported yet",rpReq.getRootOrderId()));
 		orderEventBus.tell(new OrderEvent(rpReq.getRootOrderId(), this.self().path().name(), OrderEventType.CANCELED), ActorRef.noSender());
-		throw new RuntimeException("Not Implemented yet");		
+		//throw new RuntimeException("Not Implemented yet");		
 	}
 
 	private void scheduleProcess(String rootOrderId, MappedOrderProcess mop) {

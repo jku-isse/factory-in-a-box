@@ -23,4 +23,9 @@ public class OrderProcessUpdateEvent extends OrderEvent{
 								.forEach(step -> stepsWithNewStatus.put(step,entry.getKey()) )	
 			);
 	}
+
+	public Map<ProcessStep, StepStatusEnum> getStepsWithNewStatus() {
+		return stepsWithNewStatus;
+	}
+	
 }

@@ -3,7 +3,44 @@
     <h2>Order List</h2>
   </div>
   <div class="panel-body">
-    <table class="table table-striped">
+    <table mat-table [dataSource]="orders" class="mat-elevation-z8">
+
+      <!-- Order Column -->
+      <ng-container matColumnDef="order">
+        <th mat-header-cell *matHeaderCellDef> Order </th>
+        <td mat-cell *matCellDef="let element"> {{element}} </td>
+      </ng-container>
+    
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef> Status </th>
+        <td mat-cell *matCellDef> 
+          not implemented..
+        </td>
+      </ng-container>
+
+      <!-- Machine Column -->
+      <ng-container matColumnDef="machine">
+        <th mat-header-cell *matHeaderCellDef> Machine </th>
+        <td mat-cell *matCellDef> 
+          not implemented..
+        </td>
+      </ng-container>
+    
+      <!-- Button Column -->
+      <ng-container matColumnDef="button">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let element"> 
+          <button mat-raised-button color="basic" (click)="orderDetails(element)">
+            Process
+          </button>
+        </td>
+      </ng-container>
+    
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+<!--     <table class="table table-striped">
       <thead>
         <tr>
           <th>OrderId</th>
@@ -17,6 +54,6 @@
           </td>
         </tr>
       </tbody>
-    </table>
+    </table> -->
   </div>
 </div>

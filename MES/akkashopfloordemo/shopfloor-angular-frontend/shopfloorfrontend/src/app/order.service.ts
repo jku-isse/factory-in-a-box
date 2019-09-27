@@ -7,12 +7,12 @@ import { Observable } from 'rxjs';
 })
 export class OrderService {
 
-  private baseUrl = 'http://localhost:8080/'
+  private baseUrl = 'http://localhost:8080/';
 
   constructor(private _zone: NgZone, private http: HttpClient) { }
 
-  getOrder(id: String): Observable<any> {
-    return this.http.get(`${this.baseUrl}order/${id}`)
+  getOrder(id: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}order/${id}`);
   }
 
   getOrderList(): Observable<any> {
@@ -29,13 +29,13 @@ export class OrderService {
       };
       eventSource.onerror = error => {
         this._zone.run(() => {
-          console.log('SSE error ',eventSource);
+          console.log('SSE error ', eventSource);
           observer.error(error);
           eventSource.close();
         });
       };
 
-    })
+    });
   }
 
   getOrderEventStream(): EventSource {

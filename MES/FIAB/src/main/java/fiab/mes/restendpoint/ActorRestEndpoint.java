@@ -3,11 +3,13 @@ package fiab.mes.restendpoint;
 import static akka.pattern.PatternsCS.ask;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,9 @@ import akka.util.Timeout;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.order.OrderProcessWrapper;
 import fiab.mes.order.msg.OrderEvent;
+import fiab.mes.order.msg.OrderEventWrapper;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
 import scala.concurrent.duration.FiniteDuration;
@@ -59,55 +63,62 @@ public class ActorRestEndpoint extends AllDirectives{
 
 	protected Route createRoute() {
 		return respondWithDefaultHeaders(defaultCorsHeaders, () ->
-		concat(
+			concat(
 				path("events", () -> 
-				get(() -> parameterOptional("orderId", orderId -> {								
-					//final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
-					//final CompletionStage<Optional<OrderStatusResponse>> futureMaybeStatus = ask(shopfloor, new OrderStatusRequest(orderId.orElse("")), timeout).thenApply((Optional.class::cast)); 
-					//return onSuccess(futureMaybeStatus, maybeStatus -> 
-					//	maybeStatus.map( item -> completeOK(item, Jackson.marshaller()))
-					//	.orElseGet(()-> complete(StatusCodes.NOT_FOUND, "Order Not Found"))); 
-					//}))
-					logger.info("SSE requested with orderId: "+orderId.orElse("none provided"));
-					Source<ServerSentEvent, NotUsed> source = 
-							Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
-							.map(msg -> (OrderEvent) msg)
-							.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg) )
-							.mapMaterializedValue(actor -> { eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", orderId.orElse("*"))) , actor);  
-							return NotUsed.getInstance();
-							});				
-					return completeOK( source, EventStreamMarshalling.toEventStream());
-				}))
+					get(() -> parameterOptional("orderId", orderId -> {								
+						//final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
+						//final CompletionStage<Optional<OrderStatusResponse>> futureMaybeStatus = ask(shopfloor, new OrderStatusRequest(orderId.orElse("")), timeout).thenApply((Optional.class::cast)); 
+						//return onSuccess(futureMaybeStatus, maybeStatus -> 
+						//	maybeStatus.map( item -> completeOK(item, Jackson.marshaller()))
+						//	.orElseGet(()-> complete(StatusCodes.NOT_FOUND, "Order Not Found"))); 
+						//}))
+						logger.info("SSE requested with orderId: "+orderId.orElse("none provided"));
+						Source<ServerSentEvent, NotUsed> source = 
+								Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
+								.map(msg -> (OrderEvent) msg)
+								.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg) )
+								.mapMaterializedValue(actor -> { 
+									eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", orderId.orElse("*"))) , actor);  
+									return NotUsed.getInstance();
+								});				
+						return completeOK( source, EventStreamMarshalling.toEventStream());
+					}))
 				),		
-				
 				path("orders", () -> concat( 
-						post(() ->	            
+					post(() ->	            
 						entity(Jackson.unmarshaller(String.class), orderAsXML -> { //TODO this needs to be an XML unmarshaller, not JSON!! 
 							final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
 							// TODO: transform XML string into Ecore model: XML
 							RegisterProcessRequest order = transformToOrderProcessRequest(orderAsXML); // not sure how to do this yet
 							CompletionStage<String> returnId = ask(orderEntryActor, order, timeout).thenApply((String.class::cast));
 							return completeOKWithFuture(returnId, Jackson.marshaller());
-						})),
-						get(() -> {
-							final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));		        
-							CompletionStage<Set<String>> resp = ask(orderEntryActor, "GetAllOrders", timeout).thenApply( list -> (Set<String>)list);
-							return completeOKWithFuture(resp, Jackson.marshaller());
 						})
+					),
+					get(() -> {
+						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));		        
+						CompletionStage<Set<OrderEvent>> resp = ask(orderEntryActor, "GetAllOrders", timeout).thenApply( list -> (Set<OrderEvent>)list);
+						//TODO wrapping doesn't work!!!
+						CompletionStage<Set<OrderEventWrapper>> respW = resp.thenApply(r -> (Set<OrderEventWrapper>) r.stream().collect(Collectors.toMap(o -> o.getOrderId(), o -> new OrderEventWrapper(o))));
+						return completeOKWithFuture(respW, Jackson.marshaller());
+					})
 				)),	
-				
 				get(() -> 			
-				pathPrefix("order", () ->
-				path(PathMatchers.remaining() , (String req) -> {								
-					final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
-					final CompletionStage<Optional<OrderStatusRequest.Response>> futureMaybeStatus = ask(orderEntryActor, new OrderStatusRequest(req), timeout).thenApply((Optional.class::cast)); 
-					return onSuccess(futureMaybeStatus, maybeStatus -> 
-					maybeStatus.map( item -> completeOK(item, Jackson.marshaller()))
-					.orElseGet(()-> complete(StatusCodes.NOT_FOUND, "Order Not Found"))
+					pathPrefix("order", () ->
+						path(PathMatchers.remaining() , (String req) -> {								
+							final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
+							final CompletionStage<Optional<OrderStatusRequest.Response>> futureMaybeStatus = ask(orderEntryActor, new OrderStatusRequest(req), timeout).thenApply((Optional.class::cast)); 
+							return onSuccess(futureMaybeStatus, maybeStatus ->
+								maybeStatus.map( item -> {
+									OrderProcessWrapper wrapper = new OrderProcessWrapper(item);
+									return completeOK(wrapper, Jackson.marshaller());
+								})
+								.orElseGet(()-> complete(StatusCodes.NOT_FOUND, "Order Not Found"))
 							);	            
-				})))
-				
-				));	    			    	
+						})
+					)
+				)
+			)
+		);	    			    	
 	}
 
 	private RegisterProcessRequest transformToOrderProcessRequest(String xmlPayload) {

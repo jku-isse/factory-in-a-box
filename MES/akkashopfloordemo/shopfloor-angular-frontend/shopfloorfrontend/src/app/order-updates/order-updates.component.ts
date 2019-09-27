@@ -12,22 +12,25 @@ import { Router } from '@angular/router';
 })
 export class OrderUpdatesComponent implements OnInit {
 
-  orders: Map<string, Order>;
+  orders: Map<string, Order> = new Map<string, Order>();
 
-  constructor(private router: Router,
-        private orderService: OrderService) { }
+  constructor(
+    private router: Router,
+    private orderService: OrderService) { }
 
   ngOnInit() {
-    this.orders = new Map<string, Order>();
+    //this.orders = new Map<string, Order>();
     this.orderService.getOrderUpdates().subscribe(
       sseEvent => {
-        console.log('Received SSE',sseEvent);
-        let json = JSON.parse(sseEvent.data);
-        let orderId: string = json.orderId;
-        let orderStatus: Order = json.status;
+        //console.log('Received SSE', sseEvent);
+        const json = JSON.parse(sseEvent.data);
+        console.log('SSE json:', json);
+        const orderId: string = json.orderId;
+        const orderStatus: Order = json.status;
         this.orders.set(orderId, orderStatus);
+        //console.log('Received SSE', this.orders);
       },
-      err => { console.log('Error receiving SSE',err); },
+      err => { console.log('Error receiving SSE', err); },
       () => console.log('SSE stream completed')
     );
   }

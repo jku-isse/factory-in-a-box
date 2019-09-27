@@ -15,16 +15,20 @@ export class OrderDetailsComponent implements OnInit {
   id: string;
   order: Order;
 
-  constructor(private route: ActivatedRoute, private router: Router,
-        private orderService: OrderService) { }
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private orderService: OrderService) { }
 
   ngOnInit() {
     this.order = new Order();
-    this.id = this.route.snapshot.params['id'];
+    this.route.paramMap.subscribe(params => {
+      this.id = params.get('id');
+    });
     this.orderService.getOrder(this.id)
       .subscribe(data => {
-        console.log(data.status);
-        this.order = data.status;
+        console.log('Order Details Component', data);
+        this.order = data.stepStatus;
       }, error => console.log(error));
   }
 
