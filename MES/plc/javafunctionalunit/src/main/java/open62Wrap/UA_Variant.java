@@ -61,8 +61,9 @@ public class UA_Variant {
     return open62541JNI.UA_Variant_arrayLength_get(swigCPtr, this);
   }
 
-  public void setData(Object value) {
-   // open62541JNI.UA_Variant_data_set(swigCPtr, this, SWIGTYPE_p_void.getCPtr(value));
+ public void setData(java.lang.Object value) {
+ //   open62541JNI.UA_Variant_data_set(swigCPtr, this, SWIGTYPE_p_void.getCPtr(value));
+
   }
 
   public Object getData() {
