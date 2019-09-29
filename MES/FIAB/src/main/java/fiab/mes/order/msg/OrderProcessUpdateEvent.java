@@ -1,5 +1,6 @@
 package fiab.mes.order.msg;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,5 +23,9 @@ public class OrderProcessUpdateEvent extends OrderEvent{
 			.forEach(entry -> entry.getValue().stream()
 								.forEach(step -> stepsWithNewStatus.put(step,entry.getKey()) )	
 			);
+	}
+	
+	public Map<ProcessStep, StepStatusEnum> getStepsWithNewStatusAsReadOnlyMap() {
+		return Collections.unmodifiableMap(stepsWithNewStatus);
 	}
 }

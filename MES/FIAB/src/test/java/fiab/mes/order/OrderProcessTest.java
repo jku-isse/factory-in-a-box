@@ -150,12 +150,23 @@ class OrderProcessTest {
 		assert(pci4.currentState.equals(StepStatusEnum.CANCELED));
 	}
 	
+	@Test
+	void testDoAllLeafNodeStepsHaveInvokedCapability() {
+		testOrder = new OrderProcess(getSequentialProcess());
+		assert(testOrder.doAllLeafNodeStepsHaveInvokedCapability(testOrder.getProcess()));
+		testOrder = new OrderProcess(getParallelProcess());
+		assert(testOrder.doAllLeafNodeStepsHaveInvokedCapability(testOrder.getProcess()));
+		testOrder = new OrderProcess(getNonMappedSequentialProcess());
+		assert(!testOrder.doAllLeafNodeStepsHaveInvokedCapability(testOrder.getProcess()));
+	}
+	
 	private ProcessCore.Process getSequentialProcess() {
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
 		p.getSteps().add(s1);
 		p.getSteps().add(s2);
 		p.getSteps().add(s3);
 		p.getSteps().add(s4);
+
 		return p;
 	}
 	
@@ -179,19 +190,44 @@ class OrderProcessTest {
 		return p;
 	}
 	
-	public void setupSteps() {
-		AbstractCapability ac1 = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
-		ac1.setLabel("Red");
-		s1.setInvocedCapability(ac1);
-		AbstractCapability ac2 = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
-		ac2.setLabel("Blue");
-		s2.setInvocedCapability(ac2);
-		AbstractCapability ac3 = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
-		ac3.setLabel("Green");
-		s3.setInvocedCapability(ac3);
-		AbstractCapability ac4 = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
-		ac4.setLabel("Yellow");
-		s4.setInvocedCapability(ac4);
+	public ProcessCore.Process getNonMappedSequentialProcess() {
+		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
+		p.getSteps().add(s1);
+		p.getSteps().add(s2);
+		p.getSteps().add(ProcessCoreFactory.eINSTANCE.createCapabilityInvocation()); //empty capability invocation
+		p.getSteps().add(ProcessCoreFactory.eINSTANCE.createProcessStep());
+		return p;
+	}
+
+	
+	public void setupSteps() {		
+		s1.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Red")));
+		s2.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Blue")));		
+		s3.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Green")));		
+		s4.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Yellow")));		
 	}
 	
+	private AbstractCapability getColorCapability(String color) {
+		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
+		ac.setDisplayName(color);
+		ac.setID("Capability.Plotting.Color."+color);
+		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/colors/"+color);
+		return ac;
+	}
+	
+	private AbstractCapability getPlottingCapability() {
+		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
+		ac.setDisplayName("plot");
+		ac.setID("Capability.Plotting");
+		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/plotting");
+		return ac;
+	}
+	
+	private AbstractCapability composeInOne(AbstractCapability ...caps) {
+		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();		
+		for (AbstractCapability cap : caps) {
+			ac.getCapabilities().add(cap);
+		}
+		return ac;
+	}
 }

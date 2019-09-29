@@ -28,7 +28,8 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="libs/coremodel.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
+	<classpathentry kind="lib" path="libs/coremodel-1.0.0.jar"/>
+	<classpathentry kind="lib" path="libs/opcuaextension-1.0.0.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

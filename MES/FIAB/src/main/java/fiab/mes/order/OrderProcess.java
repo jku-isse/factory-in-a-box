@@ -11,11 +11,12 @@ import org.eclipse.emf.ecore.EObject;
 
 import com.google.common.collect.Lists;
 
+import ProcessCore.CapabilityInvocation;
 import ProcessCore.ParallelBranches;
 import ProcessCore.ProcessStep;
 
 public class OrderProcess {
-	
+		
 	protected ProcessCore.Process orderProcess;
 	protected HashMap<ProcessStep, StepStatusEnum> stepStatus = new HashMap<>();
 	
@@ -23,6 +24,10 @@ public class OrderProcess {
 		assert orderProcess != null : "OrderProcess may not be instantiated with null";		
 		this.orderProcess = orderProcess;
 		initStepStates(this.orderProcess);
+	}
+	
+	public ProcessCore.Process getProcess() {
+		return this.orderProcess;
 	}
 	
 	private void initStepStates(ProcessStep step) {
@@ -181,6 +186,19 @@ public class OrderProcess {
 	
 	private boolean isStepReadyForProduction(ProcessStep step) {
 		return stepStatus.getOrDefault(step, StepStatusEnum.INITIATED).equals(StepStatusEnum.AVAILABLE);		
+	}
+	
+	// currently supports only Process and ParallelBranches (conditions, etc not yet)
+	public boolean doAllLeafNodeStepsHaveInvokedCapability(ProcessStep step) {
+		if (step instanceof ProcessCore.Process) {
+			return ((ProcessCore.Process) step).getSteps().stream()
+				.allMatch(childStep -> doAllLeafNodeStepsHaveInvokedCapability(childStep));
+		} else if (step instanceof ParallelBranches) {
+			return ((ParallelBranches) step).getBranches().stream()
+				.allMatch(childStep -> doAllLeafNodeStepsHaveInvokedCapability(childStep));
+		} else if (step instanceof CapabilityInvocation && ((CapabilityInvocation) step).getInvokedCapability() != null) {
+			return true;
+		} else return false;
 	}
 	
 	public static enum StepStatusEnum { INITIATED, AVAILABLE, ACTIVE, CANCELED, HALTED, COMPLETED }
