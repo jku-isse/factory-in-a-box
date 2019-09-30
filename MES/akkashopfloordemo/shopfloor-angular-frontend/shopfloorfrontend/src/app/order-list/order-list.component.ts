@@ -23,6 +23,7 @@ export class OrderListComponent implements OnInit {
   reloadData() {
     this.orderService.getOrderList()
       .subscribe(data => {
+        console.log("Debug 2", data);
         this.orders = data;
       }, error => console.log(error));
   }

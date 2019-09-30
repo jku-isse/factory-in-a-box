@@ -42,20 +42,5 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
-<!--     <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>OrderId</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let id of orderIds | async">
-          <td>{{id}}</td>
-          <td>
-              <button (click)="orderDetails(id)" class="btn btn-info" style="margin-left: 10px">OrderStatus</button>
-          </td>
-        </tr>
-      </tbody>
-    </table> -->
   </div>
 </div>
