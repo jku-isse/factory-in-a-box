@@ -9,9 +9,11 @@ import fiab.mes.restendpoint.requests.OrderStatusRequest;
 
 public class OrderProcessWrapper {
 	
+	private String orderId;
 	private Map<String, StepStatusEnum> stepStatus;
 
-	public OrderProcessWrapper(OrderStatusRequest.Response o) {
+	public OrderProcessWrapper(String orderId, OrderStatusRequest.Response o) {
+		this.orderId = orderId;
 		this.stepStatus = o.getStatus().stepStatus.entrySet().stream()
 			.collect(Collectors.toMap(
 					s -> s.getKey().getRole() == null ? String.valueOf(s.getKey().hashCode()) : s.getKey().getRole().getName(), 
@@ -20,7 +22,7 @@ public class OrderProcessWrapper {
 	}
 	
 	public OrderProcessWrapper(OrderProcessUpdateEvent o) {
-		this.stepStatus = o.getStepsWithNewStatus().entrySet().stream()
+		this.stepStatus = o.getStepsWithNewStatusAsReadOnlyMap().entrySet().stream()
 			.collect(Collectors.toMap(
 					s -> s.getKey().getRole() == null ? String.valueOf(s.getKey().hashCode()) : s.getKey().getRole().getName(), 
 					Map.Entry::getValue
@@ -29,6 +31,10 @@ public class OrderProcessWrapper {
 	
 	public Map<String, StepStatusEnum> getStepStatus(){
 		return stepStatus;
+	}
+	
+	public String getOrderId() {
+		return orderId;
 	}
 	
 }

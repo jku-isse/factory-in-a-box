@@ -112,17 +112,34 @@ public class MinimalTestServer extends AllDirectives {
 	}
 
 	public static void setupSteps() {
-		AbstractCapability ac1 = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
-		ac1.setLabel("Red");
-		s1.setInvocedCapability(ac1);
-		AbstractCapability ac2 = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
-		ac2.setLabel("Blue");
-		s2.setInvocedCapability(ac2);
-		AbstractCapability ac3 = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
-		ac3.setLabel("Green");
-		s3.setInvocedCapability(ac3);
-		AbstractCapability ac4 = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
-		ac4.setLabel("Yellow");
-		s4.setInvocedCapability(ac4);
+		s1.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Red")));
+		s2.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Blue")));		
+		s3.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Green")));		
+		s4.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Yellow")));
+	}
+	
+
+	private static AbstractCapability getColorCapability(String color) {
+		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
+		ac.setDisplayName(color);
+		ac.setID("Capability.Plotting.Color."+color);
+		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/colors/"+color);
+		return ac;
+	}
+	
+	private static AbstractCapability getPlottingCapability() {
+		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
+		ac.setDisplayName("plot");
+		ac.setID("Capability.Plotting");
+		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/plotting");
+		return ac;
+	}
+	
+	private static AbstractCapability composeInOne(AbstractCapability ...caps) {
+		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();		
+		for (AbstractCapability cap : caps) {
+			ac.getCapabilities().add(cap);
+		}
+		return ac;
 	}
 }

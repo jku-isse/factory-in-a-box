@@ -23,11 +23,8 @@ export class OrderListComponent implements OnInit {
   reloadData() {
     this.orderService.getOrderList()
       .subscribe(data => {
-        console.log('Order List Component', data);
         this.orders = data;
       }, error => console.log(error));
-    // this.orderIds = this.orderService.getOrderList();
-    // console.log('GET orderList', this.orderIds);
   }
 
   orderDetails(id: string) {

@@ -8,22 +8,24 @@
       <!-- Order Column -->
       <ng-container matColumnDef="order">
         <th mat-header-cell *matHeaderCellDef> Order </th>
-        <td mat-cell *matCellDef="let element"> {{element}} </td>
+        <td mat-cell *matCellDef="let element">
+          {{element.orderId}}
+        </td>
       </ng-container>
     
       <!-- Status Column -->
       <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef> Status </th>
-        <td mat-cell *matCellDef> 
-          not implemented..
+        <td mat-cell *matCellDef="let element"> 
+          {{element.eventType}}
         </td>
       </ng-container>
 
       <!-- Machine Column -->
       <ng-container matColumnDef="machine">
         <th mat-header-cell *matHeaderCellDef> Machine </th>
-        <td mat-cell *matCellDef> 
-          not implemented..
+        <td mat-cell *matCellDef="let element"> 
+          {{element.machineId}}
         </td>
       </ng-container>
     
@@ -31,7 +33,7 @@
       <ng-container matColumnDef="button">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let element"> 
-          <button mat-raised-button color="basic" (click)="orderDetails(element)">
+          <button mat-raised-button color="basic" (click)="orderDetails(element.orderId)">
             Process
           </button>
         </td>

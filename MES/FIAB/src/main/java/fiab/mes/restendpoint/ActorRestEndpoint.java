@@ -3,6 +3,7 @@ package fiab.mes.restendpoint;
 import static akka.pattern.PatternsCS.ask;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -96,10 +97,15 @@ public class ActorRestEndpoint extends AllDirectives{
 					),
 					get(() -> {
 						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));		        
-						CompletionStage<Set<OrderEvent>> resp = ask(orderEntryActor, "GetAllOrders", timeout).thenApply( list -> (Set<OrderEvent>)list);
-						//TODO wrapping doesn't work!!!
-						CompletionStage<Set<OrderEventWrapper>> respW = resp.thenApply(r -> (Set<OrderEventWrapper>) r.stream().collect(Collectors.toMap(o -> o.getOrderId(), o -> new OrderEventWrapper(o))));
-						return completeOKWithFuture(respW, Jackson.marshaller());
+						@SuppressWarnings({ "unchecked", "deprecation" })
+						CompletionStage<Set<OrderEventWrapper>> resp = ask(orderEntryActor, "GetAllOrders", timeout).thenApply( list -> {
+							Set<OrderEventWrapper> wrap = ((Collection<OrderEvent>)list)
+									.stream()
+									.map(e -> new OrderEventWrapper(e))
+									.collect(Collectors.toSet());
+							return wrap;
+						});
+						return completeOKWithFuture(resp, Jackson.marshaller());
 					})
 				)),	
 				get(() -> 			
@@ -109,7 +115,7 @@ public class ActorRestEndpoint extends AllDirectives{
 							final CompletionStage<Optional<OrderStatusRequest.Response>> futureMaybeStatus = ask(orderEntryActor, new OrderStatusRequest(req), timeout).thenApply((Optional.class::cast)); 
 							return onSuccess(futureMaybeStatus, maybeStatus ->
 								maybeStatus.map( item -> {
-									OrderProcessWrapper wrapper = new OrderProcessWrapper(item);
+									OrderProcessWrapper wrapper = new OrderProcessWrapper(req, item);
 									return completeOK(wrapper, Jackson.marshaller());
 								})
 								.orElseGet(()-> complete(StatusCodes.NOT_FOUND, "Order Not Found"))

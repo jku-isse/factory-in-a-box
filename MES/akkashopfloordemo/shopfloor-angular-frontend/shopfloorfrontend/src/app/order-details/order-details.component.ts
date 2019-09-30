@@ -27,8 +27,8 @@ export class OrderDetailsComponent implements OnInit {
     });
     this.orderService.getOrder(this.id)
       .subscribe(data => {
-        console.log('Order Details Component', data);
-        this.order = data.stepStatus;
+        this.order.jobStatus = data.stepStatus;
+        this.order.orderId = data.orderId;
       }, error => console.log(error));
   }
 

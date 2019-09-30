@@ -45,7 +45,7 @@ public class OrderEntryActor extends AbstractActor{
 	public Receive createReceive() {
 		 return receiveBuilder()
 			        .matchEquals("GetAllOrders", p -> {
-			        	sender().tell(latestChange.entrySet(), getSelf());
+			        	sender().tell(latestChange.values(), getSelf());
 			        	// need to figure out how to collect order information from all order actors, perhaps a separate actors is needed for that
 			        	})
 			        .match(RegisterProcessRequest.class, doc -> {			        	
