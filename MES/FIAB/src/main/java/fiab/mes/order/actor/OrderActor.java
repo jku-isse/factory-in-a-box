@@ -56,7 +56,7 @@ public class OrderActor extends AbstractActor{
 		        	sender().tell(Optional.of(new OrderStatusRequest.Response(order.getProcess())), getSelf());
 		        })
 		        .match(OrderEvent.class, event -> {
-		        	history.add(event);
+		        	history.add(event);		        	
 		        })
 		        .match(OrderHistoryRequest.class, req -> {
 		        	List<OrderEvent> events = req.shouldResponseIncludeDetails() ? history :	history.stream().map(event -> event.getCloneWithoutDetails()).collect(Collectors.toList());

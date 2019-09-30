@@ -8,8 +8,6 @@ package communication.open62communication;
 import communication.utils.RequestedNodePair;
 import open62Wrap.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,7 +54,7 @@ public class ClientCommunication extends ClientAPIBase {
             RequestedNodePair<Integer, Integer> conveyorNode = new RequestedNodePair<>(1, 56);
             RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
             clientSubToNode(clientAPIBase, client, open62541.UA_NODEID_NUMERIC(conveyorNode.getKey(), conveyorNode.getValue()));
-            //clientSubToNode(clientAPIBase, client, open62541.UA_NODEID_NUMERIC(turningNode.getKey(), turningNode.getValue()));
+            clientSubToNode(clientAPIBase, client, open62541.UA_NODEID_NUMERIC(turningNode.getKey(), turningNode.getValue()));
             // if we subscribe to another node, the callback only uses the last node that was registered as the nodeId
             i++;
             System.out.println("Client Connected ");
@@ -80,14 +78,14 @@ public class ClientCommunication extends ClientAPIBase {
         UA_NodeId conveyorId = open62541.UA_NODEID_NUMERIC(conveyorNode.getKey(), conveyorNode.getValue());
         UA_NodeId turningId = open62541.UA_NODEID_NUMERIC(turningNode.getKey(), turningNode.getValue());
         System.out.println("nodeId = " + nodeId.getIdentifier().getNumeric() + " | expected = " + conveyorId.getIdentifier().getNumeric() + " | value = " + value);
-        //System.out.println("nodeId = " + nodeId.getIdentifier().getNumeric() + " | expected = " + turningId.getIdentifier().getNumeric() + " | value = " + value);
+        System.out.println("nodeId = " + nodeId.getIdentifier().getNumeric() + " | expected = " + turningId.getIdentifier().getNumeric() + " | value = " + value);
         if(nodeId.getIdentifier().getNumeric() == conveyorId.getIdentifier().getNumeric()){
             System.out.println("Received callback for Conveyor");
             conveyorStatus.set(value);
-        }/*else if(nodeId.getIdentifier().getNumeric() == turningId.getIdentifier().getNumeric()){
+        }else if(nodeId.getIdentifier().getNumeric() == turningId.getIdentifier().getNumeric()){
             System.out.println("Received callback for Turning");
             turningStatus.set(value);   //This will be called even though the conveyor was the one that changed
-        }*/
+        }
     }
 
     public Object initClient() {

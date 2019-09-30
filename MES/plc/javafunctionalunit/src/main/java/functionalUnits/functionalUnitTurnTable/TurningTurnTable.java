@@ -6,21 +6,13 @@ import functionalUnits.TurningBase;
 import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
 import io.vertx.core.Vertx;
+import robot.turnTable.TurnTableOrientation;
 import stateMachines.turning.TurningStateMachineConfig;
 import stateMachines.turning.TurningStates;
 import stateMachines.turning.TurningTriggers;
-import robot.turnTable.TurnTableOrientation;
-
-
-import java.util.function.Function;
 
 import static stateMachines.turning.TurningStates.STOPPED;
 import static stateMachines.turning.TurningTriggers.*;
-import static stateMachines.turning.TurningTriggers.EXECUTE;
-import static stateMachines.turning.TurningTriggers.NEXT;
-import static stateMachines.turning.TurningTriggers.RESET;
-import static stateMachines.turning.TurningTriggers.STOP;
-import static stateMachines.turning.TurningTriggers.TURN_TO;
 
 /**
  * TurnTable implementation for the Turning FU.
@@ -199,7 +191,7 @@ public class TurningTurnTable extends TurningBase {
             return "Resetting Successful";
         });
         addStringMethodToServer(new RequestedNodePair<>(1, 32), "StopTurningMethod", x -> {
-            reset();
+            stop();
             return "Stopping Successful";
         });
         addStringMethodToServer(new RequestedNodePair<>(1, 33), "TurnToMethod", x -> {

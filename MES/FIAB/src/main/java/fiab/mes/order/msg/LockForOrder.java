@@ -12,6 +12,16 @@ public class LockForOrder {
 		this.stepId = stepId;
 	}
 
+	
+	
+	public String getRootOrderId() {
+		return rootOrderId;
+	}
+
+	public void setRootOrderId(String rootOrderId) {
+		this.rootOrderId = rootOrderId;
+	}
+
 	public LockForOrder(String stepId) {
 		super();
 		this.stepId = stepId;
