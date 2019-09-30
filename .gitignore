@@ -11,7 +11,7 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
+# *.jar # not good, as we have some libraries as jar included that are not on maven
 *.war
 *.nar
 *.ear
