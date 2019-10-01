@@ -3,7 +3,7 @@
     <h2>Order List</h2>
   </div>
   <div class="panel-body">
-    <table mat-table [dataSource]="orders" class="mat-elevation-z8">
+    <table mat-table [dataSource]="getOrdersAsArray()" class="mat-elevation-z8">
 
       <!-- Order Column -->
       <ng-container matColumnDef="order">

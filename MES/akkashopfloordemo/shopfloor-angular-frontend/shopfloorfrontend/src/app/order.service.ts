@@ -38,8 +38,31 @@ export class OrderService {
     });
   }
 
+  getProcessUpdates(orderId: string): Observable<any> {
+    return Observable.create(observer =>  {
+      const eventSource = this.getProcessEventStream(orderId);
+      eventSource.onmessage = event => {
+        this._zone.run(() => {
+          observer.next(event);
+        });
+      };
+      eventSource.onerror = error => {
+        this._zone.run(() => {
+          console.log('SSE error ', eventSource);
+          observer.error(error);
+          eventSource.close();
+        });
+      };
+
+    });
+  }
+
   getOrderEventStream(): EventSource {
-    return new EventSource(`${this.baseUrl}events`);
+    return new EventSource(`${this.baseUrl}orderevents`);
+  }
+
+  getProcessEventStream(orderId: string): EventSource {
+    return new EventSource(`${this.baseUrl}processevents/${orderId}`);
   }
 
 }

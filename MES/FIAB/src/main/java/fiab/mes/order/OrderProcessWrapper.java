@@ -21,7 +21,8 @@ public class OrderProcessWrapper {
 			));
 	}
 	
-	public OrderProcessWrapper(OrderProcessUpdateEvent o) {
+	public OrderProcessWrapper(String orderId, OrderProcessUpdateEvent o) {
+		this.orderId = orderId;
 		this.stepStatus = o.getStepsWithNewStatusAsReadOnlyMap().entrySet().stream()
 			.collect(Collectors.toMap(
 					s -> s.getKey().getRole() == null ? String.valueOf(s.getKey().hashCode()) : s.getKey().getRole().getName(), 

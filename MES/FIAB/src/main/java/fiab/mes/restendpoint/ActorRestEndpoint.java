@@ -65,7 +65,7 @@ public class ActorRestEndpoint extends AllDirectives{
 	protected Route createRoute() {
 		return respondWithDefaultHeaders(defaultCorsHeaders, () ->
 			concat(
-				path("events", () -> 
+				path("orderevents", () -> 
 					get(() -> parameterOptional("orderId", orderId -> {								
 						//final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
 						//final CompletionStage<Optional<OrderStatusResponse>> futureMaybeStatus = ask(shopfloor, new OrderStatusRequest(orderId.orElse("")), timeout).thenApply((Optional.class::cast)); 
@@ -73,7 +73,7 @@ public class ActorRestEndpoint extends AllDirectives{
 						//	maybeStatus.map( item -> completeOK(item, Jackson.marshaller()))
 						//	.orElseGet(()-> complete(StatusCodes.NOT_FOUND, "Order Not Found"))); 
 						//}))
-						logger.info("SSE requested with orderId: "+orderId.orElse("none provided"));
+						logger.info("SSE (orderevent) requested with orderId: "+orderId.orElse("none provided"));
 						Source<ServerSentEvent, NotUsed> source = 
 								Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
 								.map(msg -> (OrderEvent) msg)
@@ -84,7 +84,31 @@ public class ActorRestEndpoint extends AllDirectives{
 								});				
 						return completeOK( source, EventStreamMarshalling.toEventStream());
 					}))
-				),		
+				),	
+				get(() -> 
+					pathPrefix("processevents", () ->
+						path(PathMatchers.remaining() , (String orderId) -> {	
+							Optional<String> optId = Optional.of(orderId);
+							logger.info("SSE (processevent) requested with orderId: "+optId.orElse("none provided"));
+							Source<ServerSentEvent, NotUsed> source = 
+									Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
+									.map(msg -> {
+										final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
+										final String id = ((OrderEvent)msg).getOrderId();
+										final OrderStatusRequest req = new OrderStatusRequest(id);
+										final CompletionStage<Optional<OrderStatusRequest.Response>> response = ask(orderEntryActor, req, timeout).thenApply((Optional.class::cast));
+										OrderStatusRequest.Response test = response.toCompletableFuture().get().orElseThrow();
+										ServerSentEvent sse =  ServerSentEventTranslator.toServerSentEvent(id, test);
+										return sse;
+									})
+									.mapMaterializedValue(actor -> { 
+										eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", optId.orElse("*"))) , actor);  
+										return NotUsed.getInstance();
+									});				
+							return completeOK( source, EventStreamMarshalling.toEventStream());
+						})
+					)
+				),	
 				path("orders", () -> concat( 
 					post(() ->	            
 						entity(Jackson.unmarshaller(String.class), orderAsXML -> { //TODO this needs to be an XML unmarshaller, not JSON!! 

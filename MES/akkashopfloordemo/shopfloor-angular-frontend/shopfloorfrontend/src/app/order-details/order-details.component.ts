@@ -24,10 +24,18 @@ export class OrderDetailsComponent implements OnInit {
     this.route.paramMap.subscribe(params => {
       this.id = params.get('id');
     });
+    this.orderService.getProcessUpdates(this.id).subscribe(
+      sseEvent => {
+        const json = JSON.parse(sseEvent.data);
+        console.log('Received SSE in Details', json);
+        this.order.jobStatus = json.stepStatus;
+      },
+      err => { console.log('Error receiving SSE in Details', err); },
+      () => console.log('SSE stream completed')
+    );
     this.orderService.getOrder(this.id)
       .subscribe(data => {
         this.order.jobStatus = data.stepStatus;
-        console.log("Debug", data.stepStatus);
         this.order.orderId = data.orderId;
       }, error => console.log(error));
   }
