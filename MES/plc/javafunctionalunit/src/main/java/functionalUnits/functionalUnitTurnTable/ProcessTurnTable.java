@@ -7,10 +7,14 @@ import stateMachines.processEngine.ProcessEngineStateMachineConfig;
 import stateMachines.processEngine.ProcessEngineStates;
 import stateMachines.processEngine.ProcessEngineTriggers;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static stateMachines.processEngine.ProcessEngineStates.STOPPED;
-import static stateMachines.processEngine.ProcessEngineTriggers.*;
+import static stateMachines.processEngine.ProcessEngineTriggers.RESET;
+import static stateMachines.processEngine.ProcessEngineTriggers.STOP;
 
 /**
  * TurnTable implementation of the Process Engine
@@ -42,116 +46,74 @@ public class ProcessTurnTable extends ProcessEngineBase {
      */
     @Override
     public void loadProcess() {
-        if (!processEngineStateMachine.canFire(EXECUTE)) {
+        if (isStopped()) {
+            System.out.println("Reset Process Engine");
             return;
         }
-        new Thread(() -> {
-            processEngineStateMachine.fire(EXECUTE);
-            updateState();
-            //TODO refactor once it works with multiple Functional Units
-            //System.out.println("Conveyor status: " + getClientCommunication().getConveyorStatus());
-            if (getClientCommunication().getConveyorStatus() != 9 || getClientCommunication().getTurningStatus() != 7) {
-                System.out.println("Busy");
-                return;
-            } else if (getClientCommunication().getConveyorStatus() == -1 || getClientCommunication().getTurningStatus() == -1) {
-                //Stop conveyor to update state to stopped if not initialised
-                System.out.println("Resetting");
-                getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
-                        new RequestedNodePair<>(1, 24), "");
-                getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
-                        new RequestedNodePair<>(1, 32), "");
-            }
-            System.out.println("Entered load process");
-            int conveyorState = getClientCommunication().getConveyorStatus();
-            int turningState = getClientCommunication().getTurningStatus();
-            System.out.println("Loading Process");
-            //Reset conveyor
-            System.out.println("Resetting conveyor");
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        Thread resetConveyor = new Thread(() -> {
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 23), "");
-            System.out.println("Reset conveyor done");
-
-            while (conveyorState != 0) {
+            System.out.println("Successfully reset conveyor");
+        });
+        Thread resetTurning = new Thread(() -> {getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
+                new RequestedNodePair<>(1, 31), "");
+            System.out.println("Successfully reset turning");});
+        Thread loading = new Thread(() -> {getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
+                new RequestedNodePair<>(1, 21), "");
+            System.out.println("Successfully loaded");});
+        Thread turnSouth = new Thread(() -> {
+            while (getClientCommunication().getConveyorStatus() != 6) {
                 if (isStopped()) {
+                    System.out.println("Process was interrupted.");
                     return;
                 }
-                conveyorState = getClientCommunication().getConveyorStatus();
             }
-            //Reset turning
-            System.out.println("Resetting turning");
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
-                    new RequestedNodePair<>(1, 31), "");
-            System.out.println("Reset turning done");
-
-            while (turningState != 0) {
+                    new RequestedNodePair<>(1, 33), "2");
+            System.out.println("Successfully turned south");
+        });
+        Thread unloading = new Thread(() -> {
+            while (getClientCommunication().getTurningStatus() != 0) {
                 if (isStopped()) {
+                    System.out.println("Process was interrupted.");
                     return;
                 }
-                turningState = getClientCommunication().getTurningStatus();
             }
-            //Load conveyor
-            System.out.println("Loading conveyor");
-            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
-                    new RequestedNodePair<>(1, 21), "");
-            System.out.println("Loading done");
-
-            while (conveyorState != 6) {
-                if (isStopped()) {
-                    return;
-                }
-                conveyorState = getClientCommunication().getConveyorStatus();
-            }
-            //TurnTo
-            System.out.println("Turn to East");
-            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
-                    new RequestedNodePair<>(1, 33), "1");
-            System.out.println("Turning East done");
-            turningState = getClientCommunication().getTurningStatus(); //To avoid 0 from reset
-            while (turningState != 0) {
-                if (isStopped()) {
-                    return;
-                }
-                turningState = getClientCommunication().getTurningStatus();
-            }
-            //Unload conveyor
-            System.out.println("Unloading conveyor");
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 25), "");
-            System.out.println("Unloading done");
-
-            while (conveyorState != 0) {
+            System.out.println("Successfully unloaded");
+        });
+        Thread stopConveyor = new Thread(() -> {
+            while (getClientCommunication().getConveyorStatus() != 0) {
                 if (isStopped()) {
+                    System.out.println("Process was interrupted.");
                     return;
                 }
-                conveyorState = getClientCommunication().getConveyorStatus();
             }
-            //Stop conveyor
-            System.out.println("Stopping conveyor");
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 24), "");
-            System.out.println("Stop done");
-            while (conveyorState != 9) {
+            System.out.println("Successfully stopped conveyor");
+        });
+        Thread stopTurning = new Thread(() -> {
+            while (getClientCommunication().getTurningStatus() != 0) {
                 if (isStopped()) {
+                    System.out.println("Process was interrupted.");
                     return;
                 }
-                conveyorState = getClientCommunication().getConveyorStatus();
             }
-            //Stop turning
-            System.out.println("Stopping turning");
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
-                    new RequestedNodePair<>(1, 33), "");
-            System.out.println("Stopping done");
+                    new RequestedNodePair<>(1, 32), "");
+            System.out.println("Successfully stopped turning");
 
-            while (turningState != 7) {
-                if (isStopped()) {
-                    return;
-                }
-                turningState = getClientCommunication().getTurningStatus();
-            }
-            processEngineStateMachine.fire(NEXT);
-            updateState();
-            System.out.println("Loaded Process successfully");
-        }).start();
+        });
+        executorService.submit(resetConveyor);
+        executorService.schedule(resetTurning, 500, TimeUnit.MILLISECONDS);
+        executorService.schedule(loading, 1000, TimeUnit.MILLISECONDS);
+        executorService.schedule(turnSouth, 1500, TimeUnit.MILLISECONDS);
+        executorService.schedule(unloading, 2000, TimeUnit.MILLISECONDS);
+        executorService.schedule(stopConveyor, 2500, TimeUnit.MILLISECONDS);
+        executorService.schedule(stopTurning, 3000, TimeUnit.MILLISECONDS);
     }
 
     /**
