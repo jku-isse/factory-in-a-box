@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./order-list.component.css']
 })
 export class OrderListComponent implements OnInit {
-  displayedColumns: string[] = ['order', 'status', 'machine', 'button'];
+  displayedColumns: string[] = ['order', 'status', 'machine', 'process-button', 'history-button'];
   // orders: Observable<object[]>;
   orders: Map<string, Order> = new Map<string, Order>();
 
@@ -42,6 +42,10 @@ export class OrderListComponent implements OnInit {
 
   orderDetails(id: string) {
     this.router.navigate(['orderStatus', id]);
+  }
+
+  orderHistory(id: string) {
+    this.router.navigate(['orderHistory', id]);
   }
 
   getOrdersAsArray() {

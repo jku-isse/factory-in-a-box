@@ -44,7 +44,7 @@ export class OrderDetailsComponent implements OnInit {
     this.router.navigate(['orders']);
   }
 
-  test() {
+  getJobsAsArray() {
     if (typeof this.order.jobStatus === 'undefined') {
       return [];
     } else {

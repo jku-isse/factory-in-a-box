@@ -28,7 +28,7 @@ public class ServerSentEventTranslator{
 			return ServerSentEvent.create(json, "message"); // in the angular frontend also implement addEventListener, as onmessage expects the type to be 'message'
 		} catch (JsonProcessingException e) {
 			logger.warn("Error marshalling OrderEvent", e);
-			return ServerSentEvent.create("", orderEvent.getEventType().toString()); //TODO "message" ???
+			return ServerSentEvent.create("", "message");
 		}		
 	}
 	

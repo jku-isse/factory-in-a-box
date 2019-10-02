@@ -1,26 +1,26 @@
-<h2>Order Status</h2>
+<h2>Order History</h2>
 
 <hr/>
-<div *ngIf="order">
+<div *ngIf="orders">
   <div>
-    <label><b>OrderId: </b></label> {{order.orderId}}
+    <label><b>OrderId: </b></label> {{orderId}}
   </div>
   <mat-grid-list cols="1"  rowHeight="4:1">
     <mat-grid-tile>
-        <table mat-table [dataSource]="getJobsAsArray()" class="mat-elevation-z8">
-          <!-- JobId Column -->
-          <ng-container matColumnDef="jobid">
-            <th mat-header-cell *matHeaderCellDef> Job ID </th>
+        <table mat-table [dataSource]="getOrdersAsArray()" class="mat-elevation-z8">
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef> Order Status </th>
             <td mat-cell *matCellDef="let element">
-              {{element.id}}
+              {{element.eventType}}
             </td>
           </ng-container>
         
-          <!-- JobStatus Column -->
-          <ng-container matColumnDef="jobstatus">
-            <th mat-header-cell *matHeaderCellDef> Job Status </th>
+          <!-- Machine Column -->
+          <ng-container matColumnDef="machine">
+            <th mat-header-cell *matHeaderCellDef> Machine </th>
             <td mat-cell *matCellDef="let element"> 
-              {{element.status}}
+              {{element.machineId}}
             </td>
           </ng-container>
         

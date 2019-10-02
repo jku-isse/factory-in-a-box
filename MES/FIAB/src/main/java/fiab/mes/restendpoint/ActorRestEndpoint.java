@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,7 @@ import fiab.mes.order.OrderProcessWrapper;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEventWrapper;
 import fiab.mes.order.msg.RegisterProcessRequest;
+import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -146,7 +148,23 @@ public class ActorRestEndpoint extends AllDirectives{
 							);	            
 						})
 					)
+				),	
+				get(() -> 			
+				pathPrefix("orderHistory", () ->
+					path(PathMatchers.remaining() , (String req) -> {								
+						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
+						final CompletionStage<OrderHistoryRequest.Response> futureMaybeStatus = ask(orderEntryActor, new OrderHistoryRequest(req), timeout).thenApply(r -> (OrderHistoryRequest.Response)r); 
+						return onSuccess(futureMaybeStatus, item -> {
+							if (item != null) {
+								List<OrderEventWrapper> wrapper = item.getUpdates().stream().map(o -> new OrderEventWrapper(o)).collect(Collectors.toList());
+								return completeOK(wrapper, Jackson.marshaller());
+							} else {
+								return complete(StatusCodes.NOT_FOUND, "History Not Found");
+							}
+						});	            
+					})
 				)
+			)
 			)
 		);	    			    	
 	}

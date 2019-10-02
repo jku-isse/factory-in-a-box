@@ -15,6 +15,10 @@ export class OrderService {
     return this.http.get(`${this.baseUrl}order/${id}`);
   }
 
+  getOrderHistory(id: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}orderHistory/${id}`);
+  }
+
   getOrderList(): Observable<any> {
     return this.http.get(`${this.baseUrl}orders`);
   }
