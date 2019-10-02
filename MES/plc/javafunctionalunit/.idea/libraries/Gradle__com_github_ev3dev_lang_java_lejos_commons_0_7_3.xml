@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.ev3dev-lang-java:lejos-commons:0.7.3">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.ev3dev-lang-java/lejos-commons/0.7.3/2395a7b8d6ca4cde8a08858694ff54d67cd405dd/lejos-commons-0.7.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.ev3dev-lang-java/lejos-commons/0.7.3/3d7f40db80d8bf474ef7c5f39e18a31b4fc88aef/lejos-commons-0.7.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

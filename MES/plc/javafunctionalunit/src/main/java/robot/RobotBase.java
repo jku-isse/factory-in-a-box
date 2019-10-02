@@ -25,7 +25,7 @@ public class RobotBase extends ServerAPIBase {
      * Loads the native libraries using a workaround as the ev3 currently has troubles with finding them.
      * Uncomment this and comment the loadLib from open62Wrap/open62541JNI if using EV3
      */
-/*
+
     static {
         try {
             System.out.println("Looking for native lib");
@@ -36,7 +36,7 @@ public class RobotBase extends ServerAPIBase {
             e.printStackTrace();
         }
     }
-*/
+
     private LoadingProtocolBase loadingProtocolBase;
     private ConveyorBase conveyorBase;
     private TurningBase turningBase;
@@ -201,7 +201,7 @@ public class RobotBase extends ServerAPIBase {
      * @throws IOException file is probably used somewhere else or not there.
      */
     private static void loadNativeLib() throws IOException {
-        String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
+        String libName = "opcua_java_api.dll"; //use this on BrickPi, use the one w/o _hf suffix on ev3
         URL url = RobotBase.class.getResource("/" + libName);
         File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
         tmpDir.deleteOnExit();

@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.oxo42:stateless4j:2.5.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.oxo42/stateless4j/2.5.0/2730861c12b7cf76269422f6c027f8c56507d1e8/stateless4j-2.5.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.oxo42/stateless4j/2.5.0/9b1ca21fa52c592ae494a2cc1b795a7ad1c644e8/stateless4j-2.5.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

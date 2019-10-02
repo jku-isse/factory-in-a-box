@@ -7,6 +7,10 @@ import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.order.msg.OrderEvent;
 
 public class InterMachineEventBus extends ScanningEventBus<MachineEvent, ActorRef, SubscriptionClassifier> {
+	
+	public static void main(String[] args) {
+		System.out.println("we're running");
+	}
 
 	
 	@Override
