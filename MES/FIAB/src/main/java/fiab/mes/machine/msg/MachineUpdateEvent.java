@@ -24,6 +24,12 @@ public class MachineUpdateEvent extends MachineEvent {
 	public Object getNewValue() {
 		return newValue;
 	}
+
+	@Override
+	public String toString() {
+		return "MachineUpdateEvent [parameterName=" + parameterName + ", newValue=" + newValue
+				+ ", machineId=" + machineId + ", eventType=" + eventType + ", timestamp=" + timestamp + "]";
+	}
 	
 	
 
