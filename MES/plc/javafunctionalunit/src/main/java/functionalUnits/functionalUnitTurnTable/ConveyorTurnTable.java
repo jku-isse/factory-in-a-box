@@ -10,16 +10,8 @@ import stateMachines.conveyor.ConveyorStateMachineConfig;
 import stateMachines.conveyor.ConveyorStates;
 import stateMachines.conveyor.ConveyorTriggers;
 
-import java.util.function.Function;
-
 import static stateMachines.conveyor.ConveyorStates.STOPPED;
 import static stateMachines.conveyor.ConveyorTriggers.*;
-import static stateMachines.conveyor.ConveyorTriggers.LOAD;
-import static stateMachines.conveyor.ConveyorTriggers.NEXT;
-import static stateMachines.conveyor.ConveyorTriggers.PAUSE;
-import static stateMachines.conveyor.ConveyorTriggers.RESET;
-import static stateMachines.conveyor.ConveyorTriggers.STOP;
-import static stateMachines.conveyor.ConveyorTriggers.UNLOAD;
 
 /**
  * TurnTable implementation of the ConveyorBase. It has a stateMachine that tracks the status and guarantees stability.
@@ -73,7 +65,7 @@ public class ConveyorTurnTable extends ConveyorBase {
             conveyorStateMachine.fire(LOAD);
             updateState();
             System.out.println("Executing: loadBelt");
-            this.conveyorMotor.backward();
+            conveyorMotor.backward();
             while (!sensorLoading.detectedInput()) {
                 if (stopped || suspended) {
                     stopped = false;
@@ -83,7 +75,7 @@ public class ConveyorTurnTable extends ConveyorBase {
                 }
             }
             System.out.println("Button pressed");
-            this.conveyorMotor.stop();
+            conveyorMotor.stop();
             conveyorStateMachine.fire(NEXT);
             updateState();
         }, res -> {
@@ -105,7 +97,7 @@ public class ConveyorTurnTable extends ConveyorBase {
             conveyorStateMachine.fire(UNLOAD);
             updateState();
             System.out.println("Executing: loadBelt");
-            this.conveyorMotor.forward();
+            conveyorMotor.forward();
             while (sensorUnloading.detectedInput()) {
                 if (stopped || suspended) {
                     stopped = false;
@@ -115,7 +107,7 @@ public class ConveyorTurnTable extends ConveyorBase {
                 }
             }
             System.out.println("No color detected");
-            this.conveyorMotor.stop();
+            conveyorMotor.stop();
             conveyorStateMachine.fire(NEXT);
             updateState();
         }, res -> {
@@ -169,7 +161,7 @@ public class ConveyorTurnTable extends ConveyorBase {
         updateState();
         System.out.println("Executing: stop");
         stopped = true;
-        this.conveyorMotor.stop();
+        conveyorMotor.stop();
         conveyorStateMachine.fire(NEXT);
         updateState();
     }

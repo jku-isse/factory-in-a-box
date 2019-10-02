@@ -3,18 +3,16 @@ package functionalUnits.functionalUnitTurnTable;
 import com.github.oxo42.stateless4j.StateMachine;
 import communication.utils.RequestedNodePair;
 import functionalUnits.ProcessEngineBase;
+import io.vertx.core.Vertx;
 import stateMachines.processEngine.ProcessEngineStateMachineConfig;
 import stateMachines.processEngine.ProcessEngineStates;
 import stateMachines.processEngine.ProcessEngineTriggers;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static stateMachines.processEngine.ProcessEngineStates.STOPPED;
-import static stateMachines.processEngine.ProcessEngineTriggers.RESET;
-import static stateMachines.processEngine.ProcessEngineTriggers.STOP;
+import static stateMachines.processEngine.ProcessEngineTriggers.*;
 
 /**
  * TurnTable implementation of the Process Engine
@@ -24,6 +22,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
     private Object statusNodeId;
     private AtomicBoolean stopped;
     private final StateMachine<ProcessEngineStates, ProcessEngineTriggers> processEngineStateMachine;
+    private AtomicInteger i = new AtomicInteger(0);
 
     public ProcessTurnTable() {
         stopped = new AtomicBoolean(false);
@@ -46,23 +45,28 @@ public class ProcessTurnTable extends ProcessEngineBase {
      */
     @Override
     public void loadProcess() {
-        if (isStopped()) {
-            System.out.println("Reset Process Engine");
-            return;
-        }
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-        Thread resetConveyor = new Thread(() -> {
+        Vertx vertx = Vertx.vertx();
+        vertx.executeBlocking(promise -> {
+            if (isStopped() || !processEngineStateMachine.canFire(EXECUTE)) {
+                System.out.println("Reset Process Engine to load a process");
+                return;
+            }
+            processEngineStateMachine.fire(EXECUTE);
+            updateState();
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 23), "");
             System.out.println("Successfully reset conveyor");
-        });
-        Thread resetTurning = new Thread(() -> {getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
-                new RequestedNodePair<>(1, 31), "");
-            System.out.println("Successfully reset turning");});
-        Thread loading = new Thread(() -> {getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
-                new RequestedNodePair<>(1, 21), "");
-            System.out.println("Successfully loaded");});
-        Thread turnSouth = new Thread(() -> {
+            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
+                    new RequestedNodePair<>(1, 31), "");
+            System.out.println("Successfully reset turning");
+            while (getClientCommunication().getTurningStatus() != 0) {
+                if (isStopped()) {
+                    System.out.println("Process was interrupted.");
+                    return;
+                }
+            }
+            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
+                    new RequestedNodePair<>(1, 21), "");
             while (getClientCommunication().getConveyorStatus() != 6) {
                 if (isStopped()) {
                     System.out.println("Process was interrupted.");
@@ -71,10 +75,8 @@ public class ProcessTurnTable extends ProcessEngineBase {
             }
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
                     new RequestedNodePair<>(1, 33), "2");
-            System.out.println("Successfully turned south");
-        });
-        Thread unloading = new Thread(() -> {
-            while (getClientCommunication().getTurningStatus() != 0) {
+
+            while (getClientCommunication().getTurningStatus() != 5) {
                 if (isStopped()) {
                     System.out.println("Process was interrupted.");
                     return;
@@ -82,9 +84,8 @@ public class ProcessTurnTable extends ProcessEngineBase {
             }
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 25), "");
+
             System.out.println("Successfully unloaded");
-        });
-        Thread stopConveyor = new Thread(() -> {
             while (getClientCommunication().getConveyorStatus() != 0) {
                 if (isStopped()) {
                     System.out.println("Process was interrupted.");
@@ -93,10 +94,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
             }
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 24), "");
-            System.out.println("Successfully stopped conveyor");
-        });
-        Thread stopTurning = new Thread(() -> {
-            while (getClientCommunication().getTurningStatus() != 0) {
+            while (getClientCommunication().getTurningStatus() != 5) {
                 if (isStopped()) {
                     System.out.println("Process was interrupted.");
                     return;
@@ -104,16 +102,11 @@ public class ProcessTurnTable extends ProcessEngineBase {
             }
             getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
                     new RequestedNodePair<>(1, 32), "");
-            System.out.println("Successfully stopped turning");
-
+            processEngineStateMachine.fire(NEXT);
+            updateState();
+        }, res -> {
         });
-        executorService.submit(resetConveyor);
-        executorService.schedule(resetTurning, 500, TimeUnit.MILLISECONDS);
-        executorService.schedule(loading, 1000, TimeUnit.MILLISECONDS);
-        executorService.schedule(turnSouth, 1500, TimeUnit.MILLISECONDS);
-        executorService.schedule(unloading, 2000, TimeUnit.MILLISECONDS);
-        executorService.schedule(stopConveyor, 2500, TimeUnit.MILLISECONDS);
-        executorService.schedule(stopTurning, 3000, TimeUnit.MILLISECONDS);
+        vertx.close();
     }
 
     /**
@@ -126,6 +119,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
         }
         processEngineStateMachine.fire(RESET);
         updateState();
+        processEngineStateMachine.fire(NEXT);
         stopped.set(false);
         System.out.println("Reset Process was called");
     }

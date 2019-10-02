@@ -8,7 +8,7 @@ import static stateMachines.turning.TurningTriggers.*;
 
 public class TurningStateMachineConfig extends StateMachineConfig<TurningStates, TurningTriggers> {
 
-    public TurningStateMachineConfig(){
+    public TurningStateMachineConfig() {
         configure(IDLE)
                 .permit(TURN_TO, STARTING)
                 .permit(STOP, STOPPING)
@@ -24,12 +24,14 @@ public class TurningStateMachineConfig extends StateMachineConfig<TurningStates,
                 .permit(NEXT, COMPLETE)
                 .permit(STOP, STOPPING);
         configure(COMPLETE)
-                .permit(NEXT, IDLE)
+                .permit(RESET, RESETTING)
                 .permit(STOP, STOPPING);
         configure(STOPPING)
-                .permit(NEXT, STOPPED);
+                .permit(NEXT, STOPPED)
+                .ignore(STOP);
         configure(STOPPED)
-                .permit(RESET, RESETTING);
+                .permit(RESET, RESETTING)
+                .ignore(STOP);
         configure(RESETTING)
                 .permit(NEXT, IDLE)
                 .permit(STOP, STOPPING);
