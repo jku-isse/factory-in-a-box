@@ -44,5 +44,13 @@ public class OrderEvent extends TimedEvent {
 	public OrderEvent getCloneWithoutDetails() {
 		return new OrderEvent(this.orderId, this.machineId, this.eventType, this.getTimestamp());
 	}
+
+	@Override
+	public String toString() {
+		return "OrderEvent [eventType=" + eventType + ", orderId=" + orderId + ", machineId=" + machineId
+				+ ", timestamp=" + timestamp + "]";
+	}
+	
+	
 }
 

@@ -22,4 +22,11 @@ public class MachineEvent extends TimedEvent {
 		CONNECTED, DISCONNECTED, UPDATED
 	}
 
+	@Override
+	public String toString() {
+		return "MachineEvent [machineId=" + machineId + ", eventType=" + eventType + ", timestamp=" + timestamp + "]";
+	}
+
+	
+	
 }

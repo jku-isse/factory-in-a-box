@@ -14,6 +14,7 @@ import ProcessCore.CapabilityInvocation;
 import ProcessCore.ParallelBranches;
 import ProcessCore.ProcessCoreFactory;
 import ProcessCore.ProcessStep;
+import fiab.mes.general.ComparableCapability;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 
@@ -208,7 +209,7 @@ class OrderProcessTest {
 	}
 	
 	private AbstractCapability getColorCapability(String color) {
-		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
+		ComparableCapability ac = new ComparableCapability();
 		ac.setDisplayName(color);
 		ac.setID("Capability.Plotting.Color."+color);
 		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/colors/"+color);
@@ -216,7 +217,7 @@ class OrderProcessTest {
 	}
 	
 	private AbstractCapability getPlottingCapability() {
-		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
+		ComparableCapability ac = new ComparableCapability();
 		ac.setDisplayName("plot");
 		ac.setID("Capability.Plotting");
 		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/plotting");
@@ -224,7 +225,7 @@ class OrderProcessTest {
 	}
 	
 	private AbstractCapability composeInOne(AbstractCapability ...caps) {
-		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();		
+		ComparableCapability ac = new ComparableCapability();		
 		for (AbstractCapability cap : caps) {
 			ac.getCapabilities().add(cap);
 		}

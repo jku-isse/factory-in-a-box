@@ -1,14 +1,14 @@
 package fiab.mes.order;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.Duration;
-import java.util.function.Function;
-
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
@@ -20,6 +20,9 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.general.TimedEvent;
+import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockMachineActor;
 import fiab.mes.mockactors.TestMockMachineActor;
@@ -27,7 +30,7 @@ import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
-import fiab.mes.order.msg.RegisterProcessStepRequest;
+import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.planer.actor.OrderPlanningActor;
 
 class OrderPlanningActorTest {
@@ -38,8 +41,10 @@ class OrderPlanningActorTest {
 	protected static ActorRef orderEventBus;
 	protected static ActorRef orderPlanningActor;
 	
+	private static final Logger logger = LoggerFactory.getLogger(OrderPlanningActorTest.class);
+	
 	@BeforeAll
-	static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() throws Exception {
 		// setup shopfloor
 		// setup machines
 		// setup processes
@@ -49,10 +54,6 @@ class OrderPlanningActorTest {
 		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
-	}
-
-	@BeforeEach
-	void setUp() throws Exception {
 	}
 
 	@AfterClass
@@ -108,15 +109,23 @@ class OrderPlanningActorTest {
 		new TestKit(system) { 
 			{ 
 				String oid = "Order1";
-				orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", oid)), getRef() );
-				
 				String mid = "OrderMockMachine";
+				orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", oid)), getRef() );
+				machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
 				//machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", mid)), getRef() );
 				// if we subscribe to machinebus then we need to capture all the machine events by those actors
 				ActorRef red1 = getMachineMockActor(1, "Red");
+				expectMsgAnyClassOf(Duration.ofSeconds(3), MachineConnectedEvent.class);
+				expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class); //idle
 				ActorRef blue2 = getMachineMockActor(2, "Blue");
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
 				ActorRef green3 = getMachineMockActor(3, "Green");
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
 				ActorRef yellow4 = getMachineMockActor(4, "Yellow");
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
+				expectMsgClass(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
 				
 				ProcessCore.Process p = TestMockMachineActor.getSequentialProcess();
 				OrderProcess op = new OrderProcess(p);
@@ -128,15 +137,23 @@ class OrderPlanningActorTest {
 					} else return false; });
 				assert(regOk);
 				expectMsgClass(OrderProcessUpdateEvent.class); // First SubStep activated
-				// then order requested at machine and paused until response received
+				// then order requested at machine 
 				Boolean pauseOk = expectMsgPF(Duration.ofSeconds(3600), "Pause Order Event expected", event -> { 
 					if (event instanceof OrderEvent) {
-						return ((OrderEvent) event).getEventType().equals(OrderEventType.PAUSED); 
+						return ((OrderEvent) event).getEventType().equals(OrderEventType.SCHEDULED); 
 					} else return false; });
-				assert(pauseOk);
-				
+				assert( pauseOk);
+				for (int i=0; i < 27; i++) {
+					System.out.println("i:"+i);
+					TimedEvent te = expectMsgClass(Duration.ofSeconds(3600), TimedEvent.class);
+					//logEvent(te);
+				}
 			}	
 		};
+	}
+	
+	private void logEvent(TimedEvent event) {
+		logger.info(event.toString());
 	}
 
 	public static ActorRef getMachineMockActor(int id, String color) {

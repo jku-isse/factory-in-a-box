@@ -20,6 +20,7 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.general.ComparableCapability;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.OrderProcess;
@@ -102,7 +103,7 @@ public class TestMockMachineActor { //extends AbstractJavaTest {
 	
 	// ensure to keep this in sync with OrderProcessTest
 	public static AbstractCapability getColorCapability(String color) {
-		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
+		ComparableCapability ac = new ComparableCapability();
 		ac.setDisplayName(color);
 		ac.setID("Capability.Plotting.Color."+color);
 		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/colors/"+color);
@@ -110,7 +111,7 @@ public class TestMockMachineActor { //extends AbstractJavaTest {
 	}
 	
 	public static AbstractCapability getPlottingCapability() {
-		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();
+		ComparableCapability ac = new ComparableCapability();
 		ac.setDisplayName("plot");
 		ac.setID("Capability.Plotting");
 		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/plotting");
@@ -118,7 +119,7 @@ public class TestMockMachineActor { //extends AbstractJavaTest {
 	}
 	
 	public static AbstractCapability composeInOne(AbstractCapability ...caps) {
-		AbstractCapability ac = ProcessCoreFactory.eINSTANCE.createAbstractCapability();		
+		ComparableCapability ac = new ComparableCapability();		
 		for (AbstractCapability cap : caps) {
 			ac.getCapabilities().add(cap);
 		}

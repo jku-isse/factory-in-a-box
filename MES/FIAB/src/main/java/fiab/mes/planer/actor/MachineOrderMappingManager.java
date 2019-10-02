@@ -127,6 +127,7 @@ public class MachineOrderMappingManager {
 	
 	public Optional<AkkaActorBackedCoreModelAbstractActor> getCurrentMachineOfOrder(String orderId) {		
 		return moms.values().stream()
+				.filter(mom -> mom.getOrderId() != null)
 				.filter(mom -> mom.getOrderId().contentEquals(orderId))
 				.filter(mom -> mom.getAllocationState().equals(AssignmentState.OCCUPIED) )
 				.map(mom -> mom.getMachine())
@@ -160,12 +161,14 @@ public class MachineOrderMappingManager {
 	}
 	
 	public void requestMachineForOrder(AkkaActorBackedCoreModelAbstractActor machine, String orderId, ProcessStep productionJob) {
-		AssignmentState type = AssignmentState.REQUESTED;
+		
 		Optional.of(moms.get(machine)).ifPresent(mom -> { 
-			mom.setAllocationState(type);
+			AssignmentState newType = AssignmentState.REQUESTED;
+			AssignmentState old = mom.getAllocationState();
+			mom.setAllocationState(newType);
 			mom.setOrderId(orderId);
 			mom.setProductionJob(productionJob);
-			logger.debug(String.format("Updateing OrderMapping for order %s from %s to %s", mom.getOrderId(), mom.getAllocationState(), type));			
+			logger.debug(String.format("Updateing OrderMapping for order %s from %s to %s", mom.getOrderId(), old, newType));			
 		});					
 	}
 	
