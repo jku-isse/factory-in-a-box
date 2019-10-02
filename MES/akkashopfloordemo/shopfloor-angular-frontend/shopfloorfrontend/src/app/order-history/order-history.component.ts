@@ -35,7 +35,6 @@ export class OrderHistoryComponent implements OnInit {
   }
 
   getOrdersAsArray() {
-    console.log('Result', Array.from(this.orders.values()));
     return Array.from(this.orders.values());
   }
 

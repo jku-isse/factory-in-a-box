@@ -1,9 +1,10 @@
 import {OrderDetailsComponent} from '../order-details/order-details.component';
 import { Observable } from "rxjs";
 import { OrderService } from "../order.service";
-import { Order } from "../order";
+import { OrderEvent } from "../orderevent";
 import { Component, OnInit } from "@angular/core";
 import { Router } from '@angular/router';
+import {Sort} from '@angular/material/sort';
 
 @Component({
   selector: 'app-order-list',
@@ -12,8 +13,8 @@ import { Router } from '@angular/router';
 })
 export class OrderListComponent implements OnInit {
   displayedColumns: string[] = ['order', 'status', 'machine', 'process-button', 'history-button'];
-  // orders: Observable<object[]>;
-  orders: Map<string, Order> = new Map<string, Order>();
+  sortedData: OrderEvent[];
+  orders: Map<string, OrderEvent> = new Map<string, OrderEvent>();
 
   constructor(private orderService: OrderService, private router: Router) { }
 
@@ -23,6 +24,7 @@ export class OrderListComponent implements OnInit {
         const json = JSON.parse(sseEvent.data);
         // console.log('Received SSE', json);
         this.orders.set(json.orderId, json);
+        this.sortedData = Array.from(this.orders.values());
       },
       err => { console.log('Error receiving SSE', err); },
       () => console.log('SSE stream completed')
@@ -34,8 +36,9 @@ export class OrderListComponent implements OnInit {
     this.orderService.getOrderList()
       .subscribe(data => {
         data.forEach(element => {
-          // console.log('Order:', element);
+          console.log('Order:', element);
           this.orders.set(element.orderId, element);
+          this.sortedData = Array.from(this.orders.values());
         });
       }, error => console.log(error));
   }
@@ -48,7 +51,26 @@ export class OrderListComponent implements OnInit {
     this.router.navigate(['orderHistory', id]);
   }
 
-  getOrdersAsArray() {
-    return Array.from(this.orders.values());
+  sortData(sort: Sort) {
+    const data = Array.from(this.orders.values()).slice();
+    if (!sort.active || sort.direction === '') {
+      this.sortedData = data;
+      return;
+    }
+
+    this.sortedData = data.sort((a, b) => {
+      const isAsc = sort.direction === 'asc';
+      switch (sort.active) {
+        case 'orderId': return compare(a.orderId, b.orderId, isAsc);
+        case 'eventType': return compare(a.eventType, b.eventType, isAsc);
+        case 'machineId': return compare(a.machineId, b.machineId, isAsc);
+        case 'timestamp': return compare(a.timestamp, b.timestamp, isAsc);
+        default: return 0;
+      }
+    });
   }
+}
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
