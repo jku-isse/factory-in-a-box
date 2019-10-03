@@ -23,7 +23,7 @@ public class OrderEntryActor extends AbstractActor{
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	
 	private final AtomicInteger orderId = new AtomicInteger(0);
-	private HashMap<String, ActorRef> orderActors = new HashMap<>();
+	private HashMap<String, ActorRef> orderActors = new HashMap<>();	
 	private ActorSelection eventBusByRef;
 	private ActorSelection orderPlannerByRef;
 	

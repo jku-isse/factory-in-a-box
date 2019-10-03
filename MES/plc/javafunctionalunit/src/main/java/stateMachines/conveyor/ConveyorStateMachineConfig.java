@@ -2,22 +2,8 @@ package stateMachines.conveyor;
 
 import com.github.oxo42.stateless4j.StateMachineConfig;
 
-import static stateMachines.conveyor.ConveyorStates.FULLY_OCCUPIED;
-import static stateMachines.conveyor.ConveyorStates.IDLE;
-import static stateMachines.conveyor.ConveyorStates.LOADING;
-import static stateMachines.conveyor.ConveyorStates.RESETTING;
-import static stateMachines.conveyor.ConveyorStates.STOPPED;
-import static stateMachines.conveyor.ConveyorStates.STOPPING;
-import static stateMachines.conveyor.ConveyorStates.SUSPENDED;
-import static stateMachines.conveyor.ConveyorStates.UNLOADING;
-import static stateMachines.conveyor.ConveyorTriggers.LOAD;
-import static stateMachines.conveyor.ConveyorTriggers.NEXT;
-import static stateMachines.conveyor.ConveyorTriggers.NEXT_FULL;
-import static stateMachines.conveyor.ConveyorTriggers.NEXT_PARTIAL;
-import static stateMachines.conveyor.ConveyorTriggers.PAUSE;
-import static stateMachines.conveyor.ConveyorTriggers.RESET;
-import static stateMachines.conveyor.ConveyorTriggers.STOP;
-import static stateMachines.conveyor.ConveyorTriggers.UNLOAD;
+import static stateMachines.conveyor.ConveyorStates.*;
+import static stateMachines.conveyor.ConveyorTriggers.*;
 
 public class ConveyorStateMachineConfig extends StateMachineConfig<ConveyorStates, ConveyorTriggers> {
 
@@ -47,7 +33,8 @@ public class ConveyorStateMachineConfig extends StateMachineConfig<ConveyorState
                 .permit(NEXT, IDLE)
                 .permit(STOP, STOPPING);
         configure(STOPPING)
-                .permit(NEXT, STOPPED).ignore(STOP);
+                .permit(NEXT, STOPPED)
+                .ignore(STOP);
         configure(STOPPED).permit(RESET, RESETTING).ignore(STOP).ignore(NEXT);
     }
 }
