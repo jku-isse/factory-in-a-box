@@ -74,6 +74,7 @@ MES/plc/javafunctionalunit/src/test/
 
 .idea
 .settings
+.classpath
 gradle/
 gradlew
 gradlew.bat
