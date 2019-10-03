@@ -8,8 +8,8 @@ import stateMachines.processEngine.ProcessEngineStateMachineConfig;
 import stateMachines.processEngine.ProcessEngineStates;
 import stateMachines.processEngine.ProcessEngineTriggers;
 
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static stateMachines.processEngine.ProcessEngineStates.STOPPED;
 import static stateMachines.processEngine.ProcessEngineTriggers.*;
@@ -22,7 +22,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
     private Object statusNodeId;
     private AtomicBoolean stopped;
     private final StateMachine<ProcessEngineStates, ProcessEngineTriggers> processEngineStateMachine;
-    private AtomicInteger i = new AtomicInteger(0);
+    private Random random;
 
     public ProcessTurnTable() {
         stopped = new AtomicBoolean(false);
@@ -157,5 +157,6 @@ public class ProcessTurnTable extends ProcessEngineBase {
             stop();
             return "Stopping Successful";
         });
+        updateState();
     }
 }

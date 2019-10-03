@@ -140,7 +140,6 @@ public class TurningTurnTable extends TurningBase {
             return;
         }
         Vertx vertx = Vertx.vertx();
-
         vertx.executeBlocking(promise -> {
                     stopped = false;
                     turningStateMachine.fire(RESET);

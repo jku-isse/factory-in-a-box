@@ -31,6 +31,7 @@ public class TurningStateMachineConfig extends StateMachineConfig<TurningStates,
                 .ignore(STOP);
         configure(STOPPED)
                 .permit(RESET, RESETTING)
+                .ignore(NEXT)
                 .ignore(STOP);
         configure(RESETTING)
                 .permit(NEXT, IDLE)
