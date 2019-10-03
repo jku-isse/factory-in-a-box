@@ -166,6 +166,43 @@ public class ServerCommunication extends ServerAPIBase {
         addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
         return methodId;
     }
+    public Object addStringArrayMethod(Object serverAPIBase, Object server, Object objectId, RequestedNodePair<Integer, Integer> requestedNewNodeId,
+                                  String methodName, Function<String, String> function) {
+        UA_LocalizedText localeIn = new UA_LocalizedText();
+        localeIn.setLocale("en-US");
+        localeIn.setText(methodName);
+
+        UA_LocalizedText localeOut = new UA_LocalizedText();
+        localeOut.setLocale("en-US");
+        localeOut.setText("Success?");
+
+        UA_Argument input = new UA_Argument();
+        input.setDescription(localeIn);
+        input.setName("Input");
+        input.setDataType(ServerAPIBase.GetDataTypeNode(open62541.UA_TYPES_STRING));
+        input.setValueRank(open62541.UA_VALUERANK_ONE_DIMENSION);
+
+        UA_Argument output = new UA_Argument();
+        output.setDescription(localeOut);
+        output.setDataType(ServerAPIBase.GetDataTypeNode(open62541.UA_TYPES_STRING));
+        output.setValueRank(open62541.UA_VALUERANK_SCALAR);
+
+        UA_LocalizedText methodLocale = new UA_LocalizedText();
+        methodLocale.setText(methodName);
+
+        UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
+        methodAttributes.setDescription(methodLocale);
+        methodAttributes.setDisplayName(methodLocale);
+        methodAttributes.setExecutable(true);
+        methodAttributes.setUserExecutable(true);
+        UA_NodeId reqMethodId = open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
+        Object methodId = ServerAPIBase.AddMethod((ServerAPIBase) serverAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+                reqMethodId,
+                input, output, methodAttributes);
+        addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
+        return methodId;
+    }
+
 
     public void setMethodOutput(Object nodeId, String output) {
         ServerAPIBase.SetMethodOutput((UA_NodeId) nodeId, output);

@@ -11,11 +11,18 @@ import helper.CapabilityType;
 import java.util.HashMap;
 import java.util.Map;
 
+// An interface to be implemented by everyone interested in "Hello" events
+interface HelloListener {
+    void someoneSaidHello();
+}
+
 public class WiringCapability extends Capability {
 
 
     Map<CapabilityId, String> wiringMap;
-
+    Object remoteEndpoint_nodeid;
+    Object remoteNodeId_nodeid;
+    Object remoteRole_nodeid;
 
     public WiringCapability(ServerCommunication serverCommunication, Object opcua_server, Object parentObject, CapabilityId capabilityId, CapabilityRole capabilityRole) {
         super(serverCommunication, opcua_server, parentObject, capabilityId, CapabilityType.WIRING, capabilityRole);
@@ -28,15 +35,15 @@ public class WiringCapability extends Capability {
 
 
         Object wiring_NodeId = serverCommunication.createNodeNumeric(1, 1000); //need to implement a controller level Enum
-        Object wiring_object = serverCommunication.addNestedObject(opcua_server,this.getCapabilityObject(), wiring_NodeId, "CAPABILITY_WIRING");
+        Object wiring_object = serverCommunication.addNestedObject(opcua_server, this.getCapabilityObject(), wiring_NodeId, "CAPABILITY_WIRING");
 
-        Object remoteEndpoint_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_ENDPOINT");
+        remoteEndpoint_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_ENDPOINT");
         serverCommunication.writeVariable(opcua_server, remoteEndpoint_nodeid, "-");
 
-        Object remoteNodeId_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_NODEID");
+        remoteNodeId_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_NODEID");
         serverCommunication.writeVariable(opcua_server, remoteNodeId_nodeid, "-");
 
-        Object remoteRole_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_ROLE");
+        remoteRole_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_ROLE");
         serverCommunication.writeVariable(opcua_server, remoteRole_nodeid, "-");
 
 
@@ -59,6 +66,7 @@ public class WiringCapability extends Capability {
                 CapabilityId localCapabilityId = CapabilityId.valueOf(wiringParamters[0]); //Comparing the first part of the string to the Enums of CapabilityId
                 String remoteCapabiltyEntryPoint = wiringParamters[1]; //getting the path for this capability id, later this will be used by the client to connect to this server endpoint
                 this.wiringMap.put(localCapabilityId, remoteCapabiltyEntryPoint);
+
             } catch (IllegalArgumentException e) {
                 return "Wrong Parameters, Could not Match CapabilityID";
             }

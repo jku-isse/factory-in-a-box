@@ -134,6 +134,10 @@ public class ClientAPIBase {
     if (getClass() == ClientAPIBase.class) open62541JNI.ClientAPIBase_methods_callback(swigCPtr, this, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, input, output, ClientAPIBase.getCPtr(jAPIBase), jAPIBase); else open62541JNI.ClientAPIBase_methods_callbackSwigExplicitClientAPIBase(swigCPtr, this, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, input, output, ClientAPIBase.getCPtr(jAPIBase), jAPIBase);
   }
 
+  public void arrayTest(int[] outputArray) {
+    open62541JNI.ClientAPIBase_arrayTest(swigCPtr, this, outputArray);
+  }
+
   public ClientAPIBase() {
     this(open62541JNI.new_ClientAPIBase(), true);
     open62541JNI.ClientAPIBase_director_connect(this, swigCPtr, true, true);

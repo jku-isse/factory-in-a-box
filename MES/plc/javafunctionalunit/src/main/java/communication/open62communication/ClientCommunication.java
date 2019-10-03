@@ -145,4 +145,6 @@ public class ClientCommunication extends ClientAPIBase {
                 open62541.UA_NODEID_NUMERIC(methodId.getKey(), methodId.getValue()),
                 argInputString);
     }
+
+
 }

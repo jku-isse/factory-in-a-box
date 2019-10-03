@@ -126,6 +126,10 @@ public class ServerAPIBase {
     return new UA_NodeId(open62541JNI.ServerAPIBase_AddMethod(ServerAPIBase.getCPtr(jAPIBase), jAPIBase, SWIGTYPE_p_UA_Server.getCPtr(server), UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(requestedNewNodeId), requestedNewNodeId, UA_Argument.getCPtr(inputArgument), inputArgument, UA_Argument.getCPtr(outputArgument), outputArgument, UA_MethodAttributes.getCPtr(methodAttr), methodAttr), true);
   }
 
+  public static UA_Argument CreateArgument(String name, String description, int typeId, boolean scalar, int pDimension) {
+    return new UA_Argument(open62541JNI.ServerAPIBase_CreateArgument(name, description, typeId, scalar, pDimension), true);
+  }
+
   public static void SetMethodOutput(UA_NodeId methodId, String output) {
     open62541JNI.ServerAPIBase_SetMethodOutput(UA_NodeId.getCPtr(methodId), methodId, output);
   }
