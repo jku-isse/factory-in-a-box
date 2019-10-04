@@ -23,13 +23,22 @@ export class OrderHistoryComponent implements OnInit {
     this.route.paramMap.subscribe(params => {
       this.orderId = params.get('id');
     });
+    this.orderService.getOrderUpdates().subscribe(
+      sseEvent => {
+        const json = JSON.parse(sseEvent.data);
+        if (json.orderId === this.orderId) {
+          this.orders.set(json.machineId + json.eventType + json.timestamp, json);
+          this.setLatest(json.timestamp);
+        }
+      },
+      err => { console.log('Error receiving SSE in Details', err); },
+      () => console.log('SSE stream completed')
+    );
     this.orderService.getOrderHistory(this.orderId)
       .subscribe(data => {
         data.forEach(element => {
           this.orders.set(element.machineId + element.eventType + element.timestamp, element);
-          if (this.latest === '' || Date.parse(this.latest.substring(0, 28)) <= Date.parse(element.timestamp.substring(0, 28))) {
-            this.latest = element.timestamp;
-          }
+          this.setLatest(element.timestamp);
         });
       }, error => console.log(error));
   }
@@ -42,4 +51,9 @@ export class OrderHistoryComponent implements OnInit {
     return Array.from(this.orders.values());
   }
 
+  setLatest(timestamp: string) {
+    if (this.latest === '' || Date.parse(this.latest.substring(0, 28)) <= Date.parse(timestamp.substring(0, 28))) {
+      this.latest = timestamp;
+    }
+  }
 }
