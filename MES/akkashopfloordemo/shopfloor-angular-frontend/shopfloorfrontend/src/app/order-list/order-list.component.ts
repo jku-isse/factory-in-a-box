@@ -1,10 +1,13 @@
 import {OrderDetailsComponent} from '../order-details/order-details.component';
-import { Observable } from "rxjs";
-import { OrderService } from "../order.service";
-import { OrderEvent } from "../orderevent";
-import { Component, OnInit } from "@angular/core";
+import { Observable } from 'rxjs';
+import { OrderService } from '../order.service';
+import { OrderEvent } from '../orderevent';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import {Sort} from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import {MatPaginator} from '@angular/material/paginator';
+import {MatSort} from '@angular/material/sort';
 
 @Component({
   selector: 'app-order-list',
@@ -12,19 +15,27 @@ import {Sort} from '@angular/material/sort';
   styleUrls: ['./order-list.component.css']
 })
 export class OrderListComponent implements OnInit {
-  displayedColumns: string[] = ['order', 'status', 'machine', 'process-button', 'history-button'];
-  sortedData: OrderEvent[];
+  displayedColumns: string[] = ['orderId', 'eventType', 'machineId', 'process-button', 'history-button'];
   orders: Map<string, OrderEvent> = new Map<string, OrderEvent>();
+  dataSource: MatTableDataSource<OrderEvent>;
+  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+  @ViewChild(MatSort, {static: true}) sort: MatSort;
 
-  constructor(private orderService: OrderService, private router: Router) { }
+  constructor(
+    private orderService: OrderService,
+    private router: Router
+    ) { }
 
   ngOnInit() {
     this.orderService.getOrderUpdates().subscribe(
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
-        // console.log('Received SSE', json);
         this.orders.set(json.orderId, json);
-        this.sortedData = Array.from(this.orders.values());
+        this.dataSource = new MatTableDataSource(Array.from(this.orders.values()));
+        if (this.dataSource) {
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+        }
       },
       err => { console.log('Error receiving SSE', err); },
       () => console.log('SSE stream completed')
@@ -36,10 +47,13 @@ export class OrderListComponent implements OnInit {
     this.orderService.getOrderList()
       .subscribe(data => {
         data.forEach(element => {
-          console.log('Order:', element);
           this.orders.set(element.orderId, element);
-          this.sortedData = Array.from(this.orders.values());
+          this.dataSource = new MatTableDataSource(Array.from(this.orders.values()));
         });
+        if (this.dataSource) {
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+        }
       }, error => console.log(error));
   }
 
@@ -51,26 +65,10 @@ export class OrderListComponent implements OnInit {
     this.router.navigate(['orderHistory', id]);
   }
 
-  sortData(sort: Sort) {
-    const data = Array.from(this.orders.values()).slice();
-    if (!sort.active || sort.direction === '') {
-      this.sortedData = data;
-      return;
+  applyFilter(filterValue: string) {
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
     }
-
-    this.sortedData = data.sort((a, b) => {
-      const isAsc = sort.direction === 'asc';
-      switch (sort.active) {
-        case 'orderId': return compare(a.orderId, b.orderId, isAsc);
-        case 'eventType': return compare(a.eventType, b.eventType, isAsc);
-        case 'machineId': return compare(a.machineId, b.machineId, isAsc);
-        case 'timestamp': return compare(a.timestamp, b.timestamp, isAsc);
-        default: return 0;
-      }
-    });
   }
-}
-
-function compare(a: number | string, b: number | string, isAsc: boolean) {
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

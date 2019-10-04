@@ -1,4 +1,4 @@
-export class OrderEvent {
+export interface OrderEvent {
     orderId: string;
     eventType: string;
     machineId: string;

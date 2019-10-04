@@ -87,7 +87,7 @@ import {MatTreeModule} from '@angular/material/tree';
     ScrollingModule,
   ]
 })
-export class DemoMaterialModule {}
+export class MaterialModule {}
 
 
 /**  Copyright 2019 Google Inc. All Rights Reserved.

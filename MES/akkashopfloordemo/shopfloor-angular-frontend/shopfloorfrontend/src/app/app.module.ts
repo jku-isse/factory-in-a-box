@@ -7,7 +7,7 @@ import { OrderDetailsComponent } from './order-details/order-details.component';
 import { OrderListComponent } from './order-list/order-list.component';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import {DemoMaterialModule} from './material-module';
+import {MaterialModule} from './material-module';
 import { OrderHistoryComponent } from './order-history/order-history.component';
 
 @NgModule({
@@ -22,7 +22,7 @@ import { OrderHistoryComponent } from './order-history/order-history.component';
     AppRoutingModule,
     HttpClientModule,
     BrowserAnimationsModule,
-    DemoMaterialModule
+    MaterialModule
   ],
   providers: [],
   bootstrap: [AppComponent]
