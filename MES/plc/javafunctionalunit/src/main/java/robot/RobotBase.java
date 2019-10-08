@@ -3,12 +3,11 @@ package robot;
 import communication.Communication;
 import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
+import communication.utils.RequestedNodePair;
 import functionalUnits.ConveyorBase;
 import functionalUnits.LoadingProtocolBase;
 import functionalUnits.ProcessEngineBase;
 import functionalUnits.TurningBase;
-import open62Wrap.ServerAPIBase;
-import open62Wrap.open62541;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +19,7 @@ import java.nio.file.Files;
  * This class Represents a basic robot with server capabilities. On startup, all functional units are added and so
  * are their server methods and variables.
  */
-public class RobotBase extends ServerAPIBase {
+public class RobotBase {
     //TODO remove open62 imports
     /*
      * Loads the native libraries using a workaround as the ev3 currently has troubles with finding them.
@@ -50,38 +49,26 @@ public class RobotBase extends ServerAPIBase {
      * The Server-Thread. Here we define how the server should be set up.
      */
     private Thread serverThread = new Thread(() -> {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
         System.out.println("Starting Server...");
         Object server = serverCommunication.createServer("localhost", 4840);
-        Object loadingFolder = serverCommunication.addObject(server, open62541.UA_NODEID_NUMERIC(1, 10), "LoadingProtocol");
+        Object loadingFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 10), "LoadingProtocol");
         loadingProtocolBase.setServerAndFolder(serverCommunication, server, loadingFolder);
         loadingProtocolBase.addServerConfig();
-        Object conveyorFolder = serverCommunication.addObject(server, open62541.UA_NODEID_NUMERIC(1, 20), "Conveyor");
+        Object conveyorFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 20), "Conveyor");
         conveyorBase.setServerAndFolder(serverCommunication, server, conveyorFolder);
         conveyorBase.addServerConfig();
         if (turningBase != null) {
-            Object turningFolder = serverCommunication.addObject(server, open62541.UA_NODEID_NUMERIC(1, 30), "Turning");
+            Object turningFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 30), "Turning");
             turningBase.setServerAndFolder(serverCommunication, server, turningFolder);
             turningBase.addServerConfig();
         }
         if (processEngineBase != null) {
-            Object processFolder = serverCommunication.addObject(server, open62541.UA_NODEID_NUMERIC(1, 40), "ProcessEngine");
+            Object processFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 40), "ProcessEngine");
             processEngineBase.setServerAndFolder(serverCommunication, server, processFolder);
             processEngineBase.addServerConfig();
         }
         System.out.println("Running Server...");
         serverCommunication.runServer(server);
-    });
-
-    private Thread clientThread = new Thread(() -> {
-        System.out.println("Starting Client...");
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
-        if (processEngineBase != null) {
-            Object client = clientCommunication.initClient();
-            processEngineBase.setClient(client);
-            clientCommunication.clientConnect(clientCommunication, client, "opc.tcp://localhost:4840/");
-        }
-        System.out.println("Running Client...");
     });
 
     /**
@@ -152,7 +139,8 @@ public class RobotBase extends ServerAPIBase {
      * Global reset. Resets all registered functional units
      */
     public void reset() {
-        //TODO add to server as method
+        //TODO add to server as methods
+        //Client needs to do the calls
         loadingProtocolBase.reset();
         conveyorBase.reset();
         if (turningBase != null) {
@@ -168,12 +156,13 @@ public class RobotBase extends ServerAPIBase {
      */
     public void stop() {
         //TODO add to server as method
+        //Client needs to do the calls
         loadingProtocolBase.stop();
         conveyorBase.stop();
         if (turningBase != null) {
             turningBase.stop();
         }
-        if (turningBase != null) {
+        if (processEngineBase != null) {
             processEngineBase.stop();
         }
     }

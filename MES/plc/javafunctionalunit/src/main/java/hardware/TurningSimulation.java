@@ -9,6 +9,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static robot.turnTable.TurnTableOrientation.NORTH;
 import static robot.turnTable.TurnTableOrientation.WEST;
 
+/**
+ * This class should be used to simulate the behaviour of the turning funit.
+ * The simulation has motors and sensors that interact with each other.
+ * If you want to assign this to a funit, use the motors exposed though the getters.
+ * Needs support for supporting error scenarios for testing.
+ */
 public class TurningSimulation {
 
     private Motor turnMotor;
@@ -16,7 +22,6 @@ public class TurningSimulation {
 
     private TurnTableOrientation orientation;
     private AtomicBoolean reachedHome;
-    private int timerMs;
 
     public TurningSimulation(int timerMs) {
         this.reachedHome = new AtomicBoolean(false);
@@ -24,10 +29,10 @@ public class TurningSimulation {
         this.turnMotor = new Motor() {
             @Override
             public void forward() {
-                if(orientation == NORTH){
+                if (orientation == NORTH) {
                     System.out.println("Cannot turn from north to west");
                 }
-                while(!sensorHoming.detectedInput()){
+                while (!sensorHoming.detectedInput()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
@@ -38,9 +43,10 @@ public class TurningSimulation {
 
             @Override
             public void backward() {
-                if(orientation == WEST){
+                if (orientation == WEST) {
                     System.out.println("Cannot turn from west to north");
-                }while(!sensorHoming.detectedInput()){
+                }
+                while (!sensorHoming.detectedInput()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
@@ -84,10 +90,20 @@ public class TurningSimulation {
         };
     }
 
+    /**
+     * Returns the turning motor
+     *
+     * @return turnMotor
+     */
     public Motor getTurnMotor() {
         return turnMotor;
     }
 
+    /**
+     * Returns the sensor used for homing
+     *
+     * @return sensorHoming
+     */
     public Sensor getSensorHoming() {
         return sensorHoming;
     }
