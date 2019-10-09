@@ -7,6 +7,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * This class should be used to simulate the behaviour of the conveyor funit.
+ * The simulation has motors and sensors that interact with each other.
+ * If you want to assign this to a funit, use the motors exposed though the getters.
+ * Needs support for supporting error scenarios for testing.
+ */
 public class ConveyorSimulation {
 
     private Motor conveyorMotor;
@@ -108,14 +114,26 @@ public class ConveyorSimulation {
 
     }
 
+    /**
+     * Returns the conveyor motor
+     * @return conveyorMotor
+     */
     public Motor getConveyorMotor() {
         return conveyorMotor;
     }
 
+    /**
+     * Returns the sensor used for loading
+     * @return sensorLoading
+     */
     public Sensor getSensorLoading() {
         return sensorLoading;
     }
 
+    /**
+     * Returns the sensor used for unloading
+     * @return sensorUnloading
+     */
     public Sensor getSensorUnloading() {
         return sensorUnloading;
     }

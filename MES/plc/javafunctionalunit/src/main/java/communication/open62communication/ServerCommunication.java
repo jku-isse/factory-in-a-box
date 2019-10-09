@@ -87,6 +87,11 @@ public class ServerCommunication extends ServerAPIBase {
         return ServerAPIBase.AddObject((SWIGTYPE_p_UA_Server) server, (UA_NodeId) requestedNewNodeId, name);
     }
 
+    public Object addObject(Object server, RequestedNodePair<Integer, Integer> requestedNewNodeId, String name) {
+        return ServerAPIBase.AddObject((SWIGTYPE_p_UA_Server) server,
+                open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name);
+    }
+
     public Object addNestedObject(Object server, Object parent, Object requestedNewNodeId, String name) {
         return ServerAPIBase.AddObject((SWIGTYPE_p_UA_Server) server, (UA_NodeId) parent, (UA_NodeId) requestedNewNodeId, name);
     }
@@ -167,11 +172,10 @@ public class ServerCommunication extends ServerAPIBase {
         return methodId;
     }
 
+
     public Object addIntArrayMethod(Object serverAPIBase, Object server, Object objectId, RequestedNodePair<Integer, Integer> requestedNewNodeId,
                                        String methodName,int inputSize, Function<String, String> function) {
-
-
-        UA_LocalizedText localeOut = new UA_LocalizedText();
+      UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
         localeOut.setText("Success?");
 

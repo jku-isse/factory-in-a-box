@@ -27,6 +27,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
     public ProcessTurnTable() {
         stopped = new AtomicBoolean(false);
         processEngineStateMachine = new StateMachine<>(STOPPED, new ProcessEngineStateMachineConfig());
+        random = new Random();
     }
 
     private boolean isStopped() {
@@ -42,6 +43,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
 
     /**
      * {@inheritDoc}
+     * This method currently mocks a process. Processes should be parsed and converted to commands.
      */
     @Override
     public void loadProcess() {
@@ -54,27 +56,37 @@ public class ProcessTurnTable extends ProcessEngineBase {
             processEngineStateMachine.fire(EXECUTE);
             updateState();
             getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
+
                     new RequestedNodePair<>(1, 23), "");
             System.out.println("Successfully reset conveyor");
             getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 30),
                     new RequestedNodePair<>(1, 31), "");
             System.out.println("Successfully reset turning");
+            //wait for updated status variable
             while (getClientCommunication().getTurningStatus() != 0) {
                 if (isStopped()) {
                     System.out.println("Process was interrupted.");
                     return;
                 }
             }
+            //Load the conveyor
             getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
+
+
                     new RequestedNodePair<>(1, 21), "");
+            //Wait for loading to finish
             while (getClientCommunication().getConveyorStatus() != 6) {
                 if (isStopped()) {
                     System.out.println("Process was interrupted.");
                     return;
                 }
             }
+
+            //Create a random number between 1-3 to turn the conveyor in different directions
+            String direction = String.valueOf(random.nextInt(3) + 1);
             getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 30),
-                    new RequestedNodePair<>(1, 33), "2");
+                    new RequestedNodePair<>(1, 33), direction);
+            //Wait for turning to finish
 
             while (getClientCommunication().getTurningStatus() != 5) {
                 if (isStopped()) {
@@ -82,24 +94,32 @@ public class ProcessTurnTable extends ProcessEngineBase {
                     return;
                 }
             }
+            //Unload conveyor
             getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
-                    new RequestedNodePair<>(1, 25), "");
 
+
+                    new RequestedNodePair<>(1, 25), "");
             System.out.println("Successfully unloaded");
+            //Wait to finish unloading
             while (getClientCommunication().getConveyorStatus() != 0) {
                 if (isStopped()) {
                     System.out.println("Process was interrupted.");
                     return;
                 }
             }
+            //Stop Turning funit
             getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
+
+
                     new RequestedNodePair<>(1, 24), "");
+            //Wait for reset to finish
             while (getClientCommunication().getTurningStatus() != 5) {
                 if (isStopped()) {
                     System.out.println("Process was interrupted.");
                     return;
                 }
             }
+            //Stop conveyor
             getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 30),
                     new RequestedNodePair<>(1, 32), "");
             processEngineStateMachine.fire(NEXT);
