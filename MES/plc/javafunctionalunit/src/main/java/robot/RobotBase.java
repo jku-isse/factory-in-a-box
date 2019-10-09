@@ -79,7 +79,9 @@ public class RobotBase extends ServerAPIBase {
         if (processEngineBase != null) {
             Object client = clientCommunication.initClient();
             processEngineBase.setClient(client);
+            processEngineBase.setServerUrl("opc.tcp://localhost:4840/");
             clientCommunication.clientConnect(clientCommunication, client, "opc.tcp://localhost:4840/");
+
         }
         System.out.println("Running Client...");
     });

@@ -136,17 +136,24 @@ public class ClientCommunication extends ClientAPIBase {
         return open62541JNI.ClientAPIBase_GetMethodOutput();
     }
 
-    public String callMethod(Object client, Object objectId, Object methodId, String argInputString) {
-        return ClientAPIBase.CallMethod((SWIGTYPE_p_UA_Client) client, (UA_NodeId) objectId, (UA_NodeId) methodId,
+    public String callMethod(String serverUrl, Object objectId, Object methodId, String argInputString) {
+        return ClientAPIBase.CallMethod(serverUrl, (UA_NodeId) objectId, (UA_NodeId) methodId,
                 argInputString);
     }
 
-    public String callStringMethod(Object client, RequestedNodePair<Integer, Integer> objectId,
+    public String callStringMethod(String serverUrl, RequestedNodePair<Integer, Integer> objectId,
                                    RequestedNodePair<Integer, Integer> methodId, String argInputString) {
-        return ClientAPIBase.CallMethod((SWIGTYPE_p_UA_Client) client,
+        return ClientAPIBase.CallMethod(serverUrl,
                 open62541.UA_NODEID_NUMERIC(objectId.getKey(), objectId.getValue()),
                 open62541.UA_NODEID_NUMERIC(methodId.getKey(), methodId.getValue()),
                 argInputString);
+    }
+    public String callArrayMethod(String serverUrl, RequestedNodePair<Integer, Integer> objectId,
+                                   RequestedNodePair<Integer, Integer> methodId, int argInput[]) {
+        return ClientAPIBase.CallMethod(serverUrl,
+                open62541.UA_NODEID_NUMERIC(objectId.getKey(), objectId.getValue()),
+                open62541.UA_NODEID_NUMERIC(methodId.getKey(), methodId.getValue()),
+                argInput,argInput.length);
     }
 
 

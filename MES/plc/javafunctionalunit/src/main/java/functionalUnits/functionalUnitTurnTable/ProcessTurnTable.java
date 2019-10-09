@@ -53,10 +53,10 @@ public class ProcessTurnTable extends ProcessEngineBase {
             }
             processEngineStateMachine.fire(EXECUTE);
             updateState();
-            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
+            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 23), "");
             System.out.println("Successfully reset conveyor");
-            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
+            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 30),
                     new RequestedNodePair<>(1, 31), "");
             System.out.println("Successfully reset turning");
             while (getClientCommunication().getTurningStatus() != 0) {
@@ -65,7 +65,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
                     return;
                 }
             }
-            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
+            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 21), "");
             while (getClientCommunication().getConveyorStatus() != 6) {
                 if (isStopped()) {
@@ -73,7 +73,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
                     return;
                 }
             }
-            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
+            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 30),
                     new RequestedNodePair<>(1, 33), "2");
 
             while (getClientCommunication().getTurningStatus() != 5) {
@@ -82,7 +82,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
                     return;
                 }
             }
-            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
+            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 25), "");
 
             System.out.println("Successfully unloaded");
@@ -92,7 +92,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
                     return;
                 }
             }
-            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 20),
+            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
                     new RequestedNodePair<>(1, 24), "");
             while (getClientCommunication().getTurningStatus() != 5) {
                 if (isStopped()) {
@@ -100,7 +100,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
                     return;
                 }
             }
-            getClientCommunication().callStringMethod(getClient(), new RequestedNodePair<>(1, 30),
+            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 30),
                     new RequestedNodePair<>(1, 32), "");
             processEngineStateMachine.fire(NEXT);
             updateState();

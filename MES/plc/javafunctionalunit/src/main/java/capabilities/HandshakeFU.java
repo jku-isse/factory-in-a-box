@@ -1,7 +1,9 @@
 package capabilities;
 
 import capabilities.Capability;
+import com.sun.security.ntlm.Client;
 import communication.Communication;
+import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
 import helper.CapabilityId;
@@ -23,10 +25,21 @@ public class HandshakeFU extends Endpoint {
         Object state_nodeid = serverCommunication.addStringVariableNode(opcua_server, this.getEndpoint_object(), new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "STATE");
         serverCommunication.writeVariable(opcua_server, state_nodeid, "IDLE");
        //initializing the main capabilities for the handshake FU
-        handshake = new HandshakeCapability(serverCommunication, opcua_server, this.getEndpoint_object(),  capabilityId,  capabilityRole);
+        handshake = new HandshakeCapability(serverCommunication, opcua_server, this.getEndpoint_object(),  capabilityId);
         this.capabilities.add(handshake); //adding the handshake capability to the list of the capabilities
         wiring = new WiringCapability(serverCommunication, opcua_server, this.getEndpoint_object(),  capabilityId,  capabilityRole );
         this.capabilities.add(wiring); //adding the Wiring capability to the list of the capabilities
+
+    }
+
+    public HandshakeFU(ClientCommunication clientCommunication, Object opcua_client, Object parentObjectId, CapabilityId capabilityId , CapabilityRole capabilityRole) {
+        //calling the Endpoint parent class constructor to init an opcua object to be the parent node for the sub-capabilities
+        super(clientCommunication, opcua_client, parentObjectId,  CapabilityType.HANDSHAKE.toString()+"_FU", capabilityId, CapabilityType.HANDSHAKE, capabilityRole);
+
+         //initializing the main capabilities for the handshake FU
+        handshake = new HandshakeCapability(clientCommunication, opcua_client, this.getEndpoint_object(),  capabilityId);
+        this.capabilities.add(handshake); //adding the handshake capability to the list of the capabilities
+
 
     }
 }

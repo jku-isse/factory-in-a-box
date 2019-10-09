@@ -118,8 +118,12 @@ public class ClientAPIBase {
     return open62541JNI.ClientAPIBase_GetMethodOutput();
   }
 
-  public static String CallMethod(SWIGTYPE_p_UA_Client client, UA_NodeId objectId, UA_NodeId methodId, String argInputString) {
-    return open62541JNI.ClientAPIBase_CallMethod(SWIGTYPE_p_UA_Client.getCPtr(client), UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, argInputString);
+  public static String CallMethod(String serverUrl, UA_NodeId objectId, UA_NodeId methodId, String argInputString) {
+    return open62541JNI.ClientAPIBase_CallMethod__SWIG_0(serverUrl, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, argInputString);
+  }
+
+  public static String CallMethod(String serverUrl, UA_NodeId objectId, UA_NodeId methodId, int[] argInput, int arraySize) {
+    return open62541JNI.ClientAPIBase_CallMethod__SWIG_1(serverUrl, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, argInput, arraySize);
   }
 
   public void monitored_itemChanged(UA_NodeId nodeId, int value) {

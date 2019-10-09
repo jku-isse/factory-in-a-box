@@ -52,8 +52,9 @@ public class Controller {
 
 
 
-
 		HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH_SERVER, CapabilityRole.Provided);
+
+		Object opcua_client = opcua_comm.getClientCommunication().initClient();
 
 		//HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH, CapabilityRole.Provided);
 

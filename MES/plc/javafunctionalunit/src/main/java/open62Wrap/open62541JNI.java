@@ -10,14 +10,14 @@ package open62Wrap;
 
 public class open62541JNI {
 
-  /*static {
+  static {
     try {
         System.loadLibrary("opcua_java_api");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("opcua_java_api failed to load. \n" + e);
       System.exit(1);
     }
-  }*/
+  }
 
   public final static native void ServerAPIBase_running_set(long jarg1, ServerAPIBase jarg1_, boolean jarg2);
   public final static native boolean ServerAPIBase_running_get(long jarg1, ServerAPIBase jarg1_);
@@ -37,7 +37,7 @@ public class open62541JNI {
   public final static native int ServerAPIBase_WriteVariable__SWIG_2(long jarg1, long jarg2, UA_NodeId jarg2_, double jarg3);
   public final static native long ServerAPIBase_GetDataTypeNode(int jarg1);
   public final static native long ServerAPIBase_AddMethod(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, long jarg4, UA_NodeId jarg4_, long jarg5, UA_Argument jarg5_, long jarg6, UA_Argument jarg6_, long jarg7, UA_MethodAttributes jarg7_);
-  public final static native long ServerAPIBase_CreateArgument(String jarg1, String jarg2, int jarg3, boolean jarg4, int jarg5);
+  public final static native long ServerAPIBase_AddArrayMethod(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, long jarg4, UA_NodeId jarg4_, long jarg5, UA_Argument jarg5_, long jarg6, UA_MethodAttributes jarg6_, String jarg7, String jarg8, int jarg9, int jarg10);
   public final static native void ServerAPIBase_SetMethodOutput(long jarg1, UA_NodeId jarg1_, String jarg2);
   public final static native void ServerAPIBase_monitored_itemChanged(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ServerAPIBase_monitored_itemChangedSwigExplicitServerAPIBase(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
@@ -63,7 +63,8 @@ public class open62541JNI {
   public final static native int ClientAPIBase_ClientReadIntValue(long jarg1, long jarg2, UA_NodeId jarg2_);
   public final static native int ClientAPIBase_ClientWriteValue(String jarg1, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native String ClientAPIBase_GetMethodOutput();
-  public final static native String ClientAPIBase_CallMethod(long jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4);
+  public final static native String ClientAPIBase_CallMethod__SWIG_0(String jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4);
+  public final static native String ClientAPIBase_CallMethod__SWIG_1(String jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, int[] jarg4, int jarg5);
   public final static native void ClientAPIBase_monitored_itemChanged(long jarg1, ClientAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ClientAPIBase_monitored_itemChangedSwigExplicitClientAPIBase(long jarg1, ClientAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ClientAPIBase_client_connected(long jarg1, ClientAPIBase jarg1_, long jarg2, ClientAPIBase jarg2_, long jarg3, String jarg4);

@@ -166,23 +166,20 @@ public class ServerCommunication extends ServerAPIBase {
         addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
         return methodId;
     }
-    public Object addStringArrayMethod(Object serverAPIBase, Object server, Object objectId, RequestedNodePair<Integer, Integer> requestedNewNodeId,
-                                  String methodName, Function<String, String> function) {
-        UA_LocalizedText localeIn = new UA_LocalizedText();
-        localeIn.setLocale("en-US");
-        localeIn.setText(methodName);
+
+    public Object addIntArrayMethod(Object serverAPIBase, Object server, Object objectId, RequestedNodePair<Integer, Integer> requestedNewNodeId,
+                                       String methodName,int inputSize, Function<String, String> function) {
+
 
         UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
         localeOut.setText("Success?");
 
-        UA_Argument input = new UA_Argument();
-        input.setDescription(localeIn);
-        input.setName("Input");
-        input.setDataType(ServerAPIBase.GetDataTypeNode(open62541.UA_TYPES_STRING));
-        input.setValueRank(open62541.UA_VALUERANK_ONE_DIMENSION);
 
+       // UA_Argument input = CreateArgument("Input", methodName, open62541.UA_TYPES_STRING, false, 3);
         UA_Argument output = new UA_Argument();
+
+        output.setName("Output");
         output.setDescription(localeOut);
         output.setDataType(ServerAPIBase.GetDataTypeNode(open62541.UA_TYPES_STRING));
         output.setValueRank(open62541.UA_VALUERANK_SCALAR);
@@ -196,9 +193,9 @@ public class ServerCommunication extends ServerAPIBase {
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
         UA_NodeId reqMethodId = open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
-        Object methodId = ServerAPIBase.AddMethod((ServerAPIBase) serverAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+        Object methodId = ServerAPIBase.AddArrayMethod((ServerAPIBase) serverAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
-                input, output, methodAttributes);
+                output, methodAttributes,"Input", methodName, open62541.UA_TYPES_INT32, inputSize);
         addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
         return methodId;
     }

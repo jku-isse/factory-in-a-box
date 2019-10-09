@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import communication.Communication;
+import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
 import helper.*;
@@ -54,9 +55,14 @@ public class HandshakeCapability extends Capability {
         System.out.println("Method Callback stop");
 
     }
+    public HandshakeCapability(ClientCommunication clientCommunication, Object client, Object parentObject, CapabilityId capabilityId) {
+        super(clientCommunication, client, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
 
-    public HandshakeCapability(ServerCommunication serverCommunication, Object server, Object parentObject, CapabilityId capabilityId, CapabilityRole capabilityRole) {
-        super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, capabilityRole);
+        clientProtocol = null;
+        serverProtocol = null;
+    }
+    public HandshakeCapability(ServerCommunication serverCommunication, Object server, Object parentObject, CapabilityId capabilityId) {
+        super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
 
         clientProtocol = null;
         serverProtocol = null;

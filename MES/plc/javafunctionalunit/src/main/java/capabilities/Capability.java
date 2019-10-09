@@ -13,6 +13,7 @@
 package capabilities;
 
 import communication.Communication;
+import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
 import helper.CapabilityRole;
@@ -28,6 +29,7 @@ public class Capability {
 
     private ServerCommunication serverCommunication;
     private Object opcua_server;
+    private Object opcua_client;
     private Object parentObject;
 
     public Object getCapabilityObject() {
@@ -36,6 +38,16 @@ public class Capability {
 
     private Object capabilityObject;
     private Object capabilityOpcuaNodeId;
+    public Capability(ClientCommunication clientCommunication, Object client, Object parentObject,
+                      CapabilityId capabilityId, CapabilityType capabilityType , CapabilityRole capabilityRole) {
+        this.capabilityId = capabilityId;
+        this.capabilityType = capabilityType;
+        this.capabilityRole = capabilityRole;
+
+        this.serverCommunication = serverCommunication;
+        this.opcua_client = client;
+        this.parentObject = parentObject;
+    }
 
     public Capability(ServerCommunication serverCommunication, Object server, Object parentObject,
                       CapabilityId capabilityId, CapabilityType capabilityType , CapabilityRole capabilityRole) {
@@ -46,7 +58,7 @@ public class Capability {
         this.serverCommunication = serverCommunication;
         this.opcua_server = server;
         this.parentObject = parentObject;
-        capabilityOpcuaNodeId = serverCommunication.createNodeNumeric(1, serverCommunication.getUnique_id()); //need to implement a controller level Enum
+        capabilityOpcuaNodeId = serverCommunication.createNodeNumeric(1, serverCommunication.getUnique_id()); //TODO: need to implement a controller level Enum
 
 
         capabilityObject = serverCommunication.addNestedObject(opcua_server,parentObject, capabilityOpcuaNodeId, "CAPABILTY");
