@@ -67,7 +67,7 @@ public class HandshakeCapability extends Capability {
         clientProtocol = null;
         serverProtocol = null;
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "START",
+        serverCommunication.addIntArrayMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "START",3,
                 opcuaMethodInput -> {
                     return start(opcuaMethodInput);
                 });
@@ -155,7 +155,10 @@ public class HandshakeCapability extends Capability {
     }
 
     public String start(String inputPram) {
-        if (loadingMechanism == 1) {
+        if (this.getCapabilityRole().compareTo(CapabilityRole.Provided) ==0 ) {
+          //  int inputArray[] = {5, 6, 7};
+         // System.out.println( "ARAAAYY "+this.getClientCommunication().callArrayMethod("opc.tcp://localhost:4840", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 18),
+       //             inputArray)) ;
         //    clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
         }
         return "Start Complete";

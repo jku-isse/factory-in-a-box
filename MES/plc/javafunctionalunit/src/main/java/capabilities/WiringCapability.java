@@ -1,6 +1,7 @@
 package capabilities;
 
 
+import communication.Communication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
 import helper.CapabilityId;
@@ -24,8 +25,8 @@ public class WiringCapability extends Capability {
     Object remoteNodeId_nodeid;
     Object remoteRole_nodeid;
 
-    public WiringCapability(ServerCommunication serverCommunication, Object opcua_server, Object parentObject, CapabilityId capabilityId, CapabilityRole capabilityRole) {
-        super(serverCommunication, opcua_server, parentObject, capabilityId, CapabilityType.WIRING, capabilityRole);
+    public WiringCapability(ServerCommunication serverCommunication, Object opcua_server, Object parentObject, CapabilityId capabilityId) {
+        super(serverCommunication, opcua_server, parentObject, capabilityId, CapabilityType.WIRING, CapabilityRole.Provided);
         wiringMap = new HashMap<CapabilityId, String>();
 
         serverCommunication.addStringMethod(serverCommunication, opcua_server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "SET_WIRING",
@@ -68,9 +69,23 @@ public class WiringCapability extends Capability {
                 this.wiringMap.put(localCapabilityId, remoteCapabiltyEntryPoint);
 
             } catch (IllegalArgumentException e) {
-                return "Wrong Parameters, Could not Match CapabilityID";
+             //   return "Wrong Parameters, Could not Match CapabilityID";
             }
         }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int inputArray[]  = new int[] {1,2,3};
+                System.out.println( "ARAAAYY "+ new Communication().getClientCommunication().callArrayMethod("opc.tcp://localhost:4840/", new RequestedNodePair<>(0, 85), new RequestedNodePair<>(1, 12),
+                              inputArray)) ;
+
+            }
+        }).start();
+       /// int inputArray[] = {5, 6, 7};
+      //  System.out.println(   this.getClientCommunication().callStringMethod("opc.tcp://localhost:4840", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 19),"Hello"));
+     //  System.out.println( "ARAAAYY "+ new Communication().getClientCommunication().callArrayMethod("opc.tcp://localhost:4840/", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 18),
+        //        inputArray)) ;
         return "Wiring was Successful";
         //
         //

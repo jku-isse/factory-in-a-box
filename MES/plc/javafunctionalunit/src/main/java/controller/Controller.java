@@ -18,6 +18,11 @@ import communication.utils.RequestedNodePair;
 import helper.CapabilityRole;
 import helper.CapabilityType;
 import helper.CapabilityId;
+import helper.HandshakeStates;
+import open62Wrap.open62541;
+
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class Controller {
 
@@ -45,18 +50,18 @@ public class Controller {
 
 
 		//should be moved to the base class
-		opcua_comm.getServerCommunication().addStringMethod(opcua_comm.getServerCommunication(),opcua_server,opcua_object,new RequestedNodePair<>(1, opcua_comm.getServerCommunication().getUnique_id()), "Turn", x -> {
+		opcua_comm.getServerCommunication().addIntArrayMethod(opcua_comm.getServerCommunication(),opcua_server, open62541.UA_NODEID_NUMERIC(0, 85),new RequestedNodePair<>(1, opcua_comm.getServerCommunication().getUnique_id()),"Turn",3, x -> {
 			turn();
 			return "Turing";
 		});
 
 
 
-		HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH_SERVER, CapabilityRole.Provided);
+		HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH_SERVER);
 
 		Object opcua_client = opcua_comm.getClientCommunication().initClient();
 
-		//HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH, CapabilityRole.Provided);
+		HandshakeFU hsFU2 = new HandshakeFU(opcua_comm.getClientCommunication(),opcua_client,opcua_object,CapabilityId.NORTH_CLIENT);
 
 		new Thread(new Runnable() {
 			@Override
@@ -64,6 +69,11 @@ public class Controller {
 				opcua_comm.getServerCommunication().runServer(opcua_server);
 			}
 		}).start();
+
+
+
+
+
 		// Process Engine
 		//hsFU.setRequiredCapability(CapabilityId.NORTH_CLIENT, CapabilityType.EngageInUnLoading);
 		//hsFU.setWiring(CapabilityId.NORTH_CLIENT, "opc.tcp://localhost:4840");

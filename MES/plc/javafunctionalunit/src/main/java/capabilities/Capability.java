@@ -28,6 +28,16 @@ public class Capability {
     private CapabilityRole capabilityRole;
 
     private ServerCommunication serverCommunication;
+
+    public ClientCommunication getClientCommunication() {
+        return clientCommunication;
+    }
+
+    public void setClientCommunication(ClientCommunication clientCommunication) {
+        this.clientCommunication = clientCommunication;
+    }
+
+    private ClientCommunication clientCommunication;
     private Object opcua_server;
     private Object opcua_client;
     private Object parentObject;
@@ -44,7 +54,7 @@ public class Capability {
         this.capabilityType = capabilityType;
         this.capabilityRole = capabilityRole;
 
-        this.serverCommunication = serverCommunication;
+        this.clientCommunication = clientCommunication;
         this.opcua_client = client;
         this.parentObject = parentObject;
     }
@@ -54,6 +64,8 @@ public class Capability {
         this.capabilityId = capabilityId;
         this.capabilityType = capabilityType;
         this.capabilityRole = capabilityRole;
+
+        this.clientCommunication = new Communication().getClientCommunication(); // for testing only to be removed later
 
         this.serverCommunication = serverCommunication;
         this.opcua_server = server;

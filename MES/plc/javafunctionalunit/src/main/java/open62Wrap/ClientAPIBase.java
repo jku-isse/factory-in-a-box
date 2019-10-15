@@ -51,6 +51,14 @@ public class ClientAPIBase {
     open62541JNI.ClientAPIBase_change_ownership(this, swigCPtr, true);
   }
 
+  public void setMethodInputs(int[] value) {
+    open62541JNI.ClientAPIBase_methodInputs_set(swigCPtr, this, value);
+  }
+
+  public int[] getMethodInputs() {
+    return open62541JNI.ClientAPIBase_methodInputs_get(swigCPtr, this);
+  }
+
   public void setRunning(boolean value) {
     open62541JNI.ClientAPIBase_running_set(swigCPtr, this, value);
   }
@@ -119,11 +127,11 @@ public class ClientAPIBase {
   }
 
   public static String CallMethod(String serverUrl, UA_NodeId objectId, UA_NodeId methodId, String argInputString) {
-    return open62541JNI.ClientAPIBase_CallMethod__SWIG_0(serverUrl, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, argInputString);
+    return open62541JNI.ClientAPIBase_CallMethod(serverUrl, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, argInputString);
   }
 
-  public static String CallMethod(String serverUrl, UA_NodeId objectId, UA_NodeId methodId, int[] argInput, int arraySize) {
-    return open62541JNI.ClientAPIBase_CallMethod__SWIG_1(serverUrl, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, argInput, arraySize);
+  public static String CallArrayMethod(String serverUrl, UA_NodeId objectId, UA_NodeId methodId, int[] methodInputs, int arraySize, UA_Variant output) {
+    return open62541JNI.ClientAPIBase_CallArrayMethod(serverUrl, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, methodInputs, arraySize, UA_Variant.getCPtr(output), output);
   }
 
   public void monitored_itemChanged(UA_NodeId nodeId, int value) {
@@ -136,10 +144,6 @@ public class ClientAPIBase {
 
   public void methods_callback(UA_NodeId objectId, UA_NodeId methodId, String input, String output, ClientAPIBase jAPIBase) {
     if (getClass() == ClientAPIBase.class) open62541JNI.ClientAPIBase_methods_callback(swigCPtr, this, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, input, output, ClientAPIBase.getCPtr(jAPIBase), jAPIBase); else open62541JNI.ClientAPIBase_methods_callbackSwigExplicitClientAPIBase(swigCPtr, this, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, input, output, ClientAPIBase.getCPtr(jAPIBase), jAPIBase);
-  }
-
-  public void arrayTest(int[] outputArray) {
-    open62541JNI.ClientAPIBase_arrayTest(swigCPtr, this, outputArray);
   }
 
   public ClientAPIBase() {

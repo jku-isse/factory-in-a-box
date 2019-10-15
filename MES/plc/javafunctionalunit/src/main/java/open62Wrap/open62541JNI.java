@@ -47,6 +47,8 @@ public class open62541JNI {
   public final static native long new_ServerAPIBase();
   public final static native void ServerAPIBase_director_connect(ServerAPIBase obj, long cptr, boolean mem_own, boolean weak_global);
   public final static native void ServerAPIBase_change_ownership(ServerAPIBase obj, long cptr, boolean take_or_release);
+  public final static native void ClientAPIBase_methodInputs_set(long jarg1, ClientAPIBase jarg1_, int[] jarg2);
+  public final static native int[] ClientAPIBase_methodInputs_get(long jarg1, ClientAPIBase jarg1_);
   public final static native void ClientAPIBase_running_set(long jarg1, ClientAPIBase jarg1_, boolean jarg2);
   public final static native boolean ClientAPIBase_running_get(long jarg1, ClientAPIBase jarg1_);
   public final static native long ClientAPIBase_Get();
@@ -63,15 +65,14 @@ public class open62541JNI {
   public final static native int ClientAPIBase_ClientReadIntValue(long jarg1, long jarg2, UA_NodeId jarg2_);
   public final static native int ClientAPIBase_ClientWriteValue(String jarg1, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native String ClientAPIBase_GetMethodOutput();
-  public final static native String ClientAPIBase_CallMethod__SWIG_0(String jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4);
-  public final static native String ClientAPIBase_CallMethod__SWIG_1(String jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, int[] jarg4, int jarg5);
+  public final static native String ClientAPIBase_CallMethod(String jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4);
+  public final static native String ClientAPIBase_CallArrayMethod(String jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, int[] jarg4, int jarg5, long jarg6, UA_Variant jarg6_);
   public final static native void ClientAPIBase_monitored_itemChanged(long jarg1, ClientAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ClientAPIBase_monitored_itemChangedSwigExplicitClientAPIBase(long jarg1, ClientAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ClientAPIBase_client_connected(long jarg1, ClientAPIBase jarg1_, long jarg2, ClientAPIBase jarg2_, long jarg3, String jarg4);
   public final static native void ClientAPIBase_client_connectedSwigExplicitClientAPIBase(long jarg1, ClientAPIBase jarg1_, long jarg2, ClientAPIBase jarg2_, long jarg3, String jarg4);
   public final static native void ClientAPIBase_methods_callback(long jarg1, ClientAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4, String jarg5, long jarg6, ClientAPIBase jarg6_);
   public final static native void ClientAPIBase_methods_callbackSwigExplicitClientAPIBase(long jarg1, ClientAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4, String jarg5, long jarg6, ClientAPIBase jarg6_);
-  public final static native void ClientAPIBase_arrayTest(long jarg1, ClientAPIBase jarg1_, int[] jarg2);
   public final static native void delete_ClientAPIBase(long jarg1);
   public final static native long new_ClientAPIBase();
   public final static native void ClientAPIBase_director_connect(ClientAPIBase obj, long cptr, boolean mem_own, boolean weak_global);

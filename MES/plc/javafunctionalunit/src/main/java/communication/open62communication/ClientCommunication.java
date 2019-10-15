@@ -150,10 +150,11 @@ public class ClientCommunication extends ClientAPIBase {
     }
     public String callArrayMethod(String serverUrl, RequestedNodePair<Integer, Integer> objectId,
                                    RequestedNodePair<Integer, Integer> methodId, int argInput[]) {
-        return ClientAPIBase.CallMethod(serverUrl,
+UA_Variant output = new UA_Variant();
+        return ClientAPIBase.CallArrayMethod(serverUrl,
                 open62541.UA_NODEID_NUMERIC(objectId.getKey(), objectId.getValue()),
                 open62541.UA_NODEID_NUMERIC(methodId.getKey(), methodId.getValue()),
-                argInput,argInput.length);
+                argInput, argInput.length,output);
     }
 
 

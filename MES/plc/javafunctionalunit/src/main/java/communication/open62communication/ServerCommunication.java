@@ -67,7 +67,8 @@ public class ServerCommunication extends ServerAPIBase {
      */
     @Override
     public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
-        setMethodOutput(methodId, getFunction(methodId.getIdentifier().getNumeric()).apply(input));
+        System.out.println("Methods Call back!!!!!!!!!!!!!!!!!!!!!!S");
+           setMethodOutput(methodId, getFunction(methodId.getIdentifier().getNumeric()).apply(input));
     }
 
     public Object createServer(String host, int port) {
@@ -165,7 +166,7 @@ public class ServerCommunication extends ServerAPIBase {
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
         UA_NodeId reqMethodId = open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
-        Object methodId = ServerAPIBase.AddMethod((ServerAPIBase) serverAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+        Object methodId = ServerAPIBase.AddMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
                 input, output, methodAttributes);
         addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
@@ -197,7 +198,7 @@ public class ServerCommunication extends ServerAPIBase {
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
         UA_NodeId reqMethodId = open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
-        Object methodId = ServerAPIBase.AddArrayMethod((ServerAPIBase) serverAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+        Object methodId = ServerAPIBase.AddArrayMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
                 output, methodAttributes,"Input", methodName, open62541.UA_TYPES_INT32, inputSize);
         addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);

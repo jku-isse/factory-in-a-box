@@ -74,7 +74,7 @@ public class RobotBase {
 
     private Thread clientThread = new Thread(() -> {
         System.out.println("Starting Client...");
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
+      //  Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
         if (processEngineBase != null) {
             Object client = clientCommunication.initClient();
             processEngineBase.setClient(client);
