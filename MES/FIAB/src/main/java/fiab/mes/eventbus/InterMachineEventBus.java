@@ -8,11 +8,6 @@ import fiab.mes.order.msg.OrderEvent;
 
 public class InterMachineEventBus extends ScanningEventBus<MachineEvent, ActorRef, SubscriptionClassifier> {
 	
-	public static void main(String[] args) {
-		System.out.println("we're running");
-	}
-
-	
 	@Override
 	public void publish(MachineEvent event, ActorRef subscriber) {
 		subscriber.tell(event, ActorRef.noSender());
