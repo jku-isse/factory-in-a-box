@@ -8,8 +8,6 @@ package communication.open62communication;
 import communication.utils.RequestedNodePair;
 import open62Wrap.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,12 +17,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ClientCommunication extends ClientAPIBase {
 
-    private int i = 0;
+    private int i;
     private AtomicInteger conveyorStatus;
     private AtomicInteger turningStatus;
     private CopyOnWriteArrayList<UA_NodeId> monitoredItemSet;
+    private int subscriptionConveyor;
+    private int subscriptionTurning;
 
     public ClientCommunication() {
+        i = 0;
         monitoredItemSet = new CopyOnWriteArrayList<>();
         conveyorStatus = new AtomicInteger(-1);
         turningStatus = new AtomicInteger(-1);
@@ -51,17 +52,17 @@ public class ClientCommunication extends ClientAPIBase {
      */
     @Override
     public void client_connected(ClientAPIBase clientAPIBase, SWIGTYPE_p_UA_Client client, String serverUrl) {
-        System.out.println("Client Connected " + (i < 1 ? i : ""));
-        if (i < 1) {
+        //System.out.println("Client Connected " + (i < 1 ? i : ""));
+        if (i == 0) {
             RequestedNodePair<Integer, Integer> conveyorNode = new RequestedNodePair<>(1, 56);
             RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
-            clientSubToNode(clientAPIBase, client, open62541.UA_NODEID_NUMERIC(conveyorNode.getKey(), conveyorNode.getValue()));
-            //clientSubToNode(clientAPIBase, client, open62541.UA_NODEID_NUMERIC(turningNode.getKey(), turningNode.getValue()));
+            subscriptionConveyor = clientSubToNode(clientAPIBase, client, open62541.UA_NODEID_NUMERIC(conveyorNode.getKey(), conveyorNode.getValue()));
+            subscriptionTurning = clientSubToNode(clientAPIBase, client, open62541.UA_NODEID_NUMERIC(turningNode.getKey(), turningNode.getValue()));
             // if we subscribe to another node, the callback only uses the last node that was registered as the nodeId
-            i++;
-            System.out.println("Client Connected ");
-            System.out.println(getNodeByName(client, "Status")); // server by name
+            System.out.println("Client Connected");
+            //System.out.println(getNodeByName(client, "Status")); // server by name
         }
+        i++;
     }
 
     /**
@@ -79,15 +80,15 @@ public class ClientCommunication extends ClientAPIBase {
         RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
         UA_NodeId conveyorId = open62541.UA_NODEID_NUMERIC(conveyorNode.getKey(), conveyorNode.getValue());
         UA_NodeId turningId = open62541.UA_NODEID_NUMERIC(turningNode.getKey(), turningNode.getValue());
-        System.out.println("nodeId = " + nodeId.getIdentifier().getNumeric() + " | expected = " + conveyorId.getIdentifier().getNumeric() + " | value = " + value);
+        System.out.println("nodeId = " + nodeId.getIdentifier().getNumeric() + " | value = " + value);
         //System.out.println("nodeId = " + nodeId.getIdentifier().getNumeric() + " | expected = " + turningId.getIdentifier().getNumeric() + " | value = " + value);
         if(nodeId.getIdentifier().getNumeric() == conveyorId.getIdentifier().getNumeric()){
             System.out.println("Received callback for Conveyor");
             conveyorStatus.set(value);
-        }/*else if(nodeId.getIdentifier().getNumeric() == turningId.getIdentifier().getNumeric()){
+        }else if(nodeId.getIdentifier().getNumeric() == turningId.getIdentifier().getNumeric()){
             System.out.println("Received callback for Turning");
-            turningStatus.set(value);   //This will be called even though the conveyor was the one that changed
-        }*/
+            turningStatus.set(value);
+        }
     }
 
     public Object initClient() {
@@ -135,16 +136,26 @@ public class ClientCommunication extends ClientAPIBase {
         return open62541JNI.ClientAPIBase_GetMethodOutput();
     }
 
-    public String callMethod(Object client, Object objectId, Object methodId, String argInputString) {
-        return ClientAPIBase.CallMethod((SWIGTYPE_p_UA_Client) client, (UA_NodeId) objectId, (UA_NodeId) methodId,
+    public String callMethod(String serverUrl, Object objectId, Object methodId, String argInputString) {
+        return ClientAPIBase.CallMethod(serverUrl, (UA_NodeId) objectId, (UA_NodeId) methodId,
                 argInputString);
     }
 
-    public String callStringMethod(Object client, RequestedNodePair<Integer, Integer> objectId,
+    public String callStringMethod(String serverUrl, RequestedNodePair<Integer, Integer> objectId,
                                    RequestedNodePair<Integer, Integer> methodId, String argInputString) {
-        return ClientAPIBase.CallMethod((SWIGTYPE_p_UA_Client) client,
+        return ClientAPIBase.CallMethod(serverUrl,
                 open62541.UA_NODEID_NUMERIC(objectId.getKey(), objectId.getValue()),
                 open62541.UA_NODEID_NUMERIC(methodId.getKey(), methodId.getValue()),
                 argInputString);
     }
+    public String callArrayMethod(String serverUrl, RequestedNodePair<Integer, Integer> objectId,
+                                   RequestedNodePair<Integer, Integer> methodId, int argInput[]) {
+UA_Variant output = new UA_Variant();
+        return ClientAPIBase.CallArrayMethod(serverUrl,
+                open62541.UA_NODEID_NUMERIC(objectId.getKey(), objectId.getValue()),
+                open62541.UA_NODEID_NUMERIC(methodId.getKey(), methodId.getValue()),
+                argInput, argInput.length,output);
+    }
+
+
 }

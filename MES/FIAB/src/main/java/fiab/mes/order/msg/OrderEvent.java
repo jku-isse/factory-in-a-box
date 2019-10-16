@@ -45,4 +45,3 @@ public class OrderEvent extends TimedEvent {
 		return new OrderEvent(this.orderId, this.machineId, this.eventType, this.getTimestamp());
 	}
 }
-

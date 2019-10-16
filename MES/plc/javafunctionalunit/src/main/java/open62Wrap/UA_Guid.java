@@ -60,13 +60,12 @@ public class UA_Guid {
     return open62541JNI.UA_Guid_data3_get(swigCPtr, this);
   }
 
-  public void setData4(SWIGTYPE_p_unsigned_char value) {
-    open62541JNI.UA_Guid_data4_set(swigCPtr, this, SWIGTYPE_p_unsigned_char.getCPtr(value));
+  public void setData4(short[] value) {
+    open62541JNI.UA_Guid_data4_set(swigCPtr, this, value);
   }
 
-  public SWIGTYPE_p_unsigned_char getData4() {
-    long cPtr = open62541JNI.UA_Guid_data4_get(swigCPtr, this);
-    return (cPtr == 0) ? null : new SWIGTYPE_p_unsigned_char(cPtr, false);
+  public short[] getData4() {
+    return open62541JNI.UA_Guid_data4_get(swigCPtr, this);
   }
 
   public UA_Guid() {
