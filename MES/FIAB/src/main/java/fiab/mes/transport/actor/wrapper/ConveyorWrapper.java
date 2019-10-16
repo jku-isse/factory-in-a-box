@@ -11,12 +11,12 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 
 public class ConveyorWrapper {
-	private TransportModuleWrapper machineWrapper;
+	private TransportModuleWrapperMock machineWrapper;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private List<String> nodes = new ArrayList<String>();
 
 	
-	public ConveyorWrapper(TransportModuleWrapper trntbl) {
+	public ConveyorWrapper(TransportModuleWrapperMock trntbl) {
 		this.machineWrapper = trntbl;
 	}
 

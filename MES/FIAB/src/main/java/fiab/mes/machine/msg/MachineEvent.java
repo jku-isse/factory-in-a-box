@@ -13,13 +13,17 @@ public class MachineEvent extends TimedEvent {
 		this.eventType = eventType;
 	}
 	
+	public MachineEventType getEventType() {
+		return eventType;
+	}
+	
 	
 	public String getMachineId() {
 		return machineId;
 	}
 	
 	public static enum MachineEventType {
-		CONNECTED, DISCONNECTED, UPDATED
+		CONNECTED, DISCONNECTED, UPDATE
 	}
 
 }

@@ -26,20 +26,23 @@ import fiab.mes.transport.MachineLevelEventBus;
 import fiab.mes.transport.actor.turntable.TransportModuleActor;
 import fiab.mes.transport.mockClasses.Direction;
 
-public class TransportModuleWrapper implements TransportModuleWrapperInterface {
+public class TransportModuleWrapperMock implements TransportModuleWrapperInterface {
 
 	private Subscription subscription;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private OpcUaClient client;
 	private List<String> nodes = new ArrayList<String>();
-	private MachineLevelEventBus eventBus;
+	private MachineLevelEventBus eventBus = new MachineLevelEventBus();
 
-	public TransportModuleWrapper(String serverAddress, MachineLevelEventBus eventBus) {
-		this.eventBus = eventBus;
-		subscription = new Subscription(eventBus, serverAddress);
+	public TransportModuleWrapperMock(String serverAddress, ActorRef actor) {
+		eventBus.subscribe(actor, "*");
+		eventBus.publish(new MachineUpdateEvent("MACHINEID", "NODEID", MachineEvent.MachineEventType.UPDATE, "hi"));
+		eventBus.publish(new MachineUpdateEvent("MACHINEID", "NODEID", MachineEvent.MachineEventType.UPDATE, "whaaaaazuuuup"));
+		eventBus.publish(new MachineUpdateEvent("MACHINEID", "NODEID", MachineEvent.MachineEventType.UPDATE, "scurr"));
+//		subscription = new Subscription(eventBus, serverAddress);
 		try {
-			client = createClient();
-			subscription.setClient(client);
+//			client = createClient();
+//			subscription.setClient(client);
 
 		} catch (Exception e) {
 			System.out.println("Exception thrown by: ");
@@ -49,32 +52,22 @@ public class TransportModuleWrapper implements TransportModuleWrapperInterface {
 	}
 
 	@Override
-	public void transport(Direction from, Direction to, String orderId) throws InterruptedException {
+	public void transport(Direction from, Direction to, String orderId) {
 		System.out.println("Transport started!");
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS"
 				, MachineEvent.MachineEventType.UPDATE, MachineStatus.STARTING));
 
-		Thread.sleep(5000);
-
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS"
 				, MachineEvent.MachineEventType.UPDATE, MachineStatus.EXECUTE));
-		
-		Thread.sleep(5000);
 
 		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
 				, MachineEvent.MachineEventType.UPDATE, MachineStatus.COMPLETING));
-		
-		Thread.sleep(5000);
 
 		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
 				, MachineEvent.MachineEventType.UPDATE, MachineStatus.COMPLETE));
-		
-		Thread.sleep(5000);
 
 		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
 				, MachineEvent.MachineEventType.UPDATE, MachineStatus.RESETTING));
-
-		Thread.sleep(5000);
 
 		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
 				, MachineEvent.MachineEventType.UPDATE, MachineStatus.IDLE));
@@ -204,41 +197,41 @@ public class TransportModuleWrapper implements TransportModuleWrapperInterface {
 	 * getSecurityPolicyUri
 	 * 
 	 */
-	private OpcUaClient createClient() throws Exception {
-		File securityTempDir = new File(System.getProperty("java.io.tmpdir"), "security");
-		if (!securityTempDir.exists() && !securityTempDir.mkdirs()) {
-			throw new Exception("unable to create security dir: " + securityTempDir);
-		}
-		LoggerFactory.getLogger(getClass()).info("security temp dir: {}", securityTempDir.getAbsolutePath());
-
-		KeyStoreLoader loader = new KeyStoreLoader().load(securityTempDir);
-
-		SecurityPolicy securityPolicy = subscription.getSecurityPolicy();
-
-		EndpointDescription[] endpoints;
-
-		try {
-			endpoints = UaTcpStackClient.getEndpoints(subscription.getEndpointUrl()).get();
-		} catch (Throwable ex) {
-			// try the explicit discovery endpoint as well
-			String discoveryUrl = subscription.getEndpointUrl() + "/discovery";
-			logger.info("Trying explicit discovery URL: {}", discoveryUrl);
-			endpoints = UaTcpStackClient.getEndpoints(discoveryUrl).get();
-		}
-
-		EndpointDescription endpoint = Arrays.stream(endpoints)
-				.filter(e -> e.getSecurityPolicyUri().equals(securityPolicy.getSecurityPolicyUri())).findFirst()
-				.orElseThrow(() -> new Exception("no desired endpoints returned"));
-
-		logger.info("Using endpoint: {} [{}]", endpoint.getEndpointUrl(), securityPolicy);
-
-		OpcUaClientConfig config = OpcUaClientConfig.builder()
-				.setApplicationName(LocalizedText.english("eclipse milo opc-ua client"))
-				.setApplicationUri("urn:eclipse:milo:examples:client").setCertificate(loader.getClientCertificate())
-				.setKeyPair(loader.getClientKeyPair()).setEndpoint(endpoint)
-				.setIdentityProvider(subscription.getIdentityProvider()).setRequestTimeout(uint(5000)).build();
-
-		return new OpcUaClient(config);
-	}
+//	private OpcUaClient createClient() throws Exception {
+//		File securityTempDir = new File(System.getProperty("java.io.tmpdir"), "security");
+//		if (!securityTempDir.exists() && !securityTempDir.mkdirs()) {
+//			throw new Exception("unable to create security dir: " + securityTempDir);
+//		}
+//		LoggerFactory.getLogger(getClass()).info("security temp dir: {}", securityTempDir.getAbsolutePath());
+//
+//		KeyStoreLoader loader = new KeyStoreLoader().load(securityTempDir);
+//
+//		SecurityPolicy securityPolicy = subscription.getSecurityPolicy();
+//
+//		EndpointDescription[] endpoints;
+//
+//		try {
+//			endpoints = UaTcpStackClient.getEndpoints(subscription.getEndpointUrl()).get();
+//		} catch (Throwable ex) {
+//			// try the explicit discovery endpoint as well
+//			String discoveryUrl = subscription.getEndpointUrl() + "/discovery";
+//			logger.info("Trying explicit discovery URL: {}", discoveryUrl);
+//			endpoints = UaTcpStackClient.getEndpoints(discoveryUrl).get();
+//		}
+//
+//		EndpointDescription endpoint = Arrays.stream(endpoints)
+//				.filter(e -> e.getSecurityPolicyUri().equals(securityPolicy.getSecurityPolicyUri())).findFirst()
+//				.orElseThrow(() -> new Exception("no desired endpoints returned"));
+//
+//		logger.info("Using endpoint: {} [{}]", endpoint.getEndpointUrl(), securityPolicy);
+//
+//		OpcUaClientConfig config = OpcUaClientConfig.builder()
+//				.setApplicationName(LocalizedText.english("eclipse milo opc-ua client"))
+//				.setApplicationUri("urn:eclipse:milo:examples:client").setCertificate(loader.getClientCertificate())
+//				.setKeyPair(loader.getClientKeyPair()).setEndpoint(endpoint)
+//				.setIdentityProvider(subscription.getIdentityProvider()).setRequestTimeout(uint(5000)).build();
+//
+//		return new OpcUaClient(config);
+//	}
 
 }
