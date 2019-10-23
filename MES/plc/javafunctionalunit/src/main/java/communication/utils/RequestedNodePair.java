@@ -2,6 +2,12 @@ package communication.utils;
 
 import java.util.Objects;
 
+/**
+ * Used to interact with the opc_ua server/client. The key stores the object node and the value
+ * is the id of the requested node.
+ * @param <K> object id
+ * @param <V> node id
+ */
 public class RequestedNodePair<K, V> {
 
     private K key;

@@ -1,6 +1,7 @@
 package capabilities;
 
 import communication.Communication;
+import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
 import helper.CapabilityId;
 import helper.CapabilityRole;
@@ -45,6 +46,12 @@ public class Endpoint {
         endpoint_NodeId = serverCommunication.createNodeNumeric(1, 66); //need to implement a controller level Enum
 
         endpoint_object = serverCommunication.addNestedObject(opcua_server, parentObjectId, endpoint_NodeId, name);
+
+        //   Capability defination = new Capability(serverCommunication, opcua_server, endpoint_object,  capabilityId, capabilityType, capabilityRole);
+        //  capabilities.add(defination);
+    }
+    public Endpoint(ClientCommunication clientCommunication, Object opcua_client, Object parentObjectId, String name, CapabilityId capabilityId, CapabilityType capabilityType, CapabilityRole capabilityRole) {
+        capabilities = new ArrayList<>();
 
         //   Capability defination = new Capability(serverCommunication, opcua_server, endpoint_object,  capabilityId, capabilityType, capabilityRole);
         //  capabilities.add(defination);

@@ -13,20 +13,24 @@ public class MachineEvent extends TimedEvent {
 		this.eventType = eventType;
 	}
 	
+	public MachineEventType getEventType() {
+		return eventType;
+	}
+	
 	
 	public String getMachineId() {
 		return machineId;
 	}
 	
 	public static enum MachineEventType {
+<<<<<<< HEAD
+		CONNECTED, DISCONNECTED, UPDATE
+	}
+
+}
+=======
 		CONNECTED, DISCONNECTED, UPDATED
 	}
 
-	@Override
-	public String toString() {
-		return "MachineEvent [machineId=" + machineId + ", eventType=" + eventType + ", timestamp=" + timestamp + "]";
-	}
-
-	
-	
 }
+>>>>>>> parent of c7005b3... finished first test of order processing by 4 machines via the orderplanningactor

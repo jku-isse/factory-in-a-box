@@ -37,20 +37,11 @@ public class OrderEvent extends TimedEvent {
 	}
 
 	public static enum OrderEventType {
-		CREATED, REGISTERED, SCHEDULED, ALLOCATED, PRODUCTION_UPDATE, TRANSPORT_UPDATE, CANCELED, DEFERRED, PAUSED, CONTINUED, COMPLETED, DELETED
+		CREATED, REGISTERED, SCHEDULED, ALLOCATED, PRODUCTION_UPDATE, TRANSPORT_UPDATE, CANCELED, PAUSED, CONTINUED, COMPLETED, DELETED
 	}
 
 	
 	public OrderEvent getCloneWithoutDetails() {
 		return new OrderEvent(this.orderId, this.machineId, this.eventType, this.getTimestamp());
 	}
-
-	@Override
-	public String toString() {
-		return "OrderEvent [eventType=" + eventType + ", orderId=" + orderId + ", machineId=" + machineId
-				+ ", timestamp=" + timestamp + "]";
-	}
-	
-	
 }
-

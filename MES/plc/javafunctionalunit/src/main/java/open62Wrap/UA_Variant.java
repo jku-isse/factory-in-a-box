@@ -61,12 +61,11 @@ public class UA_Variant {
     return open62541JNI.UA_Variant_arrayLength_get(swigCPtr, this);
   }
 
- public void setData(java.lang.Object value) {
- //   open62541JNI.UA_Variant_data_set(swigCPtr, this, SWIGTYPE_p_void.getCPtr(value));
-
+  public void setData(java.lang.Object value) {
+   // open62541JNI.UA_Variant_data_set(swigCPtr, this, SWIGTYPE_p_void.getCPtr(value));
   }
 
-  public Object getData() {
+  public java.lang.Object getData() {
   long cPtr = open62541JNI.UA_Variant_data_get(swigCPtr, this);
    Object result = null;
    if (open62541.IsVariantType_Int(this)) {

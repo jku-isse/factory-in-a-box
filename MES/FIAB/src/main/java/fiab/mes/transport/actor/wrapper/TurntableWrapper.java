@@ -11,11 +11,11 @@ import akka.actor.ActorRef;
 
 public class TurntableWrapper {
 	
-	private TransportModuleWrapper machineWrapper;
+	private TransportModuleWrapperMock machineWrapper;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private List<String> nodes = new ArrayList<String>();
 	
-	public TurntableWrapper(TransportModuleWrapper trntbl) {
+	public TurntableWrapper(TransportModuleWrapperMock trntbl) {
 		this.machineWrapper = trntbl;
 		//TODO don't hardcode this!
 		nodes.add(new String("Subscribe NodeId{ns=2, id=FunctionalUnit/Conveyor/ConveyorStatus}"));
