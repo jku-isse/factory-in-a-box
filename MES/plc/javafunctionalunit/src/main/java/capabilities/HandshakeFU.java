@@ -39,8 +39,8 @@ public class HandshakeFU extends Endpoint {
         this.capabilities.add(wiring); //adding the Wiring capability to the list of the capabilities
 
         wiring.addMyEventListener(new CapabilityListener() {
-            public void eventOccurred(CapabilityEvent evt) {
-                System.out.println("FROM THE HANDSHAKE FUUUUUUUUUUU THE WIRING IS DONE");
+            public void eventOccurred(CapabilityEvent evt,Capability source) {
+                System.out.println("FROM THE HANDSHAKE FUUUUUUUUUUU THE WIRING IS DONE "+((WiringCapability)source).wiringMap.size());
             }
         });
 

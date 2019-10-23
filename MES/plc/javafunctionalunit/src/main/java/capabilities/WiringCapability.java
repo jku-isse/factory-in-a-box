@@ -13,14 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-import java.util.EventListener;
-import java.util.EventObject;
 
-import javax.swing.event.EventListenerList;
-
-
-
-
+class WiringCapabilityEvent extends CapabilityEvent {
+    public WiringCapabilityEvent(WiringCapability source) {
+        super(source);
+    }
+}
 
 public class WiringCapability extends Capability   {
 
@@ -65,7 +63,7 @@ public class WiringCapability extends Capability   {
    // Serveraddress+NodeID
 
         //new WiringCapabilityLestiner().setWiringInfo(wiringInfo);
-        String[] wiringParamters = {"W","WW"};
+        String[] wiringParamters = {"NORTH_SERVER","http://10.0.0.0"};
         //  System.out.println(wiringParamters.toString());
         if (wiringParamters.length == 1)
             return "Wrong Parameters, Please separate the CapabilityID and Path with ';'";
@@ -97,7 +95,10 @@ public class WiringCapability extends Capability   {
 
         //do nothing if no listeners are registered
 
-       fireMyEvent(new CapabilityEvent(this));
+       fireEvent(new WiringCapabilityEvent(this));
+
+
+
         return "Wiring was Successful";
         //
         //

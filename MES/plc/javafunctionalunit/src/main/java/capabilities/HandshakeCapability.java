@@ -20,7 +20,7 @@ import static helper.HandshakeStates.STOPPING;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.swing.internal.plaf.synth.resources.synth_pt_BR;
+
 import communication.Communication;
 import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;

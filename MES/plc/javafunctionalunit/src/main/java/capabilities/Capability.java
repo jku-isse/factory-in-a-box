@@ -26,13 +26,21 @@ import java.util.EventObject;
 import java.util.function.Function;
 
 class CapabilityEvent extends EventObject {
+   private Capability source;
     public CapabilityEvent(Capability source) {
         super(source);
+        this.source = source;
+    }
+    public Capability getSource(){
+        return this.source;
     }
 }
 interface CapabilityListener extends EventListener {
-    public void eventOccurred(CapabilityEvent evt);
+    public void eventOccurred(CapabilityEvent evt,Capability source);
 }
+
+
+
 public class Capability {
     private CapabilityId capabilityId;
     private CapabilityType capabilityType;
@@ -160,11 +168,11 @@ public class Capability {
     public void removeMyEventListener(CapabilityListener listener) {
         listenerList.remove(CapabilityListener.class, listener);
     }
-    void fireMyEvent(CapabilityEvent evt) {
+    void fireEvent(CapabilityEvent evt) {
         Object[] listeners = listenerList.getListenerList();
         for (int i = 0; i < listeners.length; i = i+2) {
             if (listeners[i] == CapabilityListener.class) {
-                ((CapabilityListener) listeners[i+1]).eventOccurred(evt);
+                ((CapabilityListener) listeners[i+1]).eventOccurred(evt,evt.getSource());
             }
         }
     }
