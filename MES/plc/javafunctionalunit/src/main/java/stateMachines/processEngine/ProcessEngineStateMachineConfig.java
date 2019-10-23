@@ -11,8 +11,8 @@ public class ProcessEngineStateMachineConfig extends StateMachineConfig<ProcessE
         configure(STOPPED)
                 .permit(RESET, RESETTING)
                 .ignore(STOP)
-                .ignore(NEXT)
-                .ignore(EXECUTE);
+                .ignore(NEXT);
+                //.ignore(EXECUTE);
         configure(IDLE)
                 .permit(EXECUTE, EXECUTING)
                 .permit(STOP, STOPPED)
