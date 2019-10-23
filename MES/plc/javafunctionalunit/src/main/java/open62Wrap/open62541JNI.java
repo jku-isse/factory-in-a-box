@@ -47,13 +47,6 @@ public class open62541JNI {
   public final static native long new_ServerAPIBase();
   public final static native void ServerAPIBase_director_connect(ServerAPIBase obj, long cptr, boolean mem_own, boolean weak_global);
   public final static native void ServerAPIBase_change_ownership(ServerAPIBase obj, long cptr, boolean take_or_release);
-<<<<<<< HEAD
-  public final static native void ClientAPIBase_methodInputs_set(long jarg1, ClientAPIBase jarg1_, int[] jarg2);
-  public final static native int[] ClientAPIBase_methodInputs_get(long jarg1, ClientAPIBase jarg1_);
-=======
-  public final static native void ClientAPIBase_current_nodeId_set(long jarg1, ClientAPIBase jarg1_, long jarg2, UA_NodeId jarg2_);
-  public final static native long ClientAPIBase_current_nodeId_get(long jarg1, ClientAPIBase jarg1_);
->>>>>>> parent of fa8666e... Merge branch 'master' of https://github.com/jku-isse/factory-in-a-box
   public final static native void ClientAPIBase_running_set(long jarg1, ClientAPIBase jarg1_, boolean jarg2);
   public final static native boolean ClientAPIBase_running_get(long jarg1, ClientAPIBase jarg1_);
   public final static native long ClientAPIBase_Get();

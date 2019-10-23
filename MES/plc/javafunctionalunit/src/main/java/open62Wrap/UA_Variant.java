@@ -61,11 +61,8 @@ public class UA_Variant {
     return open62541JNI.UA_Variant_arrayLength_get(swigCPtr, this);
   }
 
-<<<<<<< HEAD
-  public void setData(java.lang.Object value) {
-=======
-  public void setData(Object value) {
->>>>>>> parent of fa8666e... Merge branch 'master' of https://github.com/jku-isse/factory-in-a-box
+public void setData(java.lang.Object value) {
+
    // open62541JNI.UA_Variant_data_set(swigCPtr, this, SWIGTYPE_p_void.getCPtr(value));
   }
 

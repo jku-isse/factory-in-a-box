@@ -51,23 +51,7 @@ public class ClientAPIBase {
     open62541JNI.ClientAPIBase_change_ownership(this, swigCPtr, true);
   }
 
-<<<<<<< HEAD
-  public void setMethodInputs(int[] value) {
-    open62541JNI.ClientAPIBase_methodInputs_set(swigCPtr, this, value);
-  }
 
-  public int[] getMethodInputs() {
-    return open62541JNI.ClientAPIBase_methodInputs_get(swigCPtr, this);
-=======
-  public void setCurrent_nodeId(UA_NodeId value) {
-    open62541JNI.ClientAPIBase_current_nodeId_set(swigCPtr, this, UA_NodeId.getCPtr(value), value);
-  }
-
-  public UA_NodeId getCurrent_nodeId() {
-    long cPtr = open62541JNI.ClientAPIBase_current_nodeId_get(swigCPtr, this);
-    return (cPtr == 0) ? null : new UA_NodeId(cPtr, false);
->>>>>>> parent of fa8666e... Merge branch 'master' of https://github.com/jku-isse/factory-in-a-box
-  }
 
   public void setRunning(boolean value) {
     open62541JNI.ClientAPIBase_running_set(swigCPtr, this, value);
