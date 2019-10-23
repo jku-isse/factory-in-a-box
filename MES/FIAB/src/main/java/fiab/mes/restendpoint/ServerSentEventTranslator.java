@@ -10,6 +10,7 @@ import akka.http.javadsl.model.sse.ServerSentEvent;
 import fiab.mes.order.OrderProcessWrapper;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEventWrapper;
+import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
 
 
@@ -40,6 +41,18 @@ public class ServerSentEventTranslator{
 			return ServerSentEvent.create(json, "message"); // in the angular frontend also implement addEventListener, as onmessage expects the type to be 'message'
 		} catch (JsonProcessingException e) {
 			logger.warn("Error marshalling OrderStatusRequest.Response", e);
+			return ServerSentEvent.create("", "message");
+		}		
+	}
+	
+	public static ServerSentEvent toServerSentEvent(String orderId, OrderProcessUpdateEvent update) {				
+		
+		try {
+			String json = om.writeValueAsString(new OrderProcessWrapper(orderId, update));
+			//return ServerSentEvent.create(json, orderEvent.getType().toString());
+			return ServerSentEvent.create(json, "message"); // in the angular frontend also implement addEventListener, as onmessage expects the type to be 'message'
+		} catch (JsonProcessingException e) {
+			logger.warn("Error marshalling OrderProcessUpdateEvent", e);
 			return ServerSentEvent.create("", "message");
 		}		
 	}

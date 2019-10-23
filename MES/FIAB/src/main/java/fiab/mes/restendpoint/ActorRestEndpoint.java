@@ -39,6 +39,7 @@ import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.order.OrderProcessWrapper;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEventWrapper;
+import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
@@ -64,7 +65,7 @@ public class ActorRestEndpoint extends AllDirectives{
 	final RawHeader acah = RawHeader.create( "Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
 	final List<HttpHeader> defaultCorsHeaders = Arrays.asList(acaoAll, aceh, acacEnable, acah);
 
-	protected Route createRoute() {
+	public Route createRoute() {
 		return respondWithDefaultHeaders(defaultCorsHeaders, () ->
 			concat(
 				path("orderevents", () -> 
@@ -78,10 +79,12 @@ public class ActorRestEndpoint extends AllDirectives{
 						logger.info("SSE (orderevent) requested with orderId: "+orderId.orElse("none provided"));
 						Source<ServerSentEvent, NotUsed> source = 
 								Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
-								.map(msg -> (OrderEvent) msg)
+								.map(msg -> {
+									return (OrderEvent) msg;
+								})
 								.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg) )
 								.mapMaterializedValue(actor -> { 
-									eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", orderId.orElse("*"))) , actor);  
+									eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT1", orderId.orElse("*"))) , actor);  
 									return NotUsed.getInstance();
 								});				
 						return completeOK( source, EventStreamMarshalling.toEventStream());
@@ -95,16 +98,16 @@ public class ActorRestEndpoint extends AllDirectives{
 							Source<ServerSentEvent, NotUsed> source = 
 									Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
 									.map(msg -> {
-										final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
-										final String id = ((OrderEvent)msg).getOrderId();
-										final OrderStatusRequest req = new OrderStatusRequest(id);
-										final CompletionStage<Optional<OrderStatusRequest.Response>> response = ask(orderEntryActor, req, timeout).thenApply((Optional.class::cast));
-										OrderStatusRequest.Response test = response.toCompletableFuture().get().orElseThrow();
-										ServerSentEvent sse =  ServerSentEventTranslator.toServerSentEvent(id, test);
-										return sse;
+										if (msg instanceof OrderProcessUpdateEvent) {
+											final String id = ((OrderProcessUpdateEvent)msg).getOrderId();
+											return ServerSentEventTranslator.toServerSentEvent(id, (OrderProcessUpdateEvent) msg);
+										} else {
+											// ignore OrderEvent
+											return null;
+										}
 									})
 									.mapMaterializedValue(actor -> { 
-										eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", optId.orElse("*"))) , actor);  
+										eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT2", optId.orElse("*"))) , actor);
 										return NotUsed.getInstance();
 									});				
 							return completeOK( source, EventStreamMarshalling.toEventStream());
@@ -153,7 +156,10 @@ public class ActorRestEndpoint extends AllDirectives{
 				pathPrefix("orderHistory", () ->
 					path(PathMatchers.remaining() , (String req) -> {								
 						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
-						final CompletionStage<OrderHistoryRequest.Response> futureMaybeStatus = ask(orderEntryActor, new OrderHistoryRequest(req), timeout).thenApply(r -> (OrderHistoryRequest.Response)r); 
+						final CompletionStage<OrderHistoryRequest.Response> futureMaybeStatus = ask(orderEntryActor, new OrderHistoryRequest(req), timeout)
+								.thenApply(r -> {
+									return (OrderHistoryRequest.Response)r;
+									}); 
 						return onSuccess(futureMaybeStatus, item -> {
 							if (item != null) {
 								List<OrderEventWrapper> wrapper = item.getUpdates().stream().map(o -> new OrderEventWrapper(o)).collect(Collectors.toList());

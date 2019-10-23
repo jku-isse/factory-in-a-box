@@ -27,6 +27,7 @@ export class OrderDetailsComponent implements OnInit {
     this.orderService.getProcessUpdates(this.id).subscribe(
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
+        console.log(json.stepStatus);
         this.order.jobStatus = json.stepStatus;
       },
       err => { console.log('Error receiving SSE in Details', err); },

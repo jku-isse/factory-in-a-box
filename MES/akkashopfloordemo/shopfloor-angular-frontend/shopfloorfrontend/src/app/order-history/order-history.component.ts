@@ -52,7 +52,8 @@ export class OrderHistoryComponent implements OnInit {
   }
 
   setLatest(timestamp: string) {
-    if (this.latest === '' || Date.parse(this.latest.substring(0, 28)) <= Date.parse(timestamp.substring(0, 28))) {
+    if (this.latest === '' ||
+        Date.parse(this.latest.substring(0, this.latest.indexOf('+'))) <= Date.parse(timestamp.substring(0, timestamp.indexOf('+')))) {
       this.latest = timestamp;
     }
   }
