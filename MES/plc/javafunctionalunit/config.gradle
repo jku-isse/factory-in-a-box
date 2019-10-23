@@ -3,7 +3,7 @@ brick.pref {
     // Main class - Edit this to be your main class//
     mainClass = "RobotTestApplication"
     // Brick connection parameters - The sshHost variable changes on almost every connect. Change it accordingly //
-    sshHost = "10.78.115.92"
+    sshHost = "10.78.115.174"
     sshUser = "robot"
     sshPassword = "maker"
     useSudo = true

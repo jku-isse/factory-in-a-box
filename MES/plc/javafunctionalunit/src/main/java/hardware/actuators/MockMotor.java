@@ -2,6 +2,10 @@ package hardware.actuators;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * This is a Mock implementation of a Motor. It can be used for testing, although it does not account for
+ * errors in the construction.
+ */
 public class MockMotor extends Motor {
 
     private AtomicBoolean running;
@@ -10,6 +14,9 @@ public class MockMotor extends Motor {
         running = new AtomicBoolean(false);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void forward() {
         new Thread(() -> {
@@ -25,6 +32,9 @@ public class MockMotor extends Motor {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void backward() {
         new Thread(() -> {
@@ -40,17 +50,26 @@ public class MockMotor extends Motor {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stop() {
         System.out.println("Motor stopped");
         running.set(false);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setSpeed(int speed) {
         System.out.println("Set speed to " + speed);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void waitMs(int msDelay) {
         new Thread(() -> {
@@ -62,7 +81,10 @@ public class MockMotor extends Motor {
         });
     }
 
-
+    /**
+     * Determines if the motor is running
+     * @return if motor is running
+     */
     private boolean isRunning() {
         return running.get();
     }

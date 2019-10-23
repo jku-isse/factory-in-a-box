@@ -3,32 +3,34 @@ package fiab.mes.machine.msg;
 public class MachineUpdateEvent extends MachineEvent {
 	
 	String nodeId;
-	String parameterName;
+	MachineEvent.MachineEventType type;
 	Object newValue;
 	
-	public MachineUpdateEvent(String machineId, String nodeId, String parameterName, Object value) {
-		super(machineId, MachineEventType.UPDATED);
+	
+	/**
+	 * This class is published on the MachineLevelEventBus and is filled with the values from the OPCUA-Server
+	 * @param machineId
+	 * @param nodeId
+	 * @param parameterName
+	 * @param value
+	 */
+	public MachineUpdateEvent(String machineId, String nodeId, MachineEvent.MachineEventType type, Object value) {
+		super(machineId, MachineEventType.UPDATE);
 		this.nodeId = nodeId;
 		this.newValue = value;
-		this.parameterName = parameterName;
+		this.type = type;
 	}
 	
 	public String getNodeId() {
 		return nodeId;
 	}
 
-	public String getParameterName() {
-		return parameterName;
+	public MachineEvent.MachineEventType getType() {
+		return type;
 	}
 
 	public Object getNewValue() {
 		return newValue;
-	}
-
-	@Override
-	public String toString() {
-		return "MachineUpdateEvent [parameterName=" + parameterName + ", newValue=" + newValue
-				+ ", machineId=" + machineId + ", eventType=" + eventType + ", timestamp=" + timestamp + "]";
 	}
 	
 	

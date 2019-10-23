@@ -18,20 +18,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.mes.machine.msg.MachineEvent;
+import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.opcua.Subscription;
 import fiab.mes.transport.MachineLevelEventBus;
 import fiab.mes.transport.actor.turntable.TransportModuleActor;
+import fiab.mes.transport.mockClasses.Direction;
 
-public class TransportModuleWrapper {
+public class TransportModuleWrapper implements TransportModuleWrapperInterface {
 
 	private Subscription subscription;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	private MachineLevelEventBus eventBus = new MachineLevelEventBus();
 	private OpcUaClient client;
 	private List<String> nodes = new ArrayList<String>();
+	private MachineLevelEventBus eventBus;
 
-	public TransportModuleWrapper(String serverAddress) {
+	public TransportModuleWrapper(String serverAddress, MachineLevelEventBus eventBus) {
+		this.eventBus = eventBus;
 		subscription = new Subscription(eventBus, serverAddress);
 		try {
 			client = createClient();
@@ -43,9 +47,76 @@ public class TransportModuleWrapper {
 		}
 
 	}
-	
+
+	@Override
+	public void transport(Direction from, Direction to, String orderId) throws InterruptedException {
+		System.out.println("Transport started!");
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.STARTING));
+
+		Thread.sleep(5000);
+
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.EXECUTE));
+		
+		Thread.sleep(5000);
+
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.COMPLETING));
+		
+		Thread.sleep(5000);
+
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.COMPLETE));
+		
+		Thread.sleep(5000);
+
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.RESETTING));
+
+		Thread.sleep(5000);
+
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.IDLE));
+
+	}
+
+	@Override
+	public void stopp() {
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.STOPPING));
+		
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.STOPPED));
+	}
+
+	@Override
+	public void reset() {
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.RESETTING));
+		
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATE, MachineStatus.IDLE));
+
+	}
+
 	/**
 	 * The DataValue is written onto the server
+	 * 
 	 * @param nodeId
 	 * @param value
 	 */
@@ -54,44 +125,31 @@ public class TransportModuleWrapper {
 	}
 
 	/**
-	 * Method for the OPC UA part
-	 * @return
-	 */
-	public boolean stop() {
-
-		return false;
-	}
-
-	/**
-	 * Method for the OPC UA part
-	 * @return
-	 */
-	public boolean reset() {
-		// Throw (method invokation) exception
-		return false;
-	}
-	
-	/**
-	 * This method is called as an update request. The value which is returned is taken directly from the server
+	 * This method is called as an update request. The value which is returned is
+	 * taken directly from the server
+	 * 
 	 * @param actor
 	 * @param nodeId
 	 */
-	public void update(ActorRef actor, String nodeId) {
-		actor.tell(new MachineUpdateEvent("Server", nodeId, "UPDATE", subscription.getUppdate(nodeIdFromString(nodeId))), ActorRef.noSender());
+	public void update(String nodeId) {
+		eventBus.publish(new MachineUpdateEvent("Server", nodeId, MachineEvent.MachineEventType.UPDATE,
+				subscription.getUppdate(nodeIdFromString(nodeId))), ActorRef.noSender());
 	}
-	
-	
+
 	public NodeId nodeIdFromString(String nodeId) {
-		//TODO implement this method!
+		// TODO implement this method!
 		return null;
 	}
-	
+
 	/**
-	 * This method allows an actor to subscribe on a nodeId on the eventbus, it acts a little differently depending on
-	 * which actor is passed on (if the TransportModuleActor wants to subscribe this method has to do some extra steps)
-	 * This doesn't have to be accounted for when using this method, except for if you use this method differently
-	 * (if you want a new actor to subscribe, look into this method!)
-	 * @param actor pass the actor which should recieve the updates
+	 * This method allows an actor to subscribe on a nodeId on the eventbus, it acts
+	 * a little differently depending on which actor is passed on (if the
+	 * TransportModuleActor wants to subscribe this method has to do some extra
+	 * steps) This doesn't have to be accounted for when using this method, except
+	 * for if you use this method differently (if you want a new actor to subscribe,
+	 * look into this method!)
+	 * 
+	 * @param actor  pass the actor which should recieve the updates
 	 * @param nodeId this is the topic aka nodeId
 	 * @return
 	 */
@@ -113,17 +171,19 @@ public class TransportModuleWrapper {
 			return subscription.subscribeToEventBus(actor, nodeId);
 		}
 	}
-	
+
 	public void unsubscribe(ActorRef actor) {
 		subscription.unsubscribe(actor);
 	}
-	
+
 	public void unsubscribe(ActorRef actor, String topic) {
 		subscription.unsubscribe(actor, topic);
 	}
 
 	/**
-	 * This adds nodes to the subscription and therefore to the EventBus of the Subscription.
+	 * This adds nodes to the subscription and therefore to the EventBus of the
+	 * Subscription.
+	 * 
 	 * @param nodes Names of nodes
 	 */
 	public void addNodeForSubscription(String... nodes) {
@@ -135,11 +195,13 @@ public class TransportModuleWrapper {
 			}
 		}
 	}
-	//Needs following imports:
+
+	// Needs following imports:
 	/*
 	 * org.eclipse.milo.examples.client.KeyStoreLoader
 	 * org.eclipse.milo.examples.client.KeyStoreLoader
-	 * org.eclipse.milo.opcua.stack.core.security.SecurityPolicy.getSecurityPolicyUri
+	 * org.eclipse.milo.opcua.stack.core.security.SecurityPolicy.
+	 * getSecurityPolicyUri
 	 * 
 	 */
 	private OpcUaClient createClient() throws Exception {

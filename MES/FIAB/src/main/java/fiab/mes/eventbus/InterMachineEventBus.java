@@ -1,3 +1,4 @@
+
 package fiab.mes.eventbus;
 
 import akka.actor.ActorRef;
@@ -7,7 +8,6 @@ import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.order.msg.OrderEvent;
 
 public class InterMachineEventBus extends ScanningEventBus<MachineEvent, ActorRef, SubscriptionClassifier> {
-
 	
 	@Override
 	public void publish(MachineEvent event, ActorRef subscriber) {
