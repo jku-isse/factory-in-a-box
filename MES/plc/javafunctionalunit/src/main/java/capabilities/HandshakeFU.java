@@ -9,6 +9,7 @@ import helper.CapabilityId;
 import helper.CapabilityRole;
 import helper.CapabilityType;
 
+import java.util.EventObject;
 import java.util.List;
 
 public class HandshakeFU extends Endpoint {
@@ -37,6 +38,12 @@ public class HandshakeFU extends Endpoint {
         wiring = new WiringCapability(serverCommunication, opcua_server, this.getEndpoint_object(),  capabilityId );
         this.capabilities.add(wiring); //adding the Wiring capability to the list of the capabilities
 
+        wiring.addMyEventListener(new CapabilityListener() {
+            public void eventOccurred(CapabilityEvent evt) {
+                System.out.println("FROM THE HANDSHAKE FUUUUUUUUUUU THE WIRING IS DONE");
+            }
+        });
+
     }
 
     public HandshakeFU(ClientCommunication clientCommunication, Object opcua_client, Object parentObjectId, CapabilityId capabilityId ) {
@@ -44,7 +51,7 @@ public class HandshakeFU extends Endpoint {
         super(clientCommunication, opcua_client, parentObjectId,  CapabilityType.HANDSHAKE.toString()+"_FU", capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
 
          //initializing the main capabilities for the handshake FU
-        handshake = new HandshakeCapability(clientCommunication, opcua_client, this.getEndpoint_object(),  capabilityId);
+      //  handshake = new HandshakeCapability(clientCommunication, opcua_client, this.getEndpoint_object(),  capabilityId);
         this.capabilities.add(handshake); //adding the handshake capability to the list of the capabilities
 
 

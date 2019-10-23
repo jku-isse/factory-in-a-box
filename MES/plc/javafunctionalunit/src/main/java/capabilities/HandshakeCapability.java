@@ -20,6 +20,7 @@ import static helper.HandshakeStates.STOPPING;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sun.swing.internal.plaf.synth.resources.synth_pt_BR;
 import communication.Communication;
 import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
@@ -28,7 +29,7 @@ import helper.*;
 import protocols.LoadingClientProtocol;
 import protocols.LoadingServerProtocol;
 
-public class HandshakeCapability extends Capability {
+public class HandshakeCapability extends WiringCapability {
 
     public final static boolean DEBUG = true;
     // Map<CapabilityInstanceId, Protocol> protocolMap;
@@ -55,39 +56,43 @@ public class HandshakeCapability extends Capability {
         System.out.println("Method Callback stop");
 
     }
+    /*
     public HandshakeCapability(ClientCommunication clientCommunication, Object client, Object parentObject, CapabilityId capabilityId) {
         super(clientCommunication, client, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
 
         clientProtocol = null;
         serverProtocol = null;
     }
+
+     */
     public HandshakeCapability(ServerCommunication serverCommunication, Object server, Object parentObject, CapabilityId capabilityId) {
-        super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+      //  super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+        super(serverCommunication, server, parentObject, capabilityId);
 
         clientProtocol = null;
         serverProtocol = null;
 
         serverCommunication.addIntArrayMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "START",3,
                 opcuaMethodInput -> {
-                    return start(opcuaMethodInput);
+                    return new Object();
                 });
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "STOP",
                 opcuaMethodInput -> {
-                    return stop(opcuaMethodInput);
+                    return stop((String) opcuaMethodInput);
                 });
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "RESET",
                 opcuaMethodInput -> {
-                    return reset(opcuaMethodInput);
+                    return reset((String)opcuaMethodInput);
                 });
 
 
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_LOADING",
                 opcuaMethodInput -> {
-                    return initiateLoading(opcuaMethodInput);
+                    return initiateLoading((String)opcuaMethodInput);
                 });
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_UNLOADING",
                 opcuaMethodInput -> {
-                    return initiateUnloading(opcuaMethodInput);
+                    return initiateUnloading((String)opcuaMethodInput);
                 });
 
 
@@ -290,4 +295,6 @@ public class HandshakeCapability extends Capability {
             System.out.println(className + "." + methodName + "(): " + lineNumber + "  " + message);
         }
     }
+
+
 }

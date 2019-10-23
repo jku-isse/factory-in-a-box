@@ -12,12 +12,17 @@ import helper.CapabilityType;
 import java.util.HashMap;
 import java.util.Map;
 
-// An interface to be implemented by everyone interested in "Hello" events
-interface HelloListener {
-    void someoneSaidHello();
-}
 
-public class WiringCapability extends Capability {
+import java.util.EventListener;
+import java.util.EventObject;
+
+import javax.swing.event.EventListenerList;
+
+
+
+
+
+public class WiringCapability extends Capability   {
 
 
     Map<CapabilityId, String> wiringMap;
@@ -29,9 +34,9 @@ public class WiringCapability extends Capability {
         super(serverCommunication, opcua_server, parentObject, capabilityId, CapabilityType.WIRING, CapabilityRole.Provided);
         wiringMap = new HashMap<CapabilityId, String>();
 
-        serverCommunication.addStringMethod(serverCommunication, opcua_server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "SET_WIRING",
+        serverCommunication.addIntArrayMethod(serverCommunication, opcua_server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "SET_WIRING",2,
                 opcuaMethodInput -> {
-                    return setWiring(opcuaMethodInput); // the opcua method callback is received here
+                    return setWiringInfo(opcuaMethodInput); // the opcua method callback is received here
                 });
 
 
@@ -55,10 +60,12 @@ public class WiringCapability extends Capability {
     // all the needed params are ';' separated
     // the first input is CapabilityID followed by remoteCapabiltyEntryPoint
     // the CapabilityID should match the Enum attributes found in helper/CapabilityId
-    public String setWiring(String wiringInfo) { // Serveraddress+NodeID
 
+    public String setWiringInfo(int[] wiringInfo){
+   // Serveraddress+NodeID
 
-        String[] wiringParamters = wiringInfo.split(";");
+        //new WiringCapabilityLestiner().setWiringInfo(wiringInfo);
+        String[] wiringParamters = {"W","WW"};
         //  System.out.println(wiringParamters.toString());
         if (wiringParamters.length == 1)
             return "Wrong Parameters, Please separate the CapabilityID and Path with ';'";
@@ -86,6 +93,11 @@ public class WiringCapability extends Capability {
       //  System.out.println(   this.getClientCommunication().callStringMethod("opc.tcp://localhost:4840", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 19),"Hello"));
      //  System.out.println( "ARAAAYY "+ new Communication().getClientCommunication().callArrayMethod("opc.tcp://localhost:4840/", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 18),
         //        inputArray)) ;
+
+
+        //do nothing if no listeners are registered
+
+       fireMyEvent(new CapabilityEvent(this));
         return "Wiring was Successful";
         //
         //
@@ -102,4 +114,8 @@ public class WiringCapability extends Capability {
     public void setWiringMap(CapabilityId capabilityId, String path) {
         this.wiringMap.put(capabilityId, path);
     }
+
+
+
+
 }

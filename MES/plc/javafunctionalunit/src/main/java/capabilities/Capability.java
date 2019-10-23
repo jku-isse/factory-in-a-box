@@ -20,8 +20,19 @@ import helper.CapabilityRole;
 import helper.CapabilityType;
 import helper.CapabilityId;
 
+import javax.swing.event.EventListenerList;
+import java.util.EventListener;
+import java.util.EventObject;
 import java.util.function.Function;
 
+class CapabilityEvent extends EventObject {
+    public CapabilityEvent(Capability source) {
+        super(source);
+    }
+}
+interface CapabilityListener extends EventListener {
+    public void eventOccurred(CapabilityEvent evt);
+}
 public class Capability {
     private CapabilityId capabilityId;
     private CapabilityType capabilityType;
@@ -141,4 +152,20 @@ public class Capability {
                 requestedNodePair, methodName, function);
     }
 
+    protected EventListenerList listenerList = new EventListenerList();
+
+    public void addMyEventListener(CapabilityListener listener) {
+        listenerList.add(CapabilityListener.class, listener);
+    }
+    public void removeMyEventListener(CapabilityListener listener) {
+        listenerList.remove(CapabilityListener.class, listener);
+    }
+    void fireMyEvent(CapabilityEvent evt) {
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = 0; i < listeners.length; i = i+2) {
+            if (listeners[i] == CapabilityListener.class) {
+                ((CapabilityListener) listeners[i+1]).eventOccurred(evt);
+            }
+        }
+    }
 }
