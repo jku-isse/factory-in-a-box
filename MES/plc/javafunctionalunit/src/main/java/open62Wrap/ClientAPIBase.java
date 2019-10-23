@@ -51,6 +51,14 @@ public class ClientAPIBase {
     open62541JNI.ClientAPIBase_change_ownership(this, swigCPtr, true);
   }
 
+  public void setMethodInputs(int[] value) {
+    open62541JNI.ClientAPIBase_methodInputs_set(swigCPtr, this, value);
+  }
+
+  public int[] getMethodInputs() {
+    return open62541JNI.ClientAPIBase_methodInputs_get(swigCPtr, this);
+  }
+
   public void setRunning(boolean value) {
     open62541JNI.ClientAPIBase_running_set(swigCPtr, this, value);
   }
@@ -118,8 +126,12 @@ public class ClientAPIBase {
     return open62541JNI.ClientAPIBase_GetMethodOutput();
   }
 
-  public static String CallMethod(SWIGTYPE_p_UA_Client client, UA_NodeId objectId, UA_NodeId methodId, String argInputString) {
-    return open62541JNI.ClientAPIBase_CallMethod(SWIGTYPE_p_UA_Client.getCPtr(client), UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, argInputString);
+  public static String CallMethod(String serverUrl, UA_NodeId objectId, UA_NodeId methodId, String argInputString) {
+    return open62541JNI.ClientAPIBase_CallMethod(serverUrl, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, argInputString);
+  }
+
+  public static String CallArrayMethod(String serverUrl, UA_NodeId objectId, UA_NodeId methodId, int[] methodInputs, int arraySize, UA_Variant output) {
+    return open62541JNI.ClientAPIBase_CallArrayMethod(serverUrl, UA_NodeId.getCPtr(objectId), objectId, UA_NodeId.getCPtr(methodId), methodId, methodInputs, arraySize, UA_Variant.getCPtr(output), output);
   }
 
   public void monitored_itemChanged(UA_NodeId nodeId, int value) {

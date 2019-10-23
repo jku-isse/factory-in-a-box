@@ -10,14 +10,14 @@ package open62Wrap;
 
 public class open62541JNI {
 
-  static {
+ /* static {
     try {
         System.loadLibrary("opcua_java_api");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("opcua_java_api failed to load. \n" + e);
       System.exit(1);
     }
-  }
+  }*/
 
   public final static native void ServerAPIBase_running_set(long jarg1, ServerAPIBase jarg1_, boolean jarg2);
   public final static native boolean ServerAPIBase_running_get(long jarg1, ServerAPIBase jarg1_);
@@ -37,6 +37,7 @@ public class open62541JNI {
   public final static native int ServerAPIBase_WriteVariable__SWIG_2(long jarg1, long jarg2, UA_NodeId jarg2_, double jarg3);
   public final static native long ServerAPIBase_GetDataTypeNode(int jarg1);
   public final static native long ServerAPIBase_AddMethod(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, long jarg4, UA_NodeId jarg4_, long jarg5, UA_Argument jarg5_, long jarg6, UA_Argument jarg6_, long jarg7, UA_MethodAttributes jarg7_);
+  public final static native long ServerAPIBase_AddArrayMethod(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, long jarg4, UA_NodeId jarg4_, long jarg5, UA_Argument jarg5_, long jarg6, UA_MethodAttributes jarg6_, String jarg7, String jarg8, int jarg9, int jarg10);
   public final static native void ServerAPIBase_SetMethodOutput(long jarg1, UA_NodeId jarg1_, String jarg2);
   public final static native void ServerAPIBase_monitored_itemChanged(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ServerAPIBase_monitored_itemChangedSwigExplicitServerAPIBase(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
@@ -46,6 +47,8 @@ public class open62541JNI {
   public final static native long new_ServerAPIBase();
   public final static native void ServerAPIBase_director_connect(ServerAPIBase obj, long cptr, boolean mem_own, boolean weak_global);
   public final static native void ServerAPIBase_change_ownership(ServerAPIBase obj, long cptr, boolean take_or_release);
+  public final static native void ClientAPIBase_methodInputs_set(long jarg1, ClientAPIBase jarg1_, int[] jarg2);
+  public final static native int[] ClientAPIBase_methodInputs_get(long jarg1, ClientAPIBase jarg1_);
   public final static native void ClientAPIBase_running_set(long jarg1, ClientAPIBase jarg1_, boolean jarg2);
   public final static native boolean ClientAPIBase_running_get(long jarg1, ClientAPIBase jarg1_);
   public final static native long ClientAPIBase_Get();
@@ -62,7 +65,8 @@ public class open62541JNI {
   public final static native int ClientAPIBase_ClientReadIntValue(long jarg1, long jarg2, UA_NodeId jarg2_);
   public final static native int ClientAPIBase_ClientWriteValue(String jarg1, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native String ClientAPIBase_GetMethodOutput();
-  public final static native String ClientAPIBase_CallMethod(long jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4);
+  public final static native String ClientAPIBase_CallMethod(String jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4);
+  public final static native String ClientAPIBase_CallArrayMethod(String jarg1, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, int[] jarg4, int jarg5, long jarg6, UA_Variant jarg6_);
   public final static native void ClientAPIBase_monitored_itemChanged(long jarg1, ClientAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ClientAPIBase_monitored_itemChangedSwigExplicitClientAPIBase(long jarg1, ClientAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ClientAPIBase_client_connected(long jarg1, ClientAPIBase jarg1_, long jarg2, ClientAPIBase jarg2_, long jarg3, String jarg4);
@@ -237,8 +241,8 @@ public class open62541JNI {
   public final static native int UA_Guid_data2_get(long jarg1, UA_Guid jarg1_);
   public final static native void UA_Guid_data3_set(long jarg1, UA_Guid jarg1_, int jarg2);
   public final static native int UA_Guid_data3_get(long jarg1, UA_Guid jarg1_);
-  public final static native void UA_Guid_data4_set(long jarg1, UA_Guid jarg1_, long jarg2);
-  public final static native long UA_Guid_data4_get(long jarg1, UA_Guid jarg1_);
+  public final static native void UA_Guid_data4_set(long jarg1, UA_Guid jarg1_, short[] jarg2);
+  public final static native short[] UA_Guid_data4_get(long jarg1, UA_Guid jarg1_);
   public final static native long new_UA_Guid();
   public final static native void delete_UA_Guid(long jarg1);
   public final static native int void2int(long jarg1);

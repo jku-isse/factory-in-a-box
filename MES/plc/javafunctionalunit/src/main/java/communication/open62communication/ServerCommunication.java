@@ -67,7 +67,8 @@ public class ServerCommunication extends ServerAPIBase {
      */
     @Override
     public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
-        setMethodOutput(methodId, getFunction(methodId.getIdentifier().getNumeric()).apply(input));
+        System.out.println("Methods Call back!!!!!!!!!!!!!!!!!!!!!!S");
+           setMethodOutput(methodId, getFunction(methodId.getIdentifier().getNumeric()).apply(input));
     }
 
     public Object createServer(String host, int port) {
@@ -85,6 +86,11 @@ public class ServerCommunication extends ServerAPIBase {
 
     public Object addObject(Object server, Object requestedNewNodeId, String name) {
         return ServerAPIBase.AddObject((SWIGTYPE_p_UA_Server) server, (UA_NodeId) requestedNewNodeId, name);
+    }
+
+    public Object addObject(Object server, RequestedNodePair<Integer, Integer> requestedNewNodeId, String name) {
+        return ServerAPIBase.AddObject((SWIGTYPE_p_UA_Server) server,
+                open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name);
     }
 
     public Object addNestedObject(Object server, Object parent, Object requestedNewNodeId, String name) {
@@ -160,12 +166,45 @@ public class ServerCommunication extends ServerAPIBase {
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
         UA_NodeId reqMethodId = open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
-        Object methodId = ServerAPIBase.AddMethod((ServerAPIBase) serverAPIBase, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+        Object methodId = ServerAPIBase.AddMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
                 input, output, methodAttributes);
         addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
         return methodId;
     }
+
+
+    public Object addIntArrayMethod(Object serverAPIBase, Object server, Object objectId, RequestedNodePair<Integer, Integer> requestedNewNodeId,
+                                       String methodName,int inputSize, Function<String, String> function) {
+      UA_LocalizedText localeOut = new UA_LocalizedText();
+        localeOut.setLocale("en-US");
+        localeOut.setText("Success?");
+
+
+       // UA_Argument input = CreateArgument("Input", methodName, open62541.UA_TYPES_STRING, false, 3);
+        UA_Argument output = new UA_Argument();
+
+        output.setName("Output");
+        output.setDescription(localeOut);
+        output.setDataType(ServerAPIBase.GetDataTypeNode(open62541.UA_TYPES_STRING));
+        output.setValueRank(open62541.UA_VALUERANK_SCALAR);
+
+        UA_LocalizedText methodLocale = new UA_LocalizedText();
+        methodLocale.setText(methodName);
+
+        UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
+        methodAttributes.setDescription(methodLocale);
+        methodAttributes.setDisplayName(methodLocale);
+        methodAttributes.setExecutable(true);
+        methodAttributes.setUserExecutable(true);
+        UA_NodeId reqMethodId = open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
+        Object methodId = ServerAPIBase.AddArrayMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+                reqMethodId,
+                output, methodAttributes,"Input", methodName, open62541.UA_TYPES_INT32, inputSize);
+        addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
+        return methodId;
+    }
+
 
     public void setMethodOutput(Object nodeId, String output) {
         ServerAPIBase.SetMethodOutput((UA_NodeId) nodeId, output);

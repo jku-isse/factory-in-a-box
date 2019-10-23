@@ -11,6 +11,16 @@ public abstract class ProcessEngineBase extends FunctionalUnitBase {
     private ClientCommunication clientCommunication;
     private Object client;
 
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
+    public void setServerUrl(String serverUrl) {
+        this.serverUrl = serverUrl;
+    }
+
+    private String serverUrl;
+
     public ClientCommunication getClientCommunication() {
         return clientCommunication;
     }

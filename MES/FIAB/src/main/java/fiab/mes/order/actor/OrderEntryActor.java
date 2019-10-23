@@ -10,9 +10,6 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
-import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
@@ -26,8 +23,7 @@ public class OrderEntryActor extends AbstractActor{
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	
 	private final AtomicInteger orderId = new AtomicInteger(0);
-	private HashMap<String, ActorRef> orderActors = new HashMap<>();
-	private HashMap<String, OrderEvent> latestChange = new HashMap<>();
+	private HashMap<String, ActorRef> orderActors = new HashMap<>();	
 	private ActorSelection eventBusByRef;
 	private ActorSelection orderPlannerByRef;
 	
@@ -37,15 +33,14 @@ public class OrderEntryActor extends AbstractActor{
 	
 	public OrderEntryActor() {
 		eventBusByRef = context().actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
-		orderPlannerByRef = context().actorSelection("/user/"+OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
-		eventBusByRef.tell(new SubscribeMessage(getSelf(), new SubscriptionClassifier(self().path().name(), "*")), getSelf());
+		orderPlannerByRef = context().actorSelection("/user/"+OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);	
 	}
 	
 	@Override
 	public Receive createReceive() {
 		 return receiveBuilder()
 			        .matchEquals("GetAllOrders", p -> {
-			        	sender().tell(latestChange.values(), getSelf());
+			        	sender().tell(orderActors.keySet(), getSelf());
 			        	// need to figure out how to collect order information from all order actors, perhaps a separate actors is needed for that
 			        	})
 			        .match(RegisterProcessRequest.class, doc -> {			        	
@@ -74,9 +69,6 @@ public class OrderEntryActor extends AbstractActor{
 			        		log.info("OrderHistoryRequest received for nonexisting order: "+req.getOrderId());
 			        		sender().tell(Optional.empty(), getSelf());
 			        	}
-			        })
-			        .match(OrderEvent.class, e -> {
-			        	this.latestChange.put(e.getOrderId(), e);
 			        })
 			        .matchAny(o -> log.info("OrderEntryActor received Invalid message type: "+o.getClass().getSimpleName()))
 			        .build();

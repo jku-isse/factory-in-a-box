@@ -10,7 +10,6 @@ public class MachineLevelEventBus extends ScanningEventBus<MachineEvent, ActorRe
 	@Override
 	public void publish(MachineEvent event, ActorRef subscriber) {
 		subscriber.tell(event, ActorRef.noSender());
-		
 	}
 
 	@Override

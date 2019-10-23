@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import communication.Communication;
+import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
 import helper.*;
@@ -54,14 +55,19 @@ public class HandshakeCapability extends Capability {
         System.out.println("Method Callback stop");
 
     }
+    public HandshakeCapability(ClientCommunication clientCommunication, Object client, Object parentObject, CapabilityId capabilityId) {
+        super(clientCommunication, client, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
 
-    public HandshakeCapability(ServerCommunication serverCommunication, Object server, Object parentObject, CapabilityId capabilityId, CapabilityRole capabilityRole) {
-        super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, capabilityRole);
+        clientProtocol = null;
+        serverProtocol = null;
+    }
+    public HandshakeCapability(ServerCommunication serverCommunication, Object server, Object parentObject, CapabilityId capabilityId) {
+        super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
 
         clientProtocol = null;
         serverProtocol = null;
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "START",
+        serverCommunication.addIntArrayMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "START",3,
                 opcuaMethodInput -> {
                     return start(opcuaMethodInput);
                 });
@@ -149,7 +155,10 @@ public class HandshakeCapability extends Capability {
     }
 
     public String start(String inputPram) {
-        if (loadingMechanism == 1) {
+        if (this.getCapabilityRole().compareTo(CapabilityRole.Provided) ==0 ) {
+          //  int inputArray[] = {5, 6, 7};
+         // System.out.println( "ARAAAYY "+this.getClientCommunication().callArrayMethod("opc.tcp://localhost:4840", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 18),
+       //             inputArray)) ;
         //    clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
         }
         return "Start Complete";
