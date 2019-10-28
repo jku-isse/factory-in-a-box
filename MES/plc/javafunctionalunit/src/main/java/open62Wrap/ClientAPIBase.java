@@ -98,7 +98,11 @@ public class ClientAPIBase {
   }
 
   public static int ClientSubtoNode(ClientAPIBase jClientAPIBase, SWIGTYPE_p_UA_Client client, UA_NodeId nodeID) {
-    return open62541JNI.ClientAPIBase_ClientSubtoNode(ClientAPIBase.getCPtr(jClientAPIBase), jClientAPIBase, SWIGTYPE_p_UA_Client.getCPtr(client), UA_NodeId.getCPtr(nodeID), nodeID);
+    return open62541JNI.ClientAPIBase_ClientSubtoNode__SWIG_0(ClientAPIBase.getCPtr(jClientAPIBase), jClientAPIBase, SWIGTYPE_p_UA_Client.getCPtr(client), UA_NodeId.getCPtr(nodeID), nodeID);
+  }
+
+  public static int ClientSubtoNode(ClientAPIBase jClientAPIBase, String serverUrl, UA_NodeId nodeID) {
+    return open62541JNI.ClientAPIBase_ClientSubtoNode__SWIG_1(ClientAPIBase.getCPtr(jClientAPIBase), jClientAPIBase, serverUrl, UA_NodeId.getCPtr(nodeID), nodeID);
   }
 
   public static UA_Variant SetGetVariant(UA_Variant value) {

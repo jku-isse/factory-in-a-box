@@ -12,24 +12,49 @@
  **/
 package capabilities;
 
-import static helper.HandshakeStates.*;
-
-import static helper.HandshakeStates.STOPPED;
-import static helper.HandshakeStates.STOPPING;
-
-import java.util.HashMap;
-import java.util.Map;
-
-
-import communication.Communication;
 import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
-import helper.*;
+import helper.CapabilityId;
+import helper.CapabilityRole;
+import helper.CapabilityType;
+import helper.HandshakeStates;
 import protocols.LoadingClientProtocol;
 import protocols.LoadingServerProtocol;
 
-public class HandshakeCapability extends WiringCapability {
+import static helper.HandshakeStates.*;
+
+
+class startHandshakeEvent extends CapabilityEvent {
+    public startHandshakeEvent(HandshakeCapability source) {  super(source); }
+}
+
+class stopHandshakeEvent extends CapabilityEvent {
+    public stopHandshakeEvent(HandshakeCapability source) {
+        super(source);
+    }
+}
+
+class resetHandshakeEvent extends CapabilityEvent {
+    public resetHandshakeEvent(HandshakeCapability source) {
+        super(source);
+    }
+}
+
+class initLoadingHandshakeEvent extends CapabilityEvent {
+    public initLoadingHandshakeEvent(HandshakeCapability source) {
+        super(source);
+    }
+}
+
+class initUnloadingHandshakeEvent extends CapabilityEvent {
+    public initUnloadingHandshakeEvent(HandshakeCapability source) {
+        super(source);
+    }
+}
+
+
+public class HandshakeCapability extends Capability {
 
     public final static boolean DEBUG = true;
     // Map<CapabilityInstanceId, Protocol> protocolMap;
@@ -56,7 +81,7 @@ public class HandshakeCapability extends WiringCapability {
         System.out.println("Method Callback stop");
 
     }
-    /*
+
     public HandshakeCapability(ClientCommunication clientCommunication, Object client, Object parentObject, CapabilityId capabilityId) {
         super(clientCommunication, client, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
 
@@ -64,37 +89,36 @@ public class HandshakeCapability extends WiringCapability {
         serverProtocol = null;
     }
 
-     */
+
     public HandshakeCapability(ServerCommunication serverCommunication, Object server, Object parentObject, CapabilityId capabilityId) {
-      //  super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
-        super(serverCommunication, server, parentObject, capabilityId);
+        super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+        // super(serverCommunication, server, parentObject, capabilityId);
 
         clientProtocol = null;
         serverProtocol = null;
 
-        serverCommunication.addIntArrayMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "START",3,
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "START",
                 opcuaMethodInput -> {
-                    return new Object();
+                    return start(opcuaMethodInput);
                 });
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "STOP",
                 opcuaMethodInput -> {
-                    return stop((String) opcuaMethodInput);
+                    return stop( opcuaMethodInput);
                 });
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "RESET",
                 opcuaMethodInput -> {
-                    return reset((String)opcuaMethodInput);
+                    return reset( opcuaMethodInput);
                 });
 
 
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_LOADING",
                 opcuaMethodInput -> {
-                    return initiateLoading((String)opcuaMethodInput);
+                    return initiateLoading((String) opcuaMethodInput);
                 });
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_UNLOADING",
                 opcuaMethodInput -> {
-                    return initiateUnloading((String)opcuaMethodInput);
+                    return initiateUnloading((String) opcuaMethodInput);
                 });
-
 
 
         fireTrigger(IDLE);
@@ -160,24 +184,30 @@ public class HandshakeCapability extends WiringCapability {
     }
 
     public String start(String inputPram) {
-        if (this.getCapabilityRole().compareTo(CapabilityRole.Provided) ==0 ) {
-          //  int inputArray[] = {5, 6, 7};
-         // System.out.println( "ARAAAYY "+this.getClientCommunication().callArrayMethod("opc.tcp://localhost:4840", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 18),
-       //             inputArray)) ;
-        //    clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
+        if (this.getCapabilityRole().compareTo(CapabilityRole.Provided) == 0) {
+            //  int inputArray[] = {5, 6, 7};
+            // System.out.println( "ARAAAYY "+this.getClientCommunication().callArrayMethod("opc.tcp://localhost:4840", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 18),
+            //             inputArray)) ;
+            //    clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
         }
+
+        fireEvent(new startHandshakeEvent(this));
         return "Start Complete";
     }
+
     public String stop(String inputPram) {
         if (loadingMechanism == 1) {
-          //  clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
+            //  clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
         }
+        fireEvent(new stopHandshakeEvent(this));
         return "Stop Complete";
     }
+
     public String reset(String inputPram) {
         if (loadingMechanism == 1) {
-         //   clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
+            //   clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
         }
+        fireEvent(new resetHandshakeEvent(this));
         return "Reset Complete";
     }
 
@@ -223,6 +253,7 @@ public class HandshakeCapability extends WiringCapability {
                 return "Wrong Parameters, Could not Match CabilityID";
             }
         }
+        fireEvent(new initUnloadingHandshakeEvent(this));
         return "initiateLoading was Successful";
     }
 
@@ -240,11 +271,12 @@ public class HandshakeCapability extends WiringCapability {
             try {
                 CapabilityId localCapabilityId = CapabilityId.valueOf(inputParamters[0]);
                 String orderId = inputParamters[1];
-             //   this.wiringMap.put(localCapabilityId, orderId);
+                //   this.wiringMap.put(localCapabilityId, orderId);
             } catch (IllegalArgumentException e) {
                 return "Wrong Parameters, Could not Match CabilityID";
             }
         }
+        fireEvent(new initLoadingHandshakeEvent(this));
         return "initiateLoading was Successful";
     /*    //(CapabilityId instanceId, String orderId) {
         loadingMechanism = 1;

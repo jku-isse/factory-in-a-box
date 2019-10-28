@@ -1,17 +1,17 @@
 package capabilities;
 
 
-import communication.Communication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
 import helper.CapabilityId;
 import helper.CapabilityRole;
 import helper.CapabilityType;
-
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.util.HashMap;
 import java.util.Map;
-
 
 
 class WiringCapabilityEvent extends CapabilityEvent {
@@ -20,26 +20,56 @@ class WiringCapabilityEvent extends CapabilityEvent {
     }
 }
 
-public class WiringCapability extends Capability   {
+public class WiringCapability extends Capability {
 
 
     Map<CapabilityId, String> wiringMap;
-    Object remoteEndpoint_nodeid;
-    Object remoteNodeId_nodeid;
-    Object remoteRole_nodeid;
+    private Object remoteEndpoint_nodeid;
+    private Object remoteNodeId_nodeid;
+    private Object remoteRole_nodeid;
+    private Object localCapabilityId_nodeid;
+
+    private Object wiring_NodeId;
+    private Object wiring_object;
+
+    public String getLOCAL_CAPABILITYIDString() {
+        return LOCAL_CAPABILITYIDString;
+    }
+
+    public String getREMOTE_ENDPOINTString() {
+        return REMOTE_ENDPOINTString;
+    }
+
+    public String getREMOTE_NODEIDString() {
+        return REMOTE_NODEIDString;
+    }
+
+    public String getREMOTE_ROLEString() {
+        return REMOTE_ROLEString;
+    }
+
+    String LOCAL_CAPABILITYIDString;
+    String REMOTE_ENDPOINTString;
+    String REMOTE_NODEIDString;
+    String REMOTE_ROLEString;
 
     public WiringCapability(ServerCommunication serverCommunication, Object opcua_server, Object parentObject, CapabilityId capabilityId) {
         super(serverCommunication, opcua_server, parentObject, capabilityId, CapabilityType.WIRING, CapabilityRole.Provided);
         wiringMap = new HashMap<CapabilityId, String>();
 
-        serverCommunication.addIntArrayMethod(serverCommunication, opcua_server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "SET_WIRING",2,
+        serverCommunication.addStringMethod(serverCommunication, opcua_server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "SET_WIRING",
                 opcuaMethodInput -> {
                     return setWiringInfo(opcuaMethodInput); // the opcua method callback is received here
+
                 });
 
 
-        Object wiring_NodeId = serverCommunication.createNodeNumeric(1, 1000); //need to implement a controller level Enum
-        Object wiring_object = serverCommunication.addNestedObject(opcua_server, this.getCapabilityObject(), wiring_NodeId, "CAPABILITY_WIRING");
+        wiring_NodeId = serverCommunication.createNodeNumeric(1, 1000); //need to implement a controller level Enum
+        wiring_object = serverCommunication.addNestedObject(opcua_server, this.getCapabilityObject(), wiring_NodeId, "CAPABILITY_WIRING");
+
+
+        localCapabilityId_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "LOCAL_CAPABILITYID");
+        serverCommunication.writeVariable(opcua_server, localCapabilityId_nodeid, "-");
 
         remoteEndpoint_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_ENDPOINT");
         serverCommunication.writeVariable(opcua_server, remoteEndpoint_nodeid, "-");
@@ -59,50 +89,45 @@ public class WiringCapability extends Capability   {
     // the first input is CapabilityID followed by remoteCapabiltyEntryPoint
     // the CapabilityID should match the Enum attributes found in helper/CapabilityId
 
-    public String setWiringInfo(int[] wiringInfo){
-   // Serveraddress+NodeID
+    public String setWiringInfo(String wiringInfo) {
+        JSONObject wiringJson;
+        try {
+            Object obj = new JSONParser().parse(wiringInfo);
+            wiringJson = (JSONObject) obj;
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return "Error at parsing Json input";
+        }
 
-        //new WiringCapabilityLestiner().setWiringInfo(wiringInfo);
-        String[] wiringParamters = {"NORTH_SERVER","http://10.0.0.0"};
+        LOCAL_CAPABILITYIDString = (String) wiringJson.get("LOCAL_CAPABILITYID");
+        REMOTE_ENDPOINTString = (String) wiringJson.get("REMOTE_ENDPOINT");
+        REMOTE_NODEIDString = (String) wiringJson.get("REMOTE_NODEID");
+        REMOTE_ROLEString = (String) wiringJson.get("REMOTE_ROLE");
+
+
         //  System.out.println(wiringParamters.toString());
-        if (wiringParamters.length == 1)
-            return "Wrong Parameters, Please separate the CapabilityID and Path with ';'";
+        if (LOCAL_CAPABILITYIDString == null || REMOTE_ENDPOINTString == null || LOCAL_CAPABILITYIDString.isEmpty() || REMOTE_ENDPOINTString.isEmpty())
+            return "Wrong Parameters!";
         else {
             try {
-                CapabilityId localCapabilityId = CapabilityId.valueOf(wiringParamters[0]); //Comparing the first part of the string to the Enums of CapabilityId
-                String remoteCapabiltyEntryPoint = wiringParamters[1]; //getting the path for this capability id, later this will be used by the client to connect to this server endpoint
-                this.wiringMap.put(localCapabilityId, remoteCapabiltyEntryPoint);
+                CapabilityId localCapabilityId = CapabilityId.valueOf(LOCAL_CAPABILITYIDString); //Comparing the first part of the string to the Enums of CapabilityId
+                //getting the path for this capability id, later this will be used by the client to connect to this server endpoint
+                this.wiringMap.put(localCapabilityId, REMOTE_ENDPOINTString);
 
             } catch (IllegalArgumentException e) {
-             //   return "Wrong Parameters, Could not Match CapabilityID";
+                return "Wrong Parameters, Could not Match CapabilityID";
             }
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int inputArray[]  = new int[] {1,2,3};
-                System.out.println( "ARAAAYY "+ new Communication().getClientCommunication().callArrayMethod("opc.tcp://localhost:4840/", new RequestedNodePair<>(0, 85), new RequestedNodePair<>(1, 12),
-                              inputArray)) ;
+        getServerCommunication().writeVariable(getServer(), localCapabilityId_nodeid, LOCAL_CAPABILITYIDString);
+        getServerCommunication().writeVariable(getServer(), remoteEndpoint_nodeid, REMOTE_ENDPOINTString);
+        getServerCommunication().writeVariable(getServer(), remoteNodeId_nodeid, REMOTE_NODEIDString);
+        getServerCommunication().writeVariable(getServer(), remoteRole_nodeid, REMOTE_ROLEString);
 
-            }
-        }).start();
-       /// int inputArray[] = {5, 6, 7};
-      //  System.out.println(   this.getClientCommunication().callStringMethod("opc.tcp://localhost:4840", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 19),"Hello"));
-     //  System.out.println( "ARAAAYY "+ new Communication().getClientCommunication().callArrayMethod("opc.tcp://localhost:4840/", new RequestedNodePair<>(1, 66), new RequestedNodePair<>(1, 18),
-        //        inputArray)) ;
-
-
-        //do nothing if no listeners are registered
-
-       fireEvent(new WiringCapabilityEvent(this));
-
+        fireEvent(new WiringCapabilityEvent(this));
 
 
         return "Wiring was Successful";
-        //
-        //
-
     }
 
 
@@ -115,8 +140,6 @@ public class WiringCapability extends Capability   {
     public void setWiringMap(CapabilityId capabilityId, String path) {
         this.wiringMap.put(capabilityId, path);
     }
-
-
 
 
 }
