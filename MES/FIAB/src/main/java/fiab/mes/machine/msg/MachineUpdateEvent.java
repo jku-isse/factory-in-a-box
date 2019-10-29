@@ -15,7 +15,7 @@ public class MachineUpdateEvent extends MachineEvent {
 	 * @param value
 	 */
 	public MachineUpdateEvent(String machineId, String nodeId, MachineEvent.MachineEventType type, Object value) {
-		super(machineId, MachineEventType.UPDATE);
+		super(machineId, MachineEventType.UPDATED);
 		this.nodeId = nodeId;
 		this.newValue = value;
 		this.type = type;
