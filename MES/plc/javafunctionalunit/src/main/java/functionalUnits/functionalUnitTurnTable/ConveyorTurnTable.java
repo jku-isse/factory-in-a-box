@@ -66,7 +66,7 @@ public class ConveyorTurnTable extends ConveyorBase {
             updateState();
             System.out.println("Executing: loadBelt");
             conveyorMotor.backward();
-            while (!sensorLoading.detectedInput()) {
+            while (!sensorLoading.hasDetectedInput()) {
                 if (stopped || suspended) {
                     stopped = false;
                     suspended = false;
@@ -98,7 +98,7 @@ public class ConveyorTurnTable extends ConveyorBase {
             updateState();
             System.out.println("Executing: loadBelt");
             conveyorMotor.forward();
-            while (sensorUnloading.detectedInput()) {
+            while (sensorUnloading.hasDetectedInput()) {
                 if (stopped || suspended) {
                     stopped = false;
                     suspended = false;

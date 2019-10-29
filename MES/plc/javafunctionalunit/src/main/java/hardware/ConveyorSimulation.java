@@ -3,8 +3,9 @@ package hardware;
 import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -19,96 +20,84 @@ public class ConveyorSimulation {
     private Sensor sensorLoading;
     private Sensor sensorUnloading;
 
-    private Timer timer;
-
-    private int timerMs;
+    private ScheduledThreadPoolExecutor executor;
+    private ScheduledFuture loadingTask;
+    private ScheduledFuture unloadingTask;
+    private long timerMs;
 
     private AtomicBoolean fullyLoaded;
     private AtomicBoolean fullyUnloaded;
     private AtomicBoolean stopped;
 
-    public ConveyorSimulation(int timerMs) {
-        this.timer = new Timer();
+    public ConveyorSimulation(Motor conveyorMotor, Sensor sensorLoading, Sensor sensorUnloading, long timerMs) {
+        executor = new ScheduledThreadPoolExecutor(2);  //one for each sensor
         this.fullyLoaded = new AtomicBoolean(false);
         this.fullyUnloaded = new AtomicBoolean(true);
         this.stopped = new AtomicBoolean(false);
         this.timerMs = timerMs;
+        this.sensorLoading = new Sensor() {
+            @Override
+            public boolean hasDetectedInput() {
+                return sensorLoading.hasDetectedInput();
+            }
+
+            @Override
+            public void setDetectedInput(boolean detectedInput) {
+                sensorLoading.setDetectedInput(detectedInput);
+            }
+        };
+        this.sensorUnloading = new Sensor() {
+            @Override
+            public boolean hasDetectedInput() {
+                return sensorUnloading.hasDetectedInput();
+            }
+
+            @Override
+            public void setDetectedInput(boolean detectedInput) {
+                sensorUnloading.setDetectedInput(detectedInput);
+            }
+        };
         this.conveyorMotor = new Motor() {
             @Override
             public void forward() {
-                if (fullyUnloaded.get()) {
-                    System.out.println("Conveyor is empty");
-                } else {
-                    timer.purge();
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            fullyLoaded.set(true);
-                        }
-                    }, timerMs);
-                }
+                executor.schedule(() -> {
+                    getSensorLoading().setDetectedInput(true);
+                    fullyLoaded.set(true);
+                }, timerMs, TimeUnit.MILLISECONDS);
+                conveyorMotor.forward();
+                fullyUnloaded.set(false);
             }
 
             @Override
             public void backward() {
-                if (fullyLoaded.get()) {
-                    System.out.println("Conveyor is full");
-                } else {
-                    timer.purge();
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            fullyUnloaded.set(true);
-                        }
-                    }, timerMs);
-                }
+                executor.schedule(() -> {
+                    getSensorLoading().setDetectedInput(false);
+                    fullyUnloaded.set(true);
+                }, timerMs, TimeUnit.MILLISECONDS);
+                conveyorMotor.backward();
+                fullyLoaded.set(false);
             }
 
             @Override
             public void stop() {
+                if (loadingTask != null) {
+                    loadingTask.cancel(true);
+                }
+                if (unloadingTask != null) {
+                    unloadingTask.cancel(true);
+                }
                 stopped.set(true);
-                fullyLoaded.set(false);
-                fullyUnloaded.set(true);
+                conveyorMotor.stop();
             }
 
             @Override
             public void setSpeed(int speed) {
-                //does not matter here for now
+                conveyorMotor.setSpeed(speed);
             }
 
             @Override
-            public void waitMs(int msDelay) {
-                try {
-                    Thread.sleep(msDelay);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        this.sensorLoading = new Sensor() {
-            @Override
-            public boolean detectedInput() {
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        fullyLoaded.set(false);
-                    }
-                }, 500);
-                return fullyLoaded.get();
-            }
-        };
-
-        this.sensorUnloading = new Sensor() {
-            @Override
-            public boolean detectedInput() {
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        fullyLoaded.set(false);
-                    }
-                }, 500);
-                return fullyUnloaded.get();
+            public void waitMs(long msDelay) {
+                conveyorMotor.waitMs(msDelay);
             }
         };
 
@@ -116,6 +105,7 @@ public class ConveyorSimulation {
 
     /**
      * Returns the conveyor motor
+     *
      * @return conveyorMotor
      */
     public Motor getConveyorMotor() {
@@ -124,6 +114,7 @@ public class ConveyorSimulation {
 
     /**
      * Returns the sensor used for loading
+     *
      * @return sensorLoading
      */
     public Sensor getSensorLoading() {
@@ -132,6 +123,7 @@ public class ConveyorSimulation {
 
     /**
      * Returns the sensor used for unloading
+     *
      * @return sensorUnloading
      */
     public Sensor getSensorUnloading() {

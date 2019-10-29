@@ -49,7 +49,10 @@ public class RobotBase {
      */
     private Thread serverThread = new Thread(() -> {
         System.out.println("Starting Server...");
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> ServerCommunication.stopHandler(0)));
+        Runtime.getRuntime().addShutdownHook(new Thread(() ->{
+            ServerCommunication.stopHandler(0);
+            System.exit(0);
+        }));
         Object server = serverCommunication.createServer("localhost", 4840);
         Object loadingFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 10), "LoadingProtocol");
         loadingProtocolBase.setServerAndFolder(serverCommunication, server, loadingFolder);
@@ -182,7 +185,10 @@ public class RobotBase {
         serverThread.start();
         System.out.println("Starting Client");
         Object client = clientCommunication.initClient();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> ClientCommunication.stopHandler(0)));
+        Runtime.getRuntime().addShutdownHook(new Thread(() ->{
+            ClientCommunication.stopHandler(0);
+            System.exit(0);
+        }));
         processEngineBase.setClientCommunication(clientCommunication);
         processEngineBase.setClient(client);
         processEngineBase.setServerUrl("opc.tcp://localhost:4840/");
@@ -197,7 +203,8 @@ public class RobotBase {
      * @throws IOException file is probably used somewhere else or not there.
      */
     private static void loadNativeLib() throws IOException {
-        String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
+        //String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
+        String libName = "opcua_java_api.dll"; //use this on windows (needs 32 bit java)
         URL url = RobotBase.class.getResource("/" + libName);
         File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
         tmpDir.deleteOnExit();

@@ -15,6 +15,7 @@ import static robot.turnTable.TurnTableOrientation.WEST;
  * If you want to assign this to a funit, use the motors exposed though the getters.
  * Needs support for supporting error scenarios for testing.
  */
+//TODO reimplement this entire simulation with better solution
 public class TurningSimulation {
 
     private Motor turnMotor;
@@ -32,7 +33,7 @@ public class TurningSimulation {
                 if (orientation == NORTH) {
                     System.out.println("Cannot turn from north to west");
                 }
-                while (!sensorHoming.detectedInput()) {
+                while (!sensorHoming.hasDetectedInput()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
@@ -46,7 +47,7 @@ public class TurningSimulation {
                 if (orientation == WEST) {
                     System.out.println("Cannot turn from west to north");
                 }
-                while (!sensorHoming.detectedInput()) {
+                while (!sensorHoming.hasDetectedInput()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
@@ -66,7 +67,7 @@ public class TurningSimulation {
             }
 
             @Override
-            public void waitMs(int msDelay) {
+            public void waitMs(long msDelay) {
                 try {
                     Thread.sleep(msDelay);
                 } catch (InterruptedException e) {
@@ -76,7 +77,7 @@ public class TurningSimulation {
         };
         this.sensorHoming = new Sensor() {
             @Override
-            public boolean detectedInput() {
+            public boolean hasDetectedInput() {
                 new Thread(() -> {
                     try {
                         Thread.sleep(timerMs);
@@ -86,6 +87,11 @@ public class TurningSimulation {
                     }
                 }).start();
                 return reachedHome.get();
+            }
+
+            @Override
+            public void setDetectedInput(boolean detectedInput) {
+
             }
         };
     }

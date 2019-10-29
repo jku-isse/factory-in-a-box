@@ -24,6 +24,7 @@ dependencies {
     compile("com.github.oxo42:stateless4j:2.5.0")
     compile("org.slf4j:slf4j-api:1.7.25")
     compile("io.vertx:vertx-core:3.8.0")
+    testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
 }
 apply from: './config.gradle'
 
@@ -33,6 +34,14 @@ compileJava.options.encoding = 'UTF-8'
 compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
+}
+
+//Test
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 //Jar

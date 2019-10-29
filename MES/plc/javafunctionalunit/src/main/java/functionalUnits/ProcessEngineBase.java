@@ -40,7 +40,7 @@ public abstract class ProcessEngineBase extends FunctionalUnitBase {
     /**
      * Loads a process.
      */
-    public abstract void loadProcess();
+    public abstract void loadProcess(String info);
 
     /**
      * Resets the process engine

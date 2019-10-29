@@ -146,7 +146,7 @@ public class TurningTurnTable extends TurningBase {
                     updateState();
                     System.out.println("Executing: reset");
                     turnMotor.backward();
-                    while (!resetSensor.detectedInput()) {
+                    while (!resetSensor.hasDetectedInput()) {
                         if (stopped) {
                             stopped = false;
                             turningStateMachine.fire(STOP);

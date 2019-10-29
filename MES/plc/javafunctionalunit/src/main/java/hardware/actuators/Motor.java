@@ -30,5 +30,5 @@ public abstract class Motor {
      * Waits x milliseconds. If motor library has a delay method, use it instead of thread.sleep
      * @param msDelay delay in ms
      */
-    public abstract void waitMs(int msDelay);
+    public abstract void waitMs(long msDelay);
 }
