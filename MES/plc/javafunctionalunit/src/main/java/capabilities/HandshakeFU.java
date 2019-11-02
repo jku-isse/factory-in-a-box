@@ -1,59 +1,78 @@
 package capabilities;
 
-import capabilities.Capability;
 import communication.Communication;
-import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
 import helper.CapabilityId;
 import helper.CapabilityRole;
 import helper.CapabilityType;
+import helper.HandshakeStates;
 
-import java.util.EventObject;
-import java.util.List;
-
-public class HandshakeFU extends Endpoint {
-
-
-    public HandshakeCapability getHandshakeCapability() {
-        return handshake;
-    }
-
-    public void setHandshakeCapability(HandshakeCapability handshake) {
-        this.handshake = handshake;
-    }
+public class HandshakeFU extends Endpoint implements CapabilityListener {
 
     HandshakeCapability handshake;
     WiringCapability wiring;
+    Communication communication;
+    Object opcua_client;
 
-    public HandshakeFU(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId, CapabilityId capabilityId ) {
+    public HandshakeFU(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId, CapabilityId capabilityId) {
         //calling the Endpoint parent class constructor to init an opcua object to be the parent node for the sub-capabilities
-        super(serverCommunication, opcua_server, parentObjectId,  CapabilityType.HANDSHAKE.toString()+"_FU", capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+        super(serverCommunication, opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
 
         Object state_nodeid = serverCommunication.addStringVariableNode(opcua_server, this.getEndpoint_object(), new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "STATE");
         serverCommunication.writeVariable(opcua_server, state_nodeid, "IDLE");
-       //initializing the main capabilities for the handshake FU
-        handshake = new HandshakeCapability(serverCommunication, opcua_server, this.getEndpoint_object(),  capabilityId);
-        this.capabilities.add(handshake); //adding the handshake capability to the list of the capabilities
-        wiring = new WiringCapability(serverCommunication, opcua_server, this.getEndpoint_object(),  capabilityId );
-        this.capabilities.add(wiring); //adding the Wiring capability to the list of the capabilities
 
-        wiring.addMyEventListener(new CapabilityListener() {
-            public void eventOccurred(CapabilityEvent evt,Capability source) {
-                System.out.println("FROM THE HANDSHAKE FUUUUUUUUUUU THE WIRING IS DONE "+((WiringCapability)source).wiringMap.size());
-            }
-        });
+        //initializing the main capabilities for the handshake FU
+        handshake = new HandshakeCapability(serverCommunication, opcua_server, this.getEndpoint_object(), capabilityId);
+        this.capabilities.add(handshake); //adding the handshake capability to the list of the capabilities
+        handshake.addEventListener(this);
 
     }
 
-    public HandshakeFU(ClientCommunication clientCommunication, Object opcua_client, Object parentObjectId, CapabilityId capabilityId ) {
+    public HandshakeFU(Communication communication, Object opcua_server, Object opcua_client, Object parentObjectId, CapabilityId capabilityId) {
         //calling the Endpoint parent class constructor to init an opcua object to be the parent node for the sub-capabilities
-        super(clientCommunication, opcua_client, parentObjectId,  CapabilityType.HANDSHAKE.toString()+"_FU", capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
+        super(communication.getServerCommunication(), opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+        this.communication = communication;
+        this.opcua_client = opcua_client;
 
-         //initializing the main capabilities for the handshake FU
-      //  handshake = new HandshakeCapability(clientCommunication, opcua_client, this.getEndpoint_object(),  capabilityId);
+        Object state_nodeid = communication.getServerCommunication().addStringVariableNode(opcua_server, this.getEndpoint_object(), new RequestedNodePair<>(1, communication.getServerCommunication().getUnique_id()), "STATE");
+        communication.getServerCommunication().writeVariable(opcua_server, state_nodeid, "CLIENT IDLE");
+
+        // super(communication.getClientCommunication(), opcua_client, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
+
+        //initializing the main capabilities for the handshake FU
+        handshake = new HandshakeCapability(communication, opcua_server, opcua_client, this.getEndpoint_object(), capabilityId);
         this.capabilities.add(handshake); //adding the handshake capability to the list of the capabilities
+        wiring = new WiringCapability(communication.getServerCommunication(), opcua_server, this.getEndpoint_object(), capabilityId);
+        this.capabilities.add(wiring); //adding the Wiring capability to the list of the capabilities
+
+        wiring.addEventListener(new CapabilityListener() {
+            public void eventOccurred(CapabilityEvent evt, Capability source) {
+                if (evt.getClass().getName().equals("capabilities.startHandshakeEvent")) {
+
+                }
+                System.out.println("FROM THE HANDSHAKE FUUUUUUUUUUU THE WIRING IS DONE " + ((WiringCapability) source).wiringMap.size());
+            }
+        });
+
+        handshake.addEventListener(this);
+    }
 
 
+    @Override
+    public void eventOccurred(CapabilityEvent evt, Capability source) {
+        if (evt.getClass().getName().equals("capabilities.startHandshakeEvent")) {
+            handshake.changeState(HandshakeStates.EXECUTE);
+        } else if (evt.getClass().getName().equals("capabilities.stopHandshakeEvent")) {
+
+        } else if (evt.getClass().getName().equals("capabilities.initLoadingHandshakeEvent")) {
+
+            String serverUrl = wiring.getWiring(handshake.getCurrentCapabilityId());
+           handshake.starting(handshake.getCurrentCapabilityId(), serverUrl, handshake.getCurrentOrderId());
+
+
+        } else if (evt.getClass().getName().equals("capabilities.initUnloadingHandshakeEvent")) {
+
+        }
     }
 }

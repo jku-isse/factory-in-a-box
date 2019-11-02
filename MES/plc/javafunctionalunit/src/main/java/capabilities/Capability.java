@@ -67,15 +67,22 @@ public class Capability {
 
     private Object capabilityObject;
     private Object capabilityOpcuaNodeId;
-    public Capability(ClientCommunication clientCommunication, Object client, Object parentObject,
+    public Capability(Communication communication, Object server, Object client, Object parentObject,
                       CapabilityId capabilityId, CapabilityType capabilityType , CapabilityRole capabilityRole) {
+        this.clientCommunication = communication.getClientCommunication();
+        this.opcua_client = client;
         this.capabilityId = capabilityId;
         this.capabilityType = capabilityType;
         this.capabilityRole = capabilityRole;
 
-        this.clientCommunication = clientCommunication;
-        this.opcua_client = client;
+        // this.clientCommunication = new Communication().getClientCommunication(); // for testing only to be removed later
+
+        this.serverCommunication = communication.getServerCommunication();
+        this.opcua_server = server;
         this.parentObject = parentObject;
+        initCapabilityInfo();
+
+
     }
 
     public Capability(ServerCommunication serverCommunication, Object server, Object parentObject,
@@ -84,26 +91,30 @@ public class Capability {
         this.capabilityType = capabilityType;
         this.capabilityRole = capabilityRole;
 
-        this.clientCommunication = new Communication().getClientCommunication(); // for testing only to be removed later
+       // this.clientCommunication = new Communication().getClientCommunication(); // for testing only to be removed later
 
         this.serverCommunication = serverCommunication;
         this.opcua_server = server;
         this.parentObject = parentObject;
+        initCapabilityInfo();
+           }
+
+    private void initCapabilityInfo(){
         capabilityOpcuaNodeId = serverCommunication.createNodeNumeric(1, serverCommunication.getUnique_id()); //TODO: need to implement a controller level Enum
 
 
         capabilityObject = serverCommunication.addNestedObject(opcua_server,parentObject, capabilityOpcuaNodeId, "CAPABILTY");
 
-        Object id_nodeid = serverCommunication.addStringVariableNode(server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "ID");
-        serverCommunication.writeVariable(server, id_nodeid, capabilityId.toString());
+        Object id_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "ID");
+        serverCommunication.writeVariable(opcua_server, id_nodeid, capabilityId.toString());
 
-        Object type_nodeid = serverCommunication.addStringVariableNode(server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "TYPE");
-        serverCommunication.writeVariable(server, type_nodeid, capabilityType.toString());
+        Object type_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "TYPE");
+        serverCommunication.writeVariable(opcua_server, type_nodeid, capabilityType.toString());
 
-        Object role_nodeid = serverCommunication.addStringVariableNode(server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "ROLE");
-        serverCommunication.writeVariable(server, role_nodeid, capabilityRole.toString());
+        Object role_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "ROLE");
+        serverCommunication.writeVariable(opcua_server, role_nodeid, capabilityRole.toString());
+
     }
-
     public CapabilityId getCapabilityId() {
         return capabilityId;
     }
@@ -162,7 +173,7 @@ public class Capability {
 
     protected EventListenerList listenerList = new EventListenerList();
 
-    public void addMyEventListener(CapabilityListener listener) {
+    public void addEventListener(CapabilityListener listener) {
         listenerList.add(CapabilityListener.class, listener);
     }
     public void removeMyEventListener(CapabilityListener listener) {

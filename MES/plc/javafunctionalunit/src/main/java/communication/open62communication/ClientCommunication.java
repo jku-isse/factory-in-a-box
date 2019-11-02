@@ -52,7 +52,9 @@ public class ClientCommunication extends ClientAPIBase {
      */
     @Override
     public void client_connected(ClientAPIBase clientAPIBase, SWIGTYPE_p_UA_Client client, String serverUrl) {
-        //System.out.println("Client Connected " + (i < 1 ? i : ""));
+        System.out.println("Client Connected " + (i < 1 ? i : ""));
+        /*
+        System.out.println("Client Connected " + (i < 1 ? i : ""));
         if (i == 0) {
             RequestedNodePair<Integer, Integer> conveyorNode = new RequestedNodePair<>(1, 56);
             RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
@@ -63,6 +65,8 @@ public class ClientCommunication extends ClientAPIBase {
             //System.out.println(getNodeByName(client, "Status")); // server by name
         }
         i++;
+
+         */
     }
 
     /**
@@ -75,6 +79,7 @@ public class ClientCommunication extends ClientAPIBase {
      */
     @Override
     public void monitored_itemChanged(UA_NodeId nodeId, int value) {
+        /*
         //System.out.println("IMM FROM CLIENT Status monitored_itemChanged() invoked." + value);
         RequestedNodePair<Integer, Integer> conveyorNode = new RequestedNodePair<>(1, 56);  //bad practice and will be changed later
         RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
@@ -89,6 +94,8 @@ public class ClientCommunication extends ClientAPIBase {
             System.out.println("Received callback for Turning");
             turningStatus.set(value);
         }
+
+         */
     }
 
     public Object initClient() {
@@ -96,8 +103,10 @@ public class ClientCommunication extends ClientAPIBase {
     }
 
     public int clientConnect(Object jClientAPIBase, Object client, String serverUrl) {
-        return ClientAPIBase.ClientConnect((ClientAPIBase) jClientAPIBase, (SWIGTYPE_p_UA_Client) client, serverUrl);
+        ClientAPIBase.ClientConnect((ClientAPIBase) jClientAPIBase, (SWIGTYPE_p_UA_Client) client, serverUrl);
 
+
+        return 1;
     }
 
     public Object getNodeByName(Object client, String nodeName) {
@@ -148,13 +157,14 @@ public class ClientCommunication extends ClientAPIBase {
                 open62541.UA_NODEID_NUMERIC(methodId.getKey(), methodId.getValue()),
                 argInputString);
     }
+
     public String callArrayMethod(String serverUrl, RequestedNodePair<Integer, Integer> objectId,
-                                   RequestedNodePair<Integer, Integer> methodId, int argInput[]) {
-UA_Variant output = new UA_Variant();
+                                  RequestedNodePair<Integer, Integer> methodId, int argInput[]) {
+        UA_Variant output = new UA_Variant();
         return ClientAPIBase.CallArrayMethod(serverUrl,
                 open62541.UA_NODEID_NUMERIC(objectId.getKey(), objectId.getValue()),
                 open62541.UA_NODEID_NUMERIC(methodId.getKey(), methodId.getValue()),
-                argInput, argInput.length,output);
+                argInput, argInput.length, output);
     }
 
 
