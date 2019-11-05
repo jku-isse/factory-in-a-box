@@ -24,7 +24,11 @@ dependencies {
     compile("com.github.oxo42:stateless4j:2.5.0")
     compile("org.slf4j:slf4j-api:1.7.25")
     compile("io.vertx:vertx-core:3.8.0")
+    compileOnly('org.projectlombok:lombok:1.18.10')
+    annotationProcessor('org.projectlombok:lombok:1.18.10')
     testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
+    testCompile 'junit:junit:4.12'
+    testImplementation 'org.awaitility:awaitility:4.0.1'
 }
 apply from: './config.gradle'
 

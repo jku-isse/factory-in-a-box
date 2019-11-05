@@ -18,10 +18,10 @@ public class MockMotor extends Motor {
     private ScheduledFuture backwardTask;
     private int motorSpeed;
 
-    public MockMotor() {
+    public MockMotor(int speed) {
         running = new AtomicBoolean(false);
         executorService = new ScheduledThreadPoolExecutor(1);
-        motorSpeed = 0;         //To prevent
+        motorSpeed = speed;
     }
 
     /**

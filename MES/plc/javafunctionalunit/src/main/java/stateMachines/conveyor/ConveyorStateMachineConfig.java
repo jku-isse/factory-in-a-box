@@ -31,6 +31,7 @@ public class ConveyorStateMachineConfig extends StateMachineConfig<ConveyorState
                 .permit(NEXT_PARTIAL, SUSPENDED)
                 .permit(NEXT_FULL, FULLY_OCCUPIED)
                 .permit(NEXT, IDLE)
+                .permit(PAUSE, SUSPENDED)
                 .permit(STOP, STOPPING);
         configure(STOPPING)
                 .permit(NEXT, STOPPED)

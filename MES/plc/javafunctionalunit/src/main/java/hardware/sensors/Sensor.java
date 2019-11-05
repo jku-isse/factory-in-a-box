@@ -11,6 +11,4 @@ public abstract class Sensor {
      */
     public abstract boolean hasDetectedInput();
 
-    public abstract void setDetectedInput(boolean detectedInput);
-
 }

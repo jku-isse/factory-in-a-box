@@ -88,11 +88,6 @@ public class TurningSimulation {
                 }).start();
                 return reachedHome.get();
             }
-
-            @Override
-            public void setDetectedInput(boolean detectedInput) {
-
-            }
         };
     }
 
