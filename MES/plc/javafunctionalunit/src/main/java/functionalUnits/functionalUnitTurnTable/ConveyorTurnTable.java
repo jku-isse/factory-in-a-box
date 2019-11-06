@@ -7,8 +7,6 @@ import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
 import io.vertx.core.Vertx;
 import stateMachines.conveyor.ConveyorStateMachineConfig;
-import stateMachines.conveyor.ConveyorStates;
-import stateMachines.conveyor.ConveyorTriggers;
 
 import static stateMachines.conveyor.ConveyorStates.STOPPED;
 import static stateMachines.conveyor.ConveyorTriggers.*;
@@ -22,8 +20,6 @@ public class ConveyorTurnTable extends ConveyorBase {
     private final Motor conveyorMotor;
     private final Sensor sensorLoading;
     private final Sensor sensorUnloading;
-
-    private final StateMachine<ConveyorStates, ConveyorTriggers> conveyorStateMachine;
 
     private Object statusNodeId;
     private boolean stopped, suspended;
@@ -48,7 +44,9 @@ public class ConveyorTurnTable extends ConveyorBase {
      * Updates the state on the server
      */
     private void updateState() {
-        getServerCommunication().writeVariable(getServer(), statusNodeId, conveyorStateMachine.getState().getValue());
+        if (getServerCommunication() != null) {
+            getServerCommunication().writeVariable(getServer(), statusNodeId, conveyorStateMachine.getState().getValue());
+        }
     }
 
     /**
@@ -56,14 +54,14 @@ public class ConveyorTurnTable extends ConveyorBase {
      */
     @Override
     public void load() {
+        if (!conveyorStateMachine.canFire(LOAD)) {
+            System.out.println("Conveyor is busy");
+            return;
+        }
+        conveyorStateMachine.fire(LOAD);
+        updateState();
         Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
         vertx.executeBlocking(promise -> {
-            if (!conveyorStateMachine.canFire(LOAD)) {
-                System.out.println("Conveyor is busy");
-                return;
-            }
-            conveyorStateMachine.fire(LOAD);
-            updateState();
             System.out.println("Executing: loadBelt");
             conveyorMotor.backward();
             while (!sensorLoading.hasDetectedInput()) {

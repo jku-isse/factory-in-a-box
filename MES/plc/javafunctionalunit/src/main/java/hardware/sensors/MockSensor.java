@@ -1,6 +1,5 @@
 package hardware.sensors;
 
-import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -9,7 +8,7 @@ import lombok.Setter;
  */
 public class MockSensor extends Sensor {
 
-    @Getter @Setter private boolean detectedInput;
+    @Setter private boolean detectedInput;
 
     public MockSensor(){
         detectedInput = false;

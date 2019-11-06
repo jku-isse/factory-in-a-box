@@ -1,5 +1,9 @@
 package hardware.actuators;
 
+import hardware.sensors.MockSensor;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -12,11 +16,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class MockMotor extends Motor {
 
-    private AtomicBoolean running;
-    private ScheduledExecutorService executorService;
-    private ScheduledFuture forwardTask;
-    private ScheduledFuture backwardTask;
-    private int motorSpeed;
+    @Getter @Setter private ScheduledExecutorService executorService;
+    @Getter @Setter private ScheduledFuture forwardTask;
+    @Getter @Setter private ScheduledFuture backwardTask;
+    @Getter @Setter private int motorSpeed;
+    @Getter @Setter private AtomicBoolean running;
+    @Setter private MockSensor sensorLoading;
+    @Setter private MockSensor sensorUnloading;
 
     public MockMotor(int speed) {
         running = new AtomicBoolean(false);
@@ -24,59 +30,43 @@ public class MockMotor extends Motor {
         motorSpeed = speed;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void forward() {
         running.set(true);
+        //setLoadingSensorInput(true);
         forwardTask = executorService.scheduleAtFixedRate(
                 () -> System.out.println("===| Moving forward with speed: " + motorSpeed),
                 0, 1000, TimeUnit.MILLISECONDS);
+
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void backward() {
         running.set(true);
+        //setUnloadingSensorInput(true);
         backwardTask = executorService.scheduleAtFixedRate(
                 () -> System.out.println("===| Moving backward with speed: " + motorSpeed),
                 0, 1000, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void stop() {
-        if(forwardTask != null){
+        running.set(false);
+        if (forwardTask != null) {
             forwardTask.cancel(true);
         }
-        if(backwardTask != null){
+        if (backwardTask != null) {
             backwardTask.cancel(true);
         }
         System.out.println("Motor stopped");
-        running.set(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setSpeed(int speed) {
         motorSpeed = speed;
         System.out.println("Set speed to " + speed);
     }
 
-    public int getSpeed(){
-        return motorSpeed;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void waitMs(long period) {
         if (period <= 0) return;
@@ -94,12 +84,22 @@ public class MockMotor extends Motor {
             Thread.currentThread().interrupt();
     }
 
-    /**
-     * Determines if the motor is running
-     *
-     * @return if motor is running
-     */
     public boolean isRunning() {
         return running.get();
+    }
+
+    private void setLoadingSensorInput(boolean input){
+        if(sensorLoading == null){
+            return;
+        }
+        sensorLoading.setDetectedInput(input);
+    }
+
+
+    private void setUnloadingSensorInput(boolean input){
+        if(sensorUnloading == null){
+            return;
+        }
+        sensorLoading.setDetectedInput(input);
     }
 }

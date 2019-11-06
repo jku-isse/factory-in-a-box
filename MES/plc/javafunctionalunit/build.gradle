@@ -2,10 +2,7 @@ plugins {
     id 'java'
     id 'eclipse'
     id 'idea'
-    //id "net.ossindex.audit" version "0.4.5-beta"
-    //id "com.github.johnrengelman.shadow" version "4.0.3"
     id 'com.github.ev3dev-lang-java.gradle-plugin' version '1.6.5'
-
 }
 
 group 'jku.isse'
@@ -19,10 +16,10 @@ repositories {
 }
 
 dependencies {
-    compile("org.slf4j:slf4j-simple:1.7.25")
+    //compile("org.slf4j:slf4j-simple:1.7.25")  causes multiple bindings warning, use api instead
+    compile("org.slf4j:slf4j-api:1.7.25")
     compile("com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3")
     compile("com.github.oxo42:stateless4j:2.5.0")
-    compile("org.slf4j:slf4j-api:1.7.25")
     compile("io.vertx:vertx-core:3.8.0")
     compileOnly('org.projectlombok:lombok:1.18.10')
     annotationProcessor('org.projectlombok:lombok:1.18.10')
