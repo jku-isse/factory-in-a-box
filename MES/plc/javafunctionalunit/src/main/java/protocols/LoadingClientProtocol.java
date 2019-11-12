@@ -97,7 +97,11 @@ public class LoadingClientProtocol {
             @Override
             public void run() {
                 String callbCK = "CALL BACK";
-                callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_INIT_LOADING"), orderId);
+                if (currentWiringInformation.getrEMOTE_ROLE().contains("PROVIDER"))
+                    callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_INIT_LOADING"), orderId);
+                else
+                    callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_INIT_UNLOADING"), orderId);
+
                 System.out.println(callbCK);
 //TODO: CHECK THE RETURN THEN ACCORDINGLY WAIT OR MOVE TO ANOTHER STATE
 
@@ -128,7 +132,11 @@ public class LoadingClientProtocol {
             @Override
             public void run() {
                 String callbCK = "CALL BACK";
-                callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_START_LOADING"), orderId);
+                if (currentWiringInformation.getrEMOTE_ROLE().contains("PROVIDER"))
+                    callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_START_LOADING"), orderId);
+                else
+                    callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_START_UNLOADING"), orderId);
+
                 System.out.println(callbCK);
 //TODO: CHECK THE RETURN THEN ACCORDINGLY WAIT OR MOVE TO ANOTHER STATE
 
@@ -171,7 +179,6 @@ public class LoadingClientProtocol {
 
     private void stopped() {
         System.out.println("Loading Client Protocol change State to STOPPED");
-
 
 
     }
