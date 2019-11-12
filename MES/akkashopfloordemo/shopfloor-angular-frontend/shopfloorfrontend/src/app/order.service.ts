@@ -52,7 +52,6 @@ export class OrderService {
       };
       eventSource.onerror = error => {
         this._zone.run(() => {
-          console.log('SSE error ', eventSource);
           observer.error(error);
           eventSource.close();
         });

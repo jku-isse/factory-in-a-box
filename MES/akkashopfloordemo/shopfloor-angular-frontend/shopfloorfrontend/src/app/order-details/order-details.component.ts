@@ -10,7 +10,7 @@ import { Router, ActivatedRoute } from '@angular/router';
   styleUrls: ['./order-details.component.css']
 })
 export class OrderDetailsComponent implements OnInit {
-  displayedColumns: string[] = ['jobid', 'jobstatus'];
+  displayedColumns: string[] = ['jobid', 'jobstatus', 'caps'];
   id: string;
   order: Order;
 
@@ -27,15 +27,50 @@ export class OrderDetailsComponent implements OnInit {
     this.orderService.getProcessUpdates(this.id).subscribe(
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
-        console.log(json.stepStatus);
-        this.order.jobStatus = json.stepStatus;
+        // console.log('SSE', json);
+        if (typeof this.order.jobStatus === 'undefined') {
+          this.order.jobStatus = json.stepStatus;
+        } else {
+          for (const key in json.stepStatus) {
+            if (json.stepStatus.hasOwnProperty(key)) {
+              this.order.jobStatus[key] = json.stepStatus[key];
+            }
+          }
+        }
+        if (typeof this.order.capabilities === 'undefined') {
+          this.order.capabilities = json.capabilities;
+        } else {
+          for (const key in json.capabilities) {
+            if (json.capabilities.hasOwnProperty(key)) {
+              this.order.capabilities[key] = json.capabilities[key];
+            }
+          }
+        }
       },
       err => { console.log('Error receiving SSE in Details', err); },
       () => console.log('SSE stream completed')
     );
     this.orderService.getOrder(this.id)
       .subscribe(data => {
-        this.order.jobStatus = data.stepStatus;
+        // console.log('Update', data);
+        if (typeof this.order.jobStatus === 'undefined') {
+          this.order.jobStatus = data.stepStatus;
+        } else {
+          for (const key in data.stepStatus) {
+            if (data.stepStatus.hasOwnProperty(key)) {
+              this.order.jobStatus.set(key, data.stepStatus[key]);
+            }
+          }
+        }
+        if (typeof this.order.capabilities === 'undefined') {
+          this.order.capabilities = data.capabilities;
+        } else {
+          for (const key in data.capabilities) {
+            if (data.capabilities.hasOwnProperty(key)) {
+              this.order.capabilities.set(key, data.capabilities[key]);
+            }
+          }
+        }
         this.order.orderId = data.orderId;
       }, error => console.log(error));
   }
@@ -48,9 +83,13 @@ export class OrderDetailsComponent implements OnInit {
     if (typeof this.order.jobStatus === 'undefined') {
       return [];
     } else {
-      let c: object[] = [];
+      const c: object[] = [];
       for (const key of Object.keys(this.order.jobStatus)) {
-        c.push({id: key, status: this.order.jobStatus[key]});
+        let caps: string;
+        if (typeof this.order.capabilities !== 'undefined') {
+          caps = this.order.capabilities[key];
+        }
+        c.push({id: key, status: this.order.jobStatus[key], caps});
       }
       return c;
     }

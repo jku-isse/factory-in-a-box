@@ -219,7 +219,7 @@ public class MachineOrderMappingManager {
 			return lastMachineState;
 		}
 		public void setLastMachineState(MachineUpdateEvent lastMachineState) {
-			if (lastMachineState.getType().equals(STATE_VAR_NAME)) { // only update the state of the machine
+			if (lastMachineState.getParameterName().equals(STATE_VAR_NAME)) { // only update the state of the machine
 				this.lastMachineState = lastMachineState;		
 				if (lastMachineState.getNewValue().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
 					this.allocationState = AssignmentState.NONE;

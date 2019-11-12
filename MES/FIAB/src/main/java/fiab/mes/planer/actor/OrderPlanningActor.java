@@ -267,11 +267,11 @@ public class OrderPlanningActor extends AbstractActor{
 	}
 	
 	private void handleMachineUpdateEvent(MachineUpdateEvent mue) {
-		log.info(String.format("MachineUpdateEvent for machine %s %s : %s", mue.getMachineId(), mue.getType(), mue.getNewValue().toString()));
+		log.info(String.format("MachineUpdateEvent for machine %s %s : %s", mue.getMachineId(), mue.getParameterName(), mue.getNewValue().toString()));
 		capMan.resolveById(mue.getMachineId()).ifPresent(machine -> {
 			// will only process event if the parameter changes is "STATE"
 			ordMapper.updateMachineStatus(machine, mue);
-			if (mue.getType().equals(MachineOrderMappingManager.STATE_VAR_NAME)) {
+			if (mue.getParameterName().equals(MachineOrderMappingManager.STATE_VAR_NAME)) {
 				if (mue.getNewValue().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
 					// if idle --> machine ready --> lets check if any order is waiting for that machine
 					ordMapper.getPausedProcessesOnSomeMachine().stream()
@@ -287,7 +287,9 @@ public class OrderPlanningActor extends AbstractActor{
 					ordMapper.getOrderRequestOnMachine(machine).ifPresent(rpr -> { 
 						 ordMapper.getJobOnMachine(machine).ifPresent(step -> { 
 							 ProcessChangeImpact pci = rpr.getProcess().markStepComplete(step); 
-							 orderEventBus.tell( new OrderProcessUpdateEvent(rpr.getRootOrderId(), this.self().path().name(), pci), ActorRef.noSender() );
+							 OrderProcessUpdateEvent opue = new OrderProcessUpdateEvent(rpr.getRootOrderId(), this.self().path().name(), pci);
+							 orderEventBus.tell(opue, ActorRef.noSender());
+							 System.out.println("[fiab.mes.planer.actor.OrderPlanningActor]		############ "+rpr.getRootOrderId()+" ############");
 							 } );
 						tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()); });
 				} else if (mue.getNewValue().equals(MachineOrderMappingManager.PRODUCING_STATE_VALUE)) {

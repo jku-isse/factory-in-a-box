@@ -1,6 +1,7 @@
 package fiab.mes.frontend;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 
@@ -26,6 +27,10 @@ import akka.testkit.javadsl.TestKit;
 import fiab.mes.DefaultShopfloorInfrastructure;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
+import fiab.mes.eventbus.SubscribeMessage;
+import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockMachineActor;
 import fiab.mes.mockactors.TestMockMachineActor;
 import fiab.mes.order.OrderProcess;
@@ -38,13 +43,13 @@ public class OrderEmittingTestServer {
 	
 	private static ActorSystem system;
 	private static String ROOT_SYSTEM = "routes";
-//	private static ActorSelection machineEventBus;
-//	private static ActorSelection orderEventBus;
-//	private static ActorSelection orderPlanningActor;
+	private static ActorSelection machineEventBus;
+	private static ActorSelection orderEventBus;
+	private static ActorSelection orderPlanningActor;
 	private static ActorRef orderEntryActor;
 	private static CompletionStage<ServerBinding> binding;
 
-	private static OrderProcess process;
+//	private static OrderProcess process;
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
@@ -52,9 +57,9 @@ public class OrderEmittingTestServer {
 		final Http http = Http.get(system);
 	    final ActorMaterializer materializer = ActorMaterializer.create(system);
 	    DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system);
-//	    orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-//	    machineEventBus = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-//	    orderPlanningActor = system.actorSelection("/user/"+OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
+	    orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+	    machineEventBus = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+	    orderPlanningActor = system.actorSelection("/user/"+OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
 	    orderEntryActor = system.actorOf(OrderEntryActor.props());
 	    ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor);
 	
@@ -86,22 +91,36 @@ public class OrderEmittingTestServer {
 				{ 
 					System.out.println("testFrontendResponsesByEmittingOrders()");
 					
+					orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "")), getRef() );
+					machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
+					//machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", mid)), getRef() );
+					// if we subscribe to machinebus then we need to capture all the machine events by those actors
 					ActorRef red1 = getMachineMockActor(1, "Red");
+					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineConnectedEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class); //idle
 					ActorRef blue2 = getMachineMockActor(2, "Blue");
+					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
 					ActorRef green3 = getMachineMockActor(3, "Green");
+					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
 					ActorRef yellow4 = getMachineMockActor(4, "Yellow");
+					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
+					expectMsgClass(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
 					
-					process = new OrderProcess(TestMockMachineActor.getSequentialProcess());
+					OrderProcess process = new OrderProcess(TestMockMachineActor.getSequentialProcess());
+			    	String processId = "process";
+					process.getProcess().setID(processId);	
 					
-				    CountDownLatch semaphore = new CountDownLatch(10);
-				    while(semaphore.getCount() > 0) {
-				    	String id = String.valueOf(semaphore.getCount());
-				    	System.out.println("Inserting Order"+id);
-				    	
-				    	RegisterProcessRequest req = new RegisterProcessRequest(id, id, process, getRef());
+				    CountDownLatch count = new CountDownLatch(1);
+				    while(count.getCount() > 0) {
+//				    	OrderProcess process = new OrderProcess(TestMockMachineActor.getSequentialProcess());
+//				    	String processId = "process"+String.valueOf(count.getCount());
+//						process.getProcess().setID(processId);			
+				    	RegisterProcessRequest req = new RegisterProcessRequest("", processId, process, getRef());
 				    	orderEntryActor.tell(req, getRef());
 				    	
-				    	semaphore.countDown();
+				    	count.countDown();
 				    	Thread.sleep(3000);
 				    }
 				    System.out.println("Finished with emitting orders. Press ENTER to end test!");
@@ -115,10 +134,9 @@ public class OrderEmittingTestServer {
 	}
 	
 	private static ActorRef getMachineMockActor(int id, String color) {
-		ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		Actor modelActor = TestMockMachineActor.getDefaultMachineActor(id);
 		AbstractCapability cap = TestMockMachineActor.composeInOne(TestMockMachineActor.getPlottingCapability(), TestMockMachineActor.getColorCapability(color));
-		return system.actorOf(MockMachineActor.props(eventBusByRef, cap, modelActor));
+		return system.actorOf(MockMachineActor.props(machineEventBus, cap, modelActor));
 	}
 
 }

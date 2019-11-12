@@ -60,6 +60,9 @@ testem.log
 #System Files
 .DS_Store
 
+#VSCode
+*.vscode
+
 # End of https://www.gitignore.io/api/angular
 
 .project

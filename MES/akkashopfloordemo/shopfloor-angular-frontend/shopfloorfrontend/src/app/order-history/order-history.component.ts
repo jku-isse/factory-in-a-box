@@ -39,6 +39,7 @@ export class OrderHistoryComponent implements OnInit {
         data.forEach(element => {
           this.orders.set(element.machineId + element.eventType + element.timestamp, element);
           this.setLatest(element.timestamp);
+          console.log('History data', element);
         });
       }, error => console.log(error));
   }
@@ -48,6 +49,8 @@ export class OrderHistoryComponent implements OnInit {
   }
 
   getOrdersAsArray() {
+    console.log('Debug flag', this.orders.values());
+
     return Array.from(this.orders.values());
   }
 

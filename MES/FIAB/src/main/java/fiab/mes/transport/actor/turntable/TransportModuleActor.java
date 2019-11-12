@@ -109,7 +109,7 @@ public class TransportModuleActor extends AbstractActor {
 				serverStates.replace(msg.getNodeId(), msg.getNewValue().toString());
 				getContext().system().scheduler().scheduleOnce(Duration.ofSeconds(10), getSelf(), "ping", getContext().system().dispatcher(), ActorRef.noSender());
 				printStates();
-				if(msg.getType().equals("Machine_Status")) { //TODO the parameter might not be called Machine_Status
+				if(msg.getParameterName().equals("Machine_Status")) { //TODO the parameter might not be called Machine_Status
 					highLevelEventBusActor.tell(msg.getNewValue(), getSelf());
 				}
 			})
