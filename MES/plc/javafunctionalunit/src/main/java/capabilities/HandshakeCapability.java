@@ -62,10 +62,10 @@ class initUnloadingHandshakeEvent extends CapabilityEvent {
 public class HandshakeCapability extends Capability {
 
     public final static boolean DEBUG = true;
+
     // Map<CapabilityInstanceId, Protocol> protocolMap;
     LoadingClientProtocol clientProtocol;
     LoadingServerProtocol serverProtocol;
-    int loadingMechanism;
 
     public CapabilityId getCurrentCapabilityId() {
         return currentCapabilityId;
@@ -80,7 +80,6 @@ public class HandshakeCapability extends Capability {
     // opcua
 
 
-
     public void initLoading() {
 
         System.out.println("Method Callback stop");
@@ -93,13 +92,19 @@ public class HandshakeCapability extends Capability {
 
     }
 
-    public HandshakeCapability(Communication communication,Object opcua_server, Object client, Object parentObject, CapabilityId capabilityId) {
-        super(communication,opcua_server, client, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
+    public HandshakeCapability(Communication communication, Object opcua_server, Object client, Object parentObject, CapabilityId capabilityId) {
+        super(communication, opcua_server, client, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
 
-        clientProtocol = new LoadingClientProtocol( communication.getClientCommunication(),client);
+        clientProtocol = new LoadingClientProtocol(communication, opcua_server, client, parentObject);
         serverProtocol = null;
-        loadingMechanism = 0;
 
+        //
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new RequestedNodePair<>(1, communication.getServerCommunication().getUnique_id()), "START",
+                opcuaMethodInput -> {
+                    return start(opcuaMethodInput);
+                });
+
+/*
         communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new RequestedNodePair<>(1, communication.getServerCommunication().getUnique_id()), "INIT_LOADING",
                 opcuaMethodInput -> {
                     return initiateLoading(opcuaMethodInput);
@@ -109,7 +114,7 @@ public class HandshakeCapability extends Capability {
                     return initiateUnloading(opcuaMethodInput);
                 });
 
-
+*/
 
         changeState(IDLE);
 
@@ -121,8 +126,7 @@ public class HandshakeCapability extends Capability {
         // super(serverCommunication, server, parentObject, capabilityId);
 
         clientProtocol = null;
-        serverProtocol = new LoadingServerProtocol(serverCommunication,server,this.getCapabilityObject());
-        loadingMechanism = 1;
+        serverProtocol = new LoadingServerProtocol(serverCommunication, server, this.getCapabilityObject());
 
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "COMPLETE",
                 opcuaMethodInput -> {
@@ -136,11 +140,15 @@ public class HandshakeCapability extends Capability {
                 opcuaMethodInput -> {
                     return reset(opcuaMethodInput);
                 });
-
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "READY",
+                opcuaMethodInput -> {
+                    return ready(opcuaMethodInput);
+                });
 
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_LOADING",
                 opcuaMethodInput -> {
-                    return initiateLoading(opcuaMethodInput);
+                    return "";
+                    //return initiateLoading(opcuaMethodInput);
                 });
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_UNLOADING",
                 opcuaMethodInput -> {
@@ -194,8 +202,8 @@ public class HandshakeCapability extends Capability {
                 // Invalid input should not be handled
                 break;
         }
-        if(serverProtocol != null)
-          getServerCommunication().writeVariable(getServer(), getObject(), HandshakeStates.values()[currentState].toString());
+        if (serverProtocol != null)
+            getServerCommunication().writeVariable(getServer(), getObject(), HandshakeStates.values()[currentState].toString());
     }
 
     public final int getCurrentState() {
@@ -211,15 +219,14 @@ public class HandshakeCapability extends Capability {
         }).start();
     }
 
-    public String starting( CapabilityId capabilityId,String serverUrl, String orderId) {
+    public String starting(WiringInformation wiringInformation,String orderId) {
         changeState(STARTING);
 
-        if(capabilityId.toString().contains("SERVER")){
-            clientProtocol.setServerPath(serverUrl);
+        if (wiringInformation.getlOCAL_CAPABILITYID().toString().contains("SERVER")) {
             clientProtocol.setOrderId(orderId);
 
-            clientProtocol.reset();
-            clientProtocol.starting();
+            clientProtocol.reset("");
+            clientProtocol.starting(wiringInformation);
         }
 
 
@@ -227,17 +234,23 @@ public class HandshakeCapability extends Capability {
         return "Start Complete";
     }
 
+    public String ready(String inputPram) {
+        if (clientProtocol != null) {
+        }
+        fireEvent(new stopHandshakeEvent(this));
+        return "Stop Complete";
+    }
+
     public String stop(String inputPram) {
-        if (loadingMechanism == 1) {
-            //  clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
+        if (clientProtocol != null) {
         }
         fireEvent(new stopHandshakeEvent(this));
         return "Stop Complete";
     }
 
     public String reset(String inputPram) {
-        if (loadingMechanism == 1) {
-            //   clientProtocol.fireTrigger(ClientLoadingStates.STARTING);
+        if (clientProtocol != null) {
+
         }
         fireEvent(new resetHandshakeEvent(this));
         return "Reset Complete";
@@ -246,8 +259,8 @@ public class HandshakeCapability extends Capability {
     public void execute() {
         changeState(EXECUTE);
 
-        if(getCurrentCapabilityId().toString().contains("SERVER")){
-        //    clientProtocol.changeState(ClientLoadingStates.EXECUTE);
+        if (getCurrentCapabilityId().toString().contains("SERVER")) {
+            //    clientProtocol.changeState(ClientLoadingStates.EXECUTE);
         }
     }
 
@@ -256,7 +269,7 @@ public class HandshakeCapability extends Capability {
     }
 
     public String compelete() {
-    return "Complete completed";
+        return "Complete completed";
     }
 
     public void resetting() {
@@ -276,6 +289,8 @@ public class HandshakeCapability extends Capability {
     // the first input is CapabilityID followed by orderId
     // the CapabilityID should match the Enum attributes found in helper/CapabilityId
     public String initiateUnloading(String inputPram) {
+        if (clientProtocol != null) {
+        }
         String[] inputParamters = inputPram.split(";");
         System.out.println(inputParamters.toString());
         if (inputParamters.length == 1)
@@ -298,10 +313,10 @@ public class HandshakeCapability extends Capability {
     // the first input is CapabilityID followed by orderId
     // the CapabilityID should match the Enum attributes found in helper/CapabilityId
 
-    public String initiateLoading(String inputPram) {
+    public String start(String inputPram) {
 
-      //  if(this.getCapabilityRole().compareTo(CapabilityRole.Provided))
-       //     return
+    //    if (clientProtocol != null) {
+     //   }
         JSONObject loadingJson;
         currentOrderId = "-1";
         try {
@@ -318,17 +333,16 @@ public class HandshakeCapability extends Capability {
             return "Wrong Parameters!  ";
 
         if (this.getCurrentState() != IDLE.ordinal()) {
-            return("Not Idle - Wrong State. !");
+            return ("Not Idle - Wrong State. !");
         }
-         currentCapabilityId =  CapabilityId.valueOf(LOCAL_CAPABILITYID_String);
-         currentOrderId = ORDER_ID_String;
-
+        currentCapabilityId = CapabilityId.valueOf(LOCAL_CAPABILITYID_String);
+        currentOrderId = ORDER_ID_String;
 
 
         ///this.fireTrigger(STARTING);
 
 
-        fireEvent(new initLoadingHandshakeEvent(this));
+        fireEvent(new startHandshakeEvent(this));
         return "Initiate_Loading was Successful";
     }
 

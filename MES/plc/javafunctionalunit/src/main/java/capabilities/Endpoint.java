@@ -40,7 +40,7 @@ public class Endpoint {
         //capabilities.add(defination);
     }
 
-    public Endpoint(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId, String name, CapabilityId capabilityId, CapabilityType capabilityType, CapabilityRole capabilityRole) {
+    public Endpoint(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId, String name, CapabilityType capabilityType, CapabilityRole capabilityRole) {
         capabilities = new ArrayList<>();
 
         endpoint_NodeId = serverCommunication.createNodeNumeric(1, serverCommunication.getUnique_id()); //need to implement a controller level Enum

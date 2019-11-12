@@ -6,6 +6,7 @@
 package communication.open62communication;
 
 import communication.utils.RequestedNodePair;
+import helper.Pair;
 import open62Wrap.*;
 
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -149,6 +150,13 @@ public class ClientCommunication extends ClientAPIBase {
         return ClientAPIBase.CallMethod(serverUrl, (UA_NodeId) objectId, (UA_NodeId) methodId,
                 argInputString);
     }
+    public String callStringMethod(String serverUrl, Pair<Integer, String> objectId,
+                                   Pair<Integer, String> methodId, String argInputString) {
+        return ClientAPIBase.CallMethod(serverUrl,
+                open62541.UA_NODEID_STRING(objectId.getKey(), objectId.getValue()),
+                open62541.UA_NODEID_STRING(methodId.getKey(), methodId.getValue()),
+                argInputString);
+    }
 
     public String callStringMethod(String serverUrl, RequestedNodePair<Integer, Integer> objectId,
                                    RequestedNodePair<Integer, Integer> methodId, String argInputString) {
@@ -167,5 +175,7 @@ public class ClientCommunication extends ClientAPIBase {
                 argInput, argInput.length, output);
     }
 
-
+    public Object createNodeString(int nameSpace,String id){
+        return open62541.UA_NODEID_STRING(nameSpace, id);
+    }
 }

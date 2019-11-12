@@ -20,10 +20,11 @@ class WiringCapabilityEvent extends CapabilityEvent {
     }
 }
 
+
 public class WiringCapability extends Capability {
 
 
-    Map<CapabilityId, String> wiringMap;
+    Map<CapabilityId, WiringInformation> wiringMap;
     private Object remoteEndpoint_nodeid;
     private Object remoteNodeId_nodeid;
     private Object remoteRole_nodeid;
@@ -32,30 +33,10 @@ public class WiringCapability extends Capability {
     private Object wiring_NodeId;
     private Object wiring_object;
 
-    public String getLOCAL_CAPABILITYIDString() {
-        return LOCAL_CAPABILITYIDString;
-    }
-
-    public String getREMOTE_ENDPOINTString() {
-        return REMOTE_ENDPOINTString;
-    }
-
-    public String getREMOTE_NODEIDString() {
-        return REMOTE_NODEIDString;
-    }
-
-    public String getREMOTE_ROLEString() {
-        return REMOTE_ROLEString;
-    }
-
-    String LOCAL_CAPABILITYIDString;
-    String REMOTE_ENDPOINTString;
-    String REMOTE_NODEIDString;
-    String REMOTE_ROLEString;
 
     public WiringCapability(ServerCommunication serverCommunication, Object opcua_server, Object parentObject, CapabilityId capabilityId) {
         super(serverCommunication, opcua_server, parentObject, capabilityId, CapabilityType.WIRING, CapabilityRole.Provided);
-        wiringMap = new HashMap<CapabilityId, String>();
+        wiringMap = new HashMap<CapabilityId, WiringInformation>();
 
         serverCommunication.addStringMethod(serverCommunication, opcua_server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "SET_WIRING",
                 opcuaMethodInput -> {
@@ -99,10 +80,10 @@ public class WiringCapability extends Capability {
             return "Error at parsing Json input";
         }
 
-        LOCAL_CAPABILITYIDString = (String) wiringJson.get("LOCAL_CAPABILITYID");
-        REMOTE_ENDPOINTString = (String) wiringJson.get("REMOTE_ENDPOINT");
-        REMOTE_NODEIDString = (String) wiringJson.get("REMOTE_NODEID");
-        REMOTE_ROLEString = (String) wiringJson.get("REMOTE_ROLE");
+        String LOCAL_CAPABILITYIDString = (String) wiringJson.get("LOCAL_CAPABILITYID");
+        String REMOTE_ENDPOINTString = (String) wiringJson.get("REMOTE_ENDPOINT");
+        String REMOTE_NODEIDString = (String) wiringJson.get("REMOTE_NODEID");
+        String REMOTE_ROLEString = (String) wiringJson.get("REMOTE_ROLE");
 
 
         //  System.out.println(wiringParamters.toString());
@@ -112,7 +93,8 @@ public class WiringCapability extends Capability {
             try {
                 CapabilityId localCapabilityId = CapabilityId.valueOf(LOCAL_CAPABILITYIDString); //Comparing the first part of the string to the Enums of CapabilityId
                 //getting the path for this capability id, later this will be used by the client to connect to this server endpoint
-                this.wiringMap.put(localCapabilityId, REMOTE_ENDPOINTString);
+                WiringInformation wiringInformation = new WiringInformation(LOCAL_CAPABILITYIDString, REMOTE_ENDPOINTString, REMOTE_NODEIDString, REMOTE_ROLEString);
+                this.wiringMap.put(localCapabilityId, wiringInformation);
 
             } catch (IllegalArgumentException e) {
                 return "Wrong Parameters, Could not Match CapabilityID";
@@ -131,15 +113,13 @@ public class WiringCapability extends Capability {
     }
 
 
-    public String getWiring(CapabilityId capabilityId) {
+    public WiringInformation getWiring(CapabilityId capabilityId) {
         if (wiringMap.containsKey(capabilityId))
             return wiringMap.get(capabilityId);
-        else return "-1";
+        else return null;
     }
 
-    public void setWiringMap(CapabilityId capabilityId, String path) {
-        this.wiringMap.put(capabilityId, path);
-    }
+
 
 
 }

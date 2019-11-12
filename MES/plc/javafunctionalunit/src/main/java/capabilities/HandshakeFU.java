@@ -6,7 +6,6 @@ import communication.utils.RequestedNodePair;
 import helper.CapabilityId;
 import helper.CapabilityRole;
 import helper.CapabilityType;
-import helper.HandshakeStates;
 
 public class HandshakeFU extends Endpoint implements CapabilityListener {
 
@@ -17,7 +16,7 @@ public class HandshakeFU extends Endpoint implements CapabilityListener {
 
     public HandshakeFU(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId, CapabilityId capabilityId) {
         //calling the Endpoint parent class constructor to init an opcua object to be the parent node for the sub-capabilities
-        super(serverCommunication, opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+        super(serverCommunication, opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", CapabilityType.HANDSHAKE, CapabilityRole.Provided);
 
         Object state_nodeid = serverCommunication.addStringVariableNode(opcua_server, this.getEndpoint_object(), new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "STATE");
         serverCommunication.writeVariable(opcua_server, state_nodeid, "IDLE");
@@ -31,7 +30,7 @@ public class HandshakeFU extends Endpoint implements CapabilityListener {
 
     public HandshakeFU(Communication communication, Object opcua_server, Object opcua_client, Object parentObjectId, CapabilityId capabilityId) {
         //calling the Endpoint parent class constructor to init an opcua object to be the parent node for the sub-capabilities
-        super(communication.getServerCommunication(), opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+        super(communication.getServerCommunication(), opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", CapabilityType.HANDSHAKE, CapabilityRole.Provided);
         this.communication = communication;
         this.opcua_client = opcua_client;
 
@@ -48,10 +47,12 @@ public class HandshakeFU extends Endpoint implements CapabilityListener {
 
         wiring.addEventListener(new CapabilityListener() {
             public void eventOccurred(CapabilityEvent evt, Capability source) {
-                if (evt.getClass().getName().equals("capabilities.startHandshakeEvent")) {
-
+                if (evt.getClass().getName().equals("capabilities.WiringCapabilityEvent")) {
+                  //  String serverUrl =  ((WiringCapability) source).getWiring(handshake.getCurrentCapabilityId());
+                   // handshake.setCapabilityId();
+                    System.out.println("FROM THE HANDSHAKE FU THE WIRING IS DONE " + ((WiringCapability) source).wiringMap.size());
                 }
-                System.out.println("FROM THE HANDSHAKE FUUUUUUUUUUU THE WIRING IS DONE " + ((WiringCapability) source).wiringMap.size());
+            //    System.out.println("FROM THE HANDSHAKE FUUUUUUUUUUU THE WIRING IS DONE " + ((WiringCapability) source).wiringMap.size());
             }
         });
 
@@ -61,16 +62,14 @@ public class HandshakeFU extends Endpoint implements CapabilityListener {
 
     @Override
     public void eventOccurred(CapabilityEvent evt, Capability source) {
-        if (evt.getClass().getName().equals("capabilities.startHandshakeEvent")) {
-            handshake.changeState(HandshakeStates.EXECUTE);
-        } else if (evt.getClass().getName().equals("capabilities.stopHandshakeEvent")) {
+        if (evt.getClass().getName().equals("capabilities.stopHandshakeEvent")) {
 
-        } else if (evt.getClass().getName().equals("capabilities.initLoadingHandshakeEvent")) {
+        } else if (evt.getClass().getName().equals("capabilities.startHandshakeEvent")) {
 
-            String serverUrl = wiring.getWiring(handshake.getCurrentCapabilityId());
-           handshake.starting(handshake.getCurrentCapabilityId(), serverUrl, handshake.getCurrentOrderId());
+            WiringInformation wiringInfo = wiring.getWiring(handshake.getCurrentCapabilityId());
+           handshake.starting(wiringInfo, handshake.getCurrentOrderId());
 
-
+          //  handshake.changeState(HandshakeStates.EXECUTE);
         } else if (evt.getClass().getName().equals("capabilities.initUnloadingHandshakeEvent")) {
 
         }

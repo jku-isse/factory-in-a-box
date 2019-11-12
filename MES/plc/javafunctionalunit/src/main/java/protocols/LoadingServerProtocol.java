@@ -12,7 +12,7 @@
 package protocols;
 
 import communication.open62communication.ServerCommunication;
-import communication.utils.RequestedNodePair;
+import helper.Pair;
 import stateMachines.loadingProtocol.ServerLoadingStates;
 
 public class LoadingServerProtocol {
@@ -31,34 +31,34 @@ public class LoadingServerProtocol {
         this.serverCommunication = serverCommunication;
         this.opcua_server = server;
         this.parentObject = parentObject;
-        state_nodeid = serverCommunication.addStringVariableNode(opcua_server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "LOADING_SERVER_STATE");
+        state_nodeid = serverCommunication.addStringVariableNode(opcua_server, parentObject, new Pair<>(1,"STATE"), "LOADING_SERVER_STATE");
 
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REQUEST_INIT_LOADING",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_INIT_LOADING"), "REQUEST_INIT_LOADING",
                 opcuaMethodInput -> {
                     return request_init_loading();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REQUEST_INIT_UNLOADING",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_INIT_UNLOADING"), "REQUEST_INIT_UNLOADING",
                 opcuaMethodInput -> {
                     return request_init_Unloading();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REQUEST_START_LOADING",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_START_LOADING"), "REQUEST_START_LOADING",
                 opcuaMethodInput -> {
                     return request_start_loading();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REQUEST_START_UNLOADING",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_START_UNLOADING"), "REQUEST_START_UNLOADING",
                 opcuaMethodInput -> {
                     return request_start_Unloading();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "COMPLETE",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,"COMPLETE"), "COMPLETE",
                 opcuaMethodInput -> {
                     return complete();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "RESET",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "RESET"), "RESET",
                 opcuaMethodInput -> {
                     return reset();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "STOP",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "STOP"), "STOP",
                 opcuaMethodInput -> {
                     return stop();
                 });

@@ -14,23 +14,44 @@
 package protocols;
 
 
+import capabilities.WiringInformation;
+import communication.Communication;
 import communication.open62communication.ClientCommunication;
+import communication.utils.RequestedNodePair;
 import helper.ClientLoadingStates;
+import helper.Pair;
 
 import static helper.ClientLoadingStates.*;
 
 public class LoadingClientProtocol {
-    int currentState;
-    String serverPath;
-    String orderId;
+    private int currentState;
+    private WiringInformation currentWiringInformation;
+    private String orderId;
 
-    Object opcua_client;
-    ClientCommunication clientCommunication;
+    private Object opcua_client;
+    private ClientCommunication clientCommunication;
 
-    public LoadingClientProtocol(ClientCommunication clientCommunication,Object opcua_client) {
-		this.clientCommunication = clientCommunication;
-        this.opcua_client = opcua_client;
+    public LoadingClientProtocol(Communication communication, Object opcua_server, Object client, Object parentObject) {
+        this.clientCommunication = communication.getClientCommunication();
+        this.opcua_client = client;
+        currentWiringInformation = null;
 
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new RequestedNodePair<>(1, communication.getServerCommunication().getUnique_id()), "STOP",
+                opcuaMethodInput -> {
+                    return stop(opcuaMethodInput);
+                });
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new RequestedNodePair<>(1, communication.getServerCommunication().getUnique_id()), "RESET",
+                opcuaMethodInput -> {
+                    return reset(opcuaMethodInput);
+                });
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new RequestedNodePair<>(1, communication.getServerCommunication().getUnique_id()), "READY",
+                opcuaMethodInput -> {
+                    return ready();
+                });
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new RequestedNodePair<>(1, communication.getServerCommunication().getUnique_id()), "COMPLETE",
+                opcuaMethodInput -> {
+                    return complete(opcuaMethodInput);
+                });
     }
 
     public final int getCurrentState() {
@@ -38,70 +59,120 @@ public class LoadingClientProtocol {
     }
 
     public void idle() {
+        System.out.println("Loading Client Protocol change State to IDLE");
+
         // comm.getClientCommunication().ClientSubtoNode(jClientAPIBase, client, nodeID)
     }
 
-    public boolean starting() {
-//subscribe
-       // int connection_states;
+    public boolean starting(WiringInformation wiringInfo) {
+        System.out.println("Loading Client Protocol change State to STARTING");
+
+        changeState(STARTING);
+        this.currentWiringInformation = wiringInfo;
+        // int connection_states;
+        // if (opcua_client == null || wiringInfo.getrEMOTE_ENDPOINT().isEmpty())
+        //      return false;
+
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                clientCommunication.clientConnect(clientCommunication, opcua_client, serverPath);
+                //  clientCommunication.clientConnect(clientCommunication, opcua_client, currentWiringInformation.getrEMOTE_ENDPOINT());
+                //TODO: wait for connected event before changing the state
             }
         }).start();
 
+        //  clientCommunication.clientSubToNode(clientCommunication, opcua_client, this.serverPath);
         changeState(INITIATING);
         return true;
     }
 
     private void initiating() {
+        System.out.println("Loading Client Protocol change State to INITIATING");
+
 
         //monitor remote endpoint
         //calling RequestLoading or unloading
-        // TODO Auto-generated method stub
-        changeState(INITIATED);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String callbCK = "CALL BACK";
+                callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_INIT_LOADING"), orderId);
+                System.out.println(callbCK);
+//TODO: CHECK THE RETURN THEN ACCORDINGLY WAIT OR MOVE TO ANOTHER STATE
+
+                changeState(INITIATED);
+            }
+        }).start();
+        // changeState(INITIATED);
     }
 
     /**
      *
      */
     private void initiated() {
+        System.out.println("Loading Client Protocol change State to INITIATED");
+
+
         // anay local conditions fulfilled
 
         changeState(READY);
 
     }
 
-    private void ready() {
+    private String ready() {
+        System.out.println("Loading Client Protocol change State to READY");
 
-        // WAITING FOR REMOTE STATE TO CHANGE to READY
-        //CALL REQUEST START LODING TO UNLOADING
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String callbCK = "CALL BACK";
+                callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_START_LOADING"), orderId);
+                System.out.println(callbCK);
+//TODO: CHECK THE RETURN THEN ACCORDINGLY WAIT OR MOVE TO ANOTHER STATE
+
+            }
+        }).start();
 
         changeState(EXECUTE);
-
+        return "Ready State Complete";
     }
 
     private void execute() {
+        System.out.println("Loading Client Protocol change State to EXECUTE");
+
+
         //EXECUTE
     }
 
     private void completing() {
+        System.out.println("Loading Client Protocol change State to COMPLETING");
+
+
         changeState(COMPLETED);
 
     }
 
     private void compeleted() {
+        System.out.println("Loading Client Protocol change State to COMPLETED");
+
+
         changeState(STOPPING);
     }
 
 
     private void stopping() {
+        System.out.println("Loading Client Protocol change State to STOPPING");
+
+
         changeState(STOPPED);
     }
 
     private void stopped() {
+        System.out.println("Loading Client Protocol change State to STOPPED");
+
+
 
     }
 
@@ -114,7 +185,7 @@ public class LoadingClientProtocol {
                 break;
             case STARTING:
                 currentState = STARTING.ordinal();
-                starting();
+
                 break;
             case INITIATING:
                 currentState = INITIATING.ordinal();
@@ -128,7 +199,6 @@ public class LoadingClientProtocol {
                 currentState = READY.ordinal();
                 ready();
                 break;
-
             case EXECUTE:
                 currentState = EXECUTE.ordinal();
                 execute();
@@ -156,29 +226,46 @@ public class LoadingClientProtocol {
         }
     }
 
-    public void setServerPath(String serverPath) {
-        this.serverPath = serverPath;
-    }
 
     public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
 
-    public void complete() {
+    public String complete(String opcuaInput) {
+        System.out.println("Loading Client Protocol OPCUA CALL to Complete");
+
+
         if (getCurrentState() == EXECUTE.ordinal()) {
             changeState(COMPLETING);
-        }
+            return "Complete Successful";
+        } else return "WRONG STATE NOT @ EXECUTE";
     }
 
-    public void reset() {
+    public String reset(String opcuaInput) {
+        System.out.println("Loading Client Protocol OPCUA CALL to Reset");
+
+
         if (getCurrentState() == STOPPED.ordinal()) {
             changeState(IDLE);
-        }
+            return "reset Successful";
+        } else return "WRONG STATE NOT @ STOPPED";
     }
 
-    public void start() {
+    /*
+    public String start(String opcuaInput) {
         if (getCurrentState() == IDLE.ordinal()) {
+            //    if (!starting())
+            //    return "ERROR WHEN @ STARTING";
             changeState(STARTING);
-        }
+            return "STARTING Successful";
+        } else return "WRONG STATE NOT @ IDLE";
+    }
+*/
+    public String stop(String opcuaInput) {
+        System.out.println("Loading Client Protocol OPCUA CALL to Stop");
+
+
+        changeState(STOPPING);
+        return "Stop Complete";
     }
 }
