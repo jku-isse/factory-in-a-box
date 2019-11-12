@@ -48,8 +48,6 @@ public class ConveyorMock extends ConveyorBase {
         this.sensorLoading = new MockSensor();
         this.sensorUnloading = new MockSensor();
         this.conveyorMotor = new MockMotor(100);
-        this.conveyorMotor.setSensorLoading(sensorLoading);     //TODO refactor
-        this.conveyorMotor.setSensorUnloading(sensorUnloading);
     }
 
     @Override

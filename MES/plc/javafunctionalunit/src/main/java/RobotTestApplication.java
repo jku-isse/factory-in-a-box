@@ -19,8 +19,6 @@ public class RobotTestApplication {
 
 
     public static void main(String[] args) {
-        //Run this if you just want the robot base without simulated motors
-        //new RobotBase(new LoadingDummy(), new ConveyorDummy(), new TurningDummy(), new ProcessDummy()).runServer();
 
         //Run this if you want to run it on a Lego Robot. Make sure the ports match your configuration
         new TurnTableRobot(new LoadingTurnTable(),
@@ -32,14 +30,6 @@ public class RobotTestApplication {
         //Run this to simulate the hardware
         /*new TurnTableRobot(new LoadingTurnTable(),
                 new ConveyorTurnTable(new MockMotor(), new MockSensor(), new MockSensor()),
-                new TurningTurnTable(new MockMotor(), new MockSensor()),
-                new ProcessTurnTable()).runServerAndClient();*/
-        //Attempt at better simulation
-
-        /*ConveyorSimulation conveyorSimulation = new ConveyorSimulation(3000);
-        new TurnTableRobot(new LoadingTurnTable(),
-                new ConveyorTurnTable(conveyorSimulation.getConveyorMotor(), conveyorSimulation.getSensorLoading(),
-                        conveyorSimulation.getSensorUnloading()),
                 new TurningTurnTable(new MockMotor(), new MockSensor()),
                 new ProcessTurnTable()).runServerAndClient();*/
     }

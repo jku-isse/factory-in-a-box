@@ -6,7 +6,15 @@ import functionalUnits.ConveyorBase;
 import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
 import io.vertx.core.Vertx;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import stateMachines.conveyor.ConveyorStateMachineConfig;
+import stateMachines.conveyor.ConveyorStates;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static stateMachines.conveyor.ConveyorStates.STOPPED;
 import static stateMachines.conveyor.ConveyorTriggers.*;
@@ -17,9 +25,19 @@ import static stateMachines.conveyor.ConveyorTriggers.*;
  */
 public class ConveyorTurnTable extends ConveyorBase {
 
+    @AllArgsConstructor
+    @ToString
+    @EqualsAndHashCode
+    class ConveyorProperties {
+        @Getter private ConveyorStates conveyorState;
+        @Getter private boolean motorIsRunning, loadingSensorHasInput, unloadingSensorHasInput;
+    }
+
     private final Motor conveyorMotor;
     private final Sensor sensorLoading;
     private final Sensor sensorUnloading;
+
+    private List<ConveyorProperties> logHistory;
 
     private Object statusNodeId;
     private boolean stopped, suspended;
@@ -40,12 +58,22 @@ public class ConveyorTurnTable extends ConveyorBase {
         this.stopped = false;
     }
 
+    public List<ConveyorProperties> getLogHistory() {
+        return logHistory != null ? logHistory : new ArrayList<>();
+    }
+
     /**
      * Updates the state on the server
      */
     private void updateState() {
         if (getServerCommunication() != null) {
             getServerCommunication().writeVariable(getServer(), statusNodeId, conveyorStateMachine.getState().getValue());
+        } else {
+            if (logHistory == null) {
+                logHistory = new ArrayList<>();
+            }
+            logHistory.add(new ConveyorProperties(conveyorStateMachine.getState(), conveyorMotor.isRunning(),
+                    sensorLoading.hasDetectedInput(), sensorUnloading.hasDetectedInput()));
         }
     }
 
@@ -58,12 +86,12 @@ public class ConveyorTurnTable extends ConveyorBase {
             System.out.println("Conveyor is busy");
             return;
         }
+        System.out.println("Executing: loadBelt");
+        conveyorMotor.backward();
         conveyorStateMachine.fire(LOAD);
         updateState();
         Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
         vertx.executeBlocking(promise -> {
-            System.out.println("Executing: loadBelt");
-            conveyorMotor.backward();
             while (!sensorLoading.hasDetectedInput()) {
                 if (stopped || suspended) {
                     stopped = false;
@@ -86,16 +114,17 @@ public class ConveyorTurnTable extends ConveyorBase {
      */
     @Override
     public void unload() {
+        if (!conveyorStateMachine.canFire(UNLOAD)) {
+            System.out.println("Conveyor is busy");
+            return;
+        }
+        System.out.println("Executing: loadBelt");
+        conveyorMotor.forward();
+        conveyorStateMachine.fire(UNLOAD);
+        updateState();
         Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
         vertx.executeBlocking(promise -> {
-            if (!conveyorStateMachine.canFire(UNLOAD)) {
-                System.out.println("Conveyor is busy");
-                return;
-            }
-            conveyorStateMachine.fire(UNLOAD);
-            updateState();
-            System.out.println("Executing: loadBelt");
-            conveyorMotor.forward();
+
             while (sensorUnloading.hasDetectedInput()) {
                 if (stopped || suspended) {
                     stopped = false;
@@ -119,11 +148,13 @@ public class ConveyorTurnTable extends ConveyorBase {
     @Override
     public void pause() {
         if (conveyorStateMachine.canFire(PAUSE)) {
+            System.out.println("Executing: pause");
             suspended = true;
+            this.conveyorMotor.stop();
             conveyorStateMachine.fire(PAUSE);
             updateState();
-            System.out.println("Executing: pause");
-            this.conveyorMotor.stop();
+        } else {
+            System.out.println("Cannot pause from " + getConveyorStateMachine().getState());
         }
     }
 
@@ -144,9 +175,15 @@ public class ConveyorTurnTable extends ConveyorBase {
             }else if(colorSensor.getColorID() != Color.NONE){
                 conveyorStateMachine.fire(NEXT_PARTIAL);
             }else{*/
-            conveyorStateMachine.fire(NEXT);
+            Vertx vertx = Vertx.vertx();
+            vertx.executeBlocking(promise -> {
+                conveyorStateMachine.fire(NEXT);
+                updateState();
+            }, res -> {
+            })
+            ;
             //}
-            updateState();
+
         }
     }
 
@@ -155,13 +192,18 @@ public class ConveyorTurnTable extends ConveyorBase {
      */
     @Override
     public void stop() {
+        conveyorMotor.stop();
         conveyorStateMachine.fire(STOP);
         updateState();
         System.out.println("Executing: stop");
         stopped = true;
-        conveyorMotor.stop();
-        conveyorStateMachine.fire(NEXT);
-        updateState();
+        Vertx vertx = Vertx.vertx();
+        vertx.executeBlocking(promise -> {
+                    conveyorStateMachine.fire(NEXT);
+                    updateState();
+                },
+                res -> {
+                });
     }
 
     /**

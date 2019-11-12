@@ -5,20 +5,31 @@ package hardware.actuators;
  */
 public abstract class Motor {
 
+    private boolean isRunning;
+
+    protected Motor(){
+        isRunning = false;
+    }
     /**
      * Spins the motor in forward direction.
      */
-    public abstract void forward();
+    public void forward(){
+        isRunning = true;
+    }
 
     /**
      * Spins the motor in backward direction.
      */
-    public abstract void backward();
+    public void backward(){
+        isRunning = true;
+    }
 
     /**
      * Stops the motor
      */
-    public abstract void stop();
+    public void stop(){
+        isRunning = false;
+    }
 
     /**
      * Sets the speed on the motor
@@ -31,4 +42,8 @@ public abstract class Motor {
      * @param msDelay delay in ms
      */
     public abstract void waitMs(long msDelay);
+
+    public boolean isRunning(){
+        return isRunning;
+    }
 }
