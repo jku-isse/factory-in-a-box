@@ -1,26 +1,53 @@
-<h2>Order Status</h2>
-
-<hr/>
-<div *ngIf="order">
-  <div>
-    <label><b>OrderId: </b></label> {{order.orderId}}
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h2>Order Status</h2>
   </div>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>JobId</th>
-        <th>JobStatus</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let entry of order.jobStatus | keyvalue">
-        <td>{{entry.key}}</td>
-        <td>{{entry.value}}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+  <div class="panel-body">
+    <div *ngIf="order">
+      <div>
+        <label><b>OrderId: </b></label> {{order.orderId}}
+      </div>
+        <table mat-table [dataSource]="getJobsAsArray()" class="mat-elevation-z8">
+          <!-- JobId Column -->
+          <ng-container matColumnDef="jobid">
+            <th mat-header-cell *matHeaderCellDef> Job ID </th>
+            <td mat-cell *matCellDef="let element">
+              {{element.id}}
+            </td>
+          </ng-container>
+        
+          <!-- JobStatus Column -->
+          <ng-container matColumnDef="jobstatus">
+            <th mat-header-cell *matHeaderCellDef> Job Status </th>
+            <td mat-cell *matCellDef="let element"> 
+              {{element.status}}
+            </td>
+          </ng-container>
 
-<br>
-<br>
-<button (click)="list()" class="btn btn-primary">Back to Order List</button><br>
+          <!-- Capabilities Column -->
+          <ng-container matColumnDef="caps">
+            <th mat-header-cell *matHeaderCellDef> Capabilities </th>
+            <td mat-cell *matCellDef="let element"> 
+              <div *ngIf="element.caps !== undefined">
+                <br/>
+                <mat-card class="my-card">
+                  <mat-card-content>
+                      <div *ngFor="let c of element.caps">
+                          <p>{{c}}</p>
+                      </div>
+                  </mat-card-content>
+                </mat-card>
+                <br/>
+              </div>
+            </td>
+          </ng-container>
+        
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </div>
+    <br>
+    <br>
+    <button (click)="list()" class="btn btn-primary">Back to Order List</button><br>
+  </div>
+</div>

@@ -14,6 +14,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
@@ -52,6 +53,7 @@ public class MockMachineActor extends AbstractActor{
 		        	checkIfAvailableForNextOrder();
 		        } )
 		        .match(LockForOrder.class, lockReq -> {
+		        	log.info("received LockForOrder msg "+lockReq.getStepId()+", current state: "+currentState);
 		        	if (currentState == MachineOrderMappingManager.IDLE_STATE_VALUE) {
 		        		//TODO: here we assume correct invocation: thus on overtaking etc, will be improved later
 		        		setAndPublishNewState(MachineOrderMappingManager.PRODUCING_STATE_VALUE); // we skip starting state here  
@@ -68,11 +70,13 @@ public class MockMachineActor extends AbstractActor{
 	}
 	
 	private void setAndPublishNewState(String newState) {
+		log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
 		this.currentState = newState;
 		eventBusByRef.tell(new MachineUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, newState), self());
 	}
 	
 	private void checkIfAvailableForNextOrder() {
+		log.debug(String.format("Checking if %s is IDLE: %s", this.machineId.getId(), this.currentState));
 		if (currentState == MachineOrderMappingManager.IDLE_STATE_VALUE && !orders.isEmpty()) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
 			RegisterProcessStepRequest ror = orders.remove(0);
 			log.info("Ready for next Order: "+ror.getRootOrderId());
@@ -81,12 +85,14 @@ public class MockMachineActor extends AbstractActor{
 	}	
 	
 	private void finishProduction() {
+		log.debug("finishProduction in 5 seconds..");
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(5000), 
     			 new Runnable() {
             @Override
             public void run() {
+            	log.debug("*****   make STOPPING "+machineId.getId());
             	setAndPublishNewState(MachineOrderMappingManager.COMPLETING_STATE_VALUE); 
             	resetToIdle();
             }
