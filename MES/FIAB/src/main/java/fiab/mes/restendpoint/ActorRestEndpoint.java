@@ -79,10 +79,8 @@ public class ActorRestEndpoint extends AllDirectives{
 						logger.info("SSE (orderevent) requested with orderId: "+orderId.orElse("none provided"));
 						Source<ServerSentEvent, NotUsed> source = 
 								Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
-								.map(msg -> {
-									return (OrderEvent) msg;
-								})
-								.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg) )
+								.map(msg -> (OrderEvent) msg)
+								.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg))
 								.mapMaterializedValue(actor -> { 
 									eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT1", orderId.orElse("*"))) , actor);  
 									return NotUsed.getInstance();

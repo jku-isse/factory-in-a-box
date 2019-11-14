@@ -7,6 +7,7 @@ public class OrderEventWrapper {
 	private OrderEventType eventType;
 	private String orderId;
 	private String machineId;
+	private String message;
 	private String timestamp;
 	
 	public OrderEventWrapper(OrderEvent e) {
@@ -14,6 +15,7 @@ public class OrderEventWrapper {
 		this.orderId = e.getOrderId();
 		this.machineId = e.getMachineId();
 		this.timestamp = e.getTimestamp().toString();
+		this.message = e.getMessage();
 	}
 
 	public OrderEventType getEventType() {
@@ -32,5 +34,8 @@ public class OrderEventWrapper {
 		return timestamp;
 	}
 	
+	public String getMessage() {
+		return message;
+	}
 	
 }

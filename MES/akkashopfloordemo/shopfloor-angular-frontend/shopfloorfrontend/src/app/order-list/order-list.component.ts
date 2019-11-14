@@ -15,7 +15,7 @@ import {MatSort} from '@angular/material/sort';
   styleUrls: ['./order-list.component.css']
 })
 export class OrderListComponent implements OnInit {
-  displayedColumns: string[] = ['orderId', 'eventType', 'machineId', 'process-button', 'history-button'];
+  displayedColumns: string[] = ['orderId', 'eventType', 'machineId', 'message', 'process-button', 'history-button'];
   orders: Map<string, OrderEvent> = new Map<string, OrderEvent>();
   dataSource: MatTableDataSource<OrderEvent>;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -48,6 +48,7 @@ export class OrderListComponent implements OnInit {
       .subscribe(data => {
         data.forEach(element => {
           this.orders.set(element.orderId, element);
+          // console.log('element', this.orders);
           this.dataSource = new MatTableDataSource(Array.from(this.orders.values()));
         });
         if (this.dataSource) {

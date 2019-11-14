@@ -33,6 +33,20 @@
           {{element.machineId}}
         </td>
       </ng-container>
+
+       <!-- Message Column -->
+       <ng-container matColumnDef="message">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Message </th>
+          <td mat-cell *matCellDef="let element"> 
+              <br/>
+              <mat-card class="my-card">
+                <mat-card-content>
+                  <p>{{element.message}}</p>
+                </mat-card-content>
+              </mat-card>
+              <br/>
+          </td>
+        </ng-container>
     
       <!-- Button Column -->
       <ng-container matColumnDef="process-button">

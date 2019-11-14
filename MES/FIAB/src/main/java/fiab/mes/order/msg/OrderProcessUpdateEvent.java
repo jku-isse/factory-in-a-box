@@ -8,16 +8,16 @@ import ProcessCore.ProcessStep;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 
-public class OrderProcessUpdateEvent extends OrderEvent{
+public class OrderProcessUpdateEvent extends OrderEvent {
 
 	protected Map<ProcessStep, StepStatusEnum> stepsWithNewStatus = new HashMap<>();
 
-	public OrderProcessUpdateEvent(String orderId, String eventSource) {
-		super(orderId, eventSource, OrderEventType.PRODUCTION_UPDATE);
+	public OrderProcessUpdateEvent(String orderId, String eventSource, String message) {
+		super(orderId, eventSource, OrderEventType.PRODUCTION_UPDATE, message);
 	}
 	
-	public OrderProcessUpdateEvent(String orderId, String eventSource, ProcessChangeImpact pci) {
-		super(orderId, eventSource, OrderEventType.PRODUCTION_UPDATE);
+	public OrderProcessUpdateEvent(String orderId, String eventSource, String message, ProcessChangeImpact pci) {
+		super(orderId, eventSource, OrderEventType.PRODUCTION_UPDATE, message);
 		stepsWithNewStatus.put(pci.getRootChange(), pci.getCurrentState());
 		pci.getImpact().entrySet().stream()
 			.forEach(entry -> entry.getValue().stream()

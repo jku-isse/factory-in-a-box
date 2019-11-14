@@ -2,5 +2,8 @@ table {
     width: 100%;
 }
 .make-gold {
-    background-color: gold
+    background-color: rgb(206, 227, 255)
 }
+.my-card {
+    max-width: 300px;
+  }

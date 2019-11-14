@@ -27,7 +27,8 @@ public class OrderEntryActor extends AbstractActor{
 	
 	private final AtomicInteger orderId = new AtomicInteger(0);
 	private HashMap<String, ActorRef> orderActors = new HashMap<>();
-	private HashMap<String, OrderEvent> latestChange = new HashMap<>();	private ActorSelection eventBusByRef;
+	private HashMap<String, OrderEvent> latestChange = new HashMap<>();	
+	private ActorSelection eventBusByRef;
 	private ActorSelection orderPlannerByRef;
 	
 	static public Props props() {

@@ -135,13 +135,15 @@ public class OrderPlanningActor extends AbstractActor{
 	// first time activation of the process
 	private void scheduleProcess(String rootOrderId, OrderProcess mop) {
 		if (!mop.doAllLeafNodeStepsHaveInvokedCapability(mop.getProcess())) {
-			log.warning(String.format("OrderProcess %s does not have all leaf nodes with capability invocations, thus cannot be completely mapped to machines, cancelling order", rootOrderId));
+			String msg = String.format("OrderProcess %s does not have all leaf nodes with capability invocations, thus cannot be completely mapped to machines, cancelling order", rootOrderId);
+			log.warning(msg);
 			ordMapper.removeOrder(rootOrderId); // we didn/t start processing yet, so we can just drop the process
-			orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED), ActorRef.noSender());
+			orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED, msg), ActorRef.noSender());
 		} else {
 			// we have capability invocations with capabilities, thus able to map them to machines
 			ProcessChangeImpact pci = mop.activateProcess();
-			orderEventBus.tell( new OrderProcessUpdateEvent(rootOrderId, this.self().path().name(), pci), ActorRef.noSender() );
+			String msg = "Capability invocations have capabilities, thus able to map them to machines. rootOrderId: "+rootOrderId;
+			orderEventBus.tell( new OrderProcessUpdateEvent(rootOrderId, this.self().path().name(), msg, pci), ActorRef.noSender() );
 			tryAssignExecutingMachineForOneProcessStep(mop, rootOrderId);
 		} 
 	}
@@ -164,8 +166,9 @@ public class OrderPlanningActor extends AbstractActor{
 				//TODO: --> transport it off to output station
 			} else {
 				// this implies that the process cant make progress as there is no available capabilityinvocation ie. process step to allocate to a machine
-				log.warning(String.format("OrderProcess %s has no available steps of type CapabilityInvocation to continue with",rootOrderId));
-				orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED), ActorRef.noSender());		
+				String msg = String.format("OrderProcess %s has no available steps of type CapabilityInvocation to continue with",rootOrderId); 
+				log.warning(msg);
+				orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED, msg), ActorRef.noSender());		
 				//TODO: if this process is somewhere on some machine, remove it from production --> transport it off to output station
 			}
 		} else {
@@ -231,7 +234,9 @@ public class OrderPlanningActor extends AbstractActor{
 				// update that we now work on an order
 				ordMapper.getOrderRequest(orderId).ifPresent(rpr -> {
 					ProcessChangeImpact pci = rpr.getProcess().activateStepIfAllowed(readyE.getResponseTo().getProcessStep());
-					orderEventBus.tell( new OrderProcessUpdateEvent(orderId, this.self().path().name(), pci), ActorRef.noSender() );
+					String msg = String.format("Machine with ID %s now works on Order with ID %s", machine.getId(), orderId);
+					log.info(msg);
+					orderEventBus.tell( new OrderProcessUpdateEvent(orderId, this.self().path().name(), msg, pci), ActorRef.noSender() );
 				});
 				
 			} else { // e.g., when machine needs to go down for maintenance, or some other error occured in the meantime						
@@ -285,11 +290,13 @@ public class OrderPlanningActor extends AbstractActor{
 					// then we still have the order occupying the machine  --> now check if next place is ready somewhere
 					// update process, get next step --> check if possible somewhere
 					ordMapper.getOrderRequestOnMachine(machine).ifPresent(rpr -> { 
+						 log.debug(String.format("%s in state %s with register process request of %s", machine.getId(), mue.getNewValue().toString(), rpr.getRootOrderId()));
 						 ordMapper.getJobOnMachine(machine).ifPresent(step -> { 
 							 ProcessChangeImpact pci = rpr.getProcess().markStepComplete(step); 
-							 OrderProcessUpdateEvent opue = new OrderProcessUpdateEvent(rpr.getRootOrderId(), this.self().path().name(), pci);
+							 String msg = String.format("Update process that step %s is complete at machine with ID %s and with order ID %s", step.getDisplayName(), machine.getId(), rpr.getRootOrderId());
+							 log.info(msg);
+							 OrderProcessUpdateEvent opue = new OrderProcessUpdateEvent(rpr.getRootOrderId(), this.self().path().name(), msg, pci);
 							 orderEventBus.tell(opue, ActorRef.noSender());
-							 System.out.println("[fiab.mes.planer.actor.OrderPlanningActor]		############ "+rpr.getRootOrderId()+" ############");
 							 } );
 						tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()); });
 				} else if (mue.getNewValue().equals(MachineOrderMappingManager.PRODUCING_STATE_VALUE)) {

@@ -9,7 +9,7 @@ import { OrderEvent } from '../orderevent';
   styleUrls: ['./order-history.component.css']
 })
 export class OrderHistoryComponent implements OnInit {
-  displayedColumns: string[] = ['status', 'machine', 'time'];
+  displayedColumns: string[] = ['status', 'machine', 'message', 'time'];
   orders: Map<string, OrderEvent> = new Map<string, OrderEvent>();
   orderId: string;
   latest = '';
@@ -39,7 +39,7 @@ export class OrderHistoryComponent implements OnInit {
         data.forEach(element => {
           this.orders.set(element.machineId + element.eventType + element.timestamp, element);
           this.setLatest(element.timestamp);
-          console.log('History data', element);
+          // console.log('History data', element);
         });
       }, error => console.log(error));
   }
@@ -49,8 +49,7 @@ export class OrderHistoryComponent implements OnInit {
   }
 
   getOrdersAsArray() {
-    console.log('Debug flag', this.orders.values());
-
+    // console.log('Debug flag', this.orders.values());
     return Array.from(this.orders.values());
   }
 

@@ -9,13 +9,17 @@ import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {MaterialModule} from './material-module';
 import { OrderHistoryComponent } from './order-history/order-history.component';
+import { MachineListComponent } from './machine-list/machine-list.component';
+import { MachineHistoryComponent } from './machine-history/machine-history.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     OrderDetailsComponent,
     OrderListComponent,
-    OrderHistoryComponent
+    OrderHistoryComponent,
+    MachineListComponent,
+    MachineHistoryComponent
   ],
   imports: [
     BrowserModule,

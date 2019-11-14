@@ -108,15 +108,15 @@ public class OrderEmittingTestServer {
 					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
 					expectMsgClass(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
 					
-					OrderProcess process = new OrderProcess(TestMockMachineActor.getSequentialProcess());
-			    	String processId = "process";
-					process.getProcess().setID(processId);	
+//					OrderProcess process = new OrderProcess(TestMockMachineActor.getSequentialProcess());
+//			    	String processId = "process";
+//					process.getProcess().setID(processId);	
 					
 				    CountDownLatch count = new CountDownLatch(1);
 				    while(count.getCount() > 0) {
-//				    	OrderProcess process = new OrderProcess(TestMockMachineActor.getSequentialProcess());
-//				    	String processId = "process"+String.valueOf(count.getCount());
-//						process.getProcess().setID(processId);			
+				    	OrderProcess process = new OrderProcess(TestMockMachineActor.getSequentialProcess());
+				    	String processId = "process"+String.valueOf(count.getCount());
+						process.getProcess().setID(processId);			
 				    	RegisterProcessRequest req = new RegisterProcessRequest("", processId, process, getRef());
 				    	orderEntryActor.tell(req, getRef());
 				    	

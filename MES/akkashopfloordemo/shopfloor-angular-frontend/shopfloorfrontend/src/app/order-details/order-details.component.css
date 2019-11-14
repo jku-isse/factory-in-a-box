@@ -1,3 +1,6 @@
 table {
     width: 100%;
 }
+.my-card {
+    max-width: 100px;
+}
