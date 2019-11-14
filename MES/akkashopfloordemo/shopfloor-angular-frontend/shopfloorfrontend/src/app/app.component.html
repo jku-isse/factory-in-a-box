@@ -1,37 +1,41 @@
-<nav class="navbar navbar-expand-sm bg-primary navbar-dark">
+<nav class='navbar navbar-expand-sm bg-primary navbar-dark'>
   <!-- Links -->
-  <ul class="navbar-nav">
-    <mat-icon aria-hidden="false" aria-label="Example home icon">home</mat-icon>
-    <li class="nav-item">
-        <a routerLink="orders" class="nav-link" routerLinkActive="active">Order List</a>
+  <ul class='navbar-nav'>
+    <mat-icon class='icon' aria-hidden='false' aria-label='Example home icon'>assignment</mat-icon>
+    <li class='nav-item'>
+        <a routerLink='orders' class='nav-link' routerLinkActive='active'>Order List</a>
     </li>
-    <li class="nav-item">
-        <a routerLink="orderStatus" class="nav-link disabled" routerLinkActive="active">Order Status</a>
+    <li class='nav-item'>
+        <a routerLink='orderStatus' class='nav-link disabled' routerLinkActive='active'>Order Status</a>
     </li>
-    <li class="nav-item">
-        <a routerLink="orderHistory" class="nav-link disabled" routerLinkActive="active">Order History</a>
+    <li class='nav-item'>
+        <a routerLink='orderHistory' class='nav-link disabled' routerLinkActive='active'>Order History</a>
     </li>
-    <li class="nav-item">
-        <a routerLink="machines" class="nav-link" routerLinkActive="active">Machine List</a>
+
+    <span style="display:inline-block; width: 30px;"></span>
+
+    <mat-icon class='icon' aria-hidden='false' aria-label='Example home icon'>device_hub</mat-icon>
+    <li class='nav-item'>
+        <a routerLink='machines' class='nav-link' routerLinkActive='active'>Machine List</a>
     </li>
-    <li class="nav-item">
-        <a routerLink="machineHistory" class="nav-link disabled" routerLinkActive="active">Machine History</a>
+    <li class='nav-item'>
+        <a routerLink='machineHistory' class='nav-link disabled' routerLinkActive='active'>Machine History</a>
     </li>
   </ul>
 </nav>
-<div class="container">
+<div class='container'>
   <br>
-  <h2 style="text-align: center;">{{title}}</h2>
+  <h2 style='text-align: center;'>{{title}}</h2>
   <hr>
-  <div class="card">
-    <div class="card-body">
+  <div class='card'>
+    <div class='card-body'>
   <router-outlet></router-outlet>
     </div>
   </div>
 </div>
 
-<footer class="footer">
-  <div class="container">
+<footer class='footer'>
+  <div class='container'>
       <span>All Rights Reserved 2019 @CMD</span>
   </div>
 </footer>
