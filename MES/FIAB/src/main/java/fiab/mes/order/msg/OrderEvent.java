@@ -5,22 +5,26 @@ import java.time.ZonedDateTime;
 import fiab.mes.general.TimedEvent;
 
 public class OrderEvent extends TimedEvent {
+	
 	private OrderEventType eventType;
 	private String orderId;
 	private String machineId;
+	private String message;
 	
-	public OrderEvent(String orderId, String machineId, OrderEventType eventType) {
+	public OrderEvent(String orderId, String machineId, OrderEventType eventType, String message) {
 		super();
 		this.orderId = orderId;
 		this.eventType = eventType;
 		this.machineId = machineId;
+		this.message = message;
 	}
 	
-	public OrderEvent(String orderId, String machineId, OrderEventType eventType, ZonedDateTime timestamp) {
+	public OrderEvent(String orderId, String machineId, OrderEventType eventType, String message,  ZonedDateTime timestamp) {
 		super(timestamp);
 		this.orderId = orderId;
 		this.eventType = eventType;
 		this.machineId = machineId;
+		this.message = message;
 	}
 
 	public OrderEventType getEventType() {
@@ -36,12 +40,22 @@ public class OrderEvent extends TimedEvent {
 		return orderId;
 	}
 
+	public String getMessage() {
+		return message;
+	}
+	
 	public static enum OrderEventType {
 		CREATED, REGISTERED, SCHEDULED, ALLOCATED, PRODUCTION_UPDATE, TRANSPORT_UPDATE, CANCELED, PAUSED, CONTINUED, COMPLETED, DELETED
 	}
 
 	
 	public OrderEvent getCloneWithoutDetails() {
-		return new OrderEvent(this.orderId, this.machineId, this.eventType, this.getTimestamp());
+		return new OrderEvent(this.orderId, this.machineId, this.eventType, this.message, this.getTimestamp());
+	}
+	
+	@Override
+	public String toString() {
+		return "OrderEvent [eventType=" + eventType + ", orderId=" + orderId + ", machineId=" + machineId + ", message="
+				+ message + "]";
 	}
 }

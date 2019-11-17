@@ -43,8 +43,9 @@ public class MachineOrderMappingManager {
 		this.publisherName = parentActorName;
 	}
 	
-	private void publishEvent(String orderId, OrderEventType type) {
-		orderEventBus.tell(new OrderEvent(orderId, publisherName, type), ActorRef.noSender());
+	private void publishEvent(String orderId, OrderEventType type, String msg) {
+		msg = String.format("Machine-Order-Mapping action: \"%s\" for Order with ID %s", msg, orderId);
+		orderEventBus.tell(new OrderEvent(orderId, publisherName, type, msg), ActorRef.noSender());
 	}
 	
 	public Optional<RegisterProcessRequest> getOrderRequest(String orderId) {
@@ -62,7 +63,8 @@ public class MachineOrderMappingManager {
 	
 	public void registerOrder(RegisterProcessRequest rpReq) {
 		orders.put(rpReq.getRootOrderId(), new SimpleEntry<RegisterProcessRequest, OrderEventType>(rpReq, OrderEventType.REGISTERED));
-		publishEvent(rpReq.getRootOrderId(), OrderEventType.REGISTERED);
+		String msg = "register order ";
+		publishEvent(rpReq.getRootOrderId(), OrderEventType.REGISTERED, msg);
 	}
 	
 	public void pauseOrder(String orderId) {
@@ -71,9 +73,11 @@ public class MachineOrderMappingManager {
 	
 	private void transitionOrder(String orderId, OrderEventType newState) {
 		Optional.of(orders.get(orderId)).ifPresent(pair -> {
-			if (pair.getValue() != newState) { // only when not paused yet
+			OrderEventType oldState = pair.getValue();
+			if (oldState != newState) { // only when not paused yet
 				pair.setValue(newState);
-				publishEvent(orderId, newState);
+				String msg = String.format("transition from %s to %s ", oldState, newState);
+				publishEvent(orderId, newState, msg);
 			}
 		});
 	}
@@ -219,7 +223,7 @@ public class MachineOrderMappingManager {
 			return lastMachineState;
 		}
 		public void setLastMachineState(MachineUpdateEvent lastMachineState) {
-			if (lastMachineState.getType().equals(STATE_VAR_NAME)) { // only update the state of the machine
+			if (lastMachineState.getParameterName().equals(STATE_VAR_NAME)) { // only update the state of the machine
 				this.lastMachineState = lastMachineState;		
 				if (lastMachineState.getNewValue().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
 					this.allocationState = AssignmentState.NONE;

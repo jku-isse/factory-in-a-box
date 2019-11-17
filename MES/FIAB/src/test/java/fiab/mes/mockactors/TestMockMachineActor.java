@@ -141,10 +141,18 @@ public class TestMockMachineActor { //extends AbstractJavaTest {
 	public static CapabilityInvocation s4 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
 
 	public static ProcessCore.Process getSequentialProcess() {
+		s1.setID("1");
+		s2.setID("2");
+		s3.setID("3");
+		s4.setID("4");
+		s1.setDisplayName("red plotting");
+		s2.setDisplayName("blue plotting");
+		s3.setDisplayName("green plotting");
+		s4.setDisplayName("yellow plotting");
 		s1.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Red")));
-		s2.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Blue")));		
-		s3.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Green")));		
-		s4.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Yellow")));		
+		s2.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Blue")));		
+		s3.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Green")));		
+		s4.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Yellow")));		
 		
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
 		p.getSteps().add(s1);

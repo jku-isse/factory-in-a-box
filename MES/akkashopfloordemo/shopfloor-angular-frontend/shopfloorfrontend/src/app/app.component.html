@@ -1,9 +1,21 @@
 <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
   <!-- Links -->
   <ul class="navbar-nav">
+    <mat-icon aria-hidden="false" aria-label="Example home icon">home</mat-icon>
     <li class="nav-item">
         <a routerLink="orders" class="nav-link" routerLinkActive="active">Order List</a>
-        <a routerLink="updates" class="nav-link" routerLinkActive="active">Order Updates</a>
+    </li>
+    <li class="nav-item">
+        <a routerLink="orderStatus" class="nav-link disabled" routerLinkActive="active">Order Status</a>
+    </li>
+    <li class="nav-item">
+        <a routerLink="orderHistory" class="nav-link disabled" routerLinkActive="active">Order History</a>
+    </li>
+    <li class="nav-item">
+        <a routerLink="machines" class="nav-link" routerLinkActive="active">Machine List</a>
+    </li>
+    <li class="nav-item">
+        <a routerLink="machineHistory" class="nav-link disabled" routerLinkActive="active">Machine History</a>
     </li>
   </ul>
 </nav>
