@@ -43,6 +43,8 @@ import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus;
+import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus.AssignmentState;
+import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
 
 
 public class OrderPlanningActor extends AbstractActor{
@@ -87,7 +89,7 @@ public class OrderPlanningActor extends AbstractActor{
 	public Receive createReceive() {
 		return receiveBuilder()
 				.match(RegisterProcessRequest.class, rpReq -> {
-					log.info("Received Register Order Request");		        	
+					log.info("Received Register Order Request: "+rpReq.getRootOrderId());		        	
 					//reqIndex.put(rpReq.getRootOrderId(), rpReq);
 					ordMapper.registerOrder(rpReq);
 					scheduleProcess(rpReq.getRootOrderId(), rpReq.getProcess());		        		
@@ -179,13 +181,6 @@ public class OrderPlanningActor extends AbstractActor{
 				.filter(pair -> !pair.getValue().isEmpty() )
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (prev, next) -> next, HashMap::new));
 				
-			
-			// select all candidate steps that have some actor allocation to modelActors 						
-//			List<ActorAllocation> aaOpts = stepCandidates.stream()
-//					.map(cap -> op.getActorAllocationForProcess(cap))
-//					.filter(allocOpt -> allocOpt.isPresent())
-//					.map(allocOpt -> allocOpt.get()) // here we have mapped steps,
-//					.collect(Collectors.toList());
 			if (capMap.isEmpty()) {
 				log.warning(String.format("OrderProcess %s has no available CapabilityInvocations steps match a discovered Machine/Actor, Order is paused",rootOrderId));
 				ordMapper.pauseOrder(rootOrderId);
@@ -195,17 +190,18 @@ public class OrderPlanningActor extends AbstractActor{
 				Optional<AbstractMap.SimpleEntry<CapabilityInvocation, AkkaActorBackedCoreModelAbstractActor>> maOpt = capMap.entrySet().stream()
 						.flatMap(pair -> pair.getValue().stream().map(mach -> new AbstractMap.SimpleEntry<>(pair.getKey(), mach)))
 						.filter(flatPair -> flatPair.getValue() != null)
+						.filter(pair -> ordMapper.isMachineIdle(pair.getValue())) //continue with those where actor is idle
+						.filter(pair -> ordMapper.getMappingStatusOfMachine(pair.getValue()).orElse(new MachineOrderMappingStatus(pair.getValue(), AssignmentState.NONE)).getAssignmentState() == AssignmentState.NONE) // and also where we havent assigned any order to yet
 						.findFirst(); // then from this list pick the first
-				
-//						.map(alloc -> new AbstractMap.SimpleEntry<>(alloc, capMan.resolveByModelActor(alloc.getActor())) )
-//						.filter(allocMap -> allocMap.getValue().isPresent())
-//						.map(allocMap -> new AbstractMap.SimpleEntry<>(allocMap.getKey(), allocMap.getValue().get()))					
-//						.filter(allocMap -> ordMapper.isMachineIdle(allocMap.getValue()) ) // we have an idle machine 
-//						.findFirst();
 				
 				maOpt.ifPresent(aa -> {								
 					// scheduled, not yet producing
-					ordMapper.requestMachineForOrder(aa.getValue(), rootOrderId, aa.getKey());	
+					try {
+						ordMapper.requestMachineForOrder(aa.getValue(), rootOrderId, aa.getKey());
+					} catch (MachineOrderMappingStatusLifecycleException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}	
 					// get machine actor reference				
 					aa.getValue().getAkkaActor().tell( new RegisterProcessStepRequest(rootOrderId, aa.getKey().toString(), aa.getKey(), this.self()), this.self());					
 					//TODO: alternatively the machine could issue a SCHEDULED event
@@ -261,6 +257,11 @@ public class OrderPlanningActor extends AbstractActor{
 					ordMapper.getPausedProcessesOnSomeMachine().stream()
 						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
 					// we don't abort upon first success but try for every one, should matter, just takes a bit of processing
+					
+					// order that are paused but not assigned to any machine yet (not efficient as will check all those already checked above)
+					ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
+						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+					
 					//if none, then just wait for next incoming event
 				} else if (mue.getNewValue().equals(MachineOrderMappingManager.COMPLETING_STATE_VALUE)) {
 					// TODO: step done, now update the process, so which step has been completed?

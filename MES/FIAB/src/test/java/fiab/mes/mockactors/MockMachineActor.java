@@ -30,7 +30,9 @@ public class MockMachineActor extends AbstractActor{
 	protected AbstractCapability cap;
 	protected String currentState;
 	
+	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
+	protected RegisterProcessStepRequest reservedForOrder = null;
 	
 	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor) {	    
 		return Props.create(MockMachineActor.class, () -> new MockMachineActor(machineEventBus, cap, modelActor));
@@ -77,9 +79,10 @@ public class MockMachineActor extends AbstractActor{
 	
 	private void checkIfAvailableForNextOrder() {
 		log.debug(String.format("Checking if %s is IDLE: %s", this.machineId.getId(), this.currentState));
-		if (currentState == MachineOrderMappingManager.IDLE_STATE_VALUE && !orders.isEmpty()) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
+		if (currentState == MachineOrderMappingManager.IDLE_STATE_VALUE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
 			RegisterProcessStepRequest ror = orders.remove(0);
 			log.info("Ready for next Order: "+ror.getRootOrderId());
+			reservedForOrder = ror; 
     		ror.getRequestor().tell(new ReadyForProcessEvent(ror), getSelf());
     	}	
 	}	
@@ -106,6 +109,7 @@ public class MockMachineActor extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
+            	reservedForOrder = null;
             	setAndPublishNewState(MachineOrderMappingManager.IDLE_STATE_VALUE); // we then skip completed state
             	checkIfAvailableForNextOrder();
             }

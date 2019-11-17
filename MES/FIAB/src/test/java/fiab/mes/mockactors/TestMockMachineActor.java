@@ -135,16 +135,24 @@ public class TestMockMachineActor { //extends AbstractJavaTest {
 		return actor;
 	}
 	
-	public static CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
-	public static CapabilityInvocation s2 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
-	public static CapabilityInvocation s3 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
-	public static CapabilityInvocation s4 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+//	public static CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+//	public static CapabilityInvocation s2 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+//	public static CapabilityInvocation s3 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+//	public static CapabilityInvocation s4 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
 
 	public static ProcessCore.Process getSequentialProcess() {
-		s1.setID("1");
-		s2.setID("2");
-		s3.setID("3");
-		s4.setID("4");
+		return getSequentialProcess("1-");
+	}
+	
+	public static ProcessCore.Process getSequentialProcess(String prefix) {
+		CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		CapabilityInvocation s2 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		CapabilityInvocation s3 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		CapabilityInvocation s4 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		s1.setID(prefix+"1");
+		s2.setID(prefix+"2");
+		s3.setID(prefix+"3");
+		s4.setID(prefix+"4");
 		s1.setDisplayName("red plotting");
 		s2.setDisplayName("blue plotting");
 		s3.setDisplayName("green plotting");

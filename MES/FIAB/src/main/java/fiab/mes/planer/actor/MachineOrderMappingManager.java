@@ -105,7 +105,7 @@ public class MachineOrderMappingManager {
 	public List<RegisterProcessRequest> getPausedProcessesOnSomeMachine() {
 		// find occupying processes, 
 		Set<String> occupProcesses = moms.values().stream()
-	 	.filter(mapping -> mapping.getAllocationState().equals(AssignmentState.OCCUPIED))
+	 	.filter(mapping -> mapping.getAssignmentState().equals(AssignmentState.OCCUPIED))
 	 	.map(mapping -> mapping.getOrderId())
 	 	.collect(Collectors.toSet());
 		// and intersect with those paused
@@ -133,13 +133,16 @@ public class MachineOrderMappingManager {
 		return moms.values().stream()
 				.filter(mom -> mom.getOrderId() != null)
 				.filter(mom -> mom.getOrderId().contentEquals(orderId))
-				.filter(mom -> mom.getAllocationState().equals(AssignmentState.OCCUPIED) )
+				.filter(mom -> mom.getAssignmentState().equals(AssignmentState.OCCUPIED) )
 				.map(mom -> mom.getMachine())
 				.findFirst();		
 	}
 	
 	public boolean isMachineIdle(AkkaActorBackedCoreModelAbstractActor machine) {
-		return getIdleMachines().stream().filter(idleM -> idleM.equals(machine)).findFirst().isPresent();
+		return getIdleMachines().stream()
+				.filter(idleM -> idleM.equals(machine))
+				.findFirst()
+				.isPresent();
 	}
 
 	public List<AkkaActorBackedCoreModelAbstractActor> getIdleMachines() {
@@ -164,29 +167,37 @@ public class MachineOrderMappingManager {
 			}); 		
 	}
 	
-	public void requestMachineForOrder(AkkaActorBackedCoreModelAbstractActor machine, String orderId, ProcessStep productionJob) {
+	public void requestMachineForOrder(AkkaActorBackedCoreModelAbstractActor machine, String orderId, ProcessStep productionJob) throws MachineOrderMappingStatusLifecycleException 
+	{
 		
-		Optional.of(moms.get(machine)).ifPresent(mom -> { 
+		MachineOrderMappingStatus mom = moms.get(machine);
+		if (mom != null) { 
 			AssignmentState newType = AssignmentState.REQUESTED;
-			AssignmentState old = mom.getAllocationState();
+			AssignmentState old = mom.getAssignmentState();
+			if (old != AssignmentState.NONE) {
+				String errMsg = String.format("Error trying to set AssignmentState to Requested on non-Idle state ($s) for %s", old, orderId);
+				logger.warn(errMsg);
+				throw new MachineOrderMappingStatusLifecycleException(errMsg);
+			}
 			mom.setAllocationState(newType);
 			mom.setOrderId(orderId);
 			mom.setProductionJob(productionJob);
 			logger.debug(String.format("Updateing OrderMapping for order %s from %s to %s", mom.getOrderId(), old, newType));			
-		});					
+		};					
 	}
 	
-	public void reserveOrderAtMachine(AkkaActorBackedCoreModelAbstractActor machine) {
+	public void reserveOrderAtMachine(AkkaActorBackedCoreModelAbstractActor machine)  {
 		updateMachineMappingStatus(machine, AssignmentState.RESERVED);						
 	}
 	
-	public void confirmOrderAtMachine(AkkaActorBackedCoreModelAbstractActor machine) {
+	public void confirmOrderAtMachine(AkkaActorBackedCoreModelAbstractActor machine)  {
 		updateMachineMappingStatus(machine, AssignmentState.OCCUPIED);					
 	}
 	
 	private void updateMachineMappingStatus(AkkaActorBackedCoreModelAbstractActor machine, AssignmentState type) {
 		Optional.of(moms.get(machine)).ifPresent(mom -> { 
-			logger.debug(String.format("Updateing OrderMapping for order %s from %s to %s", mom.getOrderId(), mom.getAllocationState(), type));			
+			AssignmentState old = mom.getAssignmentState();
+			logger.debug(String.format("Updateing OrderMapping for order %s from %s to %s", mom.getOrderId(), mom.getAssignmentState(), type));			
 			mom.setAllocationState(type);
 		});
 	}
@@ -198,6 +209,17 @@ public class MachineOrderMappingManager {
 	
 	public Optional<MachineOrderMappingStatus> removeMachine(AkkaActorBackedCoreModelAbstractActor machine) {
 		return Optional.of(moms.remove(machine));		
+	}
+	
+	public Optional<MachineOrderMappingStatus> getMappingStatusOfMachine(AkkaActorBackedCoreModelAbstractActor machine) {
+		return Optional.of(moms.get(machine));		
+	}
+	
+	public static class MachineOrderMappingStatusLifecycleException extends Exception {
+		private static final long serialVersionUID = 1L;
+		public MachineOrderMappingStatusLifecycleException(String errMsg) {
+			super(errMsg);
+		}
 	}
 	
 	public static class MachineOrderMappingStatus {
@@ -213,7 +235,7 @@ public class MachineOrderMappingManager {
 			this.machine = machine;
 		}
 		
-		public AssignmentState getAllocationState() {
+		public AssignmentState getAssignmentState() {
 			return allocationState;
 		}
 		public void setAllocationState(AssignmentState allocationState) {
