@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
@@ -20,19 +21,19 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
+import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 
 
 public class MockMachineActor extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected ActorSelection eventBusByRef;
-	protected final AkkaActorBackedCoreModelAbstractActor machineId;
+	protected final AkkaActorBackedCoreModelAbstractActor machine;
 	protected AbstractCapability cap;
 	protected String currentState;
-	
-	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	protected RegisterProcessStepRequest reservedForOrder = null;
+	private List<MachineEvent> history = new ArrayList<MachineEvent>();
 	
 	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor) {	    
 		return Props.create(MockMachineActor.class, () -> new MockMachineActor(machineEventBus, cap, modelActor));
@@ -40,7 +41,7 @@ public class MockMachineActor extends AbstractActor{
 	
 	public MockMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor) {
 		this.cap = cap;
-		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
+		this.machine = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;
 		init();
 		setAndPublishNewState(MachineOrderMappingManager.IDLE_STATE_VALUE);
@@ -64,21 +65,29 @@ public class MockMachineActor extends AbstractActor{
 		        		log.warning("Received lock for order in state: "+currentState);
 		        	}
 		        })
+		        .match(MachineHistoryRequest.class, req -> {
+		        	log.info(String.format("Machine %s received MachineHistoryRequest", machine.getId()));
+		        	List<MachineEvent> events = req.shouldResponseIncludeDetails() ? history :	history.stream().map(event -> event.getCloneWithoutDetails()).collect(Collectors.toList());
+		        	sender().tell(new MachineHistoryRequest.Response(machine.getId(), events, req.shouldResponseIncludeDetails()), getSelf());
+		        })
+		        .match(MachineEvent.class, e -> {
+		        	history.add(e);
+		        })
 		        .build();
 	}
 
 	private void init() {
-		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self());
+		eventBusByRef.tell(new MachineConnectedEvent(machine, Collections.singleton(cap), Collections.emptySet(), ""), self());
 	}
 	
 	private void setAndPublishNewState(String newState) {
-		log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
+		log.debug(String.format("%s sets state from %s to %s", this.machine.getId(), this.currentState, newState));
 		this.currentState = newState;
-		eventBusByRef.tell(new MachineUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, newState), self());
+		eventBusByRef.tell(new MachineUpdateEvent(machine.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, newState, ""), self());
 	}
 	
 	private void checkIfAvailableForNextOrder() {
-		log.debug(String.format("Checking if %s is IDLE: %s", this.machineId.getId(), this.currentState));
+		log.debug(String.format("Checking if %s is IDLE: %s", this.machine.getId(), this.currentState));
 		if (currentState == MachineOrderMappingManager.IDLE_STATE_VALUE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
 			RegisterProcessStepRequest ror = orders.remove(0);
 			log.info("Ready for next Order: "+ror.getRootOrderId());
@@ -95,7 +104,7 @@ public class MockMachineActor extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	log.debug("*****   make STOPPING "+machineId.getId());
+            	log.debug("*****   make STOPPING "+machine.getId());
             	setAndPublishNewState(MachineOrderMappingManager.COMPLETING_STATE_VALUE); 
             	resetToIdle();
             }

@@ -29,6 +29,7 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.machine.MachineEntryActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockMachineActor;
@@ -47,6 +48,7 @@ public class OrderEmittingTestServer {
 	private static ActorSelection orderEventBus;
 	private static ActorSelection orderPlanningActor;
 	private static ActorRef orderEntryActor;
+	private static ActorRef machineEntryActor;
 	private static CompletionStage<ServerBinding> binding;
 
 //	private static OrderProcess process;
@@ -61,7 +63,8 @@ public class OrderEmittingTestServer {
 	    machineEventBus = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 	    orderPlanningActor = system.actorSelection("/user/"+OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
 	    orderEntryActor = system.actorOf(OrderEntryActor.props());
-	    ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor);
+	    machineEntryActor = system.actorOf(MachineEntryActor.props());
+	    ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
 	
 	    final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
 	    binding = http.bindAndHandle(routeFlow, ConnectHttp.toHost("localhost", 8080), materializer);
@@ -112,7 +115,7 @@ public class OrderEmittingTestServer {
 //			    	String processId = "process";
 //					process.getProcess().setID(processId);	
 					
-				    CountDownLatch count = new CountDownLatch(1);
+				    CountDownLatch count = new CountDownLatch(5);
 				    while(count.getCount() > 0) {
 				    	OrderProcess process = new OrderProcess(TestMockMachineActor.getSequentialProcess());
 				    	String processId = "process"+String.valueOf(count.getCount());

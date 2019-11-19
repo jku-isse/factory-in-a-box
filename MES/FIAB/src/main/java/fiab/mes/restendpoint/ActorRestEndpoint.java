@@ -33,28 +33,36 @@ import akka.http.javadsl.server.Route;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Source;
 import akka.util.Timeout;
+import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.machine.msg.MachineEventWrapper;
 import fiab.mes.order.OrderProcessWrapper;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEventWrapper;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
+import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
 import scala.concurrent.duration.FiniteDuration;
+import fiab.mes.machine.msg.MachineEvent;
 
 public class ActorRestEndpoint extends AllDirectives{
 
 	private static final Logger logger = LoggerFactory.getLogger(ActorRestEndpoint.class);
 
 	ActorSelection eventBusByRef;
+	ActorSelection machineEventBusByRef;
 	ActorRef orderEntryActor;
+	ActorRef machineEntryActor;
 
-	public ActorRestEndpoint(ActorSystem system, ActorRef orderEntryActor) {
+	public ActorRestEndpoint(ActorSystem system, ActorRef orderEntryActor, ActorRef machineEntryActor) {
 		eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
+		machineEventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		this.orderEntryActor = orderEntryActor;
+		this.machineEntryActor = machineEntryActor;
 	}
 
 	private static int bufferSize = 10;
@@ -87,7 +95,21 @@ public class ActorRestEndpoint extends AllDirectives{
 								});				
 						return completeOK( source, EventStreamMarshalling.toEventStream());
 					}))
-				),	
+				),
+				path("machineEvents", () -> 
+				get(() -> parameterOptional("machineId", machineId -> {
+					logger.info("SSE (machineEvents) requested with machineId: "+machineId.orElse("none provided"));
+					Source<ServerSentEvent, NotUsed> source = 
+							Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
+							.map(msg -> (MachineEvent) msg)
+							.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg))
+							.mapMaterializedValue(actor -> { 
+								machineEventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", machineId.orElse("*"))) , actor);  
+								return NotUsed.getInstance();
+							});				
+					return completeOK( source, EventStreamMarshalling.toEventStream());
+				}))
+				),
 				get(() -> 
 					pathPrefix("processevents", () ->
 						path(PathMatchers.remaining() , (String orderId) -> {	
@@ -127,7 +149,27 @@ public class ActorRestEndpoint extends AllDirectives{
 						});
 						return completeOKWithFuture(resp, Jackson.marshaller());
 					})
-				)),	
+				)),
+				path("machines", () -> concat( 
+					post(() ->	            
+						entity(Jackson.unmarshaller(String.class), orderAsXML -> { 
+							// TODO 
+							throw new RuntimeException("not implemented");
+						})
+					),
+					get(() -> {
+						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));		        
+						@SuppressWarnings({ "unchecked", "deprecation" })
+						CompletionStage<Set<MachineEventWrapper>> resp = ask(machineEntryActor, "GetAllMachines", timeout).thenApply( list -> {
+							Set<MachineEventWrapper> wrap = ((Collection<MachineEvent>)list)
+									.stream()
+									.map(e -> new MachineEventWrapper(e))
+									.collect(Collectors.toSet());
+							return wrap;
+						});
+						return completeOKWithFuture(resp, Jackson.marshaller());
+					})
+				)),
 				get(() -> 			
 					pathPrefix("order", () ->
 						path(PathMatchers.remaining() , (String req) -> {								
@@ -148,21 +190,34 @@ public class ActorRestEndpoint extends AllDirectives{
 					path(PathMatchers.remaining() , (String req) -> {								
 						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
 						final CompletionStage<OrderHistoryRequest.Response> futureMaybeStatus = ask(orderEntryActor, new OrderHistoryRequest(req), timeout)
-								.thenApply(r -> {
-									return (OrderHistoryRequest.Response)r;
-									}); 
+								.thenApply(r -> (OrderHistoryRequest.Response) r); 
 						return onSuccess(futureMaybeStatus, item -> {
 							if (item != null) {
 								List<OrderEventWrapper> wrapper = item.getUpdates().stream().map(o -> new OrderEventWrapper(o)).collect(Collectors.toList());
 								return completeOK(wrapper, Jackson.marshaller());
 							} else {
-								return complete(StatusCodes.NOT_FOUND, "History Not Found");
+								return complete(StatusCodes.NOT_FOUND, "Order history Not Found");
 							}
 						});	            
 					})
+				)),	
+				get(() -> 			
+				pathPrefix("machineHistory", () ->
+					path(PathMatchers.remaining() , (String req) -> {								
+						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
+						final CompletionStage<MachineHistoryRequest.Response> futureMaybeStatus = ask(machineEntryActor, new MachineHistoryRequest(req), timeout)
+								.thenApply(r -> (MachineHistoryRequest.Response) r); 
+						return onSuccess(futureMaybeStatus, item -> {
+							if (item != null) {
+								List<MachineEventWrapper> wrapper = item.getUpdates().stream().map(o -> new MachineEventWrapper(o)).collect(Collectors.toList());
+								return completeOK(wrapper, Jackson.marshaller());
+							} else {
+								return complete(StatusCodes.NOT_FOUND, "Machine history Not Found");
+							}
+						});	            
+					})
+				))
 				)
-			)
-			)
 		);	    			    	
 	}
 

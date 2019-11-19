@@ -66,7 +66,7 @@ public class OrderEntryActor extends AbstractActor{
 			        	}
 			        })
 			        .match(OrderHistoryRequest.class, req -> {
-			        	ActorRef oa = orderActors.get(req.getOrderId()) ;
+			        	ActorRef oa = orderActors.get(req.getOrderId());
 			        	if (oa != null) {
 			        		log.info("Forwarding Orderstatus Request");
 			 				oa.forward(req, getContext());

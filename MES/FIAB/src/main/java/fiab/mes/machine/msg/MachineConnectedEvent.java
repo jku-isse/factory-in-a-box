@@ -13,13 +13,13 @@ public class MachineConnectedEvent extends MachineEvent {
 	
 	protected AkkaActorBackedCoreModelAbstractActor machine = null;
 	
-	public MachineConnectedEvent(AkkaActorBackedCoreModelAbstractActor machine) {
-		super(machine.getId(), MachineEventType.CONNECTED);
+	public MachineConnectedEvent(AkkaActorBackedCoreModelAbstractActor machine, String message) {
+		super(machine.getId(), MachineEventType.CONNECTED, message);
 		this.machine = machine;
 	}
 
-	public MachineConnectedEvent(AkkaActorBackedCoreModelAbstractActor machine, Set<AbstractCapability> providedMachineCapabilities, Set<AbstractCapability> requiredMachineCapabilities) {
-		super(machine.getId(), MachineEventType.CONNECTED);
+	public MachineConnectedEvent(AkkaActorBackedCoreModelAbstractActor machine, Set<AbstractCapability> providedMachineCapabilities, Set<AbstractCapability> requiredMachineCapabilities, String message) {
+		super(machine.getId(), MachineEventType.CONNECTED, message);
 		this.machine = machine;
 		this.providedMachineCapabilities = providedMachineCapabilities;
 		this.requiredMachineCapabilities = requiredMachineCapabilities;
