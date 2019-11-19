@@ -45,11 +45,11 @@ public class TestOrderEventBus { //extends AbstractJavaTest {
 
 	@Test
 	void testPublishOrderEvent() {
-		OrderEvent oe = new OrderEvent("TestOrder1", "TestMachine1", OrderEventType.CREATED);
+		OrderEvent oe = new OrderEvent("TestOrder1", "TestMachine1", OrderEventType.CREATED, "");
 		eventBus.tell(oe, ActorRef.noSender());
 		
 		ProcessChangeImpact pci = new ProcessChangeImpact(ProcessCoreFactory.eINSTANCE.createCapabilityInvocation(), StepStatusEnum.INITIATED, StepStatusEnum.AVAILABLE);		
-		OrderProcessUpdateEvent opue = new OrderProcessUpdateEvent("TestOrder2", "TestMachine1", pci);
+		OrderProcessUpdateEvent opue = new OrderProcessUpdateEvent("TestOrder2", "TestMachine1", "", pci);
 		system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME).tell(opue, ActorRef.noSender());		
 	}
 	
@@ -59,7 +59,7 @@ public class TestOrderEventBus { //extends AbstractJavaTest {
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("TestMachine2", "*")), getRef() );
-				OrderEvent oe = new OrderEvent("TestOrder1", "TestMachine1", OrderEventType.CREATED);
+				OrderEvent oe = new OrderEvent("TestOrder1", "TestMachine1", OrderEventType.CREATED, "");
 				eventBusByRef.tell(oe, getRef());				
 				expectMsg(Duration.ofSeconds(3), oe);				
 		    }
