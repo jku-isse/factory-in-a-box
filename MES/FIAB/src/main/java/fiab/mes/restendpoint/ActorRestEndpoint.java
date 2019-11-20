@@ -96,20 +96,6 @@ public class ActorRestEndpoint extends AllDirectives{
 						return completeOK( source, EventStreamMarshalling.toEventStream());
 					}))
 				),
-				path("machineEvents", () -> 
-				get(() -> parameterOptional("machineId", machineId -> {
-					logger.info("SSE (machineEvents) requested with machineId: "+machineId.orElse("none provided"));
-					Source<ServerSentEvent, NotUsed> source = 
-							Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
-							.map(msg -> (MachineEvent) msg)
-							.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg))
-							.mapMaterializedValue(actor -> { 
-								machineEventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", machineId.orElse("*"))) , actor);  
-								return NotUsed.getInstance();
-							});				
-					return completeOK( source, EventStreamMarshalling.toEventStream());
-				}))
-				),
 				get(() -> 
 					pathPrefix("processevents", () ->
 						path(PathMatchers.remaining() , (String orderId) -> {	
@@ -150,26 +136,6 @@ public class ActorRestEndpoint extends AllDirectives{
 						return completeOKWithFuture(resp, Jackson.marshaller());
 					})
 				)),
-				path("machines", () -> concat( 
-					post(() ->	            
-						entity(Jackson.unmarshaller(String.class), orderAsXML -> { 
-							// TODO 
-							throw new RuntimeException("not implemented");
-						})
-					),
-					get(() -> {
-						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));		        
-						@SuppressWarnings({ "unchecked", "deprecation" })
-						CompletionStage<Set<MachineEventWrapper>> resp = ask(machineEntryActor, "GetAllMachines", timeout).thenApply( list -> {
-							Set<MachineEventWrapper> wrap = ((Collection<MachineEvent>)list)
-									.stream()
-									.map(e -> new MachineEventWrapper(e))
-									.collect(Collectors.toSet());
-							return wrap;
-						});
-						return completeOKWithFuture(resp, Jackson.marshaller());
-					})
-				)),
 				get(() -> 			
 					pathPrefix("order", () ->
 						path(PathMatchers.remaining() , (String req) -> {								
@@ -201,6 +167,9 @@ public class ActorRestEndpoint extends AllDirectives{
 						});	            
 					})
 				)),	
+				
+				
+				
 				get(() -> 			
 				pathPrefix("machineHistory", () ->
 					path(PathMatchers.remaining() , (String req) -> {								
@@ -216,8 +185,42 @@ public class ActorRestEndpoint extends AllDirectives{
 							}
 						});	            
 					})
-				))
-				)
+				)),
+				path("machineEvents", () -> 
+				get(() -> parameterOptional("machineId", machineId -> {
+					logger.info("SSE (machineEvents) requested with machineId: "+machineId.orElse("none provided"));
+					Source<ServerSentEvent, NotUsed> source = 
+							Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
+							.map(msg -> (MachineEvent) msg)
+							.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg))
+							.mapMaterializedValue(actor -> { 
+								machineEventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", machineId.orElse("*"))) , actor);  
+								return NotUsed.getInstance();
+							});				
+					return completeOK( source, EventStreamMarshalling.toEventStream());
+				}))
+				),
+				path("machines", () -> concat( 
+						post(() ->	            
+							entity(Jackson.unmarshaller(String.class), orderAsXML -> { 
+								// TODO 
+								throw new RuntimeException("not implemented");
+							})
+						),
+						get(() -> {
+							final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));		        
+							@SuppressWarnings({ "unchecked", "deprecation" })
+							CompletionStage<Set<MachineEventWrapper>> resp = ask(machineEntryActor, "GetAllMachines", timeout).thenApply( list -> {
+								Set<MachineEventWrapper> wrap = ((Collection<MachineEvent>)list)
+										.stream()
+										.map(e -> new MachineEventWrapper(e))
+										.collect(Collectors.toSet());
+								return wrap;
+							});
+							return completeOKWithFuture(resp, Jackson.marshaller());
+						})
+					))
+			)
 		);	    			    	
 	}
 

@@ -1,10 +1,7 @@
-import {OrderDetailsComponent} from '../order-details/order-details.component';
-import { Observable } from 'rxjs';
 import { OrderService } from '../order.service';
-import { OrderEvent } from '../orderevent';
+import { OrderEvent } from '../events';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import {Sort} from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
@@ -15,9 +12,11 @@ import {MatSort} from '@angular/material/sort';
   styleUrls: ['./order-list.component.css']
 })
 export class OrderListComponent implements OnInit {
+
   displayedColumns: string[] = ['orderId', 'eventType', 'machineId', 'message', 'process-button', 'history-button'];
   orders: Map<string, OrderEvent> = new Map<string, OrderEvent>();
   dataSource: MatTableDataSource<OrderEvent>;
+
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
 
