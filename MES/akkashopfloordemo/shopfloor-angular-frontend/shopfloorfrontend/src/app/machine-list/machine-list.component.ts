@@ -26,9 +26,15 @@ export class MachineListComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.subscribe();
+    this.reloadData();
+  }
+
+  private subscribe() {
     this.machineService.getMachineUpdates().subscribe(
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
+        // console.log('sse', json);
         this.machines.set(json.machineId, json);
         this.dataSource = new MatTableDataSource(Array.from(this.machines.values()));
         if (this.dataSource) {
@@ -39,12 +45,12 @@ export class MachineListComponent implements OnInit {
       err => { console.log('Error receiving SSE', err); },
       () => console.log('SSE stream completed')
     );
-    this.reloadData();
   }
 
   private reloadData() {
     this.machineService.getMachineList().subscribe(data => {
       data.forEach(element => {
+        // console.log('element', element);
         this.machines.set(element.machineId, element);
         // console.log('element', this.machines);
         this.dataSource = new MatTableDataSource(Array.from(this.machines.values()));

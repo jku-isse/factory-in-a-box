@@ -10,6 +10,13 @@ public class MachineEvent extends TimedEvent {
 	protected String machineId;
 	protected MachineEventType eventType;
 	
+	public MachineEvent(String machineId, MachineEventType eventType) {
+		super();
+		this.machineId = machineId;
+		this.eventType = eventType;
+		this.message = "";
+	}
+	
 	public MachineEvent(String machineId, MachineEventType eventType, String message) {
 		super();
 		this.machineId = machineId;
@@ -22,6 +29,13 @@ public class MachineEvent extends TimedEvent {
 		this.machineId = machineId;
 		this.eventType = eventType;
 		this.message = message;
+	}
+	
+	public MachineEvent(String machineId, MachineEventType eventType, ZonedDateTime timestamp) {
+		super(timestamp);
+		this.machineId = machineId;
+		this.eventType = eventType;
+		this.message = "";
 	}
 	
 	public MachineEventType getEventType() {

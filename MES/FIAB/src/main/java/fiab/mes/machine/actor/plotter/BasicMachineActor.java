@@ -1,7 +1,9 @@
 package fiab.mes.machine.actor.plotter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
@@ -23,6 +25,7 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
+import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 
 
 public class BasicMachineActor extends AbstractActor{
@@ -37,6 +40,9 @@ public class BasicMachineActor extends AbstractActor{
 	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	protected RegisterProcessStepRequest reservedForOrder = null;
+	
+	private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
+	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
 	
 	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, InterMachineEventBus intraBus) {	    
 		return Props.create(BasicMachineActor.class, () -> new BasicMachineActor(machineEventBus, cap, modelActor, hal, intraBus));
@@ -72,13 +78,19 @@ public class BasicMachineActor extends AbstractActor{
 		        .match(MachineUpdateEvent.class, mue -> {
 		        	processMachineUpdateEvent(mue);
 		        })
+		        .match(MachineHistoryRequest.class, req -> {
+		        	log.info(String.format("Machine %s received MachineHistoryRequest", machineId.getId()));
+		        	List<MachineEvent> events = req.shouldResponseIncludeDetails() ? externalHistory :	externalHistory.stream().map(event -> event.getCloneWithoutDetails()).collect(Collectors.toList());
+		        	MachineHistoryRequest.Response response = new MachineHistoryRequest.Response(machineId.getId(), events, req.shouldResponseIncludeDetails());
+		        	sender().tell(response, getSelf());
+		        })
 		        .build();
 	}
 
 	private void init() {
+		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self());
 		intraBus.subscribe(getSelf(), new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
 		hal.subscribeToStatus();
-		//eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self());
 	}
 	
 	private void processMachineUpdateEvent(MachineUpdateEvent mue) {
@@ -112,9 +124,16 @@ public class BasicMachineActor extends AbstractActor{
 	}
 	
 	private void setAndPublishSensedState(MachineStatus newState) {
-		log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
+		String msg = String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState);
+		log.debug(msg);
 		this.currentState = newState;
-		eventBusByRef.tell(new MachineUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, newState), self());
+		MachineUpdateEvent mue = new MachineUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, newState, msg);
+		tellEventBus(mue);
+	}
+	
+	private void tellEventBus(MachineUpdateEvent mue) {
+		externalHistory.add(mue);
+		eventBusByRef.tell(mue, self());
 	}
 	
 	private void checkIfAvailableForNextOrder() {
