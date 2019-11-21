@@ -7,6 +7,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import akka.http.javadsl.model.sse.ServerSentEvent;
+import fiab.mes.machine.msg.MachineEvent;
+import fiab.mes.machine.msg.MachineEventWrapper;
 import fiab.mes.order.OrderProcessWrapper;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEventWrapper;
@@ -29,6 +31,16 @@ public class ServerSentEventTranslator{
 			return ServerSentEvent.create(json, "message"); // in the angular frontend also implement addEventListener, as onmessage expects the type to be 'message'
 		} catch (JsonProcessingException e) {
 			logger.warn("Error marshalling OrderEvent", e);
+			return ServerSentEvent.create("", "message");
+		}		
+	}
+	
+	public static ServerSentEvent toServerSentEvent(MachineEvent machineEvent) {				
+		try {
+			String json = om.writeValueAsString(new MachineEventWrapper(machineEvent));
+			return ServerSentEvent.create(json, "message"); // in the angular frontend also implement addEventListener, as onmessage expects the type to be 'message'
+		} catch (JsonProcessingException e) {
+			logger.warn("Error marshalling MachineEvent", e);
 			return ServerSentEvent.create("", "message");
 		}		
 	}

@@ -14,6 +14,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
@@ -69,7 +70,7 @@ public class MockInputStationActor extends AbstractActor{
 	
 	private void setAndPublishNewState(String newState) {
 		this.currentState = newState;
-		eventBusByRef.tell(new MachineUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, newState), self());
+		eventBusByRef.tell(new MachineStatusUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, "", newState), self());
 	}
 	
 	private void checkIfAvailableForNextOrder() {

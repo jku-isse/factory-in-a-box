@@ -16,7 +16,7 @@ public class OrderHistoryRequest {
 	}
 	
 	public OrderHistoryRequest(String orderId, boolean includeDetails) {
-		this.orderId = orderId;
+		this(orderId);
 		this.includeDetails = includeDetails;
 	}
 	
@@ -36,7 +36,7 @@ public class OrderHistoryRequest {
 	public static class Response{
 		private List<OrderEvent> updates;
 		private String orderId;
-		boolean includesDetails = false;
+		private boolean includesDetails = false;
 		
 		@JsonCreator
 		public Response(@JsonProperty("orderId") String orderId,  @JsonProperty("updates") List<OrderEvent> updates, @JsonProperty("includesDetails") boolean includesDetails) {

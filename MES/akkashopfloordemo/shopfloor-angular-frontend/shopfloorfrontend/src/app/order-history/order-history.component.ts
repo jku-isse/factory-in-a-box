@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { OrderService } from '../order.service';
 import { Router, ActivatedRoute } from '@angular/router';
-import { OrderEvent } from '../orderevent';
+import { OrderEvent } from '../events';
 
 @Component({
   selector: 'app-order-history',
@@ -31,7 +31,7 @@ export class OrderHistoryComponent implements OnInit {
           this.setLatest(json.timestamp);
         }
       },
-      err => { console.log('Error receiving SSE in Details', err); },
+      err => { console.log('Error receiving SSE in History', err); },
       () => console.log('SSE stream completed')
     );
     this.orderService.getOrderHistory(this.orderId)

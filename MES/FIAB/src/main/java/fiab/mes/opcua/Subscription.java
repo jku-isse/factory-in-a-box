@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.MachineLevelEventBus;
 
@@ -226,7 +227,7 @@ public class Subscription { //implements ClientExample {
 	private void onSubscriptionValue(UaMonitoredItem item, DataValue value) {
 		System.out.println("Change on: " + item.getReadValueId().getNodeId().toString() + " NEW VALUE: " + value.getValue().getValue().toString() );
 		
-		eventbus.publish(new MachineUpdateEvent("Server", item.getReadValueId().getNodeId().toString(), MachineEvent.MachineEventType.UPDATE, value.getValue().getValue().toString())); //TODO maybe change this form Server
+		eventbus.publish(new MachineStatusUpdateEvent("Server", item.getReadValueId().getNodeId().toString(), MachineEvent.MachineEventType.UPDATED.toString(), "", value.getValue().getValue().toString())); //TODO maybe change this form Server
 		
 		logger.info("subscription value received: item={}, value={}", item.getReadValueId().getNodeId(),
 				value.getValue());
