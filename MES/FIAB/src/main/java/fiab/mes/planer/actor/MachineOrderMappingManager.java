@@ -30,7 +30,7 @@ public class MachineOrderMappingManager {
 	private static final Logger logger = LoggerFactory.getLogger(MachineOrderMappingManager.class);
 	
 	public static final String IDLE_STATE_VALUE = "IDLE";
-	public static final String COMPLETING_STATE_VALUE = "STOPPING";
+	public static final String COMPLETING_STATE_VALUE = "COMPLETING";
 	public static final String PRODUCING_STATE_VALUE = "EXECUTE";
 	public static final String STATE_VAR_NAME = "STATE";
 	
