@@ -17,6 +17,7 @@ import ProcessCore.ProcessStep;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus.AssignmentState;
@@ -155,8 +156,12 @@ public class MachineOrderMappingManager {
 	
 	private List<AkkaActorBackedCoreModelAbstractActor> getMachinesInState(String state) {
 		return moms.values().stream()
-				.filter(mapping -> mapping.getLastMachineState().getNewValue().equals(state))
-				.map(mapping -> mapping.getMachine())
+				.filter(mapping -> {
+					return mapping.getLastMachineState().getStatus().equals(state);
+				})
+				.map(mapping -> {
+					return mapping.getMachine();
+				})
 				.collect(Collectors.toList());
 	} 
 	
@@ -202,7 +207,7 @@ public class MachineOrderMappingManager {
 		});
 	}
 	
-	public void updateMachineStatus(AkkaActorBackedCoreModelAbstractActor machine, MachineUpdateEvent event) {				
+	public void updateMachineStatus(AkkaActorBackedCoreModelAbstractActor machine, MachineStatusUpdateEvent event) {				
 			moms.computeIfAbsent(machine, k -> new MachineOrderMappingStatus(machine, AssignmentState.NONE))
 										.setLastMachineState(event);			
 	}		
@@ -225,7 +230,7 @@ public class MachineOrderMappingManager {
 	public static class MachineOrderMappingStatus {
 		AkkaActorBackedCoreModelAbstractActor machine;
 		AssignmentState allocationState; 
-		MachineUpdateEvent lastMachineState = null;
+		MachineStatusUpdateEvent lastMachineState = null;
 		String orderId = null;
 		ProcessStep productionJob = null;
 		
@@ -241,13 +246,13 @@ public class MachineOrderMappingManager {
 		public void setAllocationState(AssignmentState allocationState) {
 			this.allocationState = allocationState;
 		}
-		public MachineUpdateEvent getLastMachineState() {
+		public MachineStatusUpdateEvent getLastMachineState() {
 			return lastMachineState;
 		}
-		public void setLastMachineState(MachineUpdateEvent lastMachineState) {
+		public void setLastMachineState(MachineStatusUpdateEvent lastMachineState) {
 			if (lastMachineState.getParameterName().equals(STATE_VAR_NAME)) { // only update the state of the machine
 				this.lastMachineState = lastMachineState;		
-				if (lastMachineState.getNewValue().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
+				if (lastMachineState.getStatus().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
 					this.allocationState = AssignmentState.NONE;
 					this.orderId = null;
 				}

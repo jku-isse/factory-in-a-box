@@ -29,6 +29,7 @@ import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
@@ -87,9 +88,9 @@ public class TestBasicMachineActor {
 				
 				boolean isIdle = false;
 				while (!isIdle) {
-					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineUpdateEvent.class);
+					MachineStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class);
 					logEvent(mue);
-					MachineStatus newState = MachineStatus.valueOf(mue.getNewValue().toString());
+					MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
 					if (newState.equals(MachineStatus.IDLE))
 						isIdle = true;
 				}

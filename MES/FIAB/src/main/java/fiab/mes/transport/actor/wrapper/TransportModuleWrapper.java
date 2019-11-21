@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineStatus;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.opcua.Subscription;
 import fiab.mes.transport.MachineLevelEventBus;
@@ -51,40 +52,40 @@ public class TransportModuleWrapper implements TransportModuleWrapperInterface {
 	@Override
 	public void transport(Direction from, Direction to, String orderId) throws InterruptedException {
 		System.out.println("Transport started!");
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.STARTING));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.STARTING));
 
 		Thread.sleep(5000);
 
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.EXECUTE));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.EXECUTE));
 		
 		Thread.sleep(5000);
 
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.COMPLETING));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.COMPLETING));
 		
 		Thread.sleep(5000);
 
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.COMPLETE));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.COMPLETE));
 		
 		Thread.sleep(5000);
 
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.RESETTING));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.RESETTING));
 
 		Thread.sleep(5000);
 
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.IDLE));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.IDLE));
 
 	}
 
 	@Override
 	public void stopp() {
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.STOPPING));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.STOPPING));
 		
 		try {
 			Thread.sleep(5000);
@@ -93,14 +94,14 @@ public class TransportModuleWrapper implements TransportModuleWrapperInterface {
 			e.printStackTrace();
 		}
 
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.STOPPED));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.STOPPED));
 	}
 
 	@Override
 	public void reset() {
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.RESETTING));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.RESETTING));
 		
 		try {
 			Thread.sleep(5000);
@@ -109,8 +110,8 @@ public class TransportModuleWrapper implements TransportModuleWrapperInterface {
 			e.printStackTrace();
 		}
 
-		eventBus.publish(new MachineUpdateEvent("Server", "STATUS" // Status is the nodeId
-				, MachineEvent.MachineEventType.UPDATED, MachineStatus.IDLE));
+		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
+				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.IDLE));
 
 	}
 
@@ -132,7 +133,7 @@ public class TransportModuleWrapper implements TransportModuleWrapperInterface {
 	 * @param nodeId
 	 */
 	public void update(String nodeId) {
-		eventBus.publish(new MachineUpdateEvent("Server", nodeId, MachineEvent.MachineEventType.UPDATED,
+		eventBus.publish(new MachineStatusUpdateEvent("Server", nodeId, MachineEvent.MachineEventType.UPDATED.toString(), "",
 				subscription.getUppdate(nodeIdFromString(nodeId))), ActorRef.noSender());
 	}
 

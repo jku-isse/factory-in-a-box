@@ -20,10 +20,10 @@ public class MachineEventWrapper {
 		this.eventType = e.getEventType();
 		this.timestamp = e.getTimestamp().toString();
 		if (e instanceof MachineUpdateEvent) {
-			MachineUpdateEvent mue = (MachineUpdateEvent) e;
+			MachineStatusUpdateEvent mue = (MachineStatusUpdateEvent) e;
 			this.nodeId = mue.getNodeId();
 			this.parameterName = mue.getParameterName();
-			this.newValue = mue.getNewValue().toString();
+			this.newValue = mue.getStatus().toString();
 		}
 	}
 	

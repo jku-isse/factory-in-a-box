@@ -1,10 +1,9 @@
 package fiab.mes.machine.msg;
 
-public class MachineUpdateEvent extends MachineEvent {
+public abstract class MachineUpdateEvent extends MachineEvent {
 	
 	String nodeId;
 	String parameterName;
-	Object newValue;
 	
 	
 	/**
@@ -17,14 +16,12 @@ public class MachineUpdateEvent extends MachineEvent {
 	public MachineUpdateEvent(String machineId, String nodeId, String parameterName, Object value, String message) {
 		super(machineId, MachineEventType.UPDATED, message);
 		this.nodeId = nodeId;
-		this.newValue = value;
 		this.parameterName = parameterName;
 	}
 	
 	public MachineUpdateEvent(String machineId, String nodeId, String parameterName, Object value) {
 		super(machineId, MachineEventType.UPDATED);
 		this.nodeId = nodeId;
-		this.newValue = value;
 		this.parameterName = parameterName;
 	}
 	
@@ -35,11 +32,5 @@ public class MachineUpdateEvent extends MachineEvent {
 	public String getParameterName() {
 		return parameterName;
 	}
-
-	public Object getNewValue() {
-		return newValue;
-	}
-	
-	
 
 }

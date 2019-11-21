@@ -20,6 +20,7 @@ import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineStatus;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
@@ -75,7 +76,7 @@ public class BasicMachineActor extends AbstractActor{
 		        		log.warning("Received lock for order in state: "+currentState);
 		        	}
 		        })
-		        .match(MachineUpdateEvent.class, mue -> {
+		        .match(MachineStatusUpdateEvent.class, mue -> {
 		        	processMachineUpdateEvent(mue);
 		        })
 		        .match(MachineHistoryRequest.class, req -> {
@@ -93,9 +94,9 @@ public class BasicMachineActor extends AbstractActor{
 		hal.subscribeToStatus();
 	}
 	
-	private void processMachineUpdateEvent(MachineUpdateEvent mue) {
+	private void processMachineUpdateEvent(MachineStatusUpdateEvent mue) {
 		if (mue.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) {
-			MachineStatus newState = MachineStatus.valueOf(mue.getNewValue().toString());
+			MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
 			setAndPublishSensedState(newState);
 			switch(newState) {
 			case COMPLETE:
@@ -127,7 +128,7 @@ public class BasicMachineActor extends AbstractActor{
 		String msg = String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState);
 		log.debug(msg);
 		this.currentState = newState;
-		MachineUpdateEvent mue = new MachineUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, newState, msg);
+		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, msg, newState);
 		tellEventBus(mue);
 	}
 	
