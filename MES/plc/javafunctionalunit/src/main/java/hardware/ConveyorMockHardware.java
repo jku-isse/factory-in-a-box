@@ -10,12 +10,9 @@ public class ConveyorMockHardware {
     @Getter private MockSensor mockSensorLoading;
     @Getter private MockSensor mockSensorUnloading;
 
-    public ConveyorMockHardware(int speed, long delay){
-        conveyorMockMotor = new ConveyorMockMotor(speed, delay);
+    public ConveyorMockHardware(int speed, long delay) {
         mockSensorLoading = new MockSensor();
         mockSensorUnloading = new MockSensor();
-
-        conveyorMockMotor.setSensorLoading(mockSensorLoading);
-        conveyorMockMotor.setSensorUnloading(mockSensorUnloading);
+        conveyorMockMotor = new ConveyorMockMotor(mockSensorLoading, mockSensorUnloading, speed, delay);
     }
 }

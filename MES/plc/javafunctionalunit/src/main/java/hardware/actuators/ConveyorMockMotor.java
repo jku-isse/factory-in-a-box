@@ -1,22 +1,23 @@
 package hardware.actuators;
 
 import hardware.sensors.MockSensor;
-import lombok.Setter;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class ConveyorMockMotor extends MockMotor {
 
-    @Setter private MockSensor sensorLoading;
-    @Setter private MockSensor sensorUnloading;
+    private MockSensor sensorLoading;
+    private MockSensor sensorUnloading;
 
     private ScheduledFuture loadingTask;
     private ScheduledFuture unloadingTask;
     private long delay;
 
-    public ConveyorMockMotor(int speed, long delay) {
+    public ConveyorMockMotor(MockSensor sensorLoading, MockSensor sensorUnloading, int speed, long delay) {
         super(speed);
+        this.sensorLoading = sensorLoading;
+        this.sensorUnloading = sensorUnloading;
         this.delay = delay;
     }
 
