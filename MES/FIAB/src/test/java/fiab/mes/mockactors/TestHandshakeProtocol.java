@@ -52,7 +52,7 @@ public class TestHandshakeProtocol {
 				clientSide.tell(MockClientHandshakeActor.MessageTypes.Reset, getRef());
 				serverSide.tell(MockServerHandshakeActor.MessageTypes.Reset, getRef());
 				while (!(serverDone && clientDone)) {
-					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(10), ClientSide.class, ServerSide.class);
+					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), ClientSide.class, ServerSide.class);
 					logEvent(msg, getLastSender());
 					if (msg.equals(ClientSide.Idle)) {
 						clientSide.tell(MockClientHandshakeActor.MessageTypes.Start, getRef());

@@ -4,6 +4,8 @@ import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
@@ -33,16 +35,15 @@ public class MockServerHandshakeActor extends AbstractActor{
 	public Receive createReceive() {
 		return receiveBuilder()
 				.match(MessageTypes.class, msg -> {
+					log.info(String.format("Received %s from %s", msg, getSender()));
 					switch(msg) {					
 					case Complete:
 						complete();
 						break;
-					case RequestInitiateHandover:
-						log.info(String.format("Received %s from %s", msg, getSender()));
+					case RequestInitiateHandover:					
 						initHandover();
 						break;
 					case RequestStartHandover:
-						log.info(String.format("Received %s from %s", msg, getSender()));
 						startHandover();
 						break;
 					case Reset:
@@ -54,8 +55,10 @@ public class MockServerHandshakeActor extends AbstractActor{
 					case SubscribeToStateUpdates:
 						subscribers.add(getSender());
 						getSender().tell(currentState, getSelf()); // update subscriber with current state
+						break;
 					case UnsubscribeToStateUpdates:
 						subscribers.remove(getSender());
+						break;
 					default:
 						break;
 					}
@@ -71,7 +74,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 //		if (clientSide != null) { // update client about status (no polling, or pub/sub here in mockactor)
 //			clientSide.tell(newState, getSelf());
 //		}
-		subscribers.stream().forEach(sub -> sub.tell(newState, getSelf()));
+		ImmutableSet.copyOf(subscribers).stream().forEach(sub -> sub.tell(newState, getSelf()));
 	}
 	
 	private void reset() {
