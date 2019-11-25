@@ -21,6 +21,7 @@ public class ServerSentEventTranslator{
 		
 		try {
 			String json = om.writeValueAsString(orderEvent);
+			System.out.println(json);
 			//return ServerSentEvent.create(json, orderEvent.getType().toString());
 			return ServerSentEvent.create(json, "message"); // in the angular frontend also implement addEventListener, as onmessage expects the type to be 'message'
 		} catch (JsonProcessingException e) {

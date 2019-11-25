@@ -26,6 +26,7 @@ import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockMachineActor;
 import fiab.mes.mockactors.TestMockMachineActor;
+import fiab.mes.order.OrderProcess.StepStatusEnum;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
@@ -152,6 +153,58 @@ class OrderPlanningActorTest {
 		};
 	}
 	
+	
+	@Test
+	void testTwoOrderRegisterWithAlreadyAvailableMachines() {
+		new TestKit(system) { 
+			{ 
+				
+				String mid = "OrderMockMachine";
+				orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
+				machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
+				//machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", mid)), getRef() );
+				// if we subscribe to machinebus then we need to capture all the machine events by those actors
+				ActorRef red1 = getMachineMockActor(1, "Red");
+				expectMsgAnyClassOf(Duration.ofSeconds(3), MachineConnectedEvent.class);
+				expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class); //idle
+				ActorRef blue2 = getMachineMockActor(2, "Blue");
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
+				ActorRef green3 = getMachineMockActor(3, "Green");
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
+				ActorRef yellow4 = getMachineMockActor(4, "Yellow");
+				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
+				expectMsgClass(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
+				
+				RegisterProcessRequest req = buildRequest(getRef(), "Order1", 1);
+				orderPlanningActor.tell(req, getRef());
+				RegisterProcessRequest req2 = buildRequest(getRef(), "Order2", 2);
+				orderPlanningActor.tell(req2, getRef());
+				boolean p1done = false;
+				boolean p2done = false;
+				while (!(p1done && p2done) ) {
+					TimedEvent te = expectMsgClass(Duration.ofSeconds(3600), TimedEvent.class);
+					logEvent(te);
+					if (req.getProcess().areAllTasksCancelledOrCompleted()) { p1done = true; }
+					if (req2.getProcess().areAllTasksCancelledOrCompleted()) { p2done = true; }
+					
+//					if (te instanceof OrderProcessUpdateEvent) {
+//						if (((OrderProcessUpdateEvent) te).getStepsWithNewStatusAsReadOnlyMap().entrySet().stream()
+//							.allMatch(entry -> entry.getValue().equals(StepStatusEnum.COMPLETED))) {
+//							// all steps are completed,
+//							if (((OrderProcessUpdateEvent) te).getOrderId().contentEquals("Order1"))
+//								p1done = true;
+//							if (((OrderProcessUpdateEvent) te).getOrderId().contentEquals("Order2"))
+//								p2done = true;
+//						}
+//						
+//					}
+				}
+			}	
+		};
+	}
+	
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());
 	}
@@ -163,4 +216,9 @@ class OrderPlanningActorTest {
 		return system.actorOf(MockMachineActor.props(eventBusByRef, cap, modelActor));
 	}
 	
+	public RegisterProcessRequest buildRequest(ActorRef senderRef, String oid, int orderCount) {
+		ProcessCore.Process p = TestMockMachineActor.getSequentialProcess(orderCount+"-");
+		OrderProcess op = new OrderProcess(p);
+		return new RegisterProcessRequest(oid, oid, op, senderRef);
+	}
 }

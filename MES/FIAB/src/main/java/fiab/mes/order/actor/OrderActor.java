@@ -41,7 +41,8 @@ public class OrderActor extends AbstractActor{
 		this.eventBusByRef = eventBusByRef;
 		log.info("Subscribing to OrderEventBus for OrderId: "+orderId);
 		eventBusByRef.tell(new SubscribeMessage(getSelf(), new SubscriptionClassifier(self().path().name(), this.orderId)), getSelf() );
-		OrderEvent createEvent = new OrderEvent(this.orderId, self().path().name(), OrderEventType.CREATED);
+		String msg = "Received RegisterProcessRequest, publish OrderEvent to create new Order with ID: "+orderId;
+		OrderEvent createEvent = new OrderEvent(this.orderId, self().path().name(), OrderEventType.CREATED, msg);
 		eventBusByRef.tell(createEvent, getSelf());
 		history.add(createEvent);
 		log.info("Forwarding order request to Planning Actor for OrderId: "+orderId);

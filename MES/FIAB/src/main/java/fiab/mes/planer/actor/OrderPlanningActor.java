@@ -31,6 +31,7 @@ import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.MappedOrderProcess;
 import fiab.mes.order.OrderProcess;
@@ -43,6 +44,8 @@ import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus;
+import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus.AssignmentState;
+import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
 
 
 public class OrderPlanningActor extends AbstractActor{
@@ -87,7 +90,7 @@ public class OrderPlanningActor extends AbstractActor{
 	public Receive createReceive() {
 		return receiveBuilder()
 				.match(RegisterProcessRequest.class, rpReq -> {
-					log.info("Received Register Order Request");		        	
+					log.info("Received Register Order Request: "+rpReq.getRootOrderId());		        	
 					//reqIndex.put(rpReq.getRootOrderId(), rpReq);
 					ordMapper.registerOrder(rpReq);
 					scheduleProcess(rpReq.getRootOrderId(), rpReq.getProcess());		        		
@@ -104,7 +107,7 @@ public class OrderPlanningActor extends AbstractActor{
 				.match(MachineDisconnectedEvent.class, machineEvent -> {
 					handleNoLongerAvailableMachine(machineEvent);
 				})
-				.match(MachineUpdateEvent.class, machineEvent -> {
+				.match(MachineStatusUpdateEvent.class, machineEvent -> {
 					handleMachineUpdateEvent(machineEvent);
 				})
 //				.match(TransportOrderResponse.class, transportResp -> {
@@ -135,17 +138,19 @@ public class OrderPlanningActor extends AbstractActor{
 	// first time activation of the process
 	private void scheduleProcess(String rootOrderId, OrderProcess mop) {
 		if (!mop.doAllLeafNodeStepsHaveInvokedCapability(mop.getProcess())) {
-			log.warning(String.format("OrderProcess %s does not have all leaf nodes with capability invocations, thus cannot be completely mapped to machines, cancelling order", rootOrderId));
+			String msg = String.format("OrderProcess %s does not have all leaf nodes with capability invocations, thus cannot be completely mapped to machines, cancelling order", rootOrderId);
+			log.warning(msg);
 			ordMapper.removeOrder(rootOrderId); // we didn/t start processing yet, so we can just drop the process
-			orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED), ActorRef.noSender());
+			orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED, msg), ActorRef.noSender());
 		} else {
 			// we have capability invocations with capabilities, thus able to map them to machines
 			ProcessChangeImpact pci = mop.activateProcess();
-			orderEventBus.tell( new OrderProcessUpdateEvent(rootOrderId, this.self().path().name(), pci), ActorRef.noSender() );
+			String msg = "Capability invocations have capabilities, thus able to map them to machines. rootOrderId: "+rootOrderId;
+			orderEventBus.tell( new OrderProcessUpdateEvent(rootOrderId, this.self().path().name(), msg, pci), ActorRef.noSender() );
 			tryAssignExecutingMachineForOneProcessStep(mop, rootOrderId);
 		} 
 	}
-
+	
 	
 	// this method will trigger order to machine allocation when there is a machine already idle,
 	// if there are all machines occupied, then this will not do anything (order will be paused)
@@ -164,8 +169,9 @@ public class OrderPlanningActor extends AbstractActor{
 				//TODO: --> transport it off to output station
 			} else {
 				// this implies that the process cant make progress as there is no available capabilityinvocation ie. process step to allocate to a machine
-				log.warning(String.format("OrderProcess %s has no available steps of type CapabilityInvocation to continue with",rootOrderId));
-				orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED), ActorRef.noSender());		
+				String msg = String.format("OrderProcess %s has no available steps of type CapabilityInvocation to continue with",rootOrderId); 
+				log.warning(msg);
+				orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.CANCELED, msg), ActorRef.noSender());		
 				//TODO: if this process is somewhere on some machine, remove it from production --> transport it off to output station
 			}
 		} else {
@@ -176,13 +182,6 @@ public class OrderPlanningActor extends AbstractActor{
 				.filter(pair -> !pair.getValue().isEmpty() )
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (prev, next) -> next, HashMap::new));
 				
-			
-			// select all candidate steps that have some actor allocation to modelActors 						
-//			List<ActorAllocation> aaOpts = stepCandidates.stream()
-//					.map(cap -> op.getActorAllocationForProcess(cap))
-//					.filter(allocOpt -> allocOpt.isPresent())
-//					.map(allocOpt -> allocOpt.get()) // here we have mapped steps,
-//					.collect(Collectors.toList());
 			if (capMap.isEmpty()) {
 				log.warning(String.format("OrderProcess %s has no available CapabilityInvocations steps match a discovered Machine/Actor, Order is paused",rootOrderId));
 				ordMapper.pauseOrder(rootOrderId);
@@ -191,18 +190,25 @@ public class OrderPlanningActor extends AbstractActor{
 				// for each step produce tuple list of available machines
 				Optional<AbstractMap.SimpleEntry<CapabilityInvocation, AkkaActorBackedCoreModelAbstractActor>> maOpt = capMap.entrySet().stream()
 						.flatMap(pair -> pair.getValue().stream().map(mach -> new AbstractMap.SimpleEntry<>(pair.getKey(), mach)))
-						.filter(flatPair -> flatPair.getValue() != null)
+						.filter(flatPair -> {
+							return flatPair.getValue() != null;
+						})
+						.filter(pair -> {
+							return ordMapper.isMachineIdle(pair.getValue());
+						}) //continue with those where actor is idle
+						.filter(pair -> {
+							return ordMapper.getMappingStatusOfMachine(pair.getValue()).orElse(new MachineOrderMappingStatus(pair.getValue(), AssignmentState.NONE)).getAssignmentState() == AssignmentState.NONE; // and also where we havent assigned any order to yet
+						})
 						.findFirst(); // then from this list pick the first
-				
-//						.map(alloc -> new AbstractMap.SimpleEntry<>(alloc, capMan.resolveByModelActor(alloc.getActor())) )
-//						.filter(allocMap -> allocMap.getValue().isPresent())
-//						.map(allocMap -> new AbstractMap.SimpleEntry<>(allocMap.getKey(), allocMap.getValue().get()))					
-//						.filter(allocMap -> ordMapper.isMachineIdle(allocMap.getValue()) ) // we have an idle machine 
-//						.findFirst();
 				
 				maOpt.ifPresent(aa -> {								
 					// scheduled, not yet producing
-					ordMapper.requestMachineForOrder(aa.getValue(), rootOrderId, aa.getKey());	
+					try {
+						ordMapper.requestMachineForOrder(aa.getValue(), rootOrderId, aa.getKey());
+					} catch (MachineOrderMappingStatusLifecycleException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}	
 					// get machine actor reference				
 					aa.getValue().getAkkaActor().tell( new RegisterProcessStepRequest(rootOrderId, aa.getKey().toString(), aa.getKey(), this.self()), this.self());					
 					//TODO: alternatively the machine could issue a SCHEDULED event
@@ -231,7 +237,9 @@ public class OrderPlanningActor extends AbstractActor{
 				// update that we now work on an order
 				ordMapper.getOrderRequest(orderId).ifPresent(rpr -> {
 					ProcessChangeImpact pci = rpr.getProcess().activateStepIfAllowed(readyE.getResponseTo().getProcessStep());
-					orderEventBus.tell( new OrderProcessUpdateEvent(orderId, this.self().path().name(), pci), ActorRef.noSender() );
+					String msg = String.format("Machine with ID %s now works on Order with ID %s", machine.getId(), orderId);
+					log.info(msg);
+					orderEventBus.tell( new OrderProcessUpdateEvent(orderId, this.self().path().name(), msg, pci), ActorRef.noSender() );
 				});
 				
 			} else { // e.g., when machine needs to go down for maintenance, or some other error occured in the meantime						
@@ -241,6 +249,56 @@ public class OrderPlanningActor extends AbstractActor{
 			}
 		});
 	}
+		
+
+
+	
+	private void handleMachineUpdateEvent(MachineStatusUpdateEvent mue) {
+		log.info(String.format("MachineUpdateEvent for machine %s %s : %s", mue.getMachineId(), mue.getParameterName(), mue.getStatus().toString()));
+		capMan.resolveById(mue.getMachineId()).ifPresent(machine -> {
+			// will only process event if the parameter changes is "STATE"
+			ordMapper.updateMachineStatus(machine, mue);
+			if (mue.getParameterName().equals(MachineOrderMappingManager.STATE_VAR_NAME)) {
+				if (mue.getStatus().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
+					// if idle --> machine ready --> lets check if any order is waiting for that machine
+					ordMapper.getPausedProcessesOnSomeMachine().stream()
+						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+					// we don't abort upon first success but try for every one, should matter, just takes a bit of processing
+					
+					// order that are paused but not assigned to any machine yet (not efficient as will check all those already checked above)
+					ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
+						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+					
+					//if none, then just wait for next incoming event
+				} else if (mue.getStatus().equals(MachineOrderMappingManager.COMPLETING_STATE_VALUE)) {
+					// TODO: step done, now update the process, so which step has been completed?
+					// we cannot rely on ProductionCompletionevent as there could be a race condition which event arrives first
+					
+					// then we still have the order occupying the machine  --> now check if next place is ready somewhere
+					// update process, get next step --> check if possible somewhere
+					ordMapper.getOrderRequestOnMachine(machine).ifPresent(rpr -> { 
+						 log.debug(String.format("%s in state %s with register process request of %s", machine.getId(), mue.getStatus().toString(), rpr.getRootOrderId()));
+						 ordMapper.getJobOnMachine(machine).ifPresent(step -> { 
+							 ProcessChangeImpact pci = rpr.getProcess().markStepComplete(step); 
+							 String msg = String.format("Update process that step %s is complete at machine with ID %s and with order ID %s", step.getDisplayName(), machine.getId(), rpr.getRootOrderId());
+							 log.info(msg);
+							 OrderProcessUpdateEvent opue = new OrderProcessUpdateEvent(rpr.getRootOrderId(), this.self().path().name(), msg, pci);
+							 orderEventBus.tell(opue, ActorRef.noSender());
+							 } );
+						tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()); });
+				} else if (mue.getStatus().equals(MachineOrderMappingManager.PRODUCING_STATE_VALUE)) {
+					// now update mapping that order has arrived at that machine and is loaded
+					ordMapper.confirmOrderAtMachine(machine);
+				}
+			}						
+		});		
+		
+		
+	}
+	
+
+	
+
 	
 	private void handleNoLongerAvailableMachine(MachineDisconnectedEvent mde) {		
 		capMan.removeActor(mde.getMachine());
@@ -266,40 +324,7 @@ public class OrderPlanningActor extends AbstractActor{
 		
 	}
 	
-	private void handleMachineUpdateEvent(MachineUpdateEvent mue) {
-		log.info(String.format("MachineUpdateEvent for machine %s %s : %s", mue.getMachineId(), mue.getType(), mue.getNewValue().toString()));
-		capMan.resolveById(mue.getMachineId()).ifPresent(machine -> {
-			// will only process event if the parameter changes is "STATE"
-			ordMapper.updateMachineStatus(machine, mue);
-			if (mue.getType().equals(MachineOrderMappingManager.STATE_VAR_NAME)) {
-				if (mue.getNewValue().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
-					// if idle --> machine ready --> lets check if any order is waiting for that machine
-					ordMapper.getPausedProcessesOnSomeMachine().stream()
-						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
-					// we don't abort upon first success but try for every one, should matter, just takes a bit of processing
-					//if none, then just wait for next incoming event
-				} else if (mue.getNewValue().equals(MachineOrderMappingManager.COMPLETING_STATE_VALUE)) {
-					// TODO: step done, now update the process, so which step has been completed?
-					// we cannot rely on ProductionCompletionevent as there could be a race condition which event arrives first
-					
-					// then we still have the order occupying the machine  --> now check if next place is ready somewhere
-					// update process, get next step --> check if possible somewhere
-					ordMapper.getOrderRequestOnMachine(machine).ifPresent(rpr -> { 
-						 ordMapper.getJobOnMachine(machine).ifPresent(step -> { 
-							 ProcessChangeImpact pci = rpr.getProcess().markStepComplete(step); 
-							 orderEventBus.tell( new OrderProcessUpdateEvent(rpr.getRootOrderId(), this.self().path().name(), pci), ActorRef.noSender() );
-							 } );
-						tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()); });
-				} else if (mue.getNewValue().equals(MachineOrderMappingManager.PRODUCING_STATE_VALUE)) {
-					// now update mapping that order has arrived at that machine and is loaded
-					ordMapper.confirmOrderAtMachine(machine);
-				}
-			}						
-		});		
-		
-		
-	}
-	
+
 	private void requestTransport(AkkaActorBackedCoreModelAbstractActor destination, String orderId) {
 		
 		Optional<AkkaActorBackedCoreModelAbstractActor> currentLoc = ordMapper.getCurrentMachineOfOrder(orderId);
@@ -316,8 +341,12 @@ public class OrderPlanningActor extends AbstractActor{
 	}
 	
 
-	
+	// manage a list of loading and unloading stations (at least one each needs to be available)
+	// when loading/input station is loaded --> then assign to order
+	// for unloading/output station: just track if it is empty
 
 	
 	
+	
 }
+

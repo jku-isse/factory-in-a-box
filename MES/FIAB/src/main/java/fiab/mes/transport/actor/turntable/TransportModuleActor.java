@@ -13,10 +13,12 @@ import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.UnsubscribeMessage;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.MachineLevelEventBus;
 import fiab.mes.transport.actor.wrapper.ConveyorWrapper;
 import fiab.mes.transport.actor.wrapper.ProcessEngineWrapper;
+import fiab.mes.transport.actor.wrapper.TransportModuleWrapper;
 import fiab.mes.transport.actor.wrapper.TransportModuleWrapperMock;
 import fiab.mes.transport.actor.wrapper.TurntableWrapper;
 import fiab.mes.transport.messages.COM_Transport;
@@ -28,7 +30,7 @@ public class TransportModuleActor extends AbstractActor {
 	
 	private String id;
 	private String orderId;
-	private TransportModuleWrapperMock machineWrapper = null;
+	private TransportModuleWrapper machineWrapper = null;
 	private boolean connected;
 	private long updateTimestamp;
 	private Map<String, String> serverStates = new HashMap<String, String>();
@@ -36,16 +38,16 @@ public class TransportModuleActor extends AbstractActor {
 	private ActorRef cvactor; //FU ConveyorBelt
 	private ActorRef peactor; //FU ProcessEngine
 	private ActorRef highLevelEventBusActor;
-//	private MachineLevelEventBus eventBus = new MachineLevelEventBus();
+	private MachineLevelEventBus eventBus = new MachineLevelEventBus();
 
 	public TransportModuleActor(String serverAddress, ActorSystem system) {
 		//MOCK
-		machineWrapper = new TransportModuleWrapperMock(serverAddress, getSelf());
+//		machineWrapper = new TransportModuleWrapperMock(serverAddress, getSelf());
 
 		
 		
 		//Replace Mock with
-//		machineWrapper = new TransportModuleWrapper(serverAddress, eventBus);
+		machineWrapper = new TransportModuleWrapper(serverAddress, eventBus);
 		ttactor = system.actorOf(TurntableActor.props(getSelf(), new TurntableWrapper(machineWrapper)), id+"_TURNTABLE");
 		cvactor = system.actorOf(ConveyorActor.props(getSelf(), new ConveyorWrapper(machineWrapper)), id+"_CONVEYOR");
 		peactor = system.actorOf(ProcessEngineActor.props(getSelf(), new ProcessEngineWrapper(machineWrapper)), id+"_PROCESSENGINE");
@@ -100,16 +102,16 @@ public class TransportModuleActor extends AbstractActor {
 			.match(MachineConnectedEvent.class, msg -> {
 				
 			})
-			.match(MachineUpdateEvent.class, msg -> {
-				System.out.println(msg.getNewValue().toString());
+			.match(MachineStatusUpdateEvent.class, msg -> {
+				System.out.println(msg.getStatus().toString());
 				//TODO proper message handling
 				//This message is sent by the FUs, the messages have to be filtered before publishing them
 				updateTimestamp = System.currentTimeMillis(); //Variable is used to check when last update was recieved
-				serverStates.replace(msg.getNodeId(), msg.getNewValue().toString());
+				serverStates.replace(msg.getNodeId(), msg.getStatus().toString());
 				getContext().system().scheduler().scheduleOnce(Duration.ofSeconds(10), getSelf(), "ping", getContext().system().dispatcher(), ActorRef.noSender());
 				printStates();
-				if(msg.getType().equals("Machine_Status")) { //TODO the parameter might not be called Machine_Status
-					highLevelEventBusActor.tell(msg.getNewValue(), getSelf());
+				if(msg.getParameterName().equals("Machine_Status")) { //TODO the parameter might not be called Machine_Status
+					highLevelEventBusActor.tell(msg.getStatus(), getSelf());
 				}
 			})
 			.match(MachineEvent.class, msg -> {

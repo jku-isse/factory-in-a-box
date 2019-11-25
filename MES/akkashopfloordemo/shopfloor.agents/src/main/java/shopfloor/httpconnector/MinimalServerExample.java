@@ -105,9 +105,11 @@ public class MinimalServerExample extends AllDirectives {
 						Source.actorRef(bufferSize, OverflowStrategy.dropHead())		
 						.map(msg -> (OrderStatusAllJobsUpdateEvent) msg)
 						.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg) )
-						.mapMaterializedValue(actor -> { orderEvents.subscribe(actor, orderId.orElse("*")); 
+						.mapMaterializedValue(actor -> { 
+														 orderEvents.subscribe(actor, orderId.orElse("*")); 
 														 return NotUsed.getInstance();
-														});				
+														});		
+				
 				return completeOK( source, EventStreamMarshalling.toEventStream());
 				
 					

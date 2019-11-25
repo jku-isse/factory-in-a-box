@@ -6,6 +6,7 @@ import java.util.Map;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.actor.wrapper.TurntableWrapper;
 
@@ -37,8 +38,8 @@ public class TurntableActor extends AbstractActor {
 				wrapper.subscribe(getSelf(), string.substring(10));
 				serverStates.put(string.substring(10), "");
 			}
-		}).match(MachineUpdateEvent.class, msg -> {
-			serverStates.replace(msg.getNodeId(), msg.getNewValue().toString());
+		}).match(MachineStatusUpdateEvent.class, msg -> {
+			serverStates.replace(msg.getNodeId(), msg.getStatus().toString());
 		})
 		.build();
 	}
