@@ -79,13 +79,13 @@ public class ProcessTurnTable extends ProcessEngineBase {
         callMethod(serverUrl, 1, 30, 31, "");         //Reset loading
         waitForTargetValue(turningNode, 0);                                 //Wait for idle turning state
         callMethod(serverUrl, 1, 30, 33, from);            //turning turn to (random)
-        waitForTargetValue(turningNode, 5);                                 //Wait for turning complete state
+        waitForTargetValue(turningNode, 0);                                 //Wait for turning complete state
         callMethod(serverUrl, 1, 20, 21, "");         //load conveyor
         waitForTargetValue(conveyorNode, 6);                                //wait for loaded state
         callMethod(serverUrl, 1, 30, 31, "");         //Reset loading
         waitForTargetValue(turningNode, 0);                                 //Wait for idle turning state
         callMethod(serverUrl, 1, 30, 33, to);              //turning turn to (random)
-        waitForTargetValue(turningNode, 5);                                 //Wait for turning complete state
+        waitForTargetValue(turningNode, 0);                                 //Wait for turning complete state
         callMethod(serverUrl, 1, 20, 25, "");         //unload conveyor
         waitForTargetValue(conveyorNode, 0);                                //wait for conveyor idle state
         callMethod(serverUrl, 1, 20, 24, "");        //stop conveyor

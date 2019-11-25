@@ -203,8 +203,8 @@ public class RobotBase {
      * @throws IOException file is probably used somewhere else or not there.
      */
     private static void loadNativeLib() throws IOException {
-        //String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
-        String libName = "opcua_java_api.dll"; //use this on windows (needs 32 bit java)
+        String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
+        //String libName = "opcua_java_api.dll"; //use this on windows (needs 32 bit java)
         URL url = RobotBase.class.getResource("/" + libName);
         File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
         tmpDir.deleteOnExit();
