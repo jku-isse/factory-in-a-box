@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'eclipse'
     id 'idea'
-    id 'com.github.ev3dev-lang-java.gradle-plugin' version '1.6.5'
+    id 'com.github.ev3dev-lang-java.gradle-plugin' version '1.6.8'
 }
 
 group 'jku.isse'
