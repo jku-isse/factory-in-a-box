@@ -33,10 +33,14 @@ public class ConveyorMockMotor extends MockMotor {
     @Override
     public void backward() {
         super.backward();
-        if (sensorLoading != null && sensorUnloading != null) {
-            sensorUnloading.setDetectedInput(true);
-            loadingTask = executorService.schedule(() -> sensorLoading.setDetectedInput(true), delay, TimeUnit.MILLISECONDS);
-        }
+
+        sensorUnloading.setDetectedInput(true);
+        System.out.println("Hello backward");
+        loadingTask = executorService.schedule(() -> {
+            System.out.println("Set loading sensor to true");
+            sensorLoading.setDetectedInput(true);
+        }, delay, TimeUnit.MILLISECONDS);
+
     }
 
     @Override

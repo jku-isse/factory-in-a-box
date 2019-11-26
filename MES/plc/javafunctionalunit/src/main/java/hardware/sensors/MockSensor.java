@@ -1,19 +1,22 @@
 package hardware.sensors;
 
-import lombok.Setter;
-
 /**
  * This is a Mock implementation of a Sensor. It can be used for testing, although it does not account for
  * errors in the construction.
  */
 public class MockSensor extends Sensor {
 
-    @Setter private boolean detectedInput;
+
+
+    private boolean detectedInput;
 
     public MockSensor(){
         detectedInput = false;
     }
 
+    public void setDetectedInput(boolean detectedInput) {
+        this.detectedInput = detectedInput;
+    }
     /**
      * {@inheritDoc}
      */

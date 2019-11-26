@@ -93,6 +93,7 @@ public class ConveyorTurnTable extends ConveyorBase {
         Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
         vertx.executeBlocking(promise -> {
             while (!sensorLoading.hasDetectedInput()) {
+              //  System.out.print(".");
                 if (stopped || suspended) {
                     stopped = false;
                     suspended = false;

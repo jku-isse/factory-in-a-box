@@ -14,9 +14,7 @@ package controller;
 
 import capabilities.HandshakeFU;
 import communication.Communication;
-import communication.utils.RequestedNodePair;
 import helper.CapabilityId;
-import open62Wrap.open62541;
 
 public class Controller {
 
@@ -44,11 +42,8 @@ public class Controller {
 		Object opcua_object = opcua_comm.getServerCommunication().addObject(opcua_server, rootObjectId, "Turntable");
 
 
-		//should be moved to the base class
-		opcua_comm.getServerCommunication().addIntArrayMethod(opcua_comm.getServerCommunication(),opcua_server, open62541.UA_NODEID_NUMERIC(0, 85),new RequestedNodePair<>(1, opcua_comm.getServerCommunication().getUnique_id()),"Turn",3, x -> {
-			return turn(x);
+				//should be moved to the base class
 
-		});
 
 
 
