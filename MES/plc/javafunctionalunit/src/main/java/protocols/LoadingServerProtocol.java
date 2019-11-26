@@ -1,13 +1,14 @@
 /**
- [Class description.  The first sentence should be a meaningful summary of the class since it
- will be displayed as the class summary on the Javadoc package page.]
-
- [Other notes, including guaranteed invariants, usage instructions and/or examples, reminders
- about desired improvements, etc.]
- @author Michael Bishara
- @author <A HREF="mailto:[michaelbishara14@gmail.com]">[Michael Bishara]</A>
- @author <A HREF="https://github.com/michaelanis14">[Github]</A>
- @date 30 Oct 2019
+ * [Class description.  The first sentence should be a meaningful summary of the class since it
+ * will be displayed as the class summary on the Javadoc package page.]
+ * <p>
+ * [Other notes, including guaranteed invariants, usage instructions and/or examples, reminders
+ * about desired improvements, etc.]
+ *
+ * @author Michael Bishara
+ * @author <A HREF="mailto:[michaelbishara14@gmail.com]">[Michael Bishara]</A>
+ * @author <A HREF="https://github.com/michaelanis14">[Github]</A>
+ * @date 30 Oct 2019
  **/
 package protocols;
 
@@ -22,35 +23,37 @@ public class LoadingServerProtocol {
     private Object opcua_server;
     private Object parentObject;
     Object state_nodeid;
+
     public LoadingServerProtocol() {
         conveyorOccupied = false; // 0 for Idle
     }
+
     public LoadingServerProtocol(ServerCommunication serverCommunication, Object server, Object parentObject) {
         conveyorOccupied = false; // 0 for Idle
 
         this.serverCommunication = serverCommunication;
         this.opcua_server = server;
         this.parentObject = parentObject;
-        state_nodeid = serverCommunication.addStringVariableNode(opcua_server, parentObject, new Pair<>(1,"STATE"), "LOADING_SERVER_STATE");
+        state_nodeid = serverCommunication.addStringVariableNode(opcua_server, parentObject, new Pair<>(1, "STATE"), "LOADING_SERVER_STATE");
 
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_INIT_LOADING"), "REQUEST_INIT_LOADING",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_INIT_HANDOVER"), "REQUEST_INIT_HANDOVER",
                 opcuaMethodInput -> {
-                    return request_init_loading();
+                    return request_init_handover();
                 });
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_INIT_UNLOADING"), "REQUEST_INIT_UNLOADING",
                 opcuaMethodInput -> {
                     return request_init_Unloading();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_START_LOADING"), "REQUEST_START_LOADING",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_START_HANDOVER"), "REQUEST_START_HANDOVER",
                 opcuaMethodInput -> {
-                    return request_start_loading();
+                    return request_start_handover();
                 });
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_START_UNLOADING"), "REQUEST_START_UNLOADING",
                 opcuaMethodInput -> {
                     return request_start_Unloading();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,"COMPLETE"), "COMPLETE",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "COMPLETE"), "COMPLETE",
                 opcuaMethodInput -> {
                     return complete();
                 });
@@ -64,60 +67,55 @@ public class LoadingServerProtocol {
                 });
     }
 
-    private String request_start_loading() {
-        if(getCurrentState() == ServerLoadingStates.READY_EMPTY.ordinal()){
+
+    private String request_start_handover() {
+        if (getCurrentState() == ServerLoadingStates.READY_EMPTY.ordinal()) {
             changeState(ServerLoadingStates.EXECUTE);
-            return "REQUEST_START_LOADING Successful";
-        }
-        else return "WRONG STATE NOT @ READY_EMPTY";
+            return "REQUEST_START_HANDOVER Successful";
+        } else return "WRONG STATE NOT @ READY_EMPTY";
     }
+
     private String request_start_Unloading() {
-        if(getCurrentState() == ServerLoadingStates.READY_LOADED.ordinal()){
+        if (getCurrentState() == ServerLoadingStates.READY_LOADED.ordinal()) {
             changeState(ServerLoadingStates.EXECUTE);
-            return "REQUEST_START_LOADING Successful";
-        }
-        else return "WRONG STATE NOT @ READY_LOADED";
+            return "REQUEST_START_HANDOVER Successful";
+        } else return "WRONG STATE NOT @ READY_LOADED";
     }
+
     private String stop() {
-        if(getCurrentState() != ServerLoadingStates.STOPPING.ordinal() && getCurrentState() != ServerLoadingStates.STOPPED.ordinal()){
+        if (getCurrentState() != ServerLoadingStates.STOPPING.ordinal() && getCurrentState() != ServerLoadingStates.STOPPED.ordinal()) {
             changeState(ServerLoadingStates.STOPPING);
             return "STOP Successful";
-        }
-        else return "WRONG STATE NOT @ WORKING";
+        } else return "WRONG STATE NOT @ WORKING";
     }
 
     private String reset() {
-        if(getCurrentState() == ServerLoadingStates.STOPPED.ordinal()){
+        if (getCurrentState() == ServerLoadingStates.STOPPED.ordinal()) {
             changeState(ServerLoadingStates.RESETTING);
             return "RESET Successful";
-        }
-        else return "WRONG STATE NOT @ STOPPED";
+        } else return "WRONG STATE NOT @ STOPPED";
     }
 
     private String complete() {
-        if(getCurrentState() == ServerLoadingStates.EXECUTE.ordinal()){
+        if (getCurrentState() == ServerLoadingStates.EXECUTE.ordinal()) {
             changeState(ServerLoadingStates.COMPLETING);
             return "COMPLETE Successful";
-        }
-        else return "WRONG STATE NOT @ EXECUTE";
+        } else return "WRONG STATE NOT @ EXECUTE";
     }
-
 
 
     private String request_init_Unloading() {
-        if(getCurrentState() == ServerLoadingStates.IDLE_LOADED.ordinal()){
+        if (getCurrentState() == ServerLoadingStates.IDLE_LOADED.ordinal()) {
             changeState(ServerLoadingStates.STARTING);
-            return "REQUEST_INIT_LOADING Successful";
-        }
-        else return "WRONG STATE NOT @ IDLE_LOADED";
+            return "REQUEST_INIT_HANDOVER Successful";
+        } else return "WRONG STATE NOT @ IDLE_LOADED";
     }
 
-    private String request_init_loading() {
-        if(getCurrentState() == ServerLoadingStates.IDLE_EMPTY.ordinal()){
+    private String request_init_handover() {
+        if (getCurrentState() == ServerLoadingStates.IDLE_EMPTY.ordinal()) {
             changeState(ServerLoadingStates.STARTING);
-            return "REQUEST_INIT_LOADING Successful";
-        }
-        else return "WRONG STATE NOT @ IDLE_EMPTY";
+            return "REQUEST_INIT_HANDOVER Successful";
+        } else return "WRONG STATE NOT @ IDLE_EMPTY";
     }
 
     public void changeState(ServerLoadingStates states) {
@@ -173,13 +171,9 @@ public class LoadingServerProtocol {
                 break;
 
 
-
-
-
         }
         serverCommunication.writeVariable(opcua_server, state_nodeid, ServerLoadingStates.values()[currentState].toString());
     }
-
 
 
     private void starting() {
@@ -189,9 +183,9 @@ public class LoadingServerProtocol {
 
     private void preparing() {
         //any internal actions to prepare loading
-        if(!isConveyorOccupied()) { // idle
+        if (!isConveyorOccupied()) { // idle
             changeState(ServerLoadingStates.READY_EMPTY);
-        }else {
+        } else {
             changeState(ServerLoadingStates.READY_LOADED);
         }
     }
@@ -229,12 +223,14 @@ public class LoadingServerProtocol {
 
     private void idle_empty() {
     }
+
     private void idle_loaded() {
     }
+
     private void resetting() {
-        if(!isConveyorOccupied()) { // idle
+        if (!isConveyorOccupied()) { // idle
             changeState(ServerLoadingStates.IDLE_EMPTY);
-        }else {
+        } else {
             changeState(ServerLoadingStates.IDLE_LOADED);
         }
     }
@@ -242,11 +238,13 @@ public class LoadingServerProtocol {
     public final int getCurrentState() {
         return currentState;
     }
-    public  boolean isConveyorOccupied() {
+
+    public boolean isConveyorOccupied() {
         return conveyorOccupied;
     }
+
     public void setConveyorState(boolean conveyorOccupied) {
-         this.conveyorOccupied = conveyorOccupied;
+        this.conveyorOccupied = conveyorOccupied;
     }
 
 

@@ -145,7 +145,7 @@ public class HandshakeCapability extends Capability {
                     return ready(opcuaMethodInput);
                 });
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_LOADING",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_HANDOVER",
                 opcuaMethodInput -> {
                     return "";
                     //return initiateLoading(opcuaMethodInput);

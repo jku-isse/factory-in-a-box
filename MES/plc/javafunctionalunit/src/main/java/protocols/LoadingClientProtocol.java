@@ -98,7 +98,7 @@ public class LoadingClientProtocol {
             public void run() {
                 String callbCK = "CALL BACK";
                 if (currentWiringInformation.getrEMOTE_ROLE().contains("PROVIDER"))
-                    callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_INIT_LOADING"), orderId);
+                    callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_INIT_HANDOVER"), orderId);
                 else
                     callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_INIT_UNLOADING"), orderId);
 
@@ -133,7 +133,7 @@ public class LoadingClientProtocol {
             public void run() {
                 String callbCK = "CALL BACK";
                 if (currentWiringInformation.getrEMOTE_ROLE().contains("PROVIDER"))
-                    callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_START_LOADING"), orderId);
+                    callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_START_HANDOVER"), orderId);
                 else
                     callbCK = clientCommunication.callStringMethod(currentWiringInformation.getrEMOTE_ENDPOINT(), new Pair<>(Integer.parseInt(currentWiringInformation.getRemote_NODEID_NameSpace().trim()), currentWiringInformation.getRemote_NODEID_STRINGID()), new Pair<>(1, "REQUEST_START_UNLOADING"), orderId);
 
