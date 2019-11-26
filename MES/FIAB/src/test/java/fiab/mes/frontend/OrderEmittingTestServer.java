@@ -122,7 +122,7 @@ public class OrderEmittingTestServer {
 					System.out.println("waiting..");
 					Thread.sleep(3000);
 					
-				    CountDownLatch count = new CountDownLatch(1);
+				    CountDownLatch count = new CountDownLatch(5);
 				    while(count.getCount() > 0) {
 				    	OrderProcess process = new OrderProcess(TestBasicMachineActor.getSequentialProcess());
 				    	String processId = "process"+String.valueOf(count.getCount());

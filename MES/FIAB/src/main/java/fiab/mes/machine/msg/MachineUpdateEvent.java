@@ -13,14 +13,8 @@ public abstract class MachineUpdateEvent extends MachineEvent {
 	 * @param parameterName
 	 * @param value
 	 */
-	public MachineUpdateEvent(String machineId, String nodeId, String parameterName, Object value, String message) {
+	public MachineUpdateEvent(String machineId, String nodeId, String parameterName, String message) {
 		super(machineId, MachineEventType.UPDATED, message);
-		this.nodeId = nodeId;
-		this.parameterName = parameterName;
-	}
-	
-	public MachineUpdateEvent(String machineId, String nodeId, String parameterName, Object value) {
-		super(machineId, MachineEventType.UPDATED);
 		this.nodeId = nodeId;
 		this.parameterName = parameterName;
 	}

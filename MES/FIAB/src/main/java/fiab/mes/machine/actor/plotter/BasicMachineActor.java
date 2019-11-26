@@ -40,6 +40,7 @@ public class BasicMachineActor extends AbstractActor{
 	protected InterMachineEventBus intraBus;
 	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
+	private String lastOrder;
 	protected RegisterProcessStepRequest reservedForOrder = null;
 	
 	private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
@@ -125,7 +126,7 @@ public class BasicMachineActor extends AbstractActor{
 	}
 	
 	private void setAndPublishSensedState(MachineStatus newState) {
-		String msg = String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState);
+		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, lastOrder);
 		log.debug(msg);
 		this.currentState = newState;
 		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, msg, newState);
@@ -141,6 +142,7 @@ public class BasicMachineActor extends AbstractActor{
 		log.debug(String.format("Checking if %s is IDLE: %s", this.machineId.getId(), this.currentState));
 		if (currentState == MachineStatus.IDLE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
 			RegisterProcessStepRequest ror = orders.remove(0);
+			lastOrder = ror.getRootOrderId();
 			log.info("Ready for next Order: "+ror.getRootOrderId());
 			reservedForOrder = ror; 
     		ror.getRequestor().tell(new ReadyForProcessEvent(ror), getSelf());
