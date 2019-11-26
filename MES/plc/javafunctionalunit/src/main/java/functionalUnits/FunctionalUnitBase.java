@@ -38,8 +38,8 @@ public abstract class FunctionalUnitBase {
         return object;
     }
 
-    public void setConveyorFolder(Object conveyorFolder) {
-        this.object = conveyorFolder;
+    public void setFolder(Object folder) {
+        this.object = folder;
     }
 
     public void setServerAndFolder(ServerCommunication serverCommunication, Object server, Object folder){

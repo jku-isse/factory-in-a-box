@@ -12,6 +12,7 @@ import akka.http.javadsl.server.AllDirectives;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
 import fiab.mes.DefaultShopfloorInfrastructure;
+import fiab.mes.machine.MachineEntryActor;
 import fiab.mes.order.actor.OrderEntryActor;
 import java.util.concurrent.CompletionStage;
 
@@ -27,7 +28,8 @@ public class MinimalServerExample extends AllDirectives {
 
     DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system);
     ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props());
-    ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor);
+    ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props());
+    ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
 
     final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
     final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,

@@ -20,7 +20,6 @@ import java.nio.file.Files;
  * are their server methods and variables.
  */
 public class RobotBase {
-    //TODO remove open62 imports
     /*
      * Loads the native libraries using a workaround as the ev3 currently has troubles with finding them.
      * Uncomment this and comment the loadLib from open62Wrap/open62541JNI if using EV3
@@ -50,6 +49,10 @@ public class RobotBase {
      */
     private Thread serverThread = new Thread(() -> {
         System.out.println("Starting Server...");
+        Runtime.getRuntime().addShutdownHook(new Thread(() ->{
+            ServerCommunication.stopHandler(0);
+            System.exit(0);
+        }));
         Object server = serverCommunication.createServer("localhost", 4840);
         Object loadingFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 10), "LoadingProtocol");
         loadingProtocolBase.setServerAndFolder(serverCommunication, server, loadingFolder);
@@ -69,20 +72,6 @@ public class RobotBase {
         }
         System.out.println("Running Server...");
         serverCommunication.runServer(server);
-    });
-
-
-    private Thread clientThread = new Thread(() -> {
-        System.out.println("Starting Client...");
-      //  Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
-        if (processEngineBase != null) {
-            Object client = clientCommunication.initClient();
-            processEngineBase.setClient(client);
-            processEngineBase.setServerUrl("opc.tcp://localhost:4840/");
-            clientCommunication.clientConnect(clientCommunication, client, "opc.tcp://localhost:4840/");
-
-        }
-        System.out.println("Running Client...");
     });
 
 
@@ -189,13 +178,21 @@ public class RobotBase {
         serverThread.start();
     }
 
+    /**
+     * Starts the server and the client
+     */
     public void runServerAndClient() {
         serverThread.start();
-        //clientThread.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> ClientCommunication.stopHandler(0)));
+        System.out.println("Starting Client");
         Object client = clientCommunication.initClient();
+        Runtime.getRuntime().addShutdownHook(new Thread(() ->{
+            ClientCommunication.stopHandler(0);
+            System.exit(0);
+        }));
         processEngineBase.setClientCommunication(clientCommunication);
         processEngineBase.setClient(client);
+        processEngineBase.setServerUrl("opc.tcp://localhost:4840/");
+        System.out.println("Client connecting");
         clientCommunication.clientConnect(clientCommunication, processEngineBase.getClient(), "opc.tcp://localhost:4840/");
     }
 
@@ -206,7 +203,8 @@ public class RobotBase {
      * @throws IOException file is probably used somewhere else or not there.
      */
     private static void loadNativeLib() throws IOException {
-        String libName = "opcua_java_api.dll"; //use this on BrickPi, use the one w/o _hf suffix on ev3
+        String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
+        //String libName = "opcua_java_api.dll"; //use this on windows (needs 32 bit java)
         URL url = RobotBase.class.getResource("/" + libName);
         File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
         tmpDir.deleteOnExit();

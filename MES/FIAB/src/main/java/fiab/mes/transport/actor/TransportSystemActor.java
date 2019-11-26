@@ -11,7 +11,7 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
-
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.actor.turntable.TransportModuleActor;
 import fiab.mes.transport.customDataTypes.TSAListElement;
@@ -55,11 +55,11 @@ public class TransportSystemActor extends AbstractActor {
 		  .match(RegisterTransportRequest.class, order -> {
 			orders.add(new TSAListElement(order, getSender()));
 			handleOrder(orders.remove(0));
-		}).match(MachineUpdateEvent.class, msg -> {
+		}).match(MachineStatusUpdateEvent.class, msg -> {
 			if (getSender().equals(turntable1)) {
-				statust1 = msg.getNewValue().toString();
+				statust1 = msg.getStatus().toString();
 			} else if (getSender().equals(turntable2)) {
-				statust2 = msg.getNewValue().toString();
+				statust2 = msg.getStatus().toString();
 			}
 		}).match(String.class, msg -> {
 			if(msg.contains("Cancel Order: ")) { //TODO implement this properly

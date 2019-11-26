@@ -1,0 +1,52 @@
+<div class="panel panel-primary">
+    <div class="panel-heading">
+      <h2>Machine History</h2>
+    </div>
+    <div class="panel-body">
+  
+      <div *ngIf="machines">
+        <div>
+          <label><b>Machine ID: </b></label> {{machineId}}
+        </div>
+          <table mat-table [dataSource]="getMachinesAsArray()" class="mat-elevation-z8">
+  
+            <!-- Status Column -->
+            <ng-container matColumnDef="eventType" class="make-gold">
+              <th mat-header-cell *matHeaderCellDef> Machine Status </th>
+              <td mat-cell *matCellDef="let element">
+                {{element.eventType}}
+              </td>
+            </ng-container>
+         
+            <!-- Message Column -->
+            <ng-container matColumnDef="message">
+                <th mat-header-cell *matHeaderCellDef> Message </th>
+                <td mat-cell *matCellDef="let element"> 
+                  <br/>
+                  <mat-card class="my-card">
+                    <mat-card-content>
+                      <p>{{element.message}}</p>
+                    </mat-card-content>
+                  </mat-card>
+                  <br/>
+                </td>
+              </ng-container>
+  
+            <!-- Time Column -->
+            <ng-container matColumnDef="time">
+              <th mat-header-cell *matHeaderCellDef> Timestamp </th>
+              <td mat-cell *matCellDef="let element"> 
+                {{element.timestamp}}
+              </td>
+            </ng-container>
+          
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row [ngClass]="{'make-gold': row.timestamp == this.latest}" *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+      </div>
+      <br>
+      <br>
+      <button (click)="list()" class="btn btn-primary">Back to Machine List</button><br>
+    </div>
+  </div>
+  

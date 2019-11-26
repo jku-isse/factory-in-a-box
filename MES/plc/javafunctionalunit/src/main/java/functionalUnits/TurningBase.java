@@ -1,6 +1,10 @@
 package functionalUnits;
 
+import com.github.oxo42.stateless4j.StateMachine;
+import lombok.Getter;
 import robot.turnTable.TurnTableOrientation;
+import stateMachines.turning.TurningStates;
+import stateMachines.turning.TurningTriggers;
 
 /**
  * Abstract base class for the turning functional Unit
@@ -8,6 +12,7 @@ import robot.turnTable.TurnTableOrientation;
  */
 public abstract class TurningBase extends FunctionalUnitBase {
 
+    @Getter protected StateMachine<TurningStates, TurningTriggers> turningStateMachine;
     /**
      * Where the robot should turn to.
      * @param orientation target destination

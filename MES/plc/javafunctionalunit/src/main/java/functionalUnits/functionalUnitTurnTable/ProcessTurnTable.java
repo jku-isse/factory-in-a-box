@@ -3,12 +3,10 @@ package functionalUnits.functionalUnitTurnTable;
 import com.github.oxo42.stateless4j.StateMachine;
 import communication.utils.RequestedNodePair;
 import functionalUnits.ProcessEngineBase;
-import io.vertx.core.Vertx;
 import stateMachines.processEngine.ProcessEngineStateMachineConfig;
 import stateMachines.processEngine.ProcessEngineStates;
 import stateMachines.processEngine.ProcessEngineTriggers;
 
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static stateMachines.processEngine.ProcessEngineStates.STOPPED;
@@ -22,12 +20,11 @@ public class ProcessTurnTable extends ProcessEngineBase {
     private Object statusNodeId;
     private AtomicBoolean stopped;
     private final StateMachine<ProcessEngineStates, ProcessEngineTriggers> processEngineStateMachine;
-    private Random random;
+    private final int DELAY = 1000;
 
     public ProcessTurnTable() {
         stopped = new AtomicBoolean(false);
         processEngineStateMachine = new StateMachine<>(STOPPED, new ProcessEngineStateMachineConfig());
-        random = new Random();
     }
 
     private boolean isStopped() {
@@ -41,92 +38,84 @@ public class ProcessTurnTable extends ProcessEngineBase {
         getServerCommunication().writeVariable(getServer(), statusNodeId, processEngineStateMachine.getState().getValue());
     }
 
-    /**
-     * {@inheritDoc}
-     * This method currently mocks a process. Processes should be parsed and converted to commands.
-     */
-    @Override
-    public void loadProcess() {
-        Vertx vertx = Vertx.vertx();
-        vertx.executeBlocking(promise -> {
-            if (isStopped() || !processEngineStateMachine.canFire(EXECUTE)) {
-                System.out.println("Reset Process Engine to load a process");
+    private void callMethod(String serverUrl, int namespace, int objectId, int methodId, String args) {
+        getClientCommunication().callStringMethod(serverUrl, new RequestedNodePair<>(namespace, objectId),
+                new RequestedNodePair<>(namespace, methodId), args);
+        System.out.println("Method call successful");
+    }
+
+    private void waitForTargetValue(RequestedNodePair<Integer, Integer> nodeId, int targetValue) {
+        while (getClientCommunication().clientReadIntValueById(getClient(), nodeId) != targetValue) {
+            if (isStopped()) {
+                System.out.println("Process was interrupted.");
                 return;
             }
+            try {
+                Thread.sleep(DELAY);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private boolean inputInvalid(String[] input) {
+        return input.length != 3;
+    }
+
+    private void loadFromUnloadTo(String fromTo) {
+        //TODO do not reset if current orientation is equal to from
+        //TODO do not reset if from == to
+        String[] info = fromTo.split(";");//"opc.tcp://localhost:4840";
+        if (inputInvalid(info)) {
+            System.out.println("Input not well defined");
+            return;
+        }
+        String serverUrl = info[0];
+        String from = info[1];
+        String to = info[2];
+        RequestedNodePair<Integer, Integer> conveyorNode = new RequestedNodePair<>(1, 56);
+        RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
+        callMethod(serverUrl, 1, 20, 23, "");         //Reset conveyor
+        callMethod(serverUrl, 1, 30, 31, "");         //Reset loading
+        waitForTargetValue(turningNode, 0);                                 //Wait for idle turning state
+        callMethod(serverUrl, 1, 30, 33, from);            //turning turn to (random)
+        waitForTargetValue(turningNode, 0);                                 //Wait for turning complete state
+        callMethod(serverUrl, 1, 20, 21, "");         //load conveyor
+        waitForTargetValue(conveyorNode, 6);                                //wait for loaded state
+        callMethod(serverUrl, 1, 30, 31, "");         //Reset loading
+        waitForTargetValue(turningNode, 0);                                 //Wait for idle turning state
+        callMethod(serverUrl, 1, 30, 33, to);              //turning turn to (random)
+        waitForTargetValue(turningNode, 0);                                 //Wait for turning complete state
+        callMethod(serverUrl, 1, 20, 25, "");         //unload conveyor
+        waitForTargetValue(conveyorNode, 0);                                //wait for conveyor idle state
+        callMethod(serverUrl, 1, 20, 24, "");        //stop conveyor
+        waitForTargetValue(conveyorNode, 9);                               //wait for conveyor stopped state
+        callMethod(serverUrl, 1, 30, 32, "");        //stop turning
+        waitForTargetValue(turningNode, 7);                                 //wait for turning stopped state
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void loadProcess(String info) {
+        if (isStopped() || !processEngineStateMachine.canFire(EXECUTE)) {
+            System.out.println("Reset Process Engine to load a process");
+            return;
+        }
+        new Thread(() -> {
+            System.out.println("loadProcess start");
+            //int conveyorSubscription = getClientCommunication().clientSubToNode(getClientCommunication(), getClient(), conveyorNode);
+            //int turningSubscription = getClientCommunication().clientSubToNode(getClientCommunication(), getClient(), turningNode);
             processEngineStateMachine.fire(EXECUTE);
             updateState();
-            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
-
-                    new RequestedNodePair<>(1, 23), "");
-            System.out.println("Successfully reset conveyor");
-            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 30),
-                    new RequestedNodePair<>(1, 31), "");
-            System.out.println("Successfully reset turning");
-            //wait for updated status variable
-            while (getClientCommunication().getTurningStatus() != 0) {
-                if (isStopped()) {
-                    System.out.println("Process was interrupted.");
-                    return;
-                }
-            }
-            //Load the conveyor
-            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
-
-
-                    new RequestedNodePair<>(1, 21), "");
-            //Wait for loading to finish
-            while (getClientCommunication().getConveyorStatus() != 6) {
-                if (isStopped()) {
-                    System.out.println("Process was interrupted.");
-                    return;
-                }
-            }
-
-            //Create a random number between 1-3 to turn the conveyor in different directions
-            String direction = String.valueOf(random.nextInt(3) + 1);
-            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 30),
-                    new RequestedNodePair<>(1, 33), direction);
-            //Wait for turning to finish
-
-            while (getClientCommunication().getTurningStatus() != 5) {
-                if (isStopped()) {
-                    System.out.println("Process was interrupted.");
-                    return;
-                }
-            }
-            //Unload conveyor
-            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
-
-
-                    new RequestedNodePair<>(1, 25), "");
-            System.out.println("Successfully unloaded");
-            //Wait to finish unloading
-            while (getClientCommunication().getConveyorStatus() != 0) {
-                if (isStopped()) {
-                    System.out.println("Process was interrupted.");
-                    return;
-                }
-            }
-            //Stop Turning funit
-            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 20),
-
-
-                    new RequestedNodePair<>(1, 24), "");
-            //Wait for reset to finish
-            while (getClientCommunication().getTurningStatus() != 5) {
-                if (isStopped()) {
-                    System.out.println("Process was interrupted.");
-                    return;
-                }
-            }
-            //Stop conveyor
-            getClientCommunication().callStringMethod(getServerUrl(), new RequestedNodePair<>(1, 30),
-                    new RequestedNodePair<>(1, 32), "");
+            loadFromUnloadTo(info);
             processEngineStateMachine.fire(NEXT);
             updateState();
-        }, res -> {
-        });
-        vertx.close();
+            //getClientCommunication().clientRemoveSub(getClient(), conveyorNode, conveyorSubscription);
+            //getClientCommunication().clientRemoveSub(getClient(), turningNode, turningSubscription);
+            System.out.println("loadProcess end");
+        }).start();
     }
 
     /**
@@ -166,7 +155,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
         statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(),
                 new RequestedNodePair<>(1, 58), "ProcessEngineStatus");
         addStringMethodToServer(new RequestedNodePair<>(1, 41), "LoadProcessMethod", x -> {
-            loadProcess();
+            loadProcess(x);
             return "Load Process Successful";
         });
         addStringMethodToServer(new RequestedNodePair<>(1, 42), "ResetProcessMethod", x -> {

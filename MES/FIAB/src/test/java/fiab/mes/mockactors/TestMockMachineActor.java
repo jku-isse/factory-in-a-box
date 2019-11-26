@@ -135,16 +135,32 @@ public class TestMockMachineActor { //extends AbstractJavaTest {
 		return actor;
 	}
 	
-	public static CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
-	public static CapabilityInvocation s2 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
-	public static CapabilityInvocation s3 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
-	public static CapabilityInvocation s4 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+//	public static CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+//	public static CapabilityInvocation s2 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+//	public static CapabilityInvocation s3 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+//	public static CapabilityInvocation s4 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
 
 	public static ProcessCore.Process getSequentialProcess() {
+		return getSequentialProcess("1-");
+	}
+	
+	public static ProcessCore.Process getSequentialProcess(String prefix) {
+		CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		CapabilityInvocation s2 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		CapabilityInvocation s3 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		CapabilityInvocation s4 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		s1.setID(prefix+"1");
+		s2.setID(prefix+"2");
+		s3.setID(prefix+"3");
+		s4.setID(prefix+"4");
+		s1.setDisplayName("red plotting");
+		s2.setDisplayName("blue plotting");
+		s3.setDisplayName("green plotting");
+		s4.setDisplayName("yellow plotting");
 		s1.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Red")));
-		s2.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Blue")));		
-		s3.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Green")));		
-		s4.setInvokedCapability(composeInOne(getPlottingCapability(),getColorCapability("Yellow")));		
+		s2.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Blue")));		
+		s3.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Green")));		
+		s4.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Yellow")));		
 		
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
 		p.getSteps().add(s1);

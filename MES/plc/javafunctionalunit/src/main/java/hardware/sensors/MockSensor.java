@@ -1,6 +1,6 @@
 package hardware.sensors;
 
-import java.util.Random;
+import lombok.Setter;
 
 /**
  * This is a Mock implementation of a Sensor. It can be used for testing, although it does not account for
@@ -8,17 +8,17 @@ import java.util.Random;
  */
 public class MockSensor extends Sensor {
 
-    private Random random;
+    @Setter private boolean detectedInput;
 
     public MockSensor(){
-        random = new Random();
+        detectedInput = false;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean detectedInput() {
-        return random.nextBoolean();
+    public boolean hasDetectedInput() {
+        return detectedInput;
     }
 }

@@ -32,7 +32,9 @@ public class ServerCommunication extends ServerAPIBase {
 
     public ServerCommunication() {
         functionMap = new HashMap<>();
-        outputMap = new HashMap<>();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
+
     }
 
 

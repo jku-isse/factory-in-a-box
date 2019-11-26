@@ -37,7 +37,8 @@ hs_err_pid*
 /app/**/*.js.map
 
 # dependencies
-/node_modules
+**/node_modules/
+**/package-lock.json
 /bower_components
 
 # IDEs and editors
@@ -58,6 +59,9 @@ testem.log
 
 #System Files
 .DS_Store
+
+#VSCode
+*.vscode
 
 # End of https://www.gitignore.io/api/angular
 
