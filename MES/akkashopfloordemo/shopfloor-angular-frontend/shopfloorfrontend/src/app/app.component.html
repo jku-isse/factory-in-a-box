@@ -1,32 +1,30 @@
-<nav class='navbar navbar-expand-sm bg-primary navbar-dark'>
-  <!-- Links -->
-  <ul class='navbar-nav'>
-    <mat-icon class='icon' aria-hidden='false' aria-label='Example home icon'>assignment</mat-icon>
-    <li class='nav-item'>
-        <a routerLink='orders' class='nav-link' routerLinkActive='active'>Order List</a>
-    </li>
-    <li class='nav-item'>
-        <a routerLink='orderStatus' class='nav-link disabled' routerLinkActive='active'>Order Status</a>
-    </li>
-    <li class='nav-item'>
-        <a routerLink='orderHistory' class='nav-link disabled' routerLinkActive='active'>Order History</a>
-    </li>
 
-    <span style="display:inline-block; width: 30px;"></span>
 
-    <mat-icon class='icon' aria-hidden='false' aria-label='Example home icon'>device_hub</mat-icon>
-    <li class='nav-item'>
-        <a routerLink='machines' class='nav-link' routerLinkActive='active'>Machine List</a>
-    </li>
-    <li class='nav-item'>
-        <a routerLink='machineHistory' class='nav-link disabled' routerLinkActive='active'>Machine History</a>
-    </li>
-  </ul>
-</nav>
+
+
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <h1>Factory in a Box</h1>
+    <span style="display:inline-block; width: 50px;"></span>
+    <div>
+      <mat-icon class='icon' aria-hidden='false' aria-label='Example home icon'>assignment</mat-icon>
+      <a mat-button [routerLink]="'/orders'"> Order List </a>
+    
+
+      <span style="display:inline-block; width: 30px;"></span>
+
+      <mat-icon class='icon' aria-hidden='false' aria-label='Example home icon'>device_hub</mat-icon>
+      <a mat-button [routerLink]="'/machines'"> Machine List </a>
+
+    </div>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+
+
+
 <div class='container'>
   <br>
-  <h2 style='text-align: center;'>{{title}}</h2>
-  <hr>
   <div class='card'>
     <div class='card-body'>
   <router-outlet></router-outlet>

@@ -1,6 +1,7 @@
 <div class="panel panel-primary">
     <div class="panel-heading">
       <h2>Machine List</h2>
+      <hr>
     </div>
     <div class="panel-body">
   
@@ -18,11 +19,19 @@
           </td>
         </ng-container>
       
-        <!-- Status Column -->
+        <!-- Event Type Column -->
         <ng-container matColumnDef="eventType">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Event Type </th>
           <td mat-cell *matCellDef="let element"> 
             {{element.eventType}}
+          </td>
+        </ng-container>
+
+        <!-- State Column -->
+        <ng-container matColumnDef="state">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+          <td mat-cell *matCellDef="let element"> 
+            {{element.newValue}}
           </td>
         </ng-container>
   
@@ -30,13 +39,20 @@
          <ng-container matColumnDef="message">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Message </th>
             <td mat-cell *matCellDef="let element"> 
-                <br/>
-                <mat-card class="my-card">
-                  <mat-card-content>
-                    <p>{{element.message}}</p>
-                  </mat-card-content>
-                </mat-card>
-                <br/>
+              <mat-expansion-panel 
+                class="expansion-panel-class" 
+                #panel 
+                (mouseenter)="panel.open()"
+                (mouseleave)="panel.close()"
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    Status Message
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <p>{{element.message}}</p>
+              </mat-expansion-panel>
             </td>
           </ng-container>
 
@@ -44,7 +60,7 @@
         <ng-container matColumnDef="history">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element"> 
-            <button mat-raised-button color="basic" (click)="machineHistory(element.machineId)">
+            <button mat-stroked-button color="primary" (click)="machineHistory(element.machineId)">
               History
             </button>
           </td>

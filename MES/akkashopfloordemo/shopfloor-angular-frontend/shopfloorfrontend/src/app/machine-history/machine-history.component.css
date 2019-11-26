@@ -1,9 +1,15 @@
 table {
     width: 100%;
 }
+
 .make-gold {
     background-color: rgb(206, 227, 255)
 }
-.my-card {
+
+.expansion-panel-class {
     max-width: 300px;
-  }
+}
+
+.mat-cell {
+    padding: 5px;
+}
