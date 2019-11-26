@@ -205,12 +205,14 @@ public class ConveyorTurnTableTest {
         conveyorTurnTable.stop();
         await().until(() -> conveyorTurnTable.getConveyorStateMachine().isInState(STOPPED));
         conveyorTurnTable.reset();
+        await().until(() -> conveyorTurnTable.getConveyorStateMachine().isInState(IDLE));
         conveyorTurnTable.stop();
         await().until(() -> conveyorTurnTable.getConveyorStateMachine().isInState(STOPPED));
 
         checkNextLogValue(STOPPING);
         checkNextLogValue(STOPPED);
         checkNextLogValue(RESETTING);
+        checkNextLogValue(IDLE);
         checkNextLogValue(STOPPING);
         checkNextLogValue(STOPPED);
     }
