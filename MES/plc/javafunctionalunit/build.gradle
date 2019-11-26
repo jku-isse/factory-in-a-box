@@ -21,6 +21,7 @@ dependencies {
     compile("com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3")
     compile("com.github.oxo42:stateless4j:2.5.0")
     compile("io.vertx:vertx-core:3.8.0")
+    compile('com.googlecode.json-simple:json-simple:1.1.1')
     compileOnly('org.projectlombok:lombok:1.18.10')
     annotationProcessor('org.projectlombok:lombok:1.18.10')
     testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')

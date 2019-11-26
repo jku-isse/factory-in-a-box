@@ -22,9 +22,10 @@ public class Controller {
 
 
 
-	public static void turn() {
+	public static Object turn(int[] input) {
 
 		System.out.println("Turning Callback stop");
+		return "TURNING";
 
 	}
 
@@ -45,17 +46,16 @@ public class Controller {
 
 		//should be moved to the base class
 		opcua_comm.getServerCommunication().addIntArrayMethod(opcua_comm.getServerCommunication(),opcua_server, open62541.UA_NODEID_NUMERIC(0, 85),new RequestedNodePair<>(1, opcua_comm.getServerCommunication().getUnique_id()),"Turn",3, x -> {
-			turn();
-			return "Turing";
+			return turn(x);
+
 		});
 
 
 
 		HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH_SERVER);
-
+	//	hsFU.getEndpoint_object()
 		Object opcua_client = opcua_comm.getClientCommunication().initClient();
-
-		HandshakeFU hsFU2 = new HandshakeFU(opcua_comm.getClientCommunication(),opcua_client,opcua_object,CapabilityId.NORTH_CLIENT);
+		HandshakeFU hsFUClient = new HandshakeFU(opcua_comm,opcua_server,opcua_client,opcua_object,CapabilityId.NORTH_CLIENT);
 
 		new Thread(new Runnable() {
 			@Override
@@ -63,6 +63,7 @@ public class Controller {
 				opcua_comm.getServerCommunication().runServer(opcua_server);
 			}
 		}).start();
+
 
 
 
@@ -76,4 +77,3 @@ public class Controller {
 
 	}
 }
-
