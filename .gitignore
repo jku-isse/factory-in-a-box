@@ -84,3 +84,7 @@ gradlew.bat
 MES/plc/javafunctionalunit/src/main/resources/opcua_java_api.iobj
 MES/plc/javafunctionalunit/src/main/resources/opcua_java_api.ipdb
 MES/plc/javafunctionalunit/src/main/resources/opcua_java_api.pdb
+
+#Unit Tests Output
+MES/plc/javafunctionalunit/build/test-results/
+MES/plc/javafunctionalunit/build/reports

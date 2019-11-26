@@ -10,14 +10,14 @@ package open62Wrap;
 
 public class open62541JNI {
 
- /* static {
+  static {
     try {
         System.loadLibrary("opcua_java_api");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("opcua_java_api failed to load. \n" + e);
       System.exit(1);
     }
-  }*/
+  }
 
   public final static native void ServerAPIBase_running_set(long jarg1, ServerAPIBase jarg1_, boolean jarg2);
   public final static native boolean ServerAPIBase_running_get(long jarg1, ServerAPIBase jarg1_);
@@ -58,7 +58,8 @@ public class open62541JNI {
   public final static native int ClientAPIBase_ClientConnect(long jarg1, ClientAPIBase jarg1_, long jarg2, String jarg3);
   public final static native long ClientAPIBase_NodeIter(long jarg1, UA_NodeId jarg1_, long jarg2, String jarg3);
   public final static native long ClientAPIBase_GetNodeByName(long jarg1, String jarg2);
-  public final static native int ClientAPIBase_ClientSubtoNode(long jarg1, ClientAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_);
+  public final static native int ClientAPIBase_ClientSubtoNode__SWIG_0(long jarg1, ClientAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_);
+  public final static native int ClientAPIBase_ClientSubtoNode__SWIG_1(long jarg1, ClientAPIBase jarg1_, String jarg2, long jarg3, UA_NodeId jarg3_);
   public final static native long ClientAPIBase_SetGetVariant(long jarg1, UA_Variant jarg1_);
   public final static native void ClientAPIBase_ClientRemoveSub(long jarg1, int jarg2);
   public final static native long ClientAPIBase_ClientReadValue(long jarg1, long jarg2, UA_NodeId jarg2_);
