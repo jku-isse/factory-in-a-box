@@ -101,6 +101,7 @@ public class BasicMachineActor extends AbstractActor{
 			setAndPublishSensedState(newState);
 			switch(newState) {
 			case COMPLETE:
+				reservedForOrder = null;
 				break;
 			case COMPLETING:
 				break;
