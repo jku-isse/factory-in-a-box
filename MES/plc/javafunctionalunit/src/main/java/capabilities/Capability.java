@@ -16,9 +16,9 @@ import communication.Communication;
 import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
+import helper.CapabilityId;
 import helper.CapabilityRole;
 import helper.CapabilityType;
-import helper.CapabilityId;
 
 import javax.swing.event.EventListenerList;
 import java.util.EventListener;
@@ -26,19 +26,21 @@ import java.util.EventObject;
 import java.util.function.Function;
 
 class CapabilityEvent extends EventObject {
-   private Capability source;
+    private Capability source;
+
     public CapabilityEvent(Capability source) {
         super(source);
         this.source = source;
     }
-    public Capability getSource(){
+
+    public Capability getSource() {
         return this.source;
     }
 }
-interface CapabilityListener extends EventListener {
-    public void eventOccurred(CapabilityEvent evt,Capability source);
-}
 
+interface CapabilityListener extends EventListener {
+    public void eventOccurred(CapabilityEvent evt, Capability source);
+}
 
 
 public class Capability {
@@ -67,8 +69,9 @@ public class Capability {
 
     private Object capabilityObject;
     private Object capabilityOpcuaNodeId;
+
     public Capability(Communication communication, Object server, Object client, Object parentObject,
-                      CapabilityId capabilityId, CapabilityType capabilityType , CapabilityRole capabilityRole) {
+                      CapabilityId capabilityId, CapabilityType capabilityType, CapabilityRole capabilityRole) {
         this.clientCommunication = communication.getClientCommunication();
         this.opcua_client = client;
         this.capabilityId = capabilityId;
@@ -86,25 +89,25 @@ public class Capability {
     }
 
     public Capability(ServerCommunication serverCommunication, Object server, Object parentObject,
-                      CapabilityId capabilityId, CapabilityType capabilityType , CapabilityRole capabilityRole) {
+                      CapabilityId capabilityId, CapabilityType capabilityType, CapabilityRole capabilityRole) {
         this.capabilityId = capabilityId;
         this.capabilityType = capabilityType;
         this.capabilityRole = capabilityRole;
 
-       // this.clientCommunication = new Communication().getClientCommunication(); // for testing only to be removed later
+        // this.clientCommunication = new Communication().getClientCommunication(); // for testing only to be removed later
 
         this.serverCommunication = serverCommunication;
         this.opcua_server = server;
         this.parentObject = parentObject;
         initCapabilityInfo();
-           }
+    }
 
-    private void initCapabilityInfo(){
+    private void initCapabilityInfo() {
 
-        capabilityOpcuaNodeId = serverCommunication.createNodeString(1, ("CAPABILITY_"+this.capabilityType.toString()+"_")+this.capabilityId.toString()); //TODO: need to implement a controller level Enum
+       capabilityOpcuaNodeId = serverCommunication.createNodeString(1, "TEST");//); //TODO: need to implement a controller level Enum
+        //capabilityOpcuaNodeId = serverCommunication.createNodeNumeric(1, serverCommunication.getUnique_id()); //TODO: need to implement a controller level Enum
 
-
-        capabilityObject = serverCommunication.addNestedObject(opcua_server,parentObject, capabilityOpcuaNodeId, "CAPABILITY");
+        capabilityObject = serverCommunication.addNestedObject(opcua_server, parentObject, capabilityOpcuaNodeId, "CAPABILITY");
 
         Object id_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "ID");
         serverCommunication.writeVariable(opcua_server, id_nodeid, capabilityId.toString());
@@ -116,6 +119,7 @@ public class Capability {
         serverCommunication.writeVariable(opcua_server, role_nodeid, capabilityRole.toString());
 
     }
+
     public CapabilityId getCapabilityId() {
         return capabilityId;
     }
@@ -177,14 +181,16 @@ public class Capability {
     public void addEventListener(CapabilityListener listener) {
         listenerList.add(CapabilityListener.class, listener);
     }
+
     public void removeMyEventListener(CapabilityListener listener) {
         listenerList.remove(CapabilityListener.class, listener);
     }
+
     void fireEvent(CapabilityEvent evt) {
         Object[] listeners = listenerList.getListenerList();
-        for (int i = 0; i < listeners.length; i = i+2) {
+        for (int i = 0; i < listeners.length; i = i + 2) {
             if (listeners[i] == CapabilityListener.class) {
-                ((CapabilityListener) listeners[i+1]).eventOccurred(evt,evt.getSource());
+                ((CapabilityListener) listeners[i + 1]).eventOccurred(evt, evt.getSource());
             }
         }
     }

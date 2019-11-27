@@ -36,6 +36,9 @@ public class ConveyorStateMachineConfig extends StateMachineConfig<ConveyorState
         configure(STOPPING)
                 .permit(NEXT, STOPPED)
                 .ignore(STOP);
-        configure(STOPPED).permit(RESET, RESETTING).ignore(STOP).ignore(NEXT);
+        configure(STOPPED)
+                .permit(RESET, RESETTING)
+                .ignore(STOP)
+                .ignore(NEXT);
     }
 }

@@ -24,7 +24,7 @@ public class ServerCommunication extends ServerAPIBase {
     private HashMap<Integer, Function<String, String>> functionMap; //ouputmap should be changed to somthing more generaic
     private HashMap<Integer, Function<int[], Object>> outputMap;
 
-    private int unique_id = 10;
+    private int unique_id = 90;
 
     public int getUnique_id() {
         return unique_id += 1;

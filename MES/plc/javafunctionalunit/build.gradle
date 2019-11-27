@@ -28,7 +28,7 @@ dependencies {
     testCompile('junit:junit:4.12')
     testImplementation('org.awaitility:awaitility:4.0.1')
 }
-apply from: './config.gradle'
+apply from: './tttableconfig.gradle'
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -52,7 +52,7 @@ jar {
         attributes("Implementation-Title": project.name,
                 "Implementation-Version": version,
                 "Main-Class": brick.pref.mainClass,
-                "Class-Path": brick.getClassPath(true) )
+                "Class-Path": brick.getClassPath(true))
     }
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }

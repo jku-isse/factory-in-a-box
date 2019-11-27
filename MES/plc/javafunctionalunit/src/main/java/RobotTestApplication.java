@@ -1,5 +1,4 @@
 import functionalUnits.functionalUnitTurnTable.ConveyorTurnTable;
-import functionalUnits.functionalUnitTurnTable.LoadingTurnTable;
 import functionalUnits.functionalUnitTurnTable.ProcessTurnTable;
 import functionalUnits.functionalUnitTurnTable.TurningTurnTable;
 import hardware.actuators.motorsEV3.LargeMotorEV3;
@@ -21,8 +20,7 @@ public class RobotTestApplication {
     public static void main(String[] args) {
 
         //Run this if you want to run it on a Lego Robot. Make sure the ports match your configuration
-        new TurnTableRobot(new LoadingTurnTable(),
-                new ConveyorTurnTable(new MediumMotorEV3(MotorPort.A),
+        new TurnTableRobot(new ConveyorTurnTable(new MediumMotorEV3(MotorPort.A),
                         new TouchSensorEV3(SensorPort.S2) ,new ColorSensorEV3(SensorPort.S3)),
                 new TurningTurnTable(new LargeMotorEV3(MotorPort.D) ,new TouchSensorEV3(SensorPort.S4)),
                 new ProcessTurnTable()).runServerAndClient();

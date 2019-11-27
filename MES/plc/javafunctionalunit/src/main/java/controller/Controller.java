@@ -15,9 +15,41 @@ package controller;
 import capabilities.HandshakeFU;
 import communication.Communication;
 import helper.CapabilityId;
+import robot.RobotBase;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
 
 public class Controller {
-
+	static {
+		try {
+			System.out.println("Looking for native lib");
+			loadNativeLib();    //change the library in this method depending on your platform
+			System.out.println("Found native lib");
+		} catch (IOException e) {
+			System.out.println("Cannot find native lib");
+			e.printStackTrace();
+		}
+	}
+	private static void loadNativeLib() throws IOException {
+		String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
+		//String libName = "opcua_java_api.dll"; //use this on windows (needs 32 bit java)
+		URL url = RobotBase.class.getResource("/" + libName);
+		File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
+		tmpDir.deleteOnExit();
+		File nativeLibTmpFile = new File(tmpDir, libName);
+		nativeLibTmpFile.deleteOnExit();
+		try (InputStream in = url.openStream()) {
+			Files.copy(in, nativeLibTmpFile.toPath());
+		} catch (Exception e) {
+			System.out.println("Error in loadNativeLib");
+			e.printStackTrace();
+		}
+		System.load(nativeLibTmpFile.getAbsolutePath());
+	}
 
 
 	public static Object turn(int[] input) {

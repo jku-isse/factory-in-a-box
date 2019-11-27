@@ -10,14 +10,14 @@ package open62Wrap;
 
 public class open62541JNI {
 
-  static {
+  /*static {
     try {
         System.loadLibrary("opcua_java_api");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("opcua_java_api failed to load. \n" + e);
       System.exit(1);
     }
-  }
+  }*/
 
   public final static native void ServerAPIBase_running_set(long jarg1, ServerAPIBase jarg1_, boolean jarg2);
   public final static native boolean ServerAPIBase_running_get(long jarg1, ServerAPIBase jarg1_);

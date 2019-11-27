@@ -24,4 +24,5 @@ public class MockSensor extends Sensor {
     public boolean hasDetectedInput() {
         return detectedInput;
     }
+
 }

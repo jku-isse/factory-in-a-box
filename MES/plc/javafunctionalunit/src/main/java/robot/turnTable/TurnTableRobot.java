@@ -1,7 +1,6 @@
 package robot.turnTable;
 
 import functionalUnits.ConveyorBase;
-import functionalUnits.LoadingProtocolBase;
 import functionalUnits.ProcessEngineBase;
 import functionalUnits.TurningBase;
 import robot.RobotBase;
@@ -14,28 +13,28 @@ public class TurnTableRobot extends RobotBase {
     /**
      * {@inheritDoc}
      */
-    public TurnTableRobot(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase) {
-        super(loadingProtocolBase, conveyorBase);
+    public TurnTableRobot(ConveyorBase conveyorBase) {
+        super(conveyorBase);
     }
 
     /**
      * {@inheritDoc}
      */
-    public TurnTableRobot(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, TurningBase turningBase) {
-        super(loadingProtocolBase, conveyorBase, turningBase);
+    public TurnTableRobot(ConveyorBase conveyorBase, TurningBase turningBase) {
+        super(conveyorBase, turningBase);
     }
 
     /**
      * {@inheritDoc}
      */
-    public TurnTableRobot(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, ProcessEngineBase processEngineBase) {
-        super(loadingProtocolBase, conveyorBase, processEngineBase);
+    public TurnTableRobot(ConveyorBase conveyorBase, ProcessEngineBase processEngineBase) {
+        super(conveyorBase, processEngineBase);
     }
 
     /**
      * {@inheritDoc}
      */
-    public TurnTableRobot(LoadingProtocolBase loadingProtocolBase, ConveyorBase conveyorBase, TurningBase turningBase, ProcessEngineBase processEngineBase) {
-        super(loadingProtocolBase, conveyorBase, turningBase, processEngineBase);
+    public TurnTableRobot(ConveyorBase conveyorBase, TurningBase turningBase, ProcessEngineBase processEngineBase) {
+        super(conveyorBase, turningBase, processEngineBase);
     }
 }
