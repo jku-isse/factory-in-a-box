@@ -29,7 +29,6 @@
             <th mat-header-cell *matHeaderCellDef> Capabilities </th>
             <td mat-cell *matCellDef="let element"> 
               <div *ngIf="element.caps !== undefined">
-                <br/>
                 <mat-card class="my-card">
                   <mat-card-content>
                       <div *ngFor="let c of element.caps">
@@ -37,7 +36,6 @@
                       </div>
                   </mat-card-content>
                 </mat-card>
-                <br/>
               </div>
             </td>
           </ng-container>

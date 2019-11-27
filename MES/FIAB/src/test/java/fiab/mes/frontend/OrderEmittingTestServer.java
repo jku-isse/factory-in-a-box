@@ -34,6 +34,7 @@ import fiab.mes.machine.MachineEntryActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockMachineActor;
 import fiab.mes.mockactors.MockMachineWrapper;
@@ -104,24 +105,21 @@ public class OrderEmittingTestServer {
 
 					ActorRef red1 = getMachineMockActor(1, "Red");
 					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineConnectedEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
 					ActorRef blue2 = getMachineMockActor(2, "Blue");
 					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineStatusUpdateEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
 					ActorRef green3 = getMachineMockActor(3, "Green");
 					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineStatusUpdateEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
 					ActorRef yellow4 = getMachineMockActor(4, "Yellow");
 					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-					expectMsgClass(Duration.ofSeconds(1), MachineUpdateEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class);
-					
-					System.out.println("waiting..");
-					Thread.sleep(3000);
-					
+					expectMsgClass(Duration.ofSeconds(1), MachineStatusUpdateEvent.class);
+					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
+
 				    CountDownLatch count = new CountDownLatch(5);
 				    while(count.getCount() > 0) {
 				    	OrderProcess process = new OrderProcess(TestBasicMachineActor.getSequentialProcess());

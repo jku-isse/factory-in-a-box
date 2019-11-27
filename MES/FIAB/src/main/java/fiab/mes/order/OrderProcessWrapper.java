@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import ProcessCore.AbstractCapability;
+import ProcessCore.ProcessStep;
 import ProcessCore.impl.CapabilityInvocationImpl;
 import ProcessCore.impl.ProcessImpl;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
@@ -21,58 +22,12 @@ public class OrderProcessWrapper {
 
 	public OrderProcessWrapper(String orderId, OrderStatusRequest.Response o) {
 		this.orderId = orderId;
-		this.stepStatus = o.getStatus().stepStatus.entrySet().stream()
-			.collect(Collectors.toMap(
-					s -> {
-						if (s.getKey() instanceof ProcessImpl) {
-							return "process";
-						}
-						else if (s.getKey() instanceof CapabilityInvocationImpl) {
-							String capabilityDisplayName = ((CapabilityInvocationImpl)s.getKey()).getDisplayName();
-							AbstractCapability cap = ((CapabilityInvocationImpl)s.getKey()).getInvokedCapability();
-							List<String> caps = new ArrayList<String>();
-							for (AbstractCapability c : cap.getCapabilities()) {
-								caps.add(c.getDisplayName());
-							}
-							capabilities.put(capabilityDisplayName, caps);
-							return capabilityDisplayName;
-						} else if (s.getKey().getRole() == null) {
-							return String.valueOf(s.getKey().hashCode());
-						} else {
-							return s.getKey().getRole().getName();
-						}
-					},
-					Map.Entry::getValue
-			));
+		this.stepStatus = parseProcessStepMap(o.getStatus().stepStatus);
 	}
 	
 	public OrderProcessWrapper(String orderId, OrderProcessUpdateEvent o) {
 		this.orderId = orderId;
-		this.stepStatus = o.getStepsWithNewStatusAsReadOnlyMap().entrySet().stream()
-			.collect(Collectors.toMap(
-					s -> {
-						if (s.getKey() instanceof ProcessImpl) {
-							return "process";
-						}
-						else if (s.getKey() instanceof CapabilityInvocationImpl) {
-							String capabilityDisplayName = ((CapabilityInvocationImpl)s.getKey()).getDisplayName();
-							AbstractCapability cap = ((CapabilityInvocationImpl)s.getKey()).getInvokedCapability();
-							List<String> caps = new ArrayList<String>();
-							for (AbstractCapability c : cap.getCapabilities()) {
-								caps.add(c.getDisplayName());
-							}
-							System.out.println(caps);
-							capabilities.put(capabilityDisplayName, caps);
-							return capabilityDisplayName;
-						}
-						else if (s.getKey().getRole() == null) {
-							return String.valueOf(s.getKey().hashCode());
-						} else {
-							return s.getKey().getRole().getName();
-						}
-					},
-					Map.Entry::getValue
-			));
+		this.stepStatus = parseProcessStepMap(o.getStepsWithNewStatusAsReadOnlyMap());
 	}
 	
 	public Map<String, StepStatusEnum> getStepStatus(){
@@ -87,4 +42,38 @@ public class OrderProcessWrapper {
 		return capabilities;
 	}
 	
+	private List<String> findCapabilities(AbstractCapability cap) {
+		List<String> caps = new ArrayList<String>();
+		if (/*cap.getDisplayName() == null &&*/cap.getCapabilities().size() > 0) { //not sure about checking displayName
+			for (AbstractCapability c : cap.getCapabilities()) {
+				caps.add(c.getDisplayName());
+			}
+			
+		} else {
+			caps.add(cap.getDisplayName());
+		}
+		return caps;
+	}
+	
+	private Map<String, StepStatusEnum> parseProcessStepMap(Map<ProcessStep, StepStatusEnum> stepStatus) {
+		return stepStatus.entrySet().stream()
+			.collect(Collectors.toMap(
+					s -> {
+						if (s.getKey() instanceof ProcessImpl) {
+							return "process";
+						}
+						else if (s.getKey() instanceof CapabilityInvocationImpl) {
+							String capabilityDisplayName = ((CapabilityInvocationImpl)s.getKey()).getDisplayName();
+							AbstractCapability cap = ((CapabilityInvocationImpl)s.getKey()).getInvokedCapability();
+							capabilities.put(capabilityDisplayName, findCapabilities(cap));
+							return capabilityDisplayName;
+						} else if (s.getKey().getRole() == null) {
+							return String.valueOf(s.getKey().hashCode());
+						} else {
+							return s.getKey().getRole().getName();
+						}
+					},
+					Map.Entry::getValue
+			));
+	}
 }

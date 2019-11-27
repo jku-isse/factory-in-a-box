@@ -4,3 +4,7 @@ table {
 .my-card {
     max-width: 100px;
 }
+
+.mat-cell {
+    padding: 5px;
+}
