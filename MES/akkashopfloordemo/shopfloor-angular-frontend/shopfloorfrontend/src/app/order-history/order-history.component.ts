@@ -27,7 +27,7 @@ export class OrderHistoryComponent implements OnInit {
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
         if (json.orderId === this.orderId) {
-          json.timestamp = this.parseTimestamp(json.timestamp);
+          json.prettyTimestamp = this.parseTimestamp(json.timestamp);
           this.orders.set(json.machineId + json.eventType + json.timestamp, json);
           this.setLatest(json.timestamp);
         }
