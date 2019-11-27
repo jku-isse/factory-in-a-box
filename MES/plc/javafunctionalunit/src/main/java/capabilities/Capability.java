@@ -100,7 +100,8 @@ public class Capability {
            }
 
     private void initCapabilityInfo(){
-        capabilityOpcuaNodeId = serverCommunication.createNodeString(1, ("CAPABILITY_")+this.capabilityId.toString()); //TODO: need to implement a controller level Enum
+
+        capabilityOpcuaNodeId = serverCommunication.createNodeString(1, ("CAPABILITY_"+this.capabilityType.toString()+"_")+this.capabilityId.toString()); //TODO: need to implement a controller level Enum
 
 
         capabilityObject = serverCommunication.addNestedObject(opcua_server,parentObject, capabilityOpcuaNodeId, "CAPABILITY");
