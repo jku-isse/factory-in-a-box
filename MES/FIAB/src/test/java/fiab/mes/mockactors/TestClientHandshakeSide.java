@@ -68,7 +68,7 @@ public class TestClientHandshakeSide {
 						break;
 					case Execute: // now we tell to complete playing the local FU
 						clientSide.tell(MessageTypes.Complete, getRef());
-					case Stopping:
+					case Completed:
 						done = true; // end of the handshake cycle
 						break;
 					default:

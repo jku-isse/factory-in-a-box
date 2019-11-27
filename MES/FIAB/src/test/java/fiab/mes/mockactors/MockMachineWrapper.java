@@ -115,7 +115,7 @@ public class MockMachineWrapper extends AbstractActor{
           }, context().system().dispatcher());
 	} 
 	
-	private void setAndPublishState(MachineStatus newState) {
+	protected void setAndPublishState(MachineStatus newState) {
 		//log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
 		this.currentState = newState;
 		if (doPublishState) {

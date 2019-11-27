@@ -44,7 +44,8 @@ public class TestHandshakeProtocol {
 	void testProtocol() {		
 		new TestKit(system) { 
 			{
-				ActorRef serverSide = system.actorOf(MockServerHandshakeActor.props(getRef()).withDispatcher(CallingThreadDispatcher.Id()), "ServerSide"); 
+				boolean doAutoComplete = false;
+				ActorRef serverSide = system.actorOf(MockServerHandshakeActor.props(getRef(), doAutoComplete).withDispatcher(CallingThreadDispatcher.Id()), "ServerSide"); 
 				ActorRef clientSide = system.actorOf(MockClientHandshakeActor.props(getRef(), serverSide).withDispatcher(CallingThreadDispatcher.Id()), "ClientSide"); 
 				
 				boolean serverDone = false;
@@ -60,10 +61,10 @@ public class TestHandshakeProtocol {
 					if (msg.equals(ServerSide.Execute)) {
 						serverSide.tell(MockServerHandshakeActor.MessageTypes.Complete, getRef());
 					}
-					if (msg.equals(ServerSide.Stopped)) {
+					if (msg.equals(ServerSide.Completed)) {
 						serverDone = true;
 					}
-					if (msg.equals(ClientSide.Stopped)) {
+					if (msg.equals(ClientSide.Completed)) {
 						clientDone = true;
 					}
 				}				

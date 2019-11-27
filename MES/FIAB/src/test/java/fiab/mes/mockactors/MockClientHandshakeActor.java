@@ -77,7 +77,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 						case IdleLoaded:
 							requestInitiateHandover();
 							break;
-						case Complete: //fallthrough, if serverside is done, we can do the same 
+						case Completed: //fallthrough, if serverside is done, we can do the same 
 						case Completing:
 							// onlfy if in executing
 							if (currentState.equals(ClientSide.Execute))
@@ -195,8 +195,8 @@ public class MockClientHandshakeActor extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	publishNewState(ClientSide.Complete); 
-            	stop(); // we automatically stop
+            	publishNewState(ClientSide.Completed); 
+            	//stop(); // we automatically stop --> we no longer stop but remain in completed, reactiving via reset()
             }
           }, context().system().dispatcher());
 	}			

@@ -70,7 +70,8 @@ public class TestServerHandshakeSide {
 	void testServerHandshake() {		
 		new TestKit(system) { 
 			{
-				ActorRef serverSide = system.actorOf(MockServerHandshakeActor.props(getRef()), "ServerSide"); // we want to see events
+				boolean doAutoComplete = false;
+				ActorRef serverSide = system.actorOf(MockServerHandshakeActor.props(getRef(), doAutoComplete), "ServerSide"); // we want to see events
 				boolean done = false;
 				serverSide.tell(MessageTypes.Reset, getRef());
 				while (!done) {
@@ -89,7 +90,7 @@ public class TestServerHandshakeSide {
 						// here we play the FU signaling that handover is complete
 						serverSide.tell(MessageTypes.Complete, getRef());
 						break;
-					case Stopping:
+					case Completed:
 						done = true; // end of the handshake cycle
 						break;
 					default:
@@ -104,7 +105,8 @@ public class TestServerHandshakeSide {
 	void testTwoSequentialServerHandshakes() {		
 		new TestKit(system) { 
 			{
-				ActorRef serverSide = system.actorOf(MockServerHandshakeActor.props(getRef()), "ServerSide"); // we want to see events
+				boolean doAutoComplete = false;
+				ActorRef serverSide = system.actorOf(MockServerHandshakeActor.props(getRef(), doAutoComplete), "ServerSide"); // we want to see events
 				boolean done = false;
 				serverSide.tell(MessageTypes.Reset, getRef());
 				while (!done) {
@@ -123,7 +125,7 @@ public class TestServerHandshakeSide {
 						// here we play the FU signaling that handover is complete
 						serverSide.tell(MessageTypes.Complete, getRef());
 						break;
-					case Stopping:
+					case Completed:
 						done = true; // end of the handshake cycle
 						break;
 					default:
@@ -148,7 +150,7 @@ public class TestServerHandshakeSide {
 						// here we play the FU signaling that handover is complete
 						serverSide.tell(MessageTypes.Complete, getRef());
 						break;
-					case Stopping:
+					case Completed:
 						done = true; // end of the handshake cycle
 						break;
 					default:
