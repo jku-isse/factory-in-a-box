@@ -1,7 +1,12 @@
 table {
     width: 100%;
 }
-.my-card {
+
+.expansion-panel-class {
     max-width: 300px;
-  }
+}
+
+.mat-cell {
+    padding: 5px;
+}
   

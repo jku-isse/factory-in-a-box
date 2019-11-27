@@ -27,6 +27,7 @@ export class OrderHistoryComponent implements OnInit {
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
         if (json.orderId === this.orderId) {
+          json.prettyTimestamp = this.parseTimestamp(json.timestamp);
           this.orders.set(json.machineId + json.eventType + json.timestamp, json);
           this.setLatest(json.timestamp);
         }
@@ -37,6 +38,7 @@ export class OrderHistoryComponent implements OnInit {
     this.orderService.getOrderHistory(this.orderId)
       .subscribe(data => {
         data.forEach(element => {
+          element.prettyTimestamp = this.parseTimestamp(element.timestamp);
           this.orders.set(element.machineId + element.eventType + element.timestamp, element);
           this.setLatest(element.timestamp);
           // console.log('History data', element);
@@ -53,10 +55,16 @@ export class OrderHistoryComponent implements OnInit {
     return Array.from(this.orders.values());
   }
 
+  parseTimestamp(timestamp: string): string {
+    const d: Date = new Date(Date.parse(timestamp.substring(0, timestamp.indexOf('+'))));
+    return d.toLocaleTimeString() + `.${d.getMilliseconds()}`;
+  }
+
   setLatest(timestamp: string) {
     if (this.latest === '' ||
-        Date.parse(this.latest.substring(0, this.latest.indexOf('+'))) <= Date.parse(timestamp.substring(0, timestamp.indexOf('+')))) {
+      Date.parse(this.latest.substring(0, this.latest.indexOf('+'))) <= Date.parse(timestamp.substring(0, timestamp.indexOf('+')))) {
       this.latest = timestamp;
     }
   }
+
 }

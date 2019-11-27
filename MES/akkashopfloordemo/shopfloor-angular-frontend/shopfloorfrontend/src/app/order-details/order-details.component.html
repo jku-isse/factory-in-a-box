@@ -1,12 +1,12 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
     <h2>Order Status</h2>
+    <hr>
+    <h3>{{order.orderId}}</h3>
+    <br>
   </div>
   <div class="panel-body">
     <div *ngIf="order">
-      <div>
-        <label><b>OrderId: </b></label> {{order.orderId}}
-      </div>
         <table mat-table [dataSource]="getJobsAsArray()" class="mat-elevation-z8">
           <!-- JobId Column -->
           <ng-container matColumnDef="jobid">
@@ -48,6 +48,6 @@
     </div>
     <br>
     <br>
-    <button (click)="list()" class="btn btn-primary">Back to Order List</button><br>
+    <button mat-raised-button color="primary" (click)="list()">Back to Order List</button><br>
   </div>
 </div>
