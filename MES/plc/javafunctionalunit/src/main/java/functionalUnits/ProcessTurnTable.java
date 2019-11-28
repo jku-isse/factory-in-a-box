@@ -1,8 +1,8 @@
-package functionalUnits.functionalUnitTurnTable;
+package functionalUnits;
 
 import com.github.oxo42.stateless4j.StateMachine;
 import communication.utils.RequestedNodePair;
-import functionalUnits.ProcessEngineBase;
+import functionalUnits.base.ProcessEngineBase;
 import stateMachines.processEngine.ProcessEngineStateMachineConfig;
 import stateMachines.processEngine.ProcessEngineStates;
 import stateMachines.processEngine.ProcessEngineTriggers;
@@ -76,13 +76,13 @@ public class ProcessTurnTable extends ProcessEngineBase {
         RequestedNodePair<Integer, Integer> conveyorNode = new RequestedNodePair<>(1, 56);
         RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
         callMethod(serverUrl, 1, 20, 23, "");         //Reset conveyor
-        callMethod(serverUrl, 1, 30, 31, "");         //Reset loading
+        callMethod(serverUrl, 1, 30, 31, "");         //Reset turning
         waitForTargetValue(turningNode, 0);                                 //Wait for idle turning state
         callMethod(serverUrl, 1, 30, 33, from);            //turning turn to (random)
         waitForTargetValue(turningNode, 0);                                 //Wait for turning complete state
         callMethod(serverUrl, 1, 20, 21, "");         //load conveyor
         waitForTargetValue(conveyorNode, 6);                                //wait for loaded state
-        callMethod(serverUrl, 1, 30, 31, "");         //Reset loading
+        callMethod(serverUrl, 1, 30, 31, "");         //Reset turning
         waitForTargetValue(turningNode, 0);                                 //Wait for idle turning state
         callMethod(serverUrl, 1, 30, 33, to);              //turning turn to (random)
         waitForTargetValue(turningNode, 0);                                 //Wait for turning complete state
@@ -105,15 +105,11 @@ public class ProcessTurnTable extends ProcessEngineBase {
         }
         new Thread(() -> {
             System.out.println("loadProcess start");
-            //int conveyorSubscription = getClientCommunication().clientSubToNode(getClientCommunication(), getClient(), conveyorNode);
-            //int turningSubscription = getClientCommunication().clientSubToNode(getClientCommunication(), getClient(), turningNode);
             processEngineStateMachine.fire(EXECUTE);
             updateState();
             loadFromUnloadTo(info);
             processEngineStateMachine.fire(NEXT);
             updateState();
-            //getClientCommunication().clientRemoveSub(getClient(), conveyorNode, conveyorSubscription);
-            //getClientCommunication().clientRemoveSub(getClient(), turningNode, turningSubscription);
             System.out.println("loadProcess end");
         }).start();
     }

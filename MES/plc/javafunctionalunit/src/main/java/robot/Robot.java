@@ -5,25 +5,26 @@ import communication.Communication;
 import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
 import communication.utils.RequestedNodePair;
-import functionalUnits.ConveyorBase;
-import functionalUnits.LoadingProtocolBase;
-import functionalUnits.ProcessEngineBase;
-import functionalUnits.TurningBase;
+import functionalUnits.base.ConveyorBase;
+import functionalUnits.base.ProcessEngineBase;
+import functionalUnits.base.TurningBase;
 import helper.CapabilityId;
+import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.HashMap;
 
 /**
  * This class Represents a basic robot with server capabilities. On startup, all functional units are added and so
  * are their server methods and variables.
  */
-public class RobotBase {
+public class Robot {
     /*
-     * Loads the native libraries using a workaround as the ev3 currently has troubles with finding them.
+     * Loads the native libraries using a workaround as the EV3 currently has troubles with finding them.
      * Uncomment this and comment the loadLib from open62Wrap/open62541JNI if using EV3
      */
 
@@ -38,102 +39,50 @@ public class RobotBase {
         }
     }
 
-    private LoadingProtocolBase loadingProtocolBase;
+    private HashMap<CapabilityId, HandshakeFU> handshakeFUList;
     private ConveyorBase conveyorBase;
     private TurningBase turningBase;
     private ProcessEngineBase processEngineBase;
 
-    private Object robotRoot;
+    @Getter private Object robotRoot;
 
-    private Object server;
-    private Object client;
-    private Communication communication;
-    private ServerCommunication serverCommunication;
-    private ClientCommunication clientCommunication;
+    @Getter private Object server;
+    @Getter private Object client;
+    @Getter private Communication communication;
+    @Getter private ServerCommunication serverCommunication;
+    @Getter private ClientCommunication clientCommunication;
 
     /**
      * The Server-Thread. Here we define how the server should be set up.
      */
     private Thread serverThread = new Thread(() -> {
         System.out.println("Starting Server...");
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            ServerCommunication.stopHandler(0);
-            System.exit(0);
-        }));
-
-        server = serverCommunication.createServer("localhost", 4840);
-        robotRoot = serverCommunication.addObject(server, new RequestedNodePair<>(1, 10), "Robot");
-        HandshakeFU handshakeFUS = new HandshakeFU(serverCommunication, server, robotRoot, CapabilityId.NORTH_SERVER);
-        HandshakeFU handshakeFUC = new HandshakeFU(communication, server, client, robotRoot, CapabilityId.NORTH_CLIENT);
-        //loadingProtocolBase.setServerAndFolder(serverCommunication, server, );
-        //loadingProtocolBase.addServerConfig();
-        Object conveyorFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 20), "Conveyor");
-        conveyorBase.setServerAndFolder(serverCommunication, server, conveyorFolder);
-        conveyorBase.addServerConfig();
-        if (turningBase != null) {
-            Object turningFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 30), "Turning");
-            turningBase.setServerAndFolder(serverCommunication, server, turningFolder);
-            turningBase.addServerConfig();
-        }
-        if (processEngineBase != null) {
-            Object processFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 40), "ProcessEngine");
-            processEngineBase.setServerAndFolder(serverCommunication, server, processFolder);
-            processEngineBase.addServerConfig();
-        }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> ServerCommunication.stopHandler(0)));
         System.out.println("Running Server...");
         serverCommunication.runServer(server);
     });
 
-
-    /**
-     * Creates a Robot with a loading and conveyor FU
-     *
-     * @param conveyorBase conveyor to use
-     */
-    public RobotBase(ConveyorBase conveyorBase) {
-        this.conveyorBase = conveyorBase;
-        this.communication = new Communication();
-        this.serverCommunication = communication.getServerCommunication();
-        this.clientCommunication = communication.getClientCommunication();
+    private void initComponents(){
+        server = serverCommunication.createServer("localhost", 4840);
+        robotRoot = serverCommunication.addObject(server, new RequestedNodePair<>(1, 10), "Handshake");
+        Object conveyorFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 20), "Conveyor");
+        conveyorBase.setServerAndFolder(serverCommunication, server, conveyorFolder);
+        conveyorBase.addServerConfig();
+        Object turningFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 30), "Turning");
+        turningBase.setServerAndFolder(serverCommunication, server, turningFolder);
+        turningBase.addServerConfig();
+        Object processFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 40), "ProcessEngine");
+        processEngineBase.setServerAndFolder(serverCommunication, server, processFolder);
+        processEngineBase.addServerConfig();
     }
 
     /**
-     * Creates a Robot with a loading, conveyor and turning FU
-     *
-     * @param conveyorBase conveyor to use
-     * @param turningBase  turning implementation to use
-     */
-    public RobotBase(ConveyorBase conveyorBase, TurningBase turningBase) {
-        this.conveyorBase = conveyorBase;
-        this.turningBase = turningBase;
-        this.communication = new Communication();
-        this.serverCommunication = communication.getServerCommunication();
-        this.clientCommunication = communication.getClientCommunication();
-    }
-
-    /**
-     * Creates a Robot with a loading, conveyor and process engine
+     * Creates a Robot with a conveyor and process engine FU
      *
      * @param conveyorBase      conveyor to use
-     * @param processEngineBase process engine to use
-     */
-    public RobotBase(ConveyorBase conveyorBase, ProcessEngineBase processEngineBase) {
-        this.conveyorBase = conveyorBase;
-        this.processEngineBase = processEngineBase;
-        this.communication = new Communication();
-        this.serverCommunication = communication.getServerCommunication();
-        this.clientCommunication = communication.getClientCommunication();
-    }
-
-    /**
-     * Creates a Robot with a loading, conveyor, turning and process engine FU
-     *
-     * @param conveyorBase      conveyor to use
-     * @param turningBase       turning implementation to use
      * @param processEngineBase process engine to be used
      */
-    public RobotBase(ConveyorBase conveyorBase, TurningBase turningBase, ProcessEngineBase processEngineBase) {
-        //this.loadingProtocolBase = loadingProtocolBase;
+    public Robot(ConveyorBase conveyorBase, ProcessEngineBase processEngineBase) {
         this.conveyorBase = conveyorBase;
         this.turningBase = turningBase;
         this.processEngineBase = processEngineBase;
@@ -141,9 +90,29 @@ public class RobotBase {
         this.serverCommunication = communication.getServerCommunication();
         this.clientCommunication = communication.getClientCommunication();
         this.client = clientCommunication.initClient();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            ClientCommunication.stopHandler(0);
-        }));
+        this.handshakeFUList = new HashMap<>();
+        initComponents();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> ClientCommunication.stopHandler(0)));
+    }
+
+    /**
+     * Creates a Robot with a conveyor, turning and process engine FU
+     *
+     * @param conveyorBase      conveyor to use
+     * @param turningBase       turning implementation to use
+     * @param processEngineBase process engine to be used
+     */
+    public Robot(ConveyorBase conveyorBase, TurningBase turningBase, ProcessEngineBase processEngineBase) {
+        this.conveyorBase = conveyorBase;
+        this.turningBase = turningBase;
+        this.processEngineBase = processEngineBase;
+        this.communication = new Communication();
+        this.serverCommunication = communication.getServerCommunication();
+        this.clientCommunication = communication.getClientCommunication();
+        this.client = clientCommunication.initClient();
+        this.handshakeFUList = new HashMap<>();
+        initComponents();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> ClientCommunication.stopHandler(0)));
     }
 
     /**
@@ -178,11 +147,20 @@ public class RobotBase {
         }
     }
 
-    /**
-     * Starts the server
-     */
-    public void runServer() {
-        serverThread.start();
+    public void addHandshakeFU(CapabilityId capabilityId, HandshakeFU handshakeFU) {
+        if (handshakeFUList.containsKey(capabilityId)) {
+            System.out.println("Robot already has a connection to " + capabilityId.name());
+        } else {
+            handshakeFUList.put(capabilityId, handshakeFU);
+        }
+    }
+
+    public void removeHandshakeFU(CapabilityId capabilityId) {
+        if (handshakeFUList.containsKey(capabilityId)) {
+            handshakeFUList.remove(capabilityId);
+        } else {
+            System.out.println("Nothing to remove for " + capabilityId.name());
+        }
     }
 
     /**
@@ -195,12 +173,7 @@ public class RobotBase {
         processEngineBase.setClient(client);
         processEngineBase.setServerUrl("opc.tcp://localhost:4840/");
         System.out.println("Client connecting");
-        if(robotRoot == null){
-            System.out.println("Oh no");
-        }
-        HandshakeFU handshakeFUC = new HandshakeFU(communication, server, client, robotRoot, CapabilityId.NORTH_CLIENT);
         clientCommunication.clientConnect(clientCommunication, processEngineBase.getClient(), "opc.tcp://localhost:4840/");
-
     }
 
     /**
@@ -212,7 +185,7 @@ public class RobotBase {
     private static void loadNativeLib() throws IOException {
         String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
         //String libName = "opcua_java_api.dll"; //use this on windows (needs 32 bit java)
-        URL url = RobotBase.class.getResource("/" + libName);
+        URL url = Robot.class.getResource("/" + libName);
         File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
         tmpDir.deleteOnExit();
         File nativeLibTmpFile = new File(tmpDir, libName);

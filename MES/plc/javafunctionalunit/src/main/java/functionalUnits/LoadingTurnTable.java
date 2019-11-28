@@ -1,7 +1,7 @@
-package functionalUnits.functionalUnitTurnTable;
+package functionalUnits;
 
 import communication.utils.RequestedNodePair;
-import functionalUnits.LoadingProtocolBase;
+import functionalUnits.base.LoadingProtocolBase;
 
 
 /**

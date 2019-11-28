@@ -1,8 +1,8 @@
-package functionalUnits.functionalUnitTurnTable;
+package functionalUnits;
 
 import com.github.oxo42.stateless4j.StateMachine;
 import communication.utils.RequestedNodePair;
-import functionalUnits.TurningBase;
+import functionalUnits.base.TurningBase;
 import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
 import io.vertx.core.Vertx;
@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import robot.turnTable.TurnTableOrientation;
+import stateMachines.turning.TurnTableOrientation;
 import stateMachines.turning.TurningStateMachineConfig;
 import stateMachines.turning.TurningStates;
 

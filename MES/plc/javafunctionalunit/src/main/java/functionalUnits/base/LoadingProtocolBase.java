@@ -1,4 +1,4 @@
-package functionalUnits;
+package functionalUnits.base;
 
 /**
  * Abstract base class for the loading functional Unit

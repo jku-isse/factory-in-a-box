@@ -1,8 +1,8 @@
-package functionalUnits;
+package functionalUnits.base;
 
 import com.github.oxo42.stateless4j.StateMachine;
 import lombok.Getter;
-import robot.turnTable.TurnTableOrientation;
+import stateMachines.turning.TurnTableOrientation;
 import stateMachines.turning.TurningStates;
 import stateMachines.turning.TurningTriggers;
 

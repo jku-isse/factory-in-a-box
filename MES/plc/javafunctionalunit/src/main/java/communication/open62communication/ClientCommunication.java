@@ -6,8 +6,8 @@
 package communication.open62communication;
 
 import communication.utils.MonitoredItem;
-import communication.utils.RequestedNodePair;
 import communication.utils.Pair;
+import communication.utils.RequestedNodePair;
 import open62Wrap.*;
 
 import java.util.HashMap;
@@ -62,6 +62,7 @@ public class ClientCommunication extends ClientAPIBase {
     @Override
     public void client_connected(ClientAPIBase clientAPIBase, SWIGTYPE_p_UA_Client client, String serverUrl) {
         System.out.println("Client Connected " + (i < 1 ? i : ""));
+        i++;
         /*
         System.out.println("Client Connected " + (i < 1 ? i : ""));
         if (i == 0) {

@@ -6,11 +6,11 @@ import lombok.Getter;
 
 public class TurningMockHardware {
 
-    @Getter private TurningMockMotor conveyorMockMotor;
+    @Getter private TurningMockMotor turningMockMotor;
     @Getter private MockSensor mockSensorHoming;
 
     public TurningMockHardware(int speed) {
         mockSensorHoming = new MockSensor();
-        conveyorMockMotor = new TurningMockMotor(mockSensorHoming, speed);
+        turningMockMotor = new TurningMockMotor(mockSensorHoming, speed);
     }
 }

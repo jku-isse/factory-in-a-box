@@ -1,8 +1,8 @@
-package functionalUnits.functionalUnitTurnTable;
+package functionalUnits;
 
 import com.github.oxo42.stateless4j.StateMachine;
 import communication.utils.RequestedNodePair;
-import functionalUnits.ConveyorBase;
+import functionalUnits.base.ConveyorBase;
 import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
 import io.vertx.core.Vertx;

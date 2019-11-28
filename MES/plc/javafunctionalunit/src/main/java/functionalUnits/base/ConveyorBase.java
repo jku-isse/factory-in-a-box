@@ -1,4 +1,4 @@
-package functionalUnits;
+package functionalUnits.base;
 
 import com.github.oxo42.stateless4j.StateMachine;
 import stateMachines.conveyor.ConveyorStates;

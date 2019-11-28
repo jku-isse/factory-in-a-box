@@ -1,4 +1,4 @@
-package functionalUnits;
+package functionalUnits.base;
 
 import communication.open62communication.ClientCommunication;
 
