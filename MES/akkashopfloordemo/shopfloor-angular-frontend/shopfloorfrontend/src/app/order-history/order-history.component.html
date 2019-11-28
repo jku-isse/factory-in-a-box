@@ -7,8 +7,12 @@
   </div>
   <div class="panel-body">
 
-    <div *ngIf="orders">
-        <table mat-table [dataSource]="getOrdersAsArray()" class="mat-elevation-z8">
+
+        <mat-form-field>
+          <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+        </mat-form-field>
+
+        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
 
           <!-- Status Column -->
           <ng-container matColumnDef="status" class="make-gold">
@@ -58,9 +62,9 @@
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row [ngClass]="{'make-gold': row.timestamp == this.latest}" *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
+        <mat-paginator [pageSizeOptions]="[25, 50, 100]"></mat-paginator>
     </div>
     <br>
     <br>
     <button mat-raised-button color="primary" (click)="list()">Back to Order List</button><br>
-  </div>
 </div>
