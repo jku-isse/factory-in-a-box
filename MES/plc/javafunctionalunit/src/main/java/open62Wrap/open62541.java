@@ -13,10 +13,6 @@ public class open62541 implements open62541Constants {
     return new UA_NodeId(open62541JNI.UA_NODEID_NUMERIC(nsIndex, identifier), true);
   }
 
-  public static UA_NodeId UA_NODEID_STRING(int nsIndex, String chars) {
-    return new UA_NodeId(open62541JNI.UA_NODEID_STRING(nsIndex, chars), true);
-  }
-
   public static int void2int(long v) {
     return open62541JNI.void2int(v);
   }

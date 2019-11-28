@@ -13,7 +13,7 @@
 package protocols;
 
 import communication.open62communication.ServerCommunication;
-import helper.Pair;
+import communication.utils.Pair;
 import stateMachines.loadingProtocol.ServerLoadingStates;
 
 public class LoadingServerProtocol {

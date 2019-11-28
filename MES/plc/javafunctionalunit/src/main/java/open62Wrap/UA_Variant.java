@@ -62,7 +62,7 @@ public class UA_Variant {
   }
 
   public void setData(java.lang.Object value) {
- //   open62541JNI.UA_Variant_data_set(swigCPtr, this, SWIGTYPE_p_void.getCPtr(value));
+   // open62541JNI.UA_Variant_data_set(swigCPtr, this, SWIGTYPE_p_void.getCPtr(value));
   }
 
   public java.lang.Object getData() {

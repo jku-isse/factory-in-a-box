@@ -7,7 +7,7 @@ package communication.open62communication;
 
 import communication.utils.MonitoredItem;
 import communication.utils.RequestedNodePair;
-import helper.Pair;
+import communication.utils.Pair;
 import open62Wrap.*;
 
 import java.util.HashMap;
@@ -158,8 +158,8 @@ public class ClientCommunication extends ClientAPIBase {
     public String callStringMethod(String serverUrl, Pair<Integer, String> objectId,
                                    Pair<Integer, String> methodId, String argInputString) {
         return ClientAPIBase.CallMethod(serverUrl,
-                open62541.UA_NODEID_STRING(objectId.getKey(), objectId.getValue()),
-                open62541.UA_NODEID_STRING(methodId.getKey(), methodId.getValue()),
+                ServerAPIBase.CreateStringNodeId(objectId.getKey(), objectId.getValue()),
+                ServerAPIBase.CreateStringNodeId(methodId.getKey(), methodId.getValue()),
                 argInputString);
     }
 
@@ -180,7 +180,4 @@ public class ClientCommunication extends ClientAPIBase {
                 argInput, argInput.length, output);
     }
 
-    public Object createNodeString(int nameSpace,String id){
-        return open62541.UA_NODEID_STRING(nameSpace, id);
-    }
 }

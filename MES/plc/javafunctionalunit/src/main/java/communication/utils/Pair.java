@@ -9,7 +9,7 @@
    @author <A HREF="https://github.com/michaelanis14">[Github: Michael Bishara]</A>
    @date 4 Sep 2019 
 **/
-package helper;
+package communication.utils;
 
 public class Pair<L, R> {
 

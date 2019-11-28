@@ -19,7 +19,7 @@ import communication.Communication;
 import communication.open62communication.ClientCommunication;
 import communication.utils.RequestedNodePair;
 import helper.ClientLoadingStates;
-import helper.Pair;
+import communication.utils.Pair;
 
 import static helper.ClientLoadingStates.*;
 

@@ -10,14 +10,14 @@ package open62Wrap;
 
 public class open62541JNI {
 
-  /*static {
+  static {
     try {
         System.loadLibrary("opcua_java_api");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("opcua_java_api failed to load. \n" + e);
       System.exit(1);
     }
-  }*/
+  }
 
   public final static native void ServerAPIBase_running_set(long jarg1, ServerAPIBase jarg1_, boolean jarg2);
   public final static native boolean ServerAPIBase_running_get(long jarg1, ServerAPIBase jarg1_);
@@ -39,6 +39,7 @@ public class open62541JNI {
   public final static native long ServerAPIBase_AddMethod(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, long jarg4, UA_NodeId jarg4_, long jarg5, UA_Argument jarg5_, long jarg6, UA_Argument jarg6_, long jarg7, UA_MethodAttributes jarg7_);
   public final static native long ServerAPIBase_AddArrayMethod(long jarg1, ServerAPIBase jarg1_, long jarg2, long jarg3, UA_NodeId jarg3_, long jarg4, UA_NodeId jarg4_, long jarg5, UA_Argument jarg5_, long jarg6, UA_MethodAttributes jarg6_, String jarg7, String jarg8, int jarg9, int jarg10);
   public final static native void ServerAPIBase_SetMethodOutput(long jarg1, UA_NodeId jarg1_, String jarg2);
+  public final static native long ServerAPIBase_CreateStringNodeId(int jarg1, String jarg2);
   public final static native void ServerAPIBase_monitored_itemChanged(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ServerAPIBase_monitored_itemChangedSwigExplicitServerAPIBase(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, int jarg3);
   public final static native void ServerAPIBase_methods_callback(long jarg1, ServerAPIBase jarg1_, long jarg2, UA_NodeId jarg2_, long jarg3, UA_NodeId jarg3_, String jarg4, String jarg5, long jarg6, ServerAPIBase jarg6_);
@@ -191,7 +192,6 @@ public class open62541JNI {
   public final static native int UA_VALUERANK_TWO_DIMENSIONS_get();
   public final static native int UA_VALUERANK_THREE_DIMENSIONS_get();
   public final static native long UA_NODEID_NUMERIC(int jarg1, int jarg2);
-  public final static native long UA_NODEID_STRING(int jarg1, String jarg2);
   public final static native void UA_Variant_type_set(long jarg1, UA_Variant jarg1_, long jarg2, UA_DataType jarg2_);
   public final static native long UA_Variant_type_get(long jarg1, UA_Variant jarg1_);
   public final static native void UA_Variant_storageType_set(long jarg1, UA_Variant jarg1_, int jarg2);

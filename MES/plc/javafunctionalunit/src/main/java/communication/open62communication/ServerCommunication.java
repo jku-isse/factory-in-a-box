@@ -13,7 +13,7 @@
 package communication.open62communication;
 
 import communication.utils.RequestedNodePair;
-import helper.Pair;
+import communication.utils.Pair;
 import open62Wrap.*;
 
 import java.util.HashMap;
@@ -135,13 +135,13 @@ public class ServerCommunication extends ServerAPIBase {
 
     public Object addIntegerVariableNode(Object server, Object objectId, Pair<Integer, String> requestedNewNodeId, String name) {
         return ServerAPIBase.AddVariableNode((SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
-                open62541.UA_NODEID_STRING(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name,
+                ServerAPIBase.CreateStringNodeId(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name,
                 open62541.UA_TYPES_INT32, (open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ));
     }
 
     public Object addStringVariableNode(Object server, Object objectId, Pair<Integer, String> requestedNewNodeId, String name) {
         return ServerAPIBase.AddVariableNode((SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
-                open62541.UA_NODEID_STRING(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name,
+                ServerAPIBase.CreateStringNodeId(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name,
                 open62541.UA_TYPES_STRING, (open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ));
     }
 
@@ -233,7 +233,7 @@ public class ServerCommunication extends ServerAPIBase {
         methodAttributes.setDisplayName(methodLocale);
         methodAttributes.setExecutable(true);
         methodAttributes.setUserExecutable(true);
-        UA_NodeId reqMethodId = open62541.UA_NODEID_STRING(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
+        UA_NodeId reqMethodId =   ServerAPIBase.CreateStringNodeId(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
         Object methodId = ServerAPIBase.AddMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
                 input, output, methodAttributes);
@@ -282,6 +282,6 @@ public class ServerCommunication extends ServerAPIBase {
     }
 
     public Object createNodeString(int nameSpace, String id) {
-        return open62541.UA_NODEID_STRING(nameSpace, id);
+        return ServerAPIBase.CreateStringNodeId(nameSpace, id);
     }
 }
