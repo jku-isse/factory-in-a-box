@@ -134,8 +134,8 @@ public class ServerAPIBase {
     open62541JNI.ServerAPIBase_SetMethodOutput(UA_NodeId.getCPtr(methodId), methodId, output);
   }
 
-  public static UA_NodeId CreateStringNodeId(int nsIndex, String chars) {
-    return new UA_NodeId(open62541JNI.ServerAPIBase_CreateStringNodeId(nsIndex, chars), true);
+  public static UA_NodeId CreateStringNodeId(int nsIndex, String name) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_CreateStringNodeId(nsIndex, name), true);
   }
 
   public void monitored_itemChanged(UA_NodeId nodeId, int value) {
