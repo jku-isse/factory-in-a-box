@@ -86,14 +86,14 @@ public class ConveyorTurnTable extends ConveyorBase {
             System.out.println("Conveyor is busy");
             return;
         }
-        System.out.println("Executing: loadBelt");
+        System.out.println("Executing from conveyor: loadBelt");
         conveyorMotor.backward();
         conveyorStateMachine.fire(LOAD);
         updateState();
         Vertx vertx = Vertx.vertx();    //If defined for entire class the program will terminate
         vertx.executeBlocking(promise -> {
             while (!sensorLoading.hasDetectedInput()) {
-              //  System.out.print(".");
+                //  System.out.print(".");
                 if (stopped || suspended) {
                     stopped = false;
                     suspended = false;
@@ -119,7 +119,7 @@ public class ConveyorTurnTable extends ConveyorBase {
             System.out.println("Conveyor is busy");
             return;
         }
-        System.out.println("Executing: loadBelt");
+        System.out.println("Executing from conveyor: loadBelt");
         conveyorMotor.forward();
         conveyorStateMachine.fire(UNLOAD);
         updateState();
@@ -148,7 +148,7 @@ public class ConveyorTurnTable extends ConveyorBase {
     @Override
     public void pause() {
         if (conveyorStateMachine.canFire(PAUSE)) {
-            System.out.println("Executing: pause");
+            System.out.println("Executing from conveyor: pause");
             suspended = true;
             this.conveyorMotor.stop();
             conveyorStateMachine.fire(PAUSE);
@@ -163,8 +163,9 @@ public class ConveyorTurnTable extends ConveyorBase {
      */
     @Override
     public void reset() {
+        System.out.println("Trying to reset conveyor");
         if (conveyorStateMachine.canFire(RESET)) {
-            System.out.println("Executing: reset");
+            System.out.println("Executing from conveyor: reset");
             conveyorStateMachine.fire(RESET);
             updateState();
             this.conveyorMotor.stop();
@@ -175,15 +176,12 @@ public class ConveyorTurnTable extends ConveyorBase {
             }else if(colorSensor.getColorID() != Color.NONE){
                 conveyorStateMachine.fire(NEXT_PARTIAL);
             }else{*/
-            Vertx vertx = Vertx.vertx();
-            vertx.executeBlocking(promise -> {
-                conveyorStateMachine.fire(NEXT);
-                updateState();
-            }, res -> {
-            })
+            conveyorStateMachine.fire(NEXT);
+            updateState();
             ;
             //}
-
+        } else {
+            System.out.println("Cannot reset from: " + getConveyorStateMachine().getState());
         }
     }
 

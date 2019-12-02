@@ -82,7 +82,7 @@ public class TurningTurnTable extends TurningBase {
      * Turns left by the amount of degrees specified in rotationToNext
      */
     private void turnLeft() {
-        System.out.println("Executing: turnLeft");
+        System.out.println("Executing from turning: turnLeft");
         turnMotor.backward();
         turnMotor.waitMs(1400);
         turnMotor.stop();
@@ -95,7 +95,7 @@ public class TurningTurnTable extends TurningBase {
      * Turns right by the amount of degrees specified in rotationToNext
      */
     private void turnRight() {
-        System.out.println("Executing: turnRight");
+        System.out.println("Executing from turning: turnRight");
         turnMotor.forward();
         turnMotor.waitMs(1400);
         turnMotor.stop();
@@ -113,7 +113,7 @@ public class TurningTurnTable extends TurningBase {
         }
         turningStateMachine.fire(TURN_TO);
         updateState();
-        System.out.println("Executing: turnTo " + target);
+        System.out.println("Executing from turning: turnTo " + target);
         Vertx vertx = Vertx.vertx();
         vertx.executeBlocking(promise -> {
             turningStateMachine.fire(EXECUTE);
@@ -164,7 +164,7 @@ public class TurningTurnTable extends TurningBase {
         Vertx vertx = Vertx.vertx();
         vertx.executeBlocking(promise -> {
                     stopped = false;
-                    System.out.println("Executing: reset");
+                    System.out.println("Executing from turning: reset");
                     turnMotor.backward();
                     turningStateMachine.fire(RESET);
                     updateState();
@@ -193,7 +193,7 @@ public class TurningTurnTable extends TurningBase {
     public void stop() {
         turningStateMachine.fire(STOP);
         updateState();
-        System.out.println("Executing: stop");
+        System.out.println("Executing from turning: stop");
         stopped = true;
         turnMotor.stop();
         turningStateMachine.fire(NEXT);

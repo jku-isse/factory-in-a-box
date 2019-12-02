@@ -65,7 +65,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
     private void loadFromUnloadTo(String fromTo) {
         //TODO do not reset if current orientation is equal to from
         //TODO do not reset if from == to
-        String[] info = fromTo.split(";");//"opc.tcp://localhost:4840";
+        String[] info = fromTo.split(";");
         if (inputInvalid(info)) {
             System.out.println("Input not well defined");
             return;
@@ -98,7 +98,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
      * {@inheritDoc}
      */
     @Override
-    public void loadProcess(String info) {
+    public void loadProcess(String info) {      //Test using opc.tcp://localhost:4840;0;2 for example
         if (isStopped() || !processEngineStateMachine.canFire(EXECUTE)) {
             System.out.println("Reset Process Engine to load a process");
             return;

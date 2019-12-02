@@ -61,8 +61,10 @@ public class ClientCommunication extends ClientAPIBase {
      */
     @Override
     public void client_connected(ClientAPIBase clientAPIBase, SWIGTYPE_p_UA_Client client, String serverUrl) {
-        System.out.println("Client Connected " + (i < 1 ? i : ""));
-        i++;
+        if (i < 1) {
+            System.out.println("Client Connected " + i);
+            i++;
+        }
         /*
         System.out.println("Client Connected " + (i < 1 ? i : ""));
         if (i == 0) {
@@ -156,6 +158,7 @@ public class ClientCommunication extends ClientAPIBase {
         return ClientAPIBase.CallMethod(serverUrl, (UA_NodeId) objectId, (UA_NodeId) methodId,
                 argInputString);
     }
+
     public String callStringMethod(String serverUrl, Pair<Integer, String> objectId,
                                    Pair<Integer, String> methodId, String argInputString) {
         return ClientAPIBase.CallMethod(serverUrl,

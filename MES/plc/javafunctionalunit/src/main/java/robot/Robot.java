@@ -11,11 +11,6 @@ import functionalUnits.base.TurningBase;
 import helper.CapabilityId;
 import lombok.Getter;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Files;
 import java.util.HashMap;
 
 /**
@@ -23,21 +18,6 @@ import java.util.HashMap;
  * are their server methods and variables.
  */
 public class Robot {
-    /*
-     * Loads the native libraries using a workaround as the EV3 currently has troubles with finding them.
-     * Uncomment this and comment the loadLib from open62Wrap/open62541JNI if using EV3
-     */
-
-    static {
-        try {
-            System.out.println("Looking for native lib");
-            loadNativeLib();    //change the library in this method depending on your platform
-            System.out.println("Found native lib");
-        } catch (IOException e) {
-            System.out.println("Cannot find native lib");
-            e.printStackTrace();
-        }
-    }
 
     private HashMap<CapabilityId, HandshakeFU> handshakeFUList;
     private ConveyorBase conveyorBase;
@@ -174,29 +154,6 @@ public class Robot {
         processEngineBase.setServerUrl("opc.tcp://localhost:4840/");
         System.out.println("Client connecting");
         clientCommunication.clientConnect(clientCommunication, processEngineBase.getClient(), "opc.tcp://localhost:4840/");
-    }
-
-    /**
-     * Workaround as System.loadLibrary() is not working as expected on the ev3.
-     * Uncomment this and comment the loadLib from open62Wrap/open62541JNI if using EV3
-     *
-     * @throws IOException file is probably used somewhere else or not there.
-     */
-    private static void loadNativeLib() throws IOException {
-        String libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
-        //String libName = "opcua_java_api.dll"; //use this on windows (needs 32 bit java)
-        URL url = Robot.class.getResource("/" + libName);
-        File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
-        tmpDir.deleteOnExit();
-        File nativeLibTmpFile = new File(tmpDir, libName);
-        nativeLibTmpFile.deleteOnExit();
-        try (InputStream in = url.openStream()) {
-            Files.copy(in, nativeLibTmpFile.toPath());
-        } catch (Exception e) {
-            System.out.println("Error in loadNativeLib");
-            e.printStackTrace();
-        }
-        System.load(nativeLibTmpFile.getAbsolutePath());
     }
 
 }

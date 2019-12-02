@@ -42,7 +42,6 @@ interface CapabilityListener extends EventListener {
     public void eventOccurred(CapabilityEvent evt, Capability source);
 }
 
-
 public class Capability {
     private CapabilityId capabilityId;
     private CapabilityType capabilityType;
