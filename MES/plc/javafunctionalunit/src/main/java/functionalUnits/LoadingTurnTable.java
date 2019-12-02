@@ -6,6 +6,7 @@ import functionalUnits.base.LoadingProtocolBase;
 
 /**
  * TurnTable implementation of the Loading Protocol FU.
+ * TODO delete this class as it's functionality is already implemented in HandshakeFU
  */
 public class LoadingTurnTable extends LoadingProtocolBase {
 

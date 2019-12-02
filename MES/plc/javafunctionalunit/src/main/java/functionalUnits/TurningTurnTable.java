@@ -1,7 +1,7 @@
 package functionalUnits;
 
 import com.github.oxo42.stateless4j.StateMachine;
-import communication.utils.RequestedNodePair;
+import communication.utils.Pair;
 import functionalUnits.base.TurningBase;
 import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
@@ -67,7 +67,7 @@ public class TurningTurnTable extends TurningBase {
      * Updates the current state on the server
      */
     private void updateState() {
-        if(getServerCommunication() != null) {
+        if (getServerCommunication() != null) {
             getServerCommunication().writeVariable(getServer(), statusNodeId, turningStateMachine.getState().getValue());
         } else {
             if (logHistory == null) {
@@ -200,28 +200,40 @@ public class TurningTurnTable extends TurningBase {
         updateState();
     }
 
+    public enum TurningStringIdentifiers {
+        STATE, RESET, STOP, TURN_TO
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void addServerConfig() {
+        final String PREFIX = "TURNING_";
         statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(),
-                new RequestedNodePair<>(1, 57), "TurningStatus");
-        addStringMethodToServer(new RequestedNodePair<>(1, 31), "ResetTurningMethod", x -> {
-            reset();
-            return "Resetting Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 32), "StopTurningMethod", x -> {
-            stop();
-            return "Stopping Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 33), "TurnToMethod", x -> {
-            if (x.matches("^[0-3]$")) {
-                turnTo(TurnTableOrientation.createFromInt(Integer.parseInt(x)));
-                return "Turning to " + TurnTableOrientation.createFromInt(Integer.parseInt(x)) + " Successful";
-            }
-            return "Invalid input";
-        });
+                new Pair<>(1, PREFIX + TurningStringIdentifiers.STATE.name()),
+                PREFIX + TurningStringIdentifiers.STATE.name());
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + TurningStringIdentifiers.RESET.name()),
+                PREFIX + TurningStringIdentifiers.RESET.name(), input -> {
+                    reset();
+                    return "ProcessEngine: Resetting Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + TurningStringIdentifiers.STOP.name()),
+                PREFIX + TurningStringIdentifiers.STOP.name(), input -> {
+                    stop();
+                    return "ProcessEngine: Stopping Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + TurningStringIdentifiers.TURN_TO.name()),
+                PREFIX + TurningStringIdentifiers.TURN_TO.name(), input -> {
+                    if (input.matches("^[0-3]$")) {
+                        turnTo(TurnTableOrientation.createFromInt(Integer.parseInt(input)));
+                        return "Turning to " + TurnTableOrientation.createFromInt(Integer.parseInt(input)) + " Successful";
+                    }
+                    return "ProcessEngine: Invalid input";
+                });
         updateState();
     }
 }

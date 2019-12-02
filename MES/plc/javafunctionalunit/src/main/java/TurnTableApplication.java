@@ -18,7 +18,6 @@ import robot.Robot;
  */
 public class TurnTableApplication {
 
-
     public static void main(String[] args) {
 
         //Run this if you want to run it on a Lego Robot. Make sure the ports match your configuration

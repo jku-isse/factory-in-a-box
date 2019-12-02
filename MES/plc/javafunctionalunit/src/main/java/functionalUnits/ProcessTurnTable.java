@@ -1,6 +1,7 @@
 package functionalUnits;
 
 import com.github.oxo42.stateless4j.StateMachine;
+import communication.utils.Pair;
 import communication.utils.RequestedNodePair;
 import functionalUnits.base.ProcessEngineBase;
 import stateMachines.processEngine.ProcessEngineStateMachineConfig;
@@ -63,13 +64,17 @@ public class ProcessTurnTable extends ProcessEngineBase {
     }
 
     private void loadFromUnloadTo(String fromTo) {
-        //TODO do not reset if current orientation is equal to from
-        //TODO do not reset if from == to
         String[] info = fromTo.split(";");
         if (inputInvalid(info)) {
             System.out.println("Input not well defined");
             return;
-        }
+        }else {
+            //TODO implement this
+            System.out.println("Turning to Robot\n" +
+                    "Performing handshake\n" +
+                    "Handing over Pallete\n" +
+                    "Done");
+        }/*
         String serverUrl = info[0];
         String from = info[1];
         String to = info[2];
@@ -91,7 +96,7 @@ public class ProcessTurnTable extends ProcessEngineBase {
         callMethod(serverUrl, 1, 20, 24, "");        //stop conveyor
         waitForTargetValue(conveyorNode, 9);                               //wait for conveyor stopped state
         callMethod(serverUrl, 1, 30, 32, "");        //stop turning
-        waitForTargetValue(turningNode, 7);                                 //wait for turning stopped state
+        waitForTargetValue(turningNode, 7);                                 //wait for turning stopped state*/
     }
 
     /**
@@ -143,25 +148,37 @@ public class ProcessTurnTable extends ProcessEngineBase {
         System.out.println("Stop Process was called");
     }
 
+    public enum ProcessEngineStringIdentifiers {
+        STATE, LOAD, RESET, STOP
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void addServerConfig() {
+        final String PREFIX = "PROCESS_ENGINE_";
         statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(),
-                new RequestedNodePair<>(1, 58), "ProcessEngineStatus");
-        addStringMethodToServer(new RequestedNodePair<>(1, 41), "LoadProcessMethod", x -> {
-            loadProcess(x);
-            return "Load Process Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 42), "ResetProcessMethod", x -> {
-            reset();
-            return "Resetting Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 43), "StopProcessMethod", x -> {
-            stop();
-            return "Stopping Successful";
-        });
+                new Pair<>(1, PREFIX + ProcessEngineStringIdentifiers.STATE.name()),
+                PREFIX + ProcessEngineStringIdentifiers.STATE.name());
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + ProcessEngineStringIdentifiers.LOAD.name()),
+                PREFIX + ProcessEngineStringIdentifiers.LOAD.name(), input -> {
+                    loadProcess(input);
+                    return "ProcessEngine: Load Process Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + ProcessEngineStringIdentifiers.RESET.name()),
+                PREFIX + ProcessEngineStringIdentifiers.RESET.name(), input -> {
+                    reset();
+                    return "ProcessEngine: Resetting Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + ProcessEngineStringIdentifiers.STOP.name()),
+                PREFIX + ProcessEngineStringIdentifiers.STOP.name(), input -> {
+                    stop();
+                    return "ProcessEngine: Stopping Successful";
+                });
         updateState();
     }
 }

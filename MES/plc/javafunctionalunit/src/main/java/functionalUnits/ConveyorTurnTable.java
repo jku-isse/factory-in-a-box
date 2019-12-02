@@ -1,7 +1,7 @@
 package functionalUnits;
 
 import com.github.oxo42.stateless4j.StateMachine;
-import communication.utils.RequestedNodePair;
+import communication.utils.Pair;
 import functionalUnits.base.ConveyorBase;
 import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
@@ -176,9 +176,12 @@ public class ConveyorTurnTable extends ConveyorBase {
             }else if(colorSensor.getColorID() != Color.NONE){
                 conveyorStateMachine.fire(NEXT_PARTIAL);
             }else{*/
-            conveyorStateMachine.fire(NEXT);
-            updateState();
-            ;
+            Vertx vertx = Vertx.vertx();
+            vertx.executeBlocking(promise -> {
+                conveyorStateMachine.fire(NEXT);
+                updateState();
+            }, res -> {
+            });
             //}
         } else {
             System.out.println("Cannot reset from: " + getConveyorStateMachine().getState());
@@ -204,33 +207,43 @@ public class ConveyorTurnTable extends ConveyorBase {
                 });
     }
 
+    public enum ConveyorStringIdentifiers {
+        STATE, LOAD, UNLOAD, PAUSE, RESET, STOP
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void addServerConfig() {
-        statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(), new RequestedNodePair<>(1, 56),
-                "ConveyorStatus");
-        addStringMethodToServer(new RequestedNodePair<>(1, 21), "LoadConveyorMethod", x -> {
-            load();
-            return "Loading Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 22), "PauseConveyorMethod", x -> {
-            pause();
-            return "Pausing Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 23), "ResetConveyorMethod", x -> {
-            reset();
-            return "Resetting Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 24), "StopConveyorMethod", x -> {
-            stop();
-            return "Stop Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 25), "UnloadConveyorMethod", x -> {
-            unload();
-            return "Unloading Successful";
-        });
+        final String PREFIX = "CONVEYOR_";  //Use StringBuilder
+        statusNodeId = getServerCommunication().addStringVariableNode(getServer(), getObject(),
+                new Pair<>(1, PREFIX + ConveyorStringIdentifiers.STATE.name()), PREFIX + ConveyorStringIdentifiers.STATE.name());
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + ConveyorStringIdentifiers.LOAD.name()), PREFIX + ConveyorStringIdentifiers.LOAD.name(), input -> {
+                    load();
+                    return "Conveyor: Loading Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + ConveyorStringIdentifiers.UNLOAD.name()), PREFIX + ConveyorStringIdentifiers.UNLOAD.name(), input -> {
+                    unload();
+                    return "Conveyor: Unloading Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + ConveyorStringIdentifiers.PAUSE.name()), PREFIX + ConveyorStringIdentifiers.PAUSE.name(), input -> {
+                    pause();
+                    return "Conveyor: Pausing Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + ConveyorStringIdentifiers.RESET.name()), PREFIX + ConveyorStringIdentifiers.RESET.name(), input -> {
+                    reset();
+                    return "Conveyor: Resetting Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + ConveyorStringIdentifiers.STOP.name()), PREFIX + ConveyorStringIdentifiers.STOP.name(), input -> {
+                    stop();
+                    return "Conveyor: Stop Successful";
+                });
         updateState();
     }
 }
