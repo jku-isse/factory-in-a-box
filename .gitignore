@@ -74,7 +74,6 @@ MES/plc/javafunctionalunit/build/resources/
 MES/plc/javafunctionalunit/build/tmp/
 MES/plc/javafunctionalunit/gradle/wrapper/gradle-wrapper.properties
 MES/plc/javafunctionalunit/src/gradle/wrapper/gradle-wrapper.properties
-MES/plc/javafunctionalunit/src/test/
 
 .idea
 .settings
@@ -85,3 +84,7 @@ gradlew.bat
 MES/plc/javafunctionalunit/src/main/resources/opcua_java_api.iobj
 MES/plc/javafunctionalunit/src/main/resources/opcua_java_api.ipdb
 MES/plc/javafunctionalunit/src/main/resources/opcua_java_api.pdb
+
+#Unit Tests Output
+MES/plc/javafunctionalunit/build/test-results/
+MES/plc/javafunctionalunit/build/reports

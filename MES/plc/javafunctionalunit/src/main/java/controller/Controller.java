@@ -12,26 +12,16 @@
 **/
 package controller;
 
-import capabilities.HandshakeCapability;
 import capabilities.HandshakeFU;
 import communication.Communication;
-import communication.utils.RequestedNodePair;
-import helper.CapabilityRole;
-import helper.CapabilityType;
 import helper.CapabilityId;
-import helper.HandshakeStates;
-import open62Wrap.open62541;
-
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class Controller {
 
-
-
-	public static void turn() {
+	public static Object turn(int[] input) {
 
 		System.out.println("Turning Callback stop");
+		return "TURNING";
 
 	}
 
@@ -46,23 +36,20 @@ public class Controller {
 		//Turning Table
 		Communication opcua_comm = new Communication();
 		Object opcua_server = opcua_comm.getServerCommunication().createServer("localhost", 4840);
-		Object rootObjectId = opcua_comm.getServerCommunication().createNodeNumeric(1, opcua_comm.getServerCommunication().getUnique_id());
+		Object rootObjectId = opcua_comm.getServerCommunication().createNodeString(1,"TURNTABLE");
 		Object opcua_object = opcua_comm.getServerCommunication().addObject(opcua_server, rootObjectId, "Turntable");
 
 
-		//should be moved to the base class
-		opcua_comm.getServerCommunication().addIntArrayMethod(opcua_comm.getServerCommunication(),opcua_server, open62541.UA_NODEID_NUMERIC(0, 85),new RequestedNodePair<>(1, opcua_comm.getServerCommunication().getUnique_id()),"Turn",3, x -> {
-			turn();
-			return "Turing";
-		});
+				//should be moved to the base class
+
 
 
 
 		HandshakeFU hsFU = new HandshakeFU(opcua_comm.getServerCommunication(),opcua_server,opcua_object,CapabilityId.NORTH_SERVER);
 
+	//	hsFU.getEndpoint_object()
 		Object opcua_client = opcua_comm.getClientCommunication().initClient();
-
-		HandshakeFU hsFU2 = new HandshakeFU(opcua_comm.getClientCommunication(),opcua_client,opcua_object,CapabilityId.NORTH_CLIENT);
+		HandshakeFU hsFUClient = new HandshakeFU(opcua_comm,opcua_server,opcua_client,opcua_object,CapabilityId.NORTH_CLIENT);
 
 		new Thread(new Runnable() {
 			@Override
@@ -70,6 +57,7 @@ public class Controller {
 				opcua_comm.getServerCommunication().runServer(opcua_server);
 			}
 		}).start();
+
 
 
 
@@ -83,4 +71,3 @@ public class Controller {
 
 	}
 }
-

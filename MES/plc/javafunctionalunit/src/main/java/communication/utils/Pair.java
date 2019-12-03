@@ -9,7 +9,7 @@
    @author <A HREF="https://github.com/michaelanis14">[Github: Michael Bishara]</A>
    @date 4 Sep 2019 
 **/
-package helper;
+package communication.utils;
 
 public class Pair<L, R> {
 
@@ -21,11 +21,11 @@ public class Pair<L, R> {
 		this.right = right;
 	}
 
-	public L getLeft() {
+	public L getKey() {
 		return left;
 	}
 
-	public R getRight() {
+	public R getValue() {
 		return right;
 	}
 
@@ -39,7 +39,7 @@ public class Pair<L, R> {
 		if (!(o instanceof Pair))
 			return false;
 		Pair pairo = (Pair) o;
-		return this.left.equals(pairo.getLeft()) && this.right.equals(pairo.getRight());
+		return this.left.equals(pairo.getKey()) && this.right.equals(pairo.getValue());
 	}
 
 }

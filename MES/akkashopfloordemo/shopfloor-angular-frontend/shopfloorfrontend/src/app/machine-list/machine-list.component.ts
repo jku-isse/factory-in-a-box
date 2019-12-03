@@ -13,7 +13,7 @@ import { MachineService } from '../machine.service';
 })
 export class MachineListComponent implements OnInit {
 
-  displayedColumns: string[] = ['machineId', 'eventType', 'message', 'history'];
+  displayedColumns: string[] = ['machineId', 'eventType', 'state', 'message', 'history'];
   machines: Map<string, MachineEvent> = new Map<string, MachineEvent>();
   dataSource: MatTableDataSource<MachineEvent>;
 

@@ -1,4 +1,4 @@
-package robot.turnTable;
+package stateMachines.turning;
 
 /**
  * The directions where the turntable can look. Each has a numeric value and be constructed

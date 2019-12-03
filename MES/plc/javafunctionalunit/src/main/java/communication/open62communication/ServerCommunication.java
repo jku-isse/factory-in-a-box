@@ -12,6 +12,7 @@
 
 package communication.open62communication;
 
+import communication.utils.Pair;
 import communication.utils.RequestedNodePair;
 import open62Wrap.*;
 
@@ -20,15 +21,20 @@ import java.util.function.Function;
 
 public class ServerCommunication extends ServerAPIBase {
 
-    private HashMap<Integer, Function<String, String>> functionMap;
-    private int unique_id = 10;
+    private HashMap<String, Function<String, String>> functionMap;
+    private HashMap<String, Function<int[], Object>> outputMap;
 
-    public int getUnique_id() {
-        return unique_id += 1;
-    }
+    private int unique_id = 90;
+
+   // public int getUnique_id() {
+      //  return unique_id += 1;
+   // }
 
     public ServerCommunication() {
         functionMap = new HashMap<>();
+        outputMap = new HashMap<>();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> stopHandler(0)));
+
     }
 
 
@@ -37,8 +43,12 @@ public class ServerCommunication extends ServerAPIBase {
      *
      * @param function string to string function. If the String should not change use x -> x
      */
-    private void addStringFunction(Integer methodId, Function<String, String> function) {
+    private void addStringFunction(String methodId, Function<String, String> function) {
         functionMap.put(methodId, function);
+    }
+
+    private void addOutput(String methodId, Function<int[], Object> function) {
+        outputMap.put(methodId, function);
     }
 
     /**
@@ -48,6 +58,10 @@ public class ServerCommunication extends ServerAPIBase {
      */
     private Function<String, String> getFunction(Object methodId) {
         return functionMap.get(methodId);
+    }
+
+    private Function<int[], Object> getArrayFunction(Object methodId) {
+        return outputMap.get(methodId);
     }
 
     @Override
@@ -67,8 +81,11 @@ public class ServerCommunication extends ServerAPIBase {
      */
     @Override
     public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
-        System.out.println("Methods Call back!!!!!!!!!!!!!!!!!!!!!!S");
-           setMethodOutput(methodId, getFunction(methodId.getIdentifier().getNumeric()).apply(input));
+        System.out.println("iiiiii FROM" + input);
+        if (!input.contains("-1"))
+            setMethodOutput(methodId, getFunction(methodId.getIdentifier().getString()).apply(input));
+        else
+            setMethodOutput(methodId, (String) getArrayFunction(methodId.getIdentifier().getString()).apply(new int[2]));
     }
 
     public Object createServer(String host, int port) {
@@ -114,6 +131,20 @@ public class ServerCommunication extends ServerAPIBase {
                 open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name,
                 open62541.UA_TYPES_STRING, (open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ));
     }
+
+
+    public Object addIntegerVariableNode(Object server, Object objectId, Pair<Integer, String> requestedNewNodeId, String name) {
+        return ServerAPIBase.AddVariableNode((SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+                ServerAPIBase.CreateStringNodeId(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name,
+                open62541.UA_TYPES_INT32, (open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ));
+    }
+
+    public Object addStringVariableNode(Object server, Object objectId, Pair<Integer, String> requestedNewNodeId, String name) {
+        return ServerAPIBase.AddVariableNode((SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+                ServerAPIBase.CreateStringNodeId(requestedNewNodeId.getKey(), requestedNewNodeId.getValue()), name,
+                open62541.UA_TYPES_STRING, (open62541.UA_ACCESSLEVELMASK_WRITE | open62541.UA_ACCESSLEVELMASK_READ));
+    }
+
 
     public int writeVariable(Object server, Object nodeId, int intValue) {
         return ServerAPIBase.WriteVariable((SWIGTYPE_p_UA_Server) server, (UA_NodeId) nodeId, intValue);
@@ -169,19 +200,55 @@ public class ServerCommunication extends ServerAPIBase {
         Object methodId = ServerAPIBase.AddMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
                 input, output, methodAttributes);
-        addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
+        addStringFunction(reqMethodId.getIdentifier().getString(), function);
         return methodId;
     }
 
+    public Object addStringMethod(Object serverAPIBase, Object server, Object objectId, Pair<Integer, String> requestedNewNodeId,
+                                  String methodName, Function<String, String> function) {
+        UA_LocalizedText localeIn = new UA_LocalizedText();
+        localeIn.setLocale("en-US");
+        localeIn.setText(methodName);
+
+        UA_LocalizedText localeOut = new UA_LocalizedText();
+        localeOut.setLocale("en-US");
+        localeOut.setText("Success?");
+
+        UA_Argument input = new UA_Argument();
+        input.setDescription(localeIn);
+        input.setName("Input");
+        input.setDataType(ServerAPIBase.GetDataTypeNode(open62541.UA_TYPES_STRING));
+        input.setValueRank(open62541.UA_VALUERANK_SCALAR);
+
+        UA_Argument output = new UA_Argument();
+        output.setDescription(localeOut);
+        output.setDataType(ServerAPIBase.GetDataTypeNode(open62541.UA_TYPES_STRING));
+        output.setValueRank(open62541.UA_VALUERANK_SCALAR);
+
+        UA_LocalizedText methodLocale = new UA_LocalizedText();
+        methodLocale.setText(methodName);
+
+        UA_MethodAttributes methodAttributes = new UA_MethodAttributes();
+        methodAttributes.setDescription(methodLocale);
+        methodAttributes.setDisplayName(methodLocale);
+        methodAttributes.setExecutable(true);
+        methodAttributes.setUserExecutable(true);
+        UA_NodeId reqMethodId =   ServerAPIBase.CreateStringNodeId(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
+        Object methodId = ServerAPIBase.AddMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
+                reqMethodId,
+                input, output, methodAttributes);
+        addStringFunction(reqMethodId.getIdentifier().getString(), function);
+        return methodId;
+    }
 
     public Object addIntArrayMethod(Object serverAPIBase, Object server, Object objectId, RequestedNodePair<Integer, Integer> requestedNewNodeId,
-                                       String methodName,int inputSize, Function<String, String> function) {
-      UA_LocalizedText localeOut = new UA_LocalizedText();
+                                    String methodName, int inputSize, Function<int[], Object> function) {
+        UA_LocalizedText localeOut = new UA_LocalizedText();
         localeOut.setLocale("en-US");
         localeOut.setText("Success?");
 
 
-       // UA_Argument input = CreateArgument("Input", methodName, open62541.UA_TYPES_STRING, false, 3);
+        // UA_Argument input = CreateArgument("Input", methodName, open62541.UA_TYPES_STRING, false, 3);
         UA_Argument output = new UA_Argument();
 
         output.setName("Output");
@@ -200,8 +267,8 @@ public class ServerCommunication extends ServerAPIBase {
         UA_NodeId reqMethodId = open62541.UA_NODEID_NUMERIC(requestedNewNodeId.getKey(), requestedNewNodeId.getValue());
         Object methodId = ServerAPIBase.AddArrayMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
-                output, methodAttributes,"Input", methodName, open62541.UA_TYPES_INT32, inputSize);
-        addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
+                output, methodAttributes, "Input", methodName, open62541.UA_TYPES_INT32, inputSize);
+        addOutput(reqMethodId.getIdentifier().getString(), function);
         return methodId;
     }
 
@@ -212,5 +279,9 @@ public class ServerCommunication extends ServerAPIBase {
 
     public Object createNodeNumeric(int nameSpace, int id) {
         return open62541.UA_NODEID_NUMERIC(nameSpace, id);
+    }
+
+    public Object createNodeString(int nameSpace, String id) {
+        return ServerAPIBase.CreateStringNodeId(nameSpace, id);
     }
 }

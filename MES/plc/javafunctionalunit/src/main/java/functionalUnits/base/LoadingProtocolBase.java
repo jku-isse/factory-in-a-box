@@ -1,6 +1,4 @@
-package functionalUnits;
-
-import robot.turnTable.TurnTableOrientation;
+package functionalUnits.base;
 
 /**
  * Abstract base class for the loading functional Unit
@@ -9,18 +7,14 @@ import robot.turnTable.TurnTableOrientation;
 public abstract class LoadingProtocolBase extends FunctionalUnitBase {
 
     /**
-     * Initiates the loading protocol.
-     * @param direction loading source
-     * @param orderId unique order id
+     * Initiate hand over
      */
-    public abstract void initiateLoading(TurnTableOrientation direction, int orderId);
+    public abstract void request_init_handover();
 
     /**
-     * Initiates the unloading protocol.
-     * @param direction unloading destination
-     * @param orderId unique order id
+     * Start hand over
      */
-    public abstract void initiateUnloading(TurnTableOrientation direction, int orderId);
+    public abstract void request_start_handover();
 
     /**
      * Signals task completion. Robot should now be ready to take another task
@@ -43,6 +37,5 @@ public abstract class LoadingProtocolBase extends FunctionalUnitBase {
      * All nodes should be placed in the conveyor folder to enforce a clear structure.
      */
     public abstract void addServerConfig();
-
 
 }

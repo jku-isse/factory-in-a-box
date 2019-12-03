@@ -9,6 +9,6 @@ public abstract class Sensor {
      * When the sensor is detecting an input it should return true, otherwise false.
      * @return if input was detected
      */
-    public abstract boolean detectedInput();       //TODO find better name
+    public abstract boolean hasDetectedInput();
 
 }

@@ -1,15 +1,21 @@
-package functionalUnits.functionalUnitTurnTable;
+package functionalUnits;
 
 import com.github.oxo42.stateless4j.StateMachine;
-import communication.utils.RequestedNodePair;
-import functionalUnits.TurningBase;
+import communication.utils.Pair;
+import functionalUnits.base.TurningBase;
 import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
 import io.vertx.core.Vertx;
-import robot.turnTable.TurnTableOrientation;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import stateMachines.turning.TurnTableOrientation;
 import stateMachines.turning.TurningStateMachineConfig;
 import stateMachines.turning.TurningStates;
-import stateMachines.turning.TurningTriggers;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static stateMachines.turning.TurningStates.STOPPED;
 import static stateMachines.turning.TurningTriggers.*;
@@ -21,11 +27,20 @@ import static stateMachines.turning.TurningTriggers.*;
  */
 public class TurningTurnTable extends TurningBase {
 
+    @AllArgsConstructor
+    @ToString
+    @EqualsAndHashCode
+    class TurningProperties {
+        @Getter private TurningStates conveyorState;
+        @Getter private boolean motorIsRunning, homingSensorHasInput;
+    }
+
+    private List<TurningProperties> logHistory;
+
     private final Motor turnMotor;
     private final Sensor resetSensor;
-    private final StateMachine<TurningStates, TurningTriggers> turningStateMachine;
 
-    private TurnTableOrientation orientation;
+    @Getter private TurnTableOrientation orientation;
     private Object statusNodeId;
     private boolean stopped;
 
@@ -39,23 +54,35 @@ public class TurningTurnTable extends TurningBase {
         this.turnMotor = turnMotor;
         this.turnMotor.setSpeed(200);
         this.resetSensor = resetSensor;
-        turningStateMachine = new StateMachine<>(STOPPED, new TurningStateMachineConfig());
+        this.turningStateMachine = new StateMachine<>(STOPPED, new TurningStateMachineConfig());
         Runtime.getRuntime().addShutdownHook(new Thread(turnMotor::stop));
         stopped = false;
+    }
+
+    public List<TurningProperties> getLogHistory() {
+        return logHistory != null ? logHistory : new ArrayList<>();
     }
 
     /**
      * Updates the current state on the server
      */
     private void updateState() {
-        getServerCommunication().writeVariable(getServer(), statusNodeId, turningStateMachine.getState().getValue());
+        if (getServerCommunication() != null) {
+            getServerCommunication().writeVariable(getServer(), statusNodeId, turningStateMachine.getState().getValue());
+        } else {
+            if (logHistory == null) {
+                logHistory = new ArrayList<>();
+            }
+            logHistory.add(new TurningProperties(turningStateMachine.getState(), turnMotor.isRunning(),
+                    resetSensor.hasDetectedInput()));
+        }
     }
 
     /**
      * Turns left by the amount of degrees specified in rotationToNext
      */
     private void turnLeft() {
-        System.out.println("Executing: turnLeft");
+        System.out.println("Executing from turning: turnLeft");
         turnMotor.backward();
         turnMotor.waitMs(1400);
         turnMotor.stop();
@@ -68,7 +95,7 @@ public class TurningTurnTable extends TurningBase {
      * Turns right by the amount of degrees specified in rotationToNext
      */
     private void turnRight() {
-        System.out.println("Executing: turnRight");
+        System.out.println("Executing from turning: turnRight");
         turnMotor.forward();
         turnMotor.waitMs(1400);
         turnMotor.stop();
@@ -84,20 +111,18 @@ public class TurningTurnTable extends TurningBase {
         if (!turningStateMachine.canFire(TURN_TO)) {
             return;
         }
-        System.out.println("Executing: turnTo " + target);
+        turningStateMachine.fire(TURN_TO);
+        updateState();
+        System.out.println("Executing from turning: turnTo " + target);
         Vertx vertx = Vertx.vertx();
         vertx.executeBlocking(promise -> {
-            System.out.println("Current State: " + turningStateMachine.getState());
-            turningStateMachine.fire(TURN_TO);
-            updateState();
-            //Find out what to do here
-            System.out.println("Current State: " + turningStateMachine.getState());
             turningStateMachine.fire(EXECUTE);
             updateState();
             if (target.getNumericValue() > this.orientation.getNumericValue()) {
                 while (!(target.getNumericValue() == this.orientation.getNumericValue())) {
                     if (stopped) {
                         turningStateMachine.fire(STOP);
+                        updateState();
                         stopped = false;
                         vertx.close();
                         return;
@@ -108,6 +133,7 @@ public class TurningTurnTable extends TurningBase {
                 while (!(target.getNumericValue() == this.orientation.getNumericValue())) {
                     if (stopped) {
                         turningStateMachine.fire(STOP);
+                        updateState();
                         stopped = false;
                         vertx.close();
                         return;
@@ -115,17 +141,13 @@ public class TurningTurnTable extends TurningBase {
                     turnLeft();
                 }
             }
-            System.out.println("Current State: " + turningStateMachine.getState());
             turningStateMachine.fire(NEXT);
             updateState();
-            //Find out what to do here
-            System.out.println("Current State: " + turningStateMachine.getState());
+            //Find out what to do here (completing -> complete -> idle)
             turningStateMachine.fire(NEXT);
             updateState();
-            System.out.println("Current State: " + turningStateMachine.getState());
-            /*turningStateMachine.fire(NEXT);
+            turningStateMachine.fire(NEXT);
             updateState();
-            System.out.println("Finished in State: " + turningStateMachine.getState());*/
         }, res -> {
         });
         vertx.close();
@@ -142,11 +164,11 @@ public class TurningTurnTable extends TurningBase {
         Vertx vertx = Vertx.vertx();
         vertx.executeBlocking(promise -> {
                     stopped = false;
+                    System.out.println("Executing from turning: reset");
+                    turnMotor.backward();
                     turningStateMachine.fire(RESET);
                     updateState();
-                    System.out.println("Executing: reset");
-                    turnMotor.backward();
-                    while (!resetSensor.detectedInput()) {
+                    while (!resetSensor.hasDetectedInput()) {
                         if (stopped) {
                             stopped = false;
                             turningStateMachine.fire(STOP);
@@ -171,11 +193,15 @@ public class TurningTurnTable extends TurningBase {
     public void stop() {
         turningStateMachine.fire(STOP);
         updateState();
-        System.out.println("Executing: stop");
+        System.out.println("Executing from turning: stop");
         stopped = true;
         turnMotor.stop();
         turningStateMachine.fire(NEXT);
         updateState();
+    }
+
+    public enum TurningStringIdentifiers {
+        STATE, RESET, STOP, TURN_TO
     }
 
     /**
@@ -183,23 +209,31 @@ public class TurningTurnTable extends TurningBase {
      */
     @Override
     public void addServerConfig() {
+        final String PREFIX = "TURNING_";
         statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(),
-                new RequestedNodePair<>(1, 57), "TurningStatus");
-        addStringMethodToServer(new RequestedNodePair<>(1, 31), "ResetTurningMethod", x -> {
-            reset();
-            return "Resetting Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 32), "StopTurningMethod", x -> {
-            stop();
-            return "Stopping Successful";
-        });
-        addStringMethodToServer(new RequestedNodePair<>(1, 33), "TurnToMethod", x -> {
-            if (x.matches("^[0-3]$")) {
-                turnTo(TurnTableOrientation.createFromInt(Integer.parseInt(x)));
-                return "Turning to " + TurnTableOrientation.createFromInt(Integer.parseInt(x)) + " Successful";
-            }
-            return "Invalid input";
-        });
+                new Pair<>(1, PREFIX + TurningStringIdentifiers.STATE.name()),
+                PREFIX + TurningStringIdentifiers.STATE.name());
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + TurningStringIdentifiers.RESET.name()),
+                PREFIX + TurningStringIdentifiers.RESET.name(), input -> {
+                    reset();
+                    return "Turning: Resetting Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + TurningStringIdentifiers.STOP.name()),
+                PREFIX + TurningStringIdentifiers.STOP.name(), input -> {
+                    stop();
+                    return "Turning: Stopping Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
+                new Pair<>(1, PREFIX + TurningStringIdentifiers.TURN_TO.name()),
+                PREFIX + TurningStringIdentifiers.TURN_TO.name(), input -> {
+                    if (input.matches("^[0-3]$")) {
+                        turnTo(TurnTableOrientation.createFromInt(Integer.parseInt(input)));
+                        return "Turning to " + TurnTableOrientation.createFromInt(Integer.parseInt(input)) + " Successful";
+                    }
+                    return "Turning: Invalid input";
+                });
         updateState();
     }
 }

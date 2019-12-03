@@ -9,7 +9,7 @@ public enum ConveyorStates {
 
     private int value;
 
-    private ConveyorStates(int value) {
+    ConveyorStates(int value) {
         this.value = value;
     }
 

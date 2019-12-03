@@ -12,7 +12,6 @@ public class TurningStateMachineConfig extends StateMachineConfig<TurningStates,
         configure(IDLE)
                 .permit(TURN_TO, STARTING)
                 .permit(STOP, STOPPING)
-                .permitReentry(RESET)
                 .ignore(NEXT);
         configure(STARTING)
                 .permit(EXECUTE, EXECUTING)
@@ -24,6 +23,7 @@ public class TurningStateMachineConfig extends StateMachineConfig<TurningStates,
                 .permit(NEXT, COMPLETE)
                 .permit(STOP, STOPPING);
         configure(COMPLETE)
+                .permit(NEXT, IDLE)
                 .permit(RESET, RESETTING)
                 .permit(STOP, STOPPING);
         configure(STOPPING)

@@ -1,4 +1,8 @@
-package functionalUnits;
+package functionalUnits.base;
+
+import com.github.oxo42.stateless4j.StateMachine;
+import stateMachines.conveyor.ConveyorStates;
+import stateMachines.conveyor.ConveyorTriggers;
 
 /**
  * Abstract base class for the conveyor functional Unit
@@ -6,6 +10,8 @@ package functionalUnits;
  */
 
 public abstract class ConveyorBase extends FunctionalUnitBase {
+
+    protected StateMachine<ConveyorStates, ConveyorTriggers> conveyorStateMachine;
 
     /**
      * Loads the conveyor. Should load the conveyor until it is fully loaded or interrupted
@@ -39,4 +45,8 @@ public abstract class ConveyorBase extends FunctionalUnitBase {
      * All nodes should be placed in the conveyor folder to enforce a clear structure.
      */
     public abstract void addServerConfig();
+
+    public StateMachine<ConveyorStates, ConveyorTriggers> getConveyorStateMachine(){
+        return conveyorStateMachine;
+    }
 }

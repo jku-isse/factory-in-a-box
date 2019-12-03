@@ -134,6 +134,10 @@ public class ServerAPIBase {
     open62541JNI.ServerAPIBase_SetMethodOutput(UA_NodeId.getCPtr(methodId), methodId, output);
   }
 
+  public static UA_NodeId CreateStringNodeId(int nsIndex, String name) {
+    return new UA_NodeId(open62541JNI.ServerAPIBase_CreateStringNodeId(nsIndex, name), true);
+  }
+
   public void monitored_itemChanged(UA_NodeId nodeId, int value) {
     if (getClass() == ServerAPIBase.class) open62541JNI.ServerAPIBase_monitored_itemChanged(swigCPtr, this, UA_NodeId.getCPtr(nodeId), nodeId, value); else open62541JNI.ServerAPIBase_monitored_itemChangedSwigExplicitServerAPIBase(swigCPtr, this, UA_NodeId.getCPtr(nodeId), nodeId, value);
   }
