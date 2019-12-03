@@ -52,7 +52,6 @@ export class OrderDetailsComponent implements OnInit {
     );
     this.orderService.getOrder(this.id)
       .subscribe(data => {
-        // console.log('Update', data);
         if (typeof this.order.jobStatus === 'undefined') {
           this.order.jobStatus = data.stepStatus;
         } else {
@@ -77,6 +76,12 @@ export class OrderDetailsComponent implements OnInit {
 
   list() {
     this.router.navigate(['orders']);
+  }
+
+  history(id: string) {
+    if (id) {
+      this.router.navigate(['orderHistory', id]);
+    }
   }
 
   getJobsAsArray() {

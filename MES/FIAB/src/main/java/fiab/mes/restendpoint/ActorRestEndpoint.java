@@ -77,14 +77,14 @@ public class ActorRestEndpoint extends AllDirectives{
 	public Route createRoute() {
 		return respondWithDefaultHeaders(defaultCorsHeaders, () ->
 			concat(
-				path("orderevents", () -> get(() -> parameterOptional("orderId", orderId -> getSSESourceForOrderEvents(orderId)))),
-				get(() -> pathPrefix("processevents", () -> path(PathMatchers.remaining() , (String orderId) -> getSSESourceForOrderProcessUpdateEvents(orderId)))),	
-				path("orders", () -> concat( postOrders(), getOrders() )),
-				get(() -> pathPrefix("order", () -> path(PathMatchers.remaining() , (String req) -> makeOrderStatusRequest(req)))),	
-				get(() -> pathPrefix("orderHistory", () -> path(PathMatchers.remaining() , (String req) -> makeOrderHistoryRequest(req)))),
-				get(() -> pathPrefix("machineHistory", () -> path(PathMatchers.remaining() , (String req) -> makeMachineHistoryRequest(req)))),
-				path("machineEvents", () -> get(() -> parameterOptional("machineId", machineId -> getSSESourceForMachineEvents(machineId)))),
-				path("machines", () -> concat( postMachines(), getMachines() ))
+				path("orderevents",		() -> get(() -> parameterOptional("orderId", orderId -> getSSESourceForOrderEvents(orderId)))),
+				path("machineEvents",	() -> get(() -> parameterOptional("machineId", machineId -> getSSESourceForMachineEvents(machineId)))),
+				path("machines",		() -> concat( postMachines(), getMachines() )),
+				path("orders",			() -> concat( postOrders(), getOrders() )),
+				get(() -> pathPrefix("processevents",	() -> path(PathMatchers.remaining() , (String orderId) -> getSSESourceForOrderProcessUpdateEvents(orderId)))),	
+				get(() -> pathPrefix("order",			() -> path(PathMatchers.remaining() , (String req) -> makeOrderStatusRequest(req)))),	
+				get(() -> pathPrefix("orderHistory",	() -> path(PathMatchers.remaining() , (String req) -> makeOrderHistoryRequest(req)))),
+				get(() -> pathPrefix("machineHistory",	() -> path(PathMatchers.remaining() , (String req) -> makeMachineHistoryRequest(req))))
 			)
 		);	    			    	
 	}

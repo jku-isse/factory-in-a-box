@@ -2,8 +2,12 @@ table {
     width: 100%;
 }
 
-.make-gold {
-    background-color: rgb(206, 227, 255)
+.latest {
+    background-color: #9BA6E8
+}
+
+.idle {
+    background-color: #BBDD8B
 }
 
 .expansion-panel-class {
