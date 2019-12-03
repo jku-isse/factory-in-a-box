@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.mes.handshake.HandshakeProtocol.ClientSide;
-import fiab.mes.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.mockactors.MockClientHandshakeActor.MessageTypes;
 import fiab.mes.order.OrderProcess;
+import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 public class TestClientHandshakeSide { 
 

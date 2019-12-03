@@ -15,8 +15,6 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.testkit.CallingThreadDispatcher;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.handshake.HandshakeProtocol.ClientSide;
-import fiab.mes.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineConnectedEvent;
@@ -29,6 +27,8 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
+import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 
 public class MockTransportAwareMachineWrapper extends AbstractActor{

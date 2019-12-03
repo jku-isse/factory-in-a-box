@@ -17,6 +17,11 @@ public class MachineStatusUpdateEvent extends MachineUpdateEvent {
 	public String getStatus() {
 		return status;
 	}
+
+	@Override
+	public Object getValue() {
+		return status;
+	}
 	
 
 }

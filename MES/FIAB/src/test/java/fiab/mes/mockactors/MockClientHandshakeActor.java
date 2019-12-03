@@ -6,8 +6,8 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.handshake.HandshakeProtocol.ClientSide;
-import fiab.mes.handshake.HandshakeProtocol.ServerSide;
+import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 
 public class MockClientHandshakeActor extends AbstractActor{

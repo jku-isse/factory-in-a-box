@@ -1,11 +1,12 @@
-package fiab.mes.mockactors;
+package fiab.mes.mockactors.iostation;
 
 import java.time.Duration;
 
 import com.google.common.collect.ImmutableSet;
 
 import akka.actor.Props;
-import fiab.mes.handshake.HandshakeProtocol.ServerSide;
+import fiab.mes.mockactors.MockServerHandshakeActor;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 public class MockInputStationServerHandshakeActor extends MockServerHandshakeActor{
 

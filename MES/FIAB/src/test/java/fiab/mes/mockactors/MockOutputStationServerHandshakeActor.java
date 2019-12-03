@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableSet;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import fiab.mes.handshake.HandshakeProtocol.ServerSide;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 public class MockOutputStationServerHandshakeActor extends MockServerHandshakeActor{
 
