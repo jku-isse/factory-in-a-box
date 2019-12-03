@@ -217,13 +217,13 @@ public class TurningTurnTable extends TurningBase {
                 new Pair<>(1, PREFIX + TurningStringIdentifiers.RESET.name()),
                 PREFIX + TurningStringIdentifiers.RESET.name(), input -> {
                     reset();
-                    return "ProcessEngine: Resetting Successful";
+                    return "Turning: Resetting Successful";
                 });
         getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
                 new Pair<>(1, PREFIX + TurningStringIdentifiers.STOP.name()),
                 PREFIX + TurningStringIdentifiers.STOP.name(), input -> {
                     stop();
-                    return "ProcessEngine: Stopping Successful";
+                    return "Turning: Stopping Successful";
                 });
         getServerCommunication().addStringMethod(getServerCommunication(), getServer(), getObject(),
                 new Pair<>(1, PREFIX + TurningStringIdentifiers.TURN_TO.name()),
@@ -232,7 +232,7 @@ public class TurningTurnTable extends TurningBase {
                         turnTo(TurnTableOrientation.createFromInt(Integer.parseInt(input)));
                         return "Turning to " + TurnTableOrientation.createFromInt(Integer.parseInt(input)) + " Successful";
                     }
-                    return "ProcessEngine: Invalid input";
+                    return "Turning: Invalid input";
                 });
         updateState();
     }

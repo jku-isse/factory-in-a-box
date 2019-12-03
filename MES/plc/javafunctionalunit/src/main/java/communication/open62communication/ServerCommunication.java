@@ -12,8 +12,8 @@
 
 package communication.open62communication;
 
-import communication.utils.RequestedNodePair;
 import communication.utils.Pair;
+import communication.utils.RequestedNodePair;
 import open62Wrap.*;
 
 import java.util.HashMap;
@@ -21,8 +21,8 @@ import java.util.function.Function;
 
 public class ServerCommunication extends ServerAPIBase {
 
-    private HashMap<Integer, Function<String, String>> functionMap; //ouputmap should be changed to somthing more generaic
-    private HashMap<Integer, Function<int[], Object>> outputMap;
+    private HashMap<String, Function<String, String>> functionMap;
+    private HashMap<String, Function<int[], Object>> outputMap;
 
     private int unique_id = 90;
 
@@ -43,11 +43,11 @@ public class ServerCommunication extends ServerAPIBase {
      *
      * @param function string to string function. If the String should not change use x -> x
      */
-    private void addStringFunction(Integer methodId, Function<String, String> function) {
+    private void addStringFunction(String methodId, Function<String, String> function) {
         functionMap.put(methodId, function);
     }
 
-    private void addOutput(Integer methodId, Function<int[], Object> function) {
+    private void addOutput(String methodId, Function<int[], Object> function) {
         outputMap.put(methodId, function);
     }
 
@@ -83,9 +83,9 @@ public class ServerCommunication extends ServerAPIBase {
     public void methods_callback(UA_NodeId methodId, UA_NodeId objectId, String input, String output, ServerAPIBase jAPIBase) {
         System.out.println("iiiiii FROM" + input);
         if (!input.contains("-1"))
-            setMethodOutput(methodId, getFunction(methodId.getIdentifier().getNumeric()).apply(input));
+            setMethodOutput(methodId, getFunction(methodId.getIdentifier().getString()).apply(input));
         else
-            setMethodOutput(methodId, (String) getArrayFunction(methodId.getIdentifier().getNumeric()).apply(new int[2]));
+            setMethodOutput(methodId, (String) getArrayFunction(methodId.getIdentifier().getString()).apply(new int[2]));
     }
 
     public Object createServer(String host, int port) {
@@ -200,7 +200,7 @@ public class ServerCommunication extends ServerAPIBase {
         Object methodId = ServerAPIBase.AddMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
                 input, output, methodAttributes);
-        addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
+        addStringFunction(reqMethodId.getIdentifier().getString(), function);
         return methodId;
     }
 
@@ -237,7 +237,7 @@ public class ServerCommunication extends ServerAPIBase {
         Object methodId = ServerAPIBase.AddMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
                 input, output, methodAttributes);
-        addStringFunction(reqMethodId.getIdentifier().getNumeric(), function);
+        addStringFunction(reqMethodId.getIdentifier().getString(), function);
         return methodId;
     }
 
@@ -268,7 +268,7 @@ public class ServerCommunication extends ServerAPIBase {
         Object methodId = ServerAPIBase.AddArrayMethod(this, (SWIGTYPE_p_UA_Server) server, (UA_NodeId) objectId,
                 reqMethodId,
                 output, methodAttributes, "Input", methodName, open62541.UA_TYPES_INT32, inputSize);
-        addOutput(reqMethodId.getIdentifier().getNumeric(), function);
+        addOutput(reqMethodId.getIdentifier().getString(), function);
         return methodId;
     }
 
