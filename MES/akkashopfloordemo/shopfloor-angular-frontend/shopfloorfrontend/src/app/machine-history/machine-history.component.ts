@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MachineEvent } from '../events';
 import { MachineService } from '../machine.service';
 import { Router, ActivatedRoute } from '@angular/router';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-machine-history',
@@ -13,6 +15,9 @@ export class MachineHistoryComponent implements OnInit {
   machines: Map<string, MachineEvent> = new Map<string, MachineEvent>();
   machineId: string;
   latest = '';
+  dataSource: MatTableDataSource<MachineEvent>;
+
+  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
 
   constructor(
     private route: ActivatedRoute,
@@ -36,6 +41,10 @@ export class MachineHistoryComponent implements OnInit {
           json.prettyTimestamp = this.parseTimestamp(json.timestamp);
           this.machines.set(json.machineId + json.eventType + json.timestamp + json.message + json.newValue, json);
           this.setLatest(json.timestamp);
+          this.dataSource = new MatTableDataSource(this.getMachinesAsArray());
+          if (this.dataSource) {
+            this.dataSource.paginator = this.paginator;
+          }
         }
       },
       err => { console.log('Error receiving SSE in History', err); },
@@ -50,8 +59,12 @@ export class MachineHistoryComponent implements OnInit {
           element.prettyTimestamp = this.parseTimestamp(element.timestamp);
           this.machines.set(element.machineId + element.eventType + element.timestamp + element.message + element.newValue, element);
           this.setLatest(element.timestamp);
+          this.dataSource = new MatTableDataSource(this.getMachinesAsArray());
           // console.log('History data', element);
         });
+        if (this.dataSource) {
+          this.dataSource.paginator = this.paginator;
+        }
       }, error => console.log(error));
   }
   list() {
@@ -74,4 +87,13 @@ export class MachineHistoryComponent implements OnInit {
       this.latest = timestamp;
     }
   }
+
+  applyFilter(filterValue: string) {
+    console.log(this.dataSource);
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
+
 }
