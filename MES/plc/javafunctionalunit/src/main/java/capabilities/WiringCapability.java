@@ -2,7 +2,7 @@ package capabilities;
 
 
 import communication.open62communication.ServerCommunication;
-import communication.utils.RequestedNodePair;
+import communication.utils.Pair;
 import helper.CapabilityId;
 import helper.CapabilityRole;
 import helper.CapabilityType;
@@ -38,7 +38,7 @@ public class WiringCapability extends Capability {
         super(serverCommunication, opcua_server, parentObject, capabilityId, CapabilityType.WIRING, CapabilityRole.Provided);
         wiringMap = new HashMap<CapabilityId, WiringInformation>();
 
-        serverCommunication.addStringMethod(serverCommunication, opcua_server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "SET_WIRING",
+        serverCommunication.addStringMethod(serverCommunication, opcua_server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.WIRING.toString()+"_")+capabilityId.toString()+"_"+"SET_WIRING"), "SET_WIRING",
                 opcuaMethodInput -> {
                     return setWiringInfo(opcuaMethodInput); // the opcua method callback is received here
 
@@ -49,16 +49,16 @@ public class WiringCapability extends Capability {
         wiring_object = serverCommunication.addNestedObject(opcua_server, this.getCapabilityObject(), wiring_NodeId, "CAPABILITY_WIRING");
 
 
-        localCapabilityId_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "LOCAL_CAPABILITYID");
+        localCapabilityId_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object,new Pair<>(1,("CAPABILITY_"+CapabilityType.WIRING.toString()+"_")+capabilityId.toString()+"_"+"LOCAL_CAPABILITYID"), "LOCAL_CAPABILITYID");
         serverCommunication.writeVariable(opcua_server, localCapabilityId_nodeid, "-");
 
-        remoteEndpoint_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_ENDPOINT");
+        remoteEndpoint_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new Pair<>(1,("CAPABILITY_"+CapabilityType.WIRING.toString()+"_")+capabilityId.toString()+"_"+"REMOTE_ENDPOINT"), "REMOTE_ENDPOINT");
         serverCommunication.writeVariable(opcua_server, remoteEndpoint_nodeid, "-");
 
-        remoteNodeId_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_NODEID");
+        remoteNodeId_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object,new Pair<>(1,("CAPABILITY_"+CapabilityType.WIRING.toString()+"_")+capabilityId.toString()+"_"+"REMOTE_NODEID"), "REMOTE_NODEID");
         serverCommunication.writeVariable(opcua_server, remoteNodeId_nodeid, "-");
 
-        remoteRole_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "REMOTE_ROLE");
+        remoteRole_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object, new Pair<>(1,("CAPABILITY_"+CapabilityType.WIRING.toString()+"_")+capabilityId.toString()+"_"+"REMOTE_ROLE"), "REMOTE_ROLE");
         serverCommunication.writeVariable(opcua_server, remoteRole_nodeid, "-");
 
 

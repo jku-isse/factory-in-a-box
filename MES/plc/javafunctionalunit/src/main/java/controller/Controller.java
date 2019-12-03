@@ -36,7 +36,7 @@ public class Controller {
 		//Turning Table
 		Communication opcua_comm = new Communication();
 		Object opcua_server = opcua_comm.getServerCommunication().createServer("localhost", 4840);
-		Object rootObjectId = opcua_comm.getServerCommunication().createNodeNumeric(1, opcua_comm.getServerCommunication().getUnique_id());
+		Object rootObjectId = opcua_comm.getServerCommunication().createNodeString(1,"TURNTABLE");
 		Object opcua_object = opcua_comm.getServerCommunication().addObject(opcua_server, rootObjectId, "Turntable");
 
 

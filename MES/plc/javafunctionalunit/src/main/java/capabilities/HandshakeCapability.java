@@ -14,7 +14,7 @@ package capabilities;
 
 import communication.Communication;
 import communication.open62communication.ServerCommunication;
-import communication.utils.RequestedNodePair;
+import communication.utils.Pair;
 import helper.CapabilityId;
 import helper.CapabilityRole;
 import helper.CapabilityType;
@@ -98,8 +98,8 @@ public class HandshakeCapability extends Capability {
         clientProtocol = new LoadingClientProtocol(communication, opcua_server, client, parentObject);
         serverProtocol = null;
 
-        //
-        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new RequestedNodePair<>(1, communication.getServerCommunication().getUnique_id()), "START",
+        //ROLE
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject,  new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"START"), "START",
                 opcuaMethodInput -> {
                     return start(opcuaMethodInput);
                 });
@@ -128,29 +128,29 @@ public class HandshakeCapability extends Capability {
         clientProtocol = null;
         serverProtocol = new LoadingServerProtocol(serverCommunication, server, this.getCapabilityObject());
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "COMPLETE",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject,new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"COMPLETE"), "COMPLETE",
                 opcuaMethodInput -> {
                     return compelete();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "STOP",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"STOP"), "STOP",
                 opcuaMethodInput -> {
                     return stop(opcuaMethodInput);
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "RESET",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"RESET"), "RESET",
                 opcuaMethodInput -> {
                     return reset(opcuaMethodInput);
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "READY",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"READY"), "READY",
                 opcuaMethodInput -> {
                     return ready(opcuaMethodInput);
                 });
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_HANDOVER",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"INIT_HANDOVER"), "INIT_HANDOVER",
                 opcuaMethodInput -> {
                     return "";
                     //return initiateLoading(opcuaMethodInput);
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "INIT_UNLOADING",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"INIT_UNLOADING"), "INIT_UNLOADING",
                 opcuaMethodInput -> {
                     return initiateUnloading(opcuaMethodInput);
                 });
@@ -305,7 +305,7 @@ public class HandshakeCapability extends Capability {
             }
         }
         fireEvent(new initUnloadingHandshakeEvent(this));
-        return "initiateLoading was Successful";
+        return "initiateUnloading was Successful";
     }
 
     //Set initiateUnloading Method has one string input from opcua callback thus
