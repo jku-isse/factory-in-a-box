@@ -80,7 +80,9 @@ public class OrderProcessWrapper {
 	}
 	
 	private String generateId(ProcessStep ps) {
-		return ps.getID() + ": " + ps.getDisplayName();
+		String id = ps.getID() == null ? "" : ps.getID();
+		String name = ps.getDisplayName() == null ? "" : ps.getDisplayName();
+		return id + " " + name;
 	}
 	
 	private void reorderMaps(ProcessCore.Process p) {
