@@ -2,8 +2,16 @@ table {
     width: 100%;
 }
 
-.make-gold {
-    background-color: rgb(206, 227, 255)
+.paused {
+    background-color: #FCEE85
+}
+
+.update {
+    background-color: #BBDD8B
+}
+
+.latest {
+    background-color: #9BA6E8
 }
 
 .expansion-panel-class {
@@ -12,4 +20,9 @@ table {
 
 .mat-cell {
     padding: 5px;
+}
+
+.my-button-row button,
+.my-button-row a {
+  margin-right: 8px;
 }

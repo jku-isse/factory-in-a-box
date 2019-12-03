@@ -63,6 +63,12 @@ export class OrderHistoryComponent implements OnInit {
     this.router.navigate(['orders']);
   }
 
+  status(id: string) {
+    if (id) {
+      this.router.navigate(['orderStatus', id]);
+    }
+  }
+
   getOrdersAsArray() {
     // console.log('Debug flag', this.orders.values());
     return Array.from(this.orders.values());

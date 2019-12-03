@@ -8,3 +8,8 @@ table {
 .mat-cell {
     padding: 5px;
 }
+
+.my-button-row button,
+.my-button-row a {
+  margin-right: 8px;
+}

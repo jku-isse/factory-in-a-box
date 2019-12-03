@@ -9,7 +9,7 @@
         <mat-form-field>
           <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter">
         </mat-form-field>
-        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <table mat-table [dataSource]="dataSource">
 
           <!-- Status Column -->
           <ng-container matColumnDef="eventType" class="make-gold">
@@ -57,7 +57,8 @@
           </ng-container>
         
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row [ngClass]="{'make-gold': row.timestamp == this.latest}" *matRowDef="let row; columns: displayedColumns;"></tr>
+          <tr mat-row [ngClass]="{'idle': row.newValue == 'IDLE',
+                                  'latest': row.timestamp == this.latest}" *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
         <mat-paginator [pageSizeOptions]="[25, 50, 100]"></mat-paginator>
     </div>

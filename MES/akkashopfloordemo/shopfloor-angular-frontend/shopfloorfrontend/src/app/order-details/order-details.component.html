@@ -7,7 +7,7 @@
   </div>
   <div class="panel-body">
     <div *ngIf="order">
-        <table mat-table [dataSource]="getJobsAsArray()" class="mat-elevation-z8">
+        <table mat-table [dataSource]="getJobsAsArray()">
           <!-- JobId Column -->
           <ng-container matColumnDef="jobid">
             <th mat-header-cell *matHeaderCellDef> Job ID </th>
@@ -46,6 +46,10 @@
     </div>
     <br>
     <br>
-    <button mat-raised-button color="primary" (click)="list()">Back to Order List</button><br>
+    <div class="my-button-row">
+      <button mat-raised-button color="primary" (click)="list()">Back to Order List</button>
+      <button mat-raised-button color="primary" (click)="history(this.order.orderId)">Order History</button>
+    </div>
+    <br>
   </div>
 </div>
