@@ -8,8 +8,6 @@
 
 package open62Wrap;
 
-import robot.Robot;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +47,7 @@ public class open62541JNI {
         } else {
             libName = "libOpcua-Java-API_hf.so"; //use this on BrickPi, use the one w/o _hf suffix on ev3
         }
-        URL url = Robot.class.getResource("/" + libName);
+        URL url = open62541JNI.class.getResource("/" + libName);
         File tmpDir = Files.createTempDirectory("my-native-lib").toFile();
         tmpDir.deleteOnExit();
         File nativeLibTmpFile = new File(tmpDir, libName);
