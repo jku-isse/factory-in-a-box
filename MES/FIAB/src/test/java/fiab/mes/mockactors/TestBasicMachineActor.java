@@ -167,7 +167,7 @@ public class TestBasicMachineActor {
 	
 	public static AbstractCapability getPlottingCapability() {
 		ComparableCapability ac = new ComparableCapability();
-		ac.setDisplayName("plot");
+		ac.setDisplayName("Plot");
 		ac.setID("Capability.Plotting");
 		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/plotting");
 		return ac;
@@ -208,11 +208,11 @@ public class TestBasicMachineActor {
 		s2.setID(prefix+"2");
 		s3.setID(prefix+"3");
 		s4.setID(prefix+"4");
-		s1.setDisplayName("red plotting");
-		s2.setDisplayName("blue plotting");
-		s3.setDisplayName("green plotting");
-		s4.setDisplayName("yellow plotting");
-		s1.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Red")));
+		s1.setDisplayName("Red");
+		s2.setDisplayName("Blue plotting");
+		s3.setDisplayName("Green plotting");
+		s4.setDisplayName("Yellow plotting");
+		s1.setInvokedCapability(getColorCapability("Red"));
 		s2.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Blue")));		
 		s3.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Green")));		
 		s4.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Yellow")));		
