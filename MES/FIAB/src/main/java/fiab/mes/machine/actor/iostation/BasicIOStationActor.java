@@ -31,7 +31,7 @@ public class BasicIOStationActor extends AbstractActor {
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machineId;
 	protected AbstractCapability cap;
-	protected HandshakeProtocol.ServerSide currentState = ServerSide.Stopping;
+	protected HandshakeProtocol.ServerSide currentState = ServerSide.Unknown;
 	protected IOStationWrapperInterface hal;
 	protected InterMachineEventBus intraBus;
 	protected boolean doAutoReset = true;
@@ -78,8 +78,8 @@ public class BasicIOStationActor extends AbstractActor {
         		log.warning("Received lock for order in state: "+currentState);
         	}
         })
-        .match(MachineStatusUpdateEvent.class, mue -> {
-        	processMachineUpdateEvent(mue);
+        .match(IOStationStatusUpdateEvent.class, mue -> {
+        	processIOStationStatusUpdateEvent(mue);
         })
         .build();
 	}
@@ -99,7 +99,7 @@ public class BasicIOStationActor extends AbstractActor {
 	
 	private void setAndPublishSensedState(ServerSide newState) {
 		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, lastOrder);
-		log.debug(msg);
+		log.info(msg);
 		this.currentState = newState;
 		MachineUpdateEvent mue = new IOStationStatusUpdateEvent(machineId.getId(), msg, newState);
 		tellEventBus(mue);
@@ -110,9 +110,9 @@ public class BasicIOStationActor extends AbstractActor {
 		eventBusByRef.tell(mue, self());
 	}
 	
-	private void processMachineUpdateEvent(MachineStatusUpdateEvent mue) {
-		if (mue.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) {
-			ServerSide newState = ServerSide.valueOf(mue.getStatus().toString());
+	private void processIOStationStatusUpdateEvent(IOStationStatusUpdateEvent mue) {
+		if (mue.getParameterName().equals(HandshakeProtocol.STATE_SERVERSIDE_VAR_NAME)) {
+			ServerSide newState = mue.getStatus();
 			setAndPublishSensedState(newState);
 			switch(newState) {
 			case IdleEmpty:
@@ -131,6 +131,7 @@ public class BasicIOStationActor extends AbstractActor {
 				break;
 			case Completed:
 				reset(); //we automatically reset, might be done also by station itself, but we need to clean state here as well
+				break;
 			default:
 				break;
 			

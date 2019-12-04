@@ -6,7 +6,7 @@ import fiab.mes.general.ComparableCapability;
 public class HandshakeProtocol {
 
 	public enum ServerSide {
-		Stopping, Stopped, Resetting, IdleLoaded, IdleEmpty, Starting, Preparing, ReadyLoaded, ReadyEmpty, Execute, Completing, Completed
+		Unknown,Stopping, Stopped, Resetting, IdleLoaded, IdleEmpty, Starting, Preparing, ReadyLoaded, ReadyEmpty, Execute, Completing, Completed
 	}
 	
 	public static final String STATE_SERVERSIDE_VAR_NAME = "HANDSHAKE_SERVERSIDE_STATE";

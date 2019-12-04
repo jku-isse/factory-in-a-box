@@ -91,7 +91,9 @@ public class MockServerHandshakeActor extends AbstractActor{
 
 	protected void publishNewState(ServerSide newState) {
 		currentState = newState;
-		machineWrapper.tell(newState, self);
+		if (machineWrapper != null) {
+			machineWrapper.tell(newState, self);
+		}
 		ImmutableSet.copyOf(subscribers).stream().forEach(sub -> sub.tell(newState, self));
 	}
 	
@@ -104,6 +106,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 	}
 	
 	protected void reset() {
+		log.info("Resetting");
 		publishNewState(ServerSide.Resetting);
 		context().system()
     	.scheduler()

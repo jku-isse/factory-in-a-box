@@ -12,13 +12,18 @@ public class IOStationStatusUpdateEvent extends MachineUpdateEvent {
 		this.status = status;
 	}
 	
-	ServerSide getStatus() {
+	public ServerSide getStatus() {
 		return status;
 	}
 
 	@Override
 	public Object getValue() {
 		return status;
+	}
+
+	@Override
+	public String toString() {
+		return "IOStationStatusUpdateEvent [status=" + status + ", machineId=" + machineId + "]";
 	}
 	
 	

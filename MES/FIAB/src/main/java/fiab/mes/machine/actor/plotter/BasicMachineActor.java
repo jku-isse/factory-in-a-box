@@ -115,7 +115,7 @@ public class BasicMachineActor extends AbstractActor{
 			case STARTING:
 				break;
 			case STOPPED:
-				hal.reset();
+				hal.reset(); // FIXME: how to handle, when we want to stop the whole shopfloor and not just immediately restart?!
 				break;
 			case STOPPING:
 				break;

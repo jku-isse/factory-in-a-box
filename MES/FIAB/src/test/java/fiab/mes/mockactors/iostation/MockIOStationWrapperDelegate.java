@@ -12,6 +12,10 @@ public class MockIOStationWrapperDelegate implements IOStationWrapperInterface {
 	protected ActorRef wrapper;
 	private static final Logger logger = LoggerFactory.getLogger(MockIOStationWrapperDelegate.class);
 	
+	public MockIOStationWrapperDelegate(ActorRef wrapper) {
+		this.wrapper = wrapper;
+	}
+	
 	@Override
 	public void stop() {
 		logger.info("stop called");
@@ -33,7 +37,7 @@ public class MockIOStationWrapperDelegate implements IOStationWrapperInterface {
 	@Override
 	public void subscribeToLoadStatus() {
 		logger.error("NOT IMPLEMENTED subscribeToLoadStatus called");
-		throw new RuntimeException("Not implemented");
+	//	throw new RuntimeException("Not implemented");
 	}
 
 }
