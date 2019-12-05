@@ -3,7 +3,6 @@ package fiab.mes.mockactors.iostation;
 import java.time.Duration;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import akka.actor.Props;
@@ -47,8 +46,6 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
 	
 	private Set<ServerSide> loadChangeableStates = Sets.newHashSet(ServerSide.Completed, ServerSide.Completing, ServerSide.Stopped, ServerSide.Stopping);
 	
-	
-	//FIXME: these overridden methods are not called
 	@Override
 	protected void updateLoadState(boolean isLoaded) {
 		log.info("Updating Loading State");

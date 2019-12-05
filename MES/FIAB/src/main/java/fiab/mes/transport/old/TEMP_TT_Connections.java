@@ -1,4 +1,4 @@
-package fiab.mes.transport.mockClasses;
+package fiab.mes.transport.old;
 
 public class TEMP_TT_Connections {
 	private String south;

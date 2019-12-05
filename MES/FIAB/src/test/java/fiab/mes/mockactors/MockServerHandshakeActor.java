@@ -105,8 +105,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 		}
 	}
 	
-	protected void reset() {
-		log.info("Resetting");
+	protected void reset() {;
 		publishNewState(ServerSide.Resetting);
 		context().system()
     	.scheduler()

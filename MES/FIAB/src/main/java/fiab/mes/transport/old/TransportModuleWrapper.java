@@ -1,4 +1,4 @@
-package fiab.mes.transport.actor.wrapper;
+package fiab.mes.transport.old;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -24,8 +24,7 @@ import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.opcua.Subscription;
 import fiab.mes.transport.MachineLevelEventBus;
-import fiab.mes.transport.actor.turntable.TransportModuleActor;
-import fiab.mes.transport.mockClasses.Direction;
+import fiab.mes.transport.actor.transportmodule.TransportModuleActor;
 
 public class TransportModuleWrapper implements TransportModuleWrapperInterface {
 
@@ -83,7 +82,7 @@ public class TransportModuleWrapper implements TransportModuleWrapperInterface {
 	}
 
 	@Override
-	public void stopp() {
+	public void stop() {
 		eventBus.publish(new MachineStatusUpdateEvent("Server", "STATUS" // Status is the nodeId
 				, MachineEvent.MachineEventType.UPDATED.toString(), "", MachineStatus.STOPPING));
 		

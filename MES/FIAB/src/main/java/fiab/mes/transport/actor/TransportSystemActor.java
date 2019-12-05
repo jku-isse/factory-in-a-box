@@ -13,12 +13,12 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.transport.actor.turntable.TransportModuleActor;
+import fiab.mes.transport.actor.transportmodule.TransportModuleActor;
 import fiab.mes.transport.customDataTypes.TSAListElement;
 import fiab.mes.transport.messages.COM_Transport;
 import fiab.mes.transport.messages.RegisterTransportRequest;
-import fiab.mes.transport.mockClasses.Direction;
-import fiab.mes.transport.mockClasses.TEMP_TT_Connections;
+import fiab.mes.transport.old.Direction;
+import fiab.mes.transport.old.TEMP_TT_Connections;
 
 public class TransportSystemActor extends AbstractActor {
 

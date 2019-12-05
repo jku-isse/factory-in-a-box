@@ -1,4 +1,4 @@
-package fiab.mes.transport.actor.turntable;
+package fiab.mes.transport.old;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -24,7 +24,6 @@ import fiab.mes.transport.actor.wrapper.TurntableWrapper;
 import fiab.mes.transport.messages.COM_Transport;
 import fiab.mes.transport.messages.Reset;
 import fiab.mes.transport.messages.Stop;
-import fiab.mes.transport.mockClasses.Direction;
 
 public class TransportModuleActor extends AbstractActor {
 	
@@ -75,7 +74,7 @@ public class TransportModuleActor extends AbstractActor {
 							//TODO add some orders, shutdown
 						}
 					} else if (string.equals("STOPP")) {
-						machineWrapper.stopp();
+						machineWrapper.stop();
 					} else if (string.contains("TRANSPORT")) {
 						machineWrapper.transport(new Direction("north"), new Direction("south"), "someID");
 					} else if(string.equals("RESET")) {
@@ -83,7 +82,7 @@ public class TransportModuleActor extends AbstractActor {
 					}
 				})
 			.match(Stop.class, msg -> {
-				machineWrapper.stopp();
+				machineWrapper.stop();
 			})
 			.match(Reset.class, msg -> {
 				machineWrapper.reset();

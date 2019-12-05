@@ -30,10 +30,11 @@ public class MockIOStationWrapper extends AbstractActor {
 	public MockIOStationWrapper(InterMachineEventBus machineEventBus, boolean isInputStation) {
 		this.interEventBus = machineEventBus;
 		this.isInputStation = isInputStation;
-		// setup serverhandshake actor with autocomplete
-		boolean doAutoComplete = true;
 		self = getSelf();
-		serverSide = getContext().actorOf(MockInputStationServerHandshakeActor.props(getSelf(), doAutoComplete), "IOStationServerSideHandshakeMock"); 
+		if (isInputStation)
+			serverSide = getContext().actorOf(MockInputStationServerHandshakeActor.props(), "InputStationServerSideHandshakeMock"); 
+		else 
+			serverSide = getContext().actorOf(MockOutputStationServerHandshakeActor.props(), "OutputStationServerSideHandshakeMock"); 
 		reloadPallet();
 	}
 	

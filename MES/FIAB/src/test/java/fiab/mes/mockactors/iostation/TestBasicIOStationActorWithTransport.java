@@ -44,13 +44,13 @@ import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 
-public class TestBasicIStationActorWithTransport { 
+public class TestBasicIOStationActorWithTransport { 
 
 	protected static ActorSystem system;
 	protected static ActorRef machine;
 	public static String ROOT_SYSTEM = "routes";
 	
-	private static final Logger logger = LoggerFactory.getLogger(TestBasicIStationActorWithTransport.class);
+	private static final Logger logger = LoggerFactory.getLogger(TestBasicIOStationActorWithTransport.class);
 	
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
@@ -67,25 +67,19 @@ public class TestBasicIStationActorWithTransport {
 	}
 
 	@Test
-	void testBasicIOStationToIdleEmpty() {
-		
+	void testBasicInputStationToIdleEmpty() {
 		new TestKit(system) { 
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				//eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				MockIOStationFactory parts = MockIOStationFactory.getMockedInputStation(system, eventBusByRef);
-				
 				// we subscribe to the intereventbus to observe basic io station behavior
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				//eventBusByRef.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
 				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class));
-				//parts.intraEventBus.publish(new IOStationStatusUpdateEvent("TEST", "",ServerSide.Resetting));
-				
 				boolean doRun = true;
 				while (doRun) {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
-					
 					if (mue.getStatus().equals(ServerSide.IdleLoaded)) {
 						doRun = false;
 					}
@@ -94,6 +88,28 @@ public class TestBasicIStationActorWithTransport {
 		};
 	}
 		
+	@Test
+	void testBasicOutputStationToIdleEmpty() {
+		new TestKit(system) { 
+			{
+				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
+				MockIOStationFactory parts = MockIOStationFactory.getMockedOutputStation(system, eventBusByRef);
+				// we subscribe to the intereventbus to observe basic io station behavior
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
+				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class));
+				//eventBusByRef.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				boolean doRun = true;
+				while (doRun) {
+					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
+					logEvent(mue);
+					if (mue.getStatus().equals(ServerSide.IdleEmpty)) {
+						doRun = false;
+					}
+				}
+			}	
+		};
+	}
+	
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());
 	}
