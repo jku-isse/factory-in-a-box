@@ -25,6 +25,7 @@ public class Robot {
     private ProcessEngineBase processEngineBase;
 
     @Getter private Object robotRoot;
+    @Getter private Object handshakeRoot;
 
     @Getter private Object server;
     @Getter private Object client;
@@ -42,16 +43,21 @@ public class Robot {
         serverCommunication.runServer(server);
     });
 
-    private void initComponents(){
+    private void initComponents() {
         server = serverCommunication.createServer("localhost", 4840);
-        robotRoot = serverCommunication.addObject(server, new RequestedNodePair<>(1, 10), "Handshake");
-        Object conveyorFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 20), "Conveyor");
+        robotRoot = serverCommunication.addObject(server, new RequestedNodePair<>(1, 10), "Robot");
+        Object handshakeNode = serverCommunication.createNodeString(1, "HANDSHAKE");
+        handshakeRoot = serverCommunication.addNestedObject(getServer(), robotRoot, handshakeNode, "HANDSHAKE");
+        Object conveyorFolder = serverCommunication.createNodeString(1, "CONVEYOR");
+        serverCommunication.addNestedObject(getServer(), robotRoot, conveyorFolder, "CONVEYOR");
         conveyorBase.setServerAndFolder(serverCommunication, server, conveyorFolder);
         conveyorBase.addServerConfig();
-        Object turningFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 30), "Turning");
+        Object turningFolder = serverCommunication.createNodeString(1, "TURNING");
+        serverCommunication.addNestedObject(getServer(), robotRoot, turningFolder, "TURNING");
         turningBase.setServerAndFolder(serverCommunication, server, turningFolder);
         turningBase.addServerConfig();
-        Object processFolder = serverCommunication.addObject(server, new RequestedNodePair<>(1, 40), "ProcessEngine");
+        Object processFolder = serverCommunication.createNodeString(1, "PROCESS_ENGINE");
+        serverCommunication.addNestedObject(getServer(), robotRoot, processFolder, "PROCESS_ENGINE");
         processEngineBase.setServerAndFolder(serverCommunication, server, processFolder);
         processEngineBase.addServerConfig();
     }
@@ -64,12 +70,14 @@ public class Robot {
      */
     public Robot(ConveyorBase conveyorBase, ProcessEngineBase processEngineBase) {
         this.conveyorBase = conveyorBase;
-        this.turningBase = turningBase;
         this.processEngineBase = processEngineBase;
         this.communication = new Communication();
         this.serverCommunication = communication.getServerCommunication();
         this.clientCommunication = communication.getClientCommunication();
         this.client = clientCommunication.initClient();
+        this.processEngineBase.setClientCommunication(clientCommunication);
+        this.processEngineBase.setClient(client);
+        this.processEngineBase.setServerUrl("opc.tcp://localhost:4840/");
         this.handshakeFUList = new HashMap<>();
         initComponents();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> ClientCommunication.stopHandler(0)));
@@ -90,6 +98,9 @@ public class Robot {
         this.serverCommunication = communication.getServerCommunication();
         this.clientCommunication = communication.getClientCommunication();
         this.client = clientCommunication.initClient();
+        this.processEngineBase.setClientCommunication(clientCommunication);
+        this.processEngineBase.setClient(client);
+        this.processEngineBase.setServerUrl("opc.tcp://192.168.0.20:4840/");
         this.handshakeFUList = new HashMap<>();
         initComponents();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> ClientCommunication.stopHandler(0)));
@@ -148,10 +159,6 @@ public class Robot {
      */
     public void runServerAndClient() {
         serverThread.start();
-        System.out.println("Starting Client");
-        processEngineBase.setClientCommunication(clientCommunication);
-        processEngineBase.setClient(client);
-        processEngineBase.setServerUrl("opc.tcp://localhost:4840/");
         System.out.println("Client connecting");
         clientCommunication.clientConnect(clientCommunication, processEngineBase.getClient(), "opc.tcp://localhost:4840/");
     }
