@@ -34,7 +34,7 @@ public class LoadingServerProtocol {
         this.serverCommunication = serverCommunication;
         this.opcua_server = server;
         this.parentObject = parentObject;
-        state_nodeid = serverCommunication.addStringVariableNode(opcua_server, parentObject, new Pair<>(1, "STATE"), "LOADING_SERVER_STATE");
+        state_nodeid = serverCommunication.addStringVariableNode(opcua_server, parentObject, new Pair<>(1, "LOADING_SERVER_STATE"), "STATE");
 
 
         serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_INIT_HANDOVER"), "REQUEST_INIT_HANDOVER",
@@ -53,15 +53,15 @@ public class LoadingServerProtocol {
                 opcuaMethodInput -> {
                     return request_start_Unloading();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "COMPLETE"), "COMPLETE",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "LOADING_SERVER_COMPLETE"), "COMPLETE",
                 opcuaMethodInput -> {
                     return complete();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "RESET"), "RESET",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "LOADING_SERVER_RESET"), "RESET",
                 opcuaMethodInput -> {
                     return reset();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "STOP"), "STOP",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "LOADING_SERVER_STOP"), "STOP",
                 opcuaMethodInput -> {
                     return stop();
                 });

@@ -2,7 +2,7 @@ package capabilities;
 
 import communication.Communication;
 import communication.open62communication.ServerCommunication;
-import communication.utils.RequestedNodePair;
+import communication.utils.Pair;
 import helper.CapabilityId;
 import helper.CapabilityRole;
 import helper.CapabilityType;
@@ -16,9 +16,9 @@ public class HandshakeFU extends Endpoint implements CapabilityListener {
 
     public HandshakeFU(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId, CapabilityId capabilityId) {
         //calling the Endpoint parent class constructor to init an opcua object to be the parent node for the sub-capabilities
-        super(serverCommunication, opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+        super(serverCommunication, opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", CapabilityType.HANDSHAKE,capabilityId, CapabilityRole.Provided);
 
-        Object state_nodeid = serverCommunication.addStringVariableNode(opcua_server, this.getEndpoint_object(), new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "STATE");
+        Object state_nodeid = serverCommunication.addStringVariableNode(opcua_server, this.getEndpoint_object(), new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"STATE"), "STATE");
         serverCommunication.writeVariable(opcua_server, state_nodeid, "IDLE");
 
         //initializing the main capabilities for the handshake FU
@@ -30,11 +30,11 @@ public class HandshakeFU extends Endpoint implements CapabilityListener {
 
     public HandshakeFU(Communication communication, Object opcua_server, Object opcua_client, Object parentObjectId, CapabilityId capabilityId) {
         //calling the Endpoint parent class constructor to init an opcua object to be the parent node for the sub-capabilities
-        super(communication.getServerCommunication(), opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+        super(communication.getServerCommunication(), opcua_server, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", CapabilityType.HANDSHAKE, capabilityId, CapabilityRole.Required);
         this.communication = communication;
         this.opcua_client = opcua_client;
 
-        Object state_nodeid = communication.getServerCommunication().addStringVariableNode(opcua_server, this.getEndpoint_object(), new RequestedNodePair<>(1, communication.getServerCommunication().getUnique_id()), "STATE");
+        Object state_nodeid = communication.getServerCommunication().addStringVariableNode(opcua_server, this.getEndpoint_object(),new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"STATE"), "STATE");
         communication.getServerCommunication().writeVariable(opcua_server, state_nodeid, "CLIENT IDLE");
 
         // super(communication.getClientCommunication(), opcua_client, parentObjectId, CapabilityType.HANDSHAKE.toString() + "_FU", capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);

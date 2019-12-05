@@ -15,6 +15,7 @@ package capabilities;
 import communication.Communication;
 import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
+import communication.utils.Pair;
 import communication.utils.RequestedNodePair;
 import helper.CapabilityId;
 import helper.CapabilityRole;
@@ -108,13 +109,13 @@ public class Capability {
 
         capabilityObject = serverCommunication.addNestedObject(opcua_server, parentObject, capabilityOpcuaNodeId, "CAPABILITY");
 
-        Object id_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "ID");
+        Object id_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject, new Pair<>(1,("CAPABILITY_"+this.capabilityType.toString()+"_")+this.capabilityId.toString()+"_"+"ID"), "ID");
         serverCommunication.writeVariable(opcua_server, id_nodeid, capabilityId.toString());
 
-        Object type_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "TYPE");
+        Object type_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject,new Pair<>(1,("CAPABILITY_"+this.capabilityType.toString()+"_")+this.capabilityId.toString()+"_"+"TYPE"), "TYPE");
         serverCommunication.writeVariable(opcua_server, type_nodeid, capabilityType.toString());
 
-        Object role_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject, new RequestedNodePair<>(1, serverCommunication.getUnique_id()), "ROLE");
+        Object role_nodeid = serverCommunication.addStringVariableNode(opcua_server, capabilityObject,new Pair<>(1,("CAPABILITY_"+this.capabilityType.toString()+"_")+this.capabilityId.toString()+"_"+"ROLE"), "ROLE");
         serverCommunication.writeVariable(opcua_server, role_nodeid, capabilityRole.toString());
 
     }

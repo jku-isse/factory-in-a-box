@@ -145,15 +145,8 @@ public class ClientCommunication extends ClientAPIBase {
         return ClientAPIBase.ClientReadIntValue((SWIGTYPE_p_UA_Client) client,
                 open62541.UA_NODEID_NUMERIC(nodeId.getKey(), nodeId.getValue()));
     }
-
-    public int clientReadIntValueById(Object client, Pair<Integer, String> nodeId) {
-
-        return ClientAPIBase.ClientReadIntValue((SWIGTYPE_p_UA_Client) client,
-                ServerCommunication.CreateStringNodeId(nodeId.getKey(), nodeId.getValue()));
-    }
-    public int clientReadIntValueById(Object client, Object nodeId) {
-
-        return ClientAPIBase.ClientReadIntValue((SWIGTYPE_p_UA_Client) client,(UA_NodeId) nodeId);
+    public int clientReadIntValueById(String serverUrl, Pair<Integer, String> nodeId) {
+        return ClientAPIBase.ClientReadIntValue(serverUrl, ServerAPIBase.CreateStringNodeId(nodeId.getKey(), nodeId.getValue()));
     }
     public int clientWriteValue(String serverUrl, Object nodeId, int value) {
         return ClientAPIBase.ClientWriteValue(serverUrl, (UA_NodeId) nodeId, value);

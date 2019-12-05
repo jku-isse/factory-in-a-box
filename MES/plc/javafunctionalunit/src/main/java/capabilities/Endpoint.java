@@ -31,8 +31,12 @@ public class Endpoint {
 
         Communication opcua_comm = new Communication();
         opcua_server = opcua_comm.getServerCommunication().createServer(host, port);
-        endpoint_NodeId = opcua_comm.getServerCommunication().createNodeNumeric(1, opcua_comm.getServerCommunication().getUnique_id()); //need to implement a controller level Enum
+
         if (name.isEmpty()) name = "END_POINT";
+        String endpointStringNodeId = ("END_POINT_"+capabilityType.toString()+"_")+capabilityId.toString()+"_"+capabilityRole.toString();
+
+        endpoint_NodeId = opcua_comm.getServerCommunication().createNodeString(1, endpointStringNodeId); //need to implement a controller level Enum
+
         endpoint_object = opcua_comm.getServerCommunication().addObject(opcua_server, endpoint_NodeId, name);
 
 
@@ -40,10 +44,13 @@ public class Endpoint {
         //capabilities.add(defination);
     }
 
-    public Endpoint(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId, String name, CapabilityType capabilityType, CapabilityRole capabilityRole) {
+    public Endpoint(ServerCommunication serverCommunication, Object opcua_server, Object parentObjectId, String name, CapabilityType capabilityType,CapabilityId capabilityId, CapabilityRole capabilityRole) {
         capabilities = new ArrayList<>();
 
-        endpoint_NodeId = serverCommunication.createNodeNumeric(1, serverCommunication.getUnique_id()); //need to implement a controller level Enum
+        if (name.isEmpty()) name = "END_POINT";
+        String endpointStringNodeId = ("END_POINT_"+capabilityType.toString()+"_")+capabilityRole.toString()+"_"+capabilityId.toString()+"_"+name;
+
+        endpoint_NodeId = serverCommunication.createNodeString(1, endpointStringNodeId); //need to implement a controller level Enum
 
         endpoint_object = serverCommunication.addNestedObject(opcua_server, parentObjectId, endpoint_NodeId, name);
 

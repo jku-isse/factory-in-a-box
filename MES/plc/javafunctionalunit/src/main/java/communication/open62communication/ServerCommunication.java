@@ -26,9 +26,9 @@ public class ServerCommunication extends ServerAPIBase {
 
     private int unique_id = 90;
 
-    public int getUnique_id() {
-        return unique_id += 1;
-    }
+   // public int getUnique_id() {
+      //  return unique_id += 1;
+   // }
 
     public ServerCommunication() {
         functionMap = new HashMap<>();
