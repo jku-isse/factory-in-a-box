@@ -16,8 +16,8 @@ public class ConveyorApplication {
                 new TouchSensorEV3(SensorPort.S2), new ColorSensorEV3(SensorPort.S3)),
                 new ProcessTurnTable());
 
-        robot.addHandshakeFU(CapabilityId.NORTH_SERVER, new HandshakeFU(robot.getServerCommunication(),
-                robot.getServer(), robot.getRobotRoot(), CapabilityId.NORTH_SERVER));
+    //    robot.addHandshakeFU(CapabilityId.NORTH_SERVER, new HandshakeFU(robot.getServerCommunication(),
+     //           robot.getServer(), robot.getRobotRoot(), CapabilityId.NORTH_SERVER));
 
         robot.addHandshakeFU(CapabilityId.NORTH_CLIENT, new HandshakeFU(robot.getCommunication(),
                 robot.getServer(), robot.getClient(), robot.getRobotRoot(), CapabilityId.NORTH_SERVER));

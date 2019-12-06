@@ -19,8 +19,8 @@ public class MockTurnTableApplication {
                 new TurningTurnTable(turningMockHardware.getTurningMockMotor(), turningMockHardware.getMockSensorHoming()),
                 new ProcessTurnTable());
 
-        robot.addHandshakeFU(CapabilityId.NORTH_SERVER, new HandshakeFU(robot.getServerCommunication(),
-                robot.getServer(), robot.getRobotRoot(), CapabilityId.NORTH_SERVER));
+      //  robot.addHandshakeFU(CapabilityId.NORTH_SERVER, new HandshakeFU(robot.getServerCommunication(),
+       //         robot.getServer(), robot.getRobotRoot(), CapabilityId.NORTH_SERVER));
 
         robot.addHandshakeFU(CapabilityId.NORTH_CLIENT, new HandshakeFU(robot.getCommunication(),
                 robot.getServer(), robot.getClient(), robot.getRobotRoot(), CapabilityId.NORTH_SERVER));

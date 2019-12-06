@@ -19,6 +19,7 @@ import helper.CapabilityId;
 import helper.CapabilityRole;
 import helper.CapabilityType;
 import helper.HandshakeStates;
+import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -66,6 +67,12 @@ public class HandshakeCapability extends Capability {
     // Map<CapabilityInstanceId, Protocol> protocolMap;
     LoadingClientProtocol clientProtocol;
     LoadingServerProtocol serverProtocol;
+    Object state_nodeid;
+
+    @Getter
+    Object endpoint_NodeId;
+    @Getter
+    Object capabilities_NodeId;
 
     public CapabilityId getCurrentCapabilityId() {
         return currentCapabilityId;
@@ -92,16 +99,20 @@ public class HandshakeCapability extends Capability {
 
     }
 
-    public HandshakeCapability(Communication communication, Object opcua_server, Object client, Object parentObject, CapabilityId capabilityId) {
-        super(communication, opcua_server, client, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
+    public HandshakeCapability(Communication communication, Object opcua_server, Object client, Object parentObject, Object capabilitiesObject, CapabilityId capabilityId) {
+        super(communication, opcua_server, client, capabilitiesObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Required);
 
-        clientProtocol = new LoadingClientProtocol(communication, opcua_server, client, parentObject);
+        this.endpoint_NodeId = parentObject;
+        this.capabilities_NodeId = capabilitiesObject;
+
+        String nodePrefix = ("CAPABILITY_" + CapabilityType.HANDSHAKE.toString() + "_") + capabilityId.toString() + "_";
+        clientProtocol = new LoadingClientProtocol(communication, opcua_server, client, parentObject, nodePrefix);
         serverProtocol = null;
 
         //ROLE
-        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject,  new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"START"), "START",
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new Pair<>(1, nodePrefix + "START"), "START",
                 opcuaMethodInput -> {
-                    return start(opcuaMethodInput);
+                    return start(opcuaMethodInput); //MOVE START  TO PROTOCOL
                 });
 
 /*
@@ -115,45 +126,26 @@ public class HandshakeCapability extends Capability {
                 });
 
 */
+        state_nodeid = communication.getServerCommunication().addStringVariableNode(opcua_server, parentObject, new Pair<>(1, nodePrefix + "STATE"), "STATE"); //MOVE STATE TO PROTOCOL
 
         changeState(IDLE);
 
     }
 
 
-    public HandshakeCapability(ServerCommunication serverCommunication, Object server, Object parentObject, CapabilityId capabilityId) {
-        super(serverCommunication, server, parentObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
+    public HandshakeCapability(ServerCommunication serverCommunication, Object server, Object parentObject, Object capabilitiesObject, CapabilityId capabilityId) {
+        super(serverCommunication, server, capabilitiesObject, capabilityId, CapabilityType.HANDSHAKE, CapabilityRole.Provided);
         // super(serverCommunication, server, parentObject, capabilityId);
+        this.endpoint_NodeId = parentObject;
+        this.capabilities_NodeId = capabilitiesObject;
 
+        String nodePrefix = ("CAPABILITY_" + CapabilityType.HANDSHAKE.toString() + "_") + capabilityId.toString() + "_";
         clientProtocol = null;
-        serverProtocol = new LoadingServerProtocol(serverCommunication, server, this.getCapabilityObject());
+        serverProtocol = new LoadingServerProtocol(serverCommunication, server, parentObject, nodePrefix);
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject,new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"COMPLETE"), "COMPLETE",
-                opcuaMethodInput -> {
-                    return compelete();
-                });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"STOP"), "STOP",
-                opcuaMethodInput -> {
-                    return stop(opcuaMethodInput);
-                });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"RESET"), "RESET",
-                opcuaMethodInput -> {
-                    return reset(opcuaMethodInput);
-                });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"READY"), "READY",
-                opcuaMethodInput -> {
-                    return ready(opcuaMethodInput);
-                });
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"INIT_HANDOVER"), "INIT_HANDOVER",
-                opcuaMethodInput -> {
-                    return "";
-                    //return initiateLoading(opcuaMethodInput);
-                });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.HANDSHAKE.toString()+"_")+capabilityId.toString()+"_"+"INIT_UNLOADING"), "INIT_UNLOADING",
-                opcuaMethodInput -> {
-                    return initiateUnloading(opcuaMethodInput);
-                });
+        // state_nodeid = serverCommunication.addStringVariableNode(server, parentObject, new Pair<>(1, nodePrefix+"_"+"STATE"), "STATE");
+        //   communication.getServerCommunication().writeVariable(opcua_server, state_nodeid, "IDLE");
 
 
         changeState(IDLE);
@@ -202,8 +194,8 @@ public class HandshakeCapability extends Capability {
                 // Invalid input should not be handled
                 break;
         }
-        if (serverProtocol != null)
-            getServerCommunication().writeVariable(getServer(), getObject(), HandshakeStates.values()[currentState].toString());
+        //if (serverProtocol != null)
+        //   getServerCommunication().writeVariable(getServer(), state_nodeid, HandshakeStates.values()[currentState].toString());
     }
 
     public final int getCurrentState() {
@@ -219,7 +211,7 @@ public class HandshakeCapability extends Capability {
         }).start();
     }
 
-    public String starting(WiringInformation wiringInformation,String orderId) {
+    public String starting(WiringInformation wiringInformation, String orderId) {
         changeState(STARTING);
 
         if (wiringInformation.getlOCAL_CAPABILITYID().toString().contains("SERVER")) {
@@ -315,8 +307,8 @@ public class HandshakeCapability extends Capability {
 
     public String start(String inputPram) {
 
-    //    if (clientProtocol != null) {
-     //   }
+        //    if (clientProtocol != null) {
+        //   }
         JSONObject loadingJson;
         currentOrderId = "-1";
         try {

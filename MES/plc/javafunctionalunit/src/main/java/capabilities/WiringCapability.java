@@ -34,8 +34,8 @@ public class WiringCapability extends Capability {
     private Object wiring_object;
 
 
-    public WiringCapability(ServerCommunication serverCommunication, Object opcua_server, Object parentObject, CapabilityId capabilityId) {
-        super(serverCommunication, opcua_server, parentObject, capabilityId, CapabilityType.WIRING, CapabilityRole.Provided);
+    public WiringCapability(ServerCommunication serverCommunication, Object opcua_server, Object parentObject,Object capabilitiesObject, CapabilityId capabilityId) {
+        super(serverCommunication, opcua_server, capabilitiesObject, capabilityId, CapabilityType.WIRING, CapabilityRole.Provided);
         wiringMap = new HashMap<CapabilityId, WiringInformation>();
 
         serverCommunication.addStringMethod(serverCommunication, opcua_server, parentObject, new Pair<>(1,("CAPABILITY_"+CapabilityType.WIRING.toString()+"_")+capabilityId.toString()+"_"+"SET_WIRING"), "SET_WIRING",
@@ -45,8 +45,8 @@ public class WiringCapability extends Capability {
                 });
 
 
-        wiring_NodeId = serverCommunication.createNodeNumeric(1, 1000); //need to implement a controller level Enum
-        wiring_object = serverCommunication.addNestedObject(opcua_server, this.getCapabilityObject(), wiring_NodeId, "CAPABILITY_WIRING");
+        wiring_NodeId = serverCommunication.createNodeString(1, "CAPABILITY_"+CapabilityType.WIRING.toString()+"_"+capabilityId.toString()+"_"+"WIRING_INFO"); //need to implement a controller level Enum
+        wiring_object = serverCommunication.addNestedObject(opcua_server, this.getCapabilityObject(), wiring_NodeId, "WIRING_INFO");
 
 
         localCapabilityId_nodeid = serverCommunication.addStringVariableNode(opcua_server, wiring_object,new Pair<>(1,("CAPABILITY_"+CapabilityType.WIRING.toString()+"_")+capabilityId.toString()+"_"+"LOCAL_CAPABILITYID"), "LOCAL_CAPABILITYID");

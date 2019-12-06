@@ -30,24 +30,24 @@ public class LoadingClientProtocol {
     private Object opcua_client;
     private ClientCommunication clientCommunication;
 
-    public LoadingClientProtocol(Communication communication, Object opcua_server, Object client, Object parentObject) {
+    public LoadingClientProtocol(Communication communication, Object opcua_server, Object client, Object parentObject,String nodePrefix) {
         this.clientCommunication = communication.getClientCommunication();
         this.opcua_client = client;
         currentWiringInformation = null;
 
-        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new Pair<>(1, "CLIENT_PROTOCOL_STOP"), "STOP",
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new Pair<>(1, nodePrefix+"CLIENT_PROTOCOL_STOP"), "STOP",
                 opcuaMethodInput -> {
                     return stop(opcuaMethodInput);
                 });
-        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new Pair<>(1, "CLIENT_PROTOCOL_RESET"), "RESET",
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new Pair<>(1, nodePrefix+"CLIENT_PROTOCOL_RESET"), "RESET",
                 opcuaMethodInput -> {
                     return reset(opcuaMethodInput);
                 });
-        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new Pair<>(1, "CLIENT_PROTOCOL_READY"), "READY",
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new Pair<>(1, nodePrefix+"CLIENT_PROTOCOL_READY"), "READY",
                 opcuaMethodInput -> {
                     return ready();
                 });
-        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new Pair<>(1, "CLIENT_PROTOCOL_COMPLETE"), "COMPLETE",
+        communication.getServerCommunication().addStringMethod(communication.getServerCommunication(), opcua_server, parentObject, new Pair<>(1, nodePrefix+"CLIENT_PROTOCOL_COMPLETE"), "COMPLETE",
                 opcuaMethodInput -> {
                     return complete(opcuaMethodInput);
                 });
