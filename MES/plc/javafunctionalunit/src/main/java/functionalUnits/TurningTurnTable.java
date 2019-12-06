@@ -43,6 +43,7 @@ public class TurningTurnTable extends TurningBase {
     @Getter private TurnTableOrientation orientation;
     private Object statusNodeId;
     private boolean stopped;
+    private final int timeForNinetyDeg = 1390;
 
     /**
      * Turning FU for a TurnTable.
@@ -82,9 +83,12 @@ public class TurningTurnTable extends TurningBase {
      * Turns left by the amount of degrees specified in rotationToNext
      */
     private void turnLeft() {
+        if(this.orientation == TurnTableOrientation.NORTH){
+            System.out.println("Cannot turn left from North");
+        }
         System.out.println("Executing from turning: turnLeft");
         turnMotor.backward();
-        turnMotor.waitMs(1400);
+        turnMotor.waitMs(timeForNinetyDeg);
         turnMotor.stop();
         //this.turnMotor.rotate(-rotationToNext);
         orientation = orientation.getNextCounterClockwise(orientation);
@@ -95,9 +99,13 @@ public class TurningTurnTable extends TurningBase {
      * Turns right by the amount of degrees specified in rotationToNext
      */
     private void turnRight() {
+        if(this.orientation == TurnTableOrientation.WEST){
+            System.out.println("Cannot turn right from West");
+            return;
+        }
         System.out.println("Executing from turning: turnRight");
         turnMotor.forward();
-        turnMotor.waitMs(1400);
+        turnMotor.waitMs(timeForNinetyDeg);
         turnMotor.stop();
         orientation = orientation.getNextClockwise(orientation);
         System.out.println("Orientation is now: " + orientation);
@@ -209,6 +217,7 @@ public class TurningTurnTable extends TurningBase {
      */
     @Override
     public void addServerConfig() {
+        //TODO add variable node for orientation
         final String PREFIX = "TURNING_";
         statusNodeId = getServerCommunication().addIntegerVariableNode(getServer(), getObject(),
                 new Pair<>(1, PREFIX + TurningStringIdentifiers.STATE.name()),

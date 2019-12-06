@@ -7,9 +7,6 @@ import stateMachines.processEngine.ProcessEngineStateMachineConfig;
 import stateMachines.processEngine.ProcessEngineStates;
 import stateMachines.processEngine.ProcessEngineTriggers;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static stateMachines.processEngine.ProcessEngineStates.STOPPED;
@@ -41,14 +38,20 @@ public class ProcessTurnTable extends ProcessEngineBase {
         getServerCommunication().writeVariable(getServer(), statusNodeId, processEngineStateMachine.getState().getValue());
     }
 
-    private void waitForTargetValue(Pair<Integer, String> nodeId, int targetValue) {
-        System.out.println("Hello");
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-
-        ScheduledFuture future = executor.scheduleWithFixedDelay(() -> {
-            int val = getClientCommunication().clientReadIntValueById(getClient(), nodeId);
-            System.out.println("Read val = "+val);
-        }, 0, 5000, TimeUnit.MILLISECONDS);
+    private void waitForTargetValue(String serverUrl, Pair<Integer, String> nodeId, int targetValue) {
+        int val;
+        while ((val = getClientCommunication().clientReadIntValueById(serverUrl, nodeId)) != targetValue) {
+            if (isStopped()) {
+                System.out.println("Process was interrupted.");
+                return;
+            }
+            try {
+                System.out.println("Reading value, waiting for " + nodeId.getValue() + " to be " + targetValue + ", val is: " + val);
+                Thread.sleep(DELAY);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private boolean inputInvalid(String[] input) {
@@ -66,24 +69,36 @@ public class ProcessTurnTable extends ProcessEngineBase {
         String to = info[2];
         Pair<Integer, String> conveyorNode = new Pair<>(1, "CONVEYOR");
         Pair<Integer, String> turningNode = new Pair<>(1, "TURNING");
+        Pair<Integer, String> conveyorStateNode = new Pair<>(1, "CONVEYOR_STATE");
+        Pair<Integer, String> turningStateNode = new Pair<>(1, "TURNING_STATE");
+        //Pair<Integer, String> handShakeServerState = new Pair<>(1, "HANDSHAKE_FU_STATE");     //Reset handshake fu
+        //Wait for reset
+        //Replace resets with global reset
         getClientCommunication().callStringMethod(serverUrl, conveyorNode, new Pair<>(1, "CONVEYOR_RESET"), "");         //Reset conveyor
+        waitForTargetValue(serverUrl,conveyorStateNode, 0);
         getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_RESET"), "");          //Reset turning
-        waitForTargetValue(new Pair<>(1, "TURNING_STATE"), 0);                                 //Wait for idle turning state
+        waitForTargetValue(serverUrl,turningStateNode, 0);                                 //Wait for idle turning state
         getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_TURN_TO"), from); //turning turn to (random)
-        waitForTargetValue(new Pair<>(1, "TURNING_STATE"), 0);                                 //Wait for turning complete state
-
+        waitForTargetValue(serverUrl,turningStateNode, 0);                                 //Wait for turning complete state
+        //Initiate handover client
+        //wait for handshake to finish
         getClientCommunication().callStringMethod(serverUrl, conveyorNode, new Pair<>(1, "CONVEYOR_LOAD"), "");         //load conveyor
-        waitForTargetValue(new Pair<>(1, "CONVEYOR_STATE"), 6);                                //wait for loaded state
+        waitForTargetValue(serverUrl,conveyorStateNode, 6);                                //wait for loaded state
+        //Stop handshake
+        //Reset handshake
         getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_RESET"), "");
-        waitForTargetValue(new Pair<>(1, "TURNING_STATE"), 0);                                 //Wait for idle turning state
+        waitForTargetValue(serverUrl,turningStateNode, 0);                                 //Wait for idle turning state
         getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_TURN_TO"), to);           //turning turn to (random)
-        waitForTargetValue(new Pair<>(1, "TURNING_STATE"), 0);                                 //Wait for turning complete state
+        waitForTargetValue(serverUrl,turningStateNode, 0);                                 //Wait for turning complete state
+        //initiate handover client
+        //wait for handshake to finish
         getClientCommunication().callStringMethod(serverUrl, conveyorNode, new Pair<>(1, "CONVEYOR_UNLOAD"), "");      //unload conveyor
-        waitForTargetValue(new Pair<>(1, "CONVEYOR_STATE"), 0);                                //wait for conveyor idle state
+        waitForTargetValue(serverUrl,conveyorStateNode, 0);                                //wait for conveyor idle state
         getClientCommunication().callStringMethod(serverUrl, conveyorNode, new Pair<>(1, "CONVEYOR_STOP"), "");       //stop conveyor
-        waitForTargetValue(new Pair<>(1, "CONVEYOR_STATE"), 9);                               //wait for conveyor stopped state
+        waitForTargetValue(serverUrl,conveyorStateNode, 9);                               //wait for conveyor stopped state
         getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_STOP"), "");        //stop turning
-        waitForTargetValue(new Pair<>(1, "TURNING_STATE"), 7);                                 //wait for turning stopped state*/
+        waitForTargetValue(serverUrl,turningStateNode, 7);                                 //wait for turning stopped state*/
+        //Stop handshake
     }
 
     /**

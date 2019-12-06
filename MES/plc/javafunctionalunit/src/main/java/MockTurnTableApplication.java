@@ -7,13 +7,16 @@ import hardware.TurningMockHardware;
 import helper.CapabilityId;
 import robot.Robot;
 
+/**
+ * This class can be used for testing out the functionality of the TurnTable when no hardware is available.
+ * The Hardware is defined in their own classes and represent actuators and sensors which simulate behaviour.
+ */
 public class MockTurnTableApplication {
 
     public static void main(String[] args) {
 
         ConveyorMockHardware conveyorMockHardware = new ConveyorMockHardware(200, 3000);
         TurningMockHardware turningMockHardware = new TurningMockHardware(200);
-        //Run this if you want to run it on a Lego Robot. Make sure the ports match your configuration
         Robot robot = new Robot(new ConveyorTurnTable(conveyorMockHardware.getConveyorMockMotor(),
                 conveyorMockHardware.getMockSensorLoading(), conveyorMockHardware.getMockSensorUnloading()),
                 new TurningTurnTable(turningMockHardware.getTurningMockMotor(), turningMockHardware.getMockSensorHoming()),

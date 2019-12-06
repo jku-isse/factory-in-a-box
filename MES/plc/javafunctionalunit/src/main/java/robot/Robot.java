@@ -4,6 +4,7 @@ import capabilities.HandshakeFU;
 import communication.Communication;
 import communication.open62communication.ClientCommunication;
 import communication.open62communication.ServerCommunication;
+import communication.utils.Pair;
 import communication.utils.RequestedNodePair;
 import functionalUnits.base.ConveyorBase;
 import functionalUnits.base.ProcessEngineBase;
@@ -27,11 +28,18 @@ public class Robot {
     @Getter private Object robotRoot;
     @Getter private Object handshakeRoot;
 
+    @Getter private final String serverUrl = "opc.tcp://localhost:4840/";
     @Getter private Object server;
     @Getter private Object client;
     @Getter private Communication communication;
     @Getter private ServerCommunication serverCommunication;
     @Getter private ClientCommunication clientCommunication;
+
+    private Pair<Integer, String> handshakeId = new Pair<>(1, "HANDSHAKE");
+    private Pair<Integer, String> conveyorId = new Pair<>(1, "CONVEYOR");
+    private Pair<Integer, String> turningId = new Pair<>(1, "TURNING");
+    private Pair<Integer, String> processEngineId = new Pair<>(1, "PROCESS_ENGINE");
+
 
     /**
      * The Server-Thread. Here we define how the server should be set up.
@@ -46,20 +54,30 @@ public class Robot {
     private void initComponents() {
         server = serverCommunication.createServer("localhost", 4840);
         robotRoot = serverCommunication.addObject(server, new RequestedNodePair<>(1, 10), "Robot");
-        Object handshakeNode = serverCommunication.createNodeString(1, "HANDSHAKE");
+        Object handshakeNode = serverCommunication.createNodeString(handshakeId.getKey(), handshakeId.getValue());
         handshakeRoot = serverCommunication.addNestedObject(getServer(), robotRoot, handshakeNode, "HANDSHAKE");
-        Object conveyorFolder = serverCommunication.createNodeString(1, "CONVEYOR");
-        serverCommunication.addNestedObject(getServer(), robotRoot, conveyorFolder, "CONVEYOR");
-        conveyorBase.setServerAndFolder(serverCommunication, server, conveyorFolder);
+        Object conveyorNode = serverCommunication.createNodeString(conveyorId.getKey(), conveyorId.getValue());
+        serverCommunication.addNestedObject(getServer(), robotRoot, conveyorNode, "CONVEYOR");
+        conveyorBase.setServerAndFolder(serverCommunication, server, conveyorNode);
         conveyorBase.addServerConfig();
-        Object turningFolder = serverCommunication.createNodeString(1, "TURNING");
-        serverCommunication.addNestedObject(getServer(), robotRoot, turningFolder, "TURNING");
-        turningBase.setServerAndFolder(serverCommunication, server, turningFolder);
+        Object turningNode = serverCommunication.createNodeString(turningId.getKey(), turningId.getValue());
+        serverCommunication.addNestedObject(getServer(), robotRoot, turningNode, "TURNING");
+        turningBase.setServerAndFolder(serverCommunication, server, turningNode);
         turningBase.addServerConfig();
-        Object processFolder = serverCommunication.createNodeString(1, "PROCESS_ENGINE");
-        serverCommunication.addNestedObject(getServer(), robotRoot, processFolder, "PROCESS_ENGINE");
-        processEngineBase.setServerAndFolder(serverCommunication, server, processFolder);
+        Object processEngineNode = serverCommunication.createNodeString(processEngineId.getKey(), processEngineId.getValue());
+        serverCommunication.addNestedObject(getServer(), robotRoot, processEngineNode, "PROCESS_ENGINE");
+        processEngineBase.setServerAndFolder(serverCommunication, server, processEngineNode);
         processEngineBase.addServerConfig();
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), robotRoot,
+                new Pair<>(1, "ROBOT_RESET"), "ROBOT_RESET", input -> {
+                    this.reset();
+                    return "Robot: Resetting Successful";
+                });
+        getServerCommunication().addStringMethod(getServerCommunication(), getServer(), robotRoot,
+                new Pair<>(1, "ROBOT_STOP"), "ROBOT_STOP", input -> {
+                    this.stop();
+                    return "Robot: Stopping Successful";
+                });
     }
 
     /**
@@ -107,35 +125,35 @@ public class Robot {
     }
 
     /**
-     * Global reset. Resets all registered functional units
+     * Global reset. Resets all registered functional units except handshake
      */
     public void reset() {
-        //TODO add to server as methods
-        //Client needs to do the calls
-        //loadingProtocolBase.reset();
-        conveyorBase.reset();
-        if (turningBase != null) {
-            turningBase.reset();
-        }
-        if (processEngineBase != null) {
-            processEngineBase.reset();
-        }
+        new Thread(() -> {
+            getClientCommunication().callStringMethod(serverUrl, conveyorId, new Pair<>(1, "CONVEYOR_RESET"), "");
+            if (turningBase != null) {
+                getClientCommunication().callStringMethod(serverUrl, turningId, new Pair<>(1, "TURNING_RESET"), "");
+            }
+            if (processEngineBase != null) {
+                getClientCommunication().callStringMethod(serverUrl, processEngineId, new Pair<>(1, "PROCESS_ENGINE_RESET"), "");
+                processEngineBase.reset();
+            }
+        }).start();
     }
 
     /**
-     * Global stop. Stops all registered functional units
+     * Global stop. Stops all registered functional units except handshake
      */
     public void stop() {
-        //TODO add to server as method
-        //Client needs to do the calls
-        //loadingProtocolBase.stop();
-        conveyorBase.stop();
-        if (turningBase != null) {
-            turningBase.stop();
-        }
-        if (processEngineBase != null) {
-            processEngineBase.stop();
-        }
+        new Thread(() -> {
+            getClientCommunication().callStringMethod(serverUrl, conveyorId, new Pair<>(1, "CONVEYOR_STOP"), "");
+            if (turningBase != null) {
+                getClientCommunication().callStringMethod(serverUrl, turningId, new Pair<>(1, "TURNING_STOP"), "");
+            }
+            if (processEngineBase != null) {
+                getClientCommunication().callStringMethod(serverUrl, processEngineId, new Pair<>(1, "PROCESS_ENGINE_STOP"), "");
+                processEngineBase.reset();
+            }
+        }).start();
     }
 
     public void addHandshakeFU(CapabilityId capabilityId, HandshakeFU handshakeFU) {
@@ -160,7 +178,7 @@ public class Robot {
     public void runServerAndClient() {
         serverThread.start();
         System.out.println("Client connecting");
-        clientCommunication.clientConnect(clientCommunication, processEngineBase.getClient(), "opc.tcp://localhost:4840/");
+        clientCommunication.clientConnect(clientCommunication, processEngineBase.getClient(), serverUrl);
     }
 
 }
