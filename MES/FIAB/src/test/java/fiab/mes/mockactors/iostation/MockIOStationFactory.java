@@ -14,14 +14,16 @@ import fiab.mes.transport.handshake.HandshakeProtocol;
 
 public class MockIOStationFactory {
 
-	public static MockIOStationFactory getMockedInputStation(ActorSystem system, ActorSelection eventBusByRef) {
-		return new MockIOStationFactory(system, true, eventBusByRef);
+	public static MockIOStationFactory getMockedInputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload) {
+		return new MockIOStationFactory(system, true, eventBusByRef, doAutoReload);
 	}
 	
-	public static MockIOStationFactory getMockedOutputStation(ActorSystem system, ActorSelection eventBusByRef) {
-		return new MockIOStationFactory(system, false, eventBusByRef);
+	public static MockIOStationFactory getMockedOutputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload) {
+		return new MockIOStationFactory(system, false, eventBusByRef, doAutoReload);
 	}
 
+	
+	public static String WRAPPER_POSTFIX = "Wrapper";
 	
 	public ActorRef machine;
 	public ActorRef wrapper;
@@ -30,10 +32,10 @@ public class MockIOStationFactory {
 	public Actor model;
 	private static AtomicInteger actorCount = new AtomicInteger();
 	
-	private MockIOStationFactory(ActorSystem system, boolean isInputStation, ActorSelection eventBusByRef) {
+	private MockIOStationFactory(ActorSystem system, boolean isInputStation, ActorSelection eventBusByRef, boolean doAutoReload) {
 		model = getDefaultIOStationActor(isInputStation);
 		intraEventBus = new InterMachineEventBus();
-		wrapper = system.actorOf(MockIOStationWrapper.props(intraEventBus, isInputStation), model.getActorName()+"Wrapper");
+		wrapper = system.actorOf(MockIOStationWrapper.props(intraEventBus, isInputStation, doAutoReload), model.getActorName()+WRAPPER_POSTFIX);
 		MockIOStationWrapperDelegate delegate = new MockIOStationWrapperDelegate(wrapper);
 		capability = isInputStation ? HandshakeProtocol.getInputStationCapability() : HandshakeProtocol.getOutputStationCapability();
 		machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, delegate, intraEventBus), model.getActorName());

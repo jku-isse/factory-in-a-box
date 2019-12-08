@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.mes.transport.old.TransportModuleWrapper;
 
 public class TurntableWrapper {
 	

@@ -17,6 +17,11 @@ public class MachineStatusUpdateEvent extends MachineUpdateEvent {
 	public Object getValue() {
 		return status;
 	}
+
+	@Override
+	public String toString() {
+		return "MachineStatusUpdateEvent [status=" + status + ", machineId=" + machineId + "]";
+	}
 	
 
 }

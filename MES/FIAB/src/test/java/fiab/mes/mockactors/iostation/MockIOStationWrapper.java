@@ -22,14 +22,16 @@ public class MockIOStationWrapper extends AbstractActor {
 	protected ActorRef serverSide;
 	protected ActorRef self;
 	protected boolean isInputStation = true;
+	protected boolean doAutoReload;
 	
-	static public Props props(InterMachineEventBus internalMachineEventBus, boolean isInputStation) {	    
-		return Props.create(MockIOStationWrapper.class, () -> new MockIOStationWrapper(internalMachineEventBus, isInputStation));
+	static public Props props(InterMachineEventBus internalMachineEventBus, boolean isInputStation, boolean doAutoReload) {	    
+		return Props.create(MockIOStationWrapper.class, () -> new MockIOStationWrapper(internalMachineEventBus, isInputStation, doAutoReload));
 	}
 	
-	public MockIOStationWrapper(InterMachineEventBus machineEventBus, boolean isInputStation) {
+	public MockIOStationWrapper(InterMachineEventBus machineEventBus, boolean isInputStation,boolean doAutoReload) {
 		this.interEventBus = machineEventBus;
 		this.isInputStation = isInputStation;
+		this.doAutoReload = doAutoReload;
 		self = getSelf();
 		if (isInputStation)
 			serverSide = getContext().actorOf(MockInputStationServerHandshakeActor.props(), "InputStationServerSideHandshakeMock"); 
@@ -62,7 +64,9 @@ public class MockIOStationWrapper extends AbstractActor {
 					    			 new Runnable() {
 					            @Override
 					            public void run() {
-					            	reloadPallet();
+					            	if (doAutoReload) {
+					            		reloadPallet();
+					            	}
 					            }
 					          }, context().system().dispatcher());
 						}
@@ -81,12 +85,12 @@ public class MockIOStationWrapper extends AbstractActor {
 	
 	private void reloadPallet() {
 		//tell handshake that the pallet is loaded if inputstation, otherwise setempty
-    	log.debug("Auto Reloading Pallet");
-    	if (isInputStation) {
-    		serverSide.tell(StateOverrideRequests.SetLoaded, self); 
-    	} else {
-    		serverSide.tell(StateOverrideRequests.SetEmpty, self); 
-    	}
+			log.debug("Auto Reloading Pallet");
+			if (isInputStation) {
+				serverSide.tell(StateOverrideRequests.SetLoaded, self); 
+			} else {
+				serverSide.tell(StateOverrideRequests.SetEmpty, self); 
+			}
 	}
 	
 }

@@ -17,6 +17,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private ActorRef serverSide;
 	private ClientSide currentState = ClientSide.Stopped;	
 	private ServerSide remoteState = null;
+	private ActorRef self;
 	
 	static public Props props(ActorRef machineWrapper, ActorRef serverSide) {	    
 		return Props.create(MockClientHandshakeActor.class, () -> new MockClientHandshakeActor(machineWrapper, serverSide));
@@ -25,7 +26,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	public MockClientHandshakeActor(ActorRef machineWrapper, ActorRef serverSide) {
 		this.machineWrapper = machineWrapper;
 		this.serverSide = serverSide;
-		
+		this.self = getSelf();
 	}
 	
 	@Override
@@ -89,12 +90,14 @@ public class MockClientHandshakeActor extends AbstractActor{
 							break;
 						case ReadyEmpty: // fallthrough
 						case ReadyLoaded:
-							requestStartHandover();
+							if (currentState.equals(ClientSide.Ready)) {
+								requestStartHandover();
+							}
 							break;
 						case Stopped: // fallthrough
 						case Stopping: // if we are in any state that would not expect a stop, then we also need to stop/abort
-							if (currentState.equals(ClientSide.Initiating) ||
-									currentState.equals(ClientSide.Initiated) ||
+							if (//currentState.equals(ClientSide.Initiating) ||
+								//	currentState.equals(ClientSide.Initiated) || //the server might not be ready yet, thus we need to wait, not stop
 									currentState.equals(ClientSide.Ready) ||
 									currentState.equals(ClientSide.Execute)	)
 								stop();
@@ -147,12 +150,12 @@ public class MockClientHandshakeActor extends AbstractActor{
 			serverSide.tell(MockServerHandshakeActor.MessageTypes.SubscribeToStateUpdates, getSelf()); //subscribe for updates
 			publishNewState(ClientSide.Initiating);
 		} else {
-			log.warning("Requested invalid command 'Start' in state: "+currentState); 
+			log.warning("was requested invalid command 'Start' in state: "+currentState); 
 		}
 	} 		
 	
 	private void requestInitiateHandover() {
-		getSender().tell(MockServerHandshakeActor.MessageTypes.RequestInitiateHandover, getSelf());
+		getSender().tell(MockServerHandshakeActor.MessageTypes.RequestInitiateHandover, self);
 	}
 	
 	private void receiveInitiateOkResponse() {
@@ -164,8 +167,10 @@ public class MockClientHandshakeActor extends AbstractActor{
             @Override
             public void run() {
             	publishNewState(ClientSide.Ready); 
-            	if (remoteState.equals(ServerSide.ReadyEmpty) || remoteState.equals(ServerSide.ReadyLoaded)) {
-            		requestStartHandover();
+            	if (remoteState.equals(ServerSide.ReadyEmpty) || remoteState.equals(ServerSide.ReadyLoaded)){
+            		// only of remote point is ready, and we are also still ready (as this is triggered some time in the future)
+            		if (currentState.equals(ClientSide.Ready))
+            			requestStartHandover();
             	} else {
             		log.info(String.format("Server %s in last known state %s not yet ready for RequestStartHandover", serverSide, remoteState));
             	}
@@ -176,10 +181,10 @@ public class MockClientHandshakeActor extends AbstractActor{
 	
 	private void  requestStartHandover() {
 		if (currentState.equals(ClientSide.Ready) ) {	
-			log.info(String.format("Requesting StartHandover from %s", getSender()));
-			serverSide.tell(MockServerHandshakeActor.MessageTypes.RequestStartHandover, getSelf());
+			log.info(String.format("Requesting StartHandover from remote %s", serverSide));
+			serverSide.tell(MockServerHandshakeActor.MessageTypes.RequestStartHandover, self);
 		} else {
-			log.warning("Requested invalid command 'StartHandover' in state: "+currentState); 
+			log.warning("was requested invalid command 'StartHandover' in state: "+currentState); 
 		}				
 	}
 	
@@ -204,7 +209,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private void stop() {
 		publishNewState(ClientSide.Stopping);
 		if (serverSide != null) {
-			serverSide.tell(MockServerHandshakeActor.MessageTypes.UnsubscribeToStateUpdates, getSelf());
+			serverSide.tell(MockServerHandshakeActor.MessageTypes.UnsubscribeToStateUpdates, self);
 		}
 		context().system()
     	.scheduler()
