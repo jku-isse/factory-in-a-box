@@ -1,4 +1,4 @@
-package fiab.mes.transport.actor;
+package fiab.mes.transport.old;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,8 +17,6 @@ import fiab.mes.transport.actor.transportmodule.TransportModuleActor;
 import fiab.mes.transport.customDataTypes.TSAListElement;
 import fiab.mes.transport.messages.COM_Transport;
 import fiab.mes.transport.messages.RegisterTransportRequest;
-import fiab.mes.transport.old.Direction;
-import fiab.mes.transport.old.TEMP_TT_Connections;
 
 public class TransportSystemActor extends AbstractActor {
 

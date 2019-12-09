@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper.SimpleMessageTypes;
-import fiab.mes.transport.actor.wrapper.TransportModuleWrapperInterface;
+import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
 import fiab.mes.transport.msg.TransportModuleRequest;
 
 public class MockTransportModuleWrapperDelegate implements TransportModuleWrapperInterface {

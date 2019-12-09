@@ -1,4 +1,4 @@
-package fiab.mes.transport.actor.wrapper;
+package fiab.mes.transport.actor.transportmodule.wrapper;
 
 import fiab.mes.transport.msg.TransportModuleRequest;
 

@@ -27,7 +27,7 @@ import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
-import fiab.mes.transport.actor.wrapper.TransportModuleWrapperInterface;
+import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
 import fiab.mes.transport.msg.TransportModuleRequest;
 
 
