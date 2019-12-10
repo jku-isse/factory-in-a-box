@@ -119,7 +119,11 @@ public class ClientAPIBase {
   }
 
   public static int ClientReadIntValue(SWIGTYPE_p_UA_Client client, UA_NodeId nodeID) {
-    return open62541JNI.ClientAPIBase_ClientReadIntValue(SWIGTYPE_p_UA_Client.getCPtr(client), UA_NodeId.getCPtr(nodeID), nodeID);
+    return open62541JNI.ClientAPIBase_ClientReadIntValue__SWIG_0(SWIGTYPE_p_UA_Client.getCPtr(client), UA_NodeId.getCPtr(nodeID), nodeID);
+  }
+
+  public static int ClientReadIntValue(String serverUrl, UA_NodeId nodeID) {
+    return open62541JNI.ClientAPIBase_ClientReadIntValue__SWIG_1(serverUrl, UA_NodeId.getCPtr(nodeID), nodeID);
   }
 
   public static int ClientWriteValue(String serverUrl, UA_NodeId nodeId, int value) {

@@ -2,7 +2,6 @@ package functionalUnits;
 
 import com.github.oxo42.stateless4j.StateMachine;
 import communication.utils.Pair;
-import communication.utils.RequestedNodePair;
 import functionalUnits.base.ProcessEngineBase;
 import stateMachines.processEngine.ProcessEngineStateMachineConfig;
 import stateMachines.processEngine.ProcessEngineStates;
@@ -39,19 +38,15 @@ public class ProcessTurnTable extends ProcessEngineBase {
         getServerCommunication().writeVariable(getServer(), statusNodeId, processEngineStateMachine.getState().getValue());
     }
 
-    private void callMethod(String serverUrl, int namespace, int objectId, int methodId, String args) {
-        getClientCommunication().callStringMethod(serverUrl, new RequestedNodePair<>(namespace, objectId),
-                new RequestedNodePair<>(namespace, methodId), args);
-        System.out.println("Method call successful");
-    }
-
-    private void waitForTargetValue(RequestedNodePair<Integer, Integer> nodeId, int targetValue) {
-        while (getClientCommunication().clientReadIntValueById(getClient(), nodeId) != targetValue) {
+    private void waitForTargetValue(String serverUrl, Pair<Integer, String> nodeId, int targetValue) {
+        int val;
+        while ((val = getClientCommunication().clientReadIntValueById(serverUrl, nodeId)) != targetValue) {
             if (isStopped()) {
                 System.out.println("Process was interrupted.");
                 return;
             }
             try {
+                System.out.println("Reading value, waiting for " + nodeId.getValue() + " to be " + targetValue + ", val is: " + val);
                 Thread.sleep(DELAY);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -68,35 +63,42 @@ public class ProcessTurnTable extends ProcessEngineBase {
         if (inputInvalid(info)) {
             System.out.println("Input not well defined");
             return;
-        }else {
-            //TODO implement this
-            System.out.println("Turning to Robot\n" +
-                    "Performing handshake\n" +
-                    "Handing over Pallete\n" +
-                    "Done");
-        }/*
+        }
         String serverUrl = info[0];
         String from = info[1];
         String to = info[2];
-        RequestedNodePair<Integer, Integer> conveyorNode = new RequestedNodePair<>(1, 56);
-        RequestedNodePair<Integer, Integer> turningNode = new RequestedNodePair<>(1, 57);
-        callMethod(serverUrl, 1, 20, 23, "");         //Reset conveyor
-        callMethod(serverUrl, 1, 30, 31, "");         //Reset turning
-        waitForTargetValue(turningNode, 0);                                 //Wait for idle turning state
-        callMethod(serverUrl, 1, 30, 33, from);            //turning turn to (random)
-        waitForTargetValue(turningNode, 0);                                 //Wait for turning complete state
-        callMethod(serverUrl, 1, 20, 21, "");         //load conveyor
-        waitForTargetValue(conveyorNode, 6);                                //wait for loaded state
-        callMethod(serverUrl, 1, 30, 31, "");         //Reset turning
-        waitForTargetValue(turningNode, 0);                                 //Wait for idle turning state
-        callMethod(serverUrl, 1, 30, 33, to);              //turning turn to (random)
-        waitForTargetValue(turningNode, 0);                                 //Wait for turning complete state
-        callMethod(serverUrl, 1, 20, 25, "");         //unload conveyor
-        waitForTargetValue(conveyorNode, 0);                                //wait for conveyor idle state
-        callMethod(serverUrl, 1, 20, 24, "");        //stop conveyor
-        waitForTargetValue(conveyorNode, 9);                               //wait for conveyor stopped state
-        callMethod(serverUrl, 1, 30, 32, "");        //stop turning
-        waitForTargetValue(turningNode, 7);                                 //wait for turning stopped state*/
+        Pair<Integer, String> conveyorNode = new Pair<>(1, "CONVEYOR");
+        Pair<Integer, String> turningNode = new Pair<>(1, "TURNING");
+        Pair<Integer, String> conveyorStateNode = new Pair<>(1, "CONVEYOR_STATE");
+        Pair<Integer, String> turningStateNode = new Pair<>(1, "TURNING_STATE");
+        //Pair<Integer, String> handShakeServerState = new Pair<>(1, "HANDSHAKE_FU_STATE");     //Reset handshake fu
+        //Wait for reset
+        //Replace resets with global reset
+        getClientCommunication().callStringMethod(serverUrl, conveyorNode, new Pair<>(1, "CONVEYOR_RESET"), "");         //Reset conveyor
+        waitForTargetValue(serverUrl,conveyorStateNode, 0);
+        getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_RESET"), "");          //Reset turning
+        waitForTargetValue(serverUrl,turningStateNode, 0);                                 //Wait for idle turning state
+        getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_TURN_TO"), from); //turning turn to (random)
+        waitForTargetValue(serverUrl,turningStateNode, 0);                                 //Wait for turning complete state
+        //Initiate handover client
+        //wait for handshake to finish
+        getClientCommunication().callStringMethod(serverUrl, conveyorNode, new Pair<>(1, "CONVEYOR_LOAD"), "");         //load conveyor
+        waitForTargetValue(serverUrl,conveyorStateNode, 6);                                //wait for loaded state
+        //Stop handshake
+        //Reset handshake
+        getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_RESET"), "");
+        waitForTargetValue(serverUrl,turningStateNode, 0);                                 //Wait for idle turning state
+        getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_TURN_TO"), to);           //turning turn to (random)
+        waitForTargetValue(serverUrl,turningStateNode, 0);                                 //Wait for turning complete state
+        //initiate handover client
+        //wait for handshake to finish
+        getClientCommunication().callStringMethod(serverUrl, conveyorNode, new Pair<>(1, "CONVEYOR_UNLOAD"), "");      //unload conveyor
+        waitForTargetValue(serverUrl,conveyorStateNode, 0);                                //wait for conveyor idle state
+        getClientCommunication().callStringMethod(serverUrl, conveyorNode, new Pair<>(1, "CONVEYOR_STOP"), "");       //stop conveyor
+        waitForTargetValue(serverUrl,conveyorStateNode, 9);                               //wait for conveyor stopped state
+        getClientCommunication().callStringMethod(serverUrl, turningNode, new Pair<>(1, "TURNING_STOP"), "");        //stop turning
+        waitForTargetValue(serverUrl,turningStateNode, 7);                                 //wait for turning stopped state*/
+        //Stop handshake
     }
 
     /**

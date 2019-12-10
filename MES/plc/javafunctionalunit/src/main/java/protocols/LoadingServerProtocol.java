@@ -28,42 +28,40 @@ public class LoadingServerProtocol {
         conveyorOccupied = false; // 0 for Idle
     }
 
-    public LoadingServerProtocol(ServerCommunication serverCommunication, Object server, Object parentObject) {
+    public LoadingServerProtocol(ServerCommunication serverCommunication, Object server, Object parentObject,String nodePrefix) {
         conveyorOccupied = false; // 0 for Idle
 
         this.serverCommunication = serverCommunication;
         this.opcua_server = server;
         this.parentObject = parentObject;
-        state_nodeid = serverCommunication.addStringVariableNode(opcua_server, parentObject, new Pair<>(1, "LOADING_SERVER_STATE"), "STATE");
+        state_nodeid = serverCommunication.addStringVariableNode(opcua_server, parentObject, new Pair<>(1, nodePrefix+"_LOADING_SERVER_STATE"), "STATE");
 
 
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_INIT_HANDOVER"), "REQUEST_INIT_HANDOVER",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, nodePrefix+"REQUEST_INIT_HANDOVER"), "REQUEST_INIT_HANDOVER",
                 opcuaMethodInput -> {
                     return request_init_handover();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_INIT_UNLOADING"), "REQUEST_INIT_UNLOADING",
-                opcuaMethodInput -> {
-                    return request_init_Unloading();
-                });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_START_HANDOVER"), "REQUEST_START_HANDOVER",
+
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, nodePrefix+"REQUEST_START_HANDOVER"), "REQUEST_START_HANDOVER",
                 opcuaMethodInput -> {
                     return request_start_handover();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "REQUEST_START_UNLOADING"), "REQUEST_START_UNLOADING",
-                opcuaMethodInput -> {
-                    return request_start_Unloading();
-                });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "LOADING_SERVER_COMPLETE"), "COMPLETE",
+
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, nodePrefix+"LOADING_SERVER_COMPLETE"), "COMPLETE",
                 opcuaMethodInput -> {
                     return complete();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "LOADING_SERVER_RESET"), "RESET",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, nodePrefix+"LOADING_SERVER_RESET"), "RESET",
                 opcuaMethodInput -> {
                     return reset();
                 });
-        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, "LOADING_SERVER_STOP"), "STOP",
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, nodePrefix+"LOADING_SERVER_STOP"), "STOP",
                 opcuaMethodInput -> {
                     return stop();
+                });
+        serverCommunication.addStringMethod(serverCommunication, server, parentObject, new Pair<>(1, nodePrefix+"LOADING_SERVER_READY"), "READY",
+                opcuaMethodInput -> {
+                    return ready();
                 });
     }
 
@@ -189,7 +187,9 @@ public class LoadingServerProtocol {
             changeState(ServerLoadingStates.READY_LOADED);
         }
     }
-
+    private String ready() {
+        return "";
+    }
     private void ready_loaded() {
     }
 
