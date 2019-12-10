@@ -1,4 +1,4 @@
-package fiab.mes.machine.actor.plotter;
+package fiab.mes.transport.actor.transportmodule;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,30 +27,30 @@ import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
+import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
+import fiab.mes.transport.msg.TransportModuleRequest;
 
 
-public class BasicMachineActor extends AbstractActor{
+public class BasicTransportModuleActor extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machineId;
 	protected AbstractCapability cap;
 	protected MachineStatus currentState;
-	protected PlottingMachineWrapperInterface hal;
+	protected TransportModuleWrapperInterface hal;
 	protected InterMachineEventBus intraBus;
 	
-	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
-	private String lastOrder;
-	protected RegisterProcessStepRequest reservedForOrder = null;
+	protected TransportModuleRequest reservedForTReq = null;
 	
 	private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
 	
-	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, InterMachineEventBus intraBus) {	    
-		return Props.create(BasicMachineActor.class, () -> new BasicMachineActor(machineEventBus, cap, modelActor, hal, intraBus));
+	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, InterMachineEventBus intraBus) {	    
+		return Props.create(BasicTransportModuleActor.class, () -> new BasicTransportModuleActor(machineEventBus, cap, modelActor, hal, intraBus));
 	}
 	
-	public BasicMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, InterMachineEventBus intraBus) {
+	public BasicTransportModuleActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, InterMachineEventBus intraBus) {
 		this.cap = cap;
 		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;
@@ -63,25 +63,21 @@ public class BasicMachineActor extends AbstractActor{
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-		        .match(RegisterProcessStepRequest.class, registerReq -> {
-		        	orders.add(registerReq);
-		        	log.info(String.format("Job %s of Order %s registered.", registerReq.getProcessStepId(), registerReq.getRootOrderId()));
-		        	checkIfAvailableForNextOrder();
-		        } )
-		        .match(LockForOrder.class, lockReq -> {
-		        	log.info("received LockForOrder msg "+lockReq.getStepId()+", current state: "+currentState);
-		        	if (currentState == MachineStatus.IDLE) {
-		        		hal.plot("", ""); // TODO pass on the correct values
-		        		//TODO: here we assume correct invocation: thus on overtaking etc, will be improved later
+		        .match(TransportModuleRequest.class, req -> {
+		        	if (currentState.equals(MachineStatus.IDLE)) {
+		        		setAndPublishSensedState(MachineStatus.STARTING);
+		        		reservedForTReq = req;
+		        		//TODO: ideally we would check if the requests directions encoded in the capabilities are indeed found on this transportmodule
+		        		hal.transport(req);
 		        	} else {
-		        		log.warning("Received lock for order in state: "+currentState);
+		        		//FIXME: respond with error message that we are not in the right state for request
 		        	}
 		        })
 		        .match(MachineStatusUpdateEvent.class, mue -> {
 		        	processMachineUpdateEvent(mue);
 		        })
 		        .match(MachineHistoryRequest.class, req -> {
-		        	log.info(String.format("Machine %s received MachineHistoryRequest", machineId.getId()));
+		        	log.info(String.format("TransportModule %s received MachineHistoryRequest", machineId.getId()));
 		        	List<MachineEvent> events = req.shouldResponseIncludeDetails() ? externalHistory :	externalHistory.stream().map(event -> event.getCloneWithoutDetails()).collect(Collectors.toList());
 		        	MachineHistoryRequest.Response response = new MachineHistoryRequest.Response(machineId.getId(), events, req.shouldResponseIncludeDetails());
 		        	sender().tell(response, getSelf());
@@ -97,18 +93,17 @@ public class BasicMachineActor extends AbstractActor{
 	
 	private void processMachineUpdateEvent(MachineStatusUpdateEvent mue) {
 		if (mue.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) {
-			MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
+			MachineStatus newState = mue.getStatus();
 			setAndPublishSensedState(newState);
 			switch(newState) {
 			case COMPLETE:
-				reservedForOrder = null;
+				reservedForTReq = null;
 				break;
 			case COMPLETING:
 				break;
 			case EXECUTE:
 				break;
 			case IDLE:
-				checkIfAvailableForNextOrder();
 				break;
 			case RESETTING:
 				break;
@@ -127,27 +122,19 @@ public class BasicMachineActor extends AbstractActor{
 	}
 	
 	private void setAndPublishSensedState(MachineStatus newState) {
-		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, lastOrder);
+		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, reservedForTReq.getOrderId());
 		log.debug(msg);
-		this.currentState = newState;
-		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, msg, newState);
-		tellEventBus(mue);
+		if (currentState != newState) {
+			this.currentState = newState;
+			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, msg, newState);
+			tellEventBus(mue);
+		}
 	}
 	
 	private void tellEventBus(MachineUpdateEvent mue) {
 		externalHistory.add(mue);
 		eventBusByRef.tell(mue, self());
 	}
-	
-	private void checkIfAvailableForNextOrder() {
-		log.debug(String.format("Checking if %s is IDLE: %s", this.machineId.getId(), this.currentState));
-		if (currentState == MachineStatus.IDLE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
-			RegisterProcessStepRequest ror = orders.remove(0);
-			lastOrder = ror.getRootOrderId();
-			log.info("Ready for next Order: "+ror.getRootOrderId());
-			reservedForOrder = ror; 
-    		ror.getRequestor().tell(new ReadyForProcessEvent(ror), getSelf());
-    	}	
-	}	
+		
 	
 }

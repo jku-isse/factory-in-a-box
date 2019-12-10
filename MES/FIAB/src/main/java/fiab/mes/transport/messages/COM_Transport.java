@@ -1,7 +1,7 @@
 
 package fiab.mes.transport.messages;
 
-import fiab.mes.transport.mockClasses.Direction;
+import fiab.mes.transport.old.Direction;
 
 public class COM_Transport {
 	private Direction from;
