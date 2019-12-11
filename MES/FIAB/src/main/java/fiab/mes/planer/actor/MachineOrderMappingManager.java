@@ -157,7 +157,7 @@ public class MachineOrderMappingManager {
 	private List<AkkaActorBackedCoreModelAbstractActor> getMachinesInState(String state) {
 		return moms.values().stream()
 				.filter(mapping -> {
-					return mapping.getLastMachineState().getStatus().equals(state);
+					return mapping.getLastMachineState().getStatus().toString().equals(state);
 				})
 				.map(mapping -> {
 					return mapping.getMachine();
@@ -252,7 +252,7 @@ public class MachineOrderMappingManager {
 		public void setLastMachineState(MachineStatusUpdateEvent lastMachineState) {
 			if (lastMachineState.getParameterName().equals(STATE_VAR_NAME)) { // only update the state of the machine
 				this.lastMachineState = lastMachineState;		
-				if (lastMachineState.getStatus().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
+				if (lastMachineState.getStatus().toString().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
 					this.allocationState = AssignmentState.NONE;
 					this.orderId = null;
 				}

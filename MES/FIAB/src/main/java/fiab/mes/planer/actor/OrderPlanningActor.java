@@ -259,7 +259,7 @@ public class OrderPlanningActor extends AbstractActor{
 			// will only process event if the parameter changes is "STATE"
 			ordMapper.updateMachineStatus(machine, mue);
 			if (mue.getParameterName().equals(MachineOrderMappingManager.STATE_VAR_NAME)) {
-				if (mue.getStatus().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
+				if (mue.getStatus().toString().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
 					// if idle --> machine ready --> lets check if any order is waiting for that machine
 					ordMapper.getPausedProcessesOnSomeMachine().stream()
 						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
@@ -270,7 +270,7 @@ public class OrderPlanningActor extends AbstractActor{
 						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
 					
 					//if none, then just wait for next incoming event
-				} else if (mue.getStatus().equals(MachineOrderMappingManager.COMPLETING_STATE_VALUE)) {
+				} else if (mue.getStatus().toString().equals(MachineOrderMappingManager.COMPLETING_STATE_VALUE)) {
 					// TODO: step done, now update the process, so which step has been completed?
 					// we cannot rely on ProductionCompletionevent as there could be a race condition which event arrives first
 					
@@ -286,7 +286,7 @@ public class OrderPlanningActor extends AbstractActor{
 							 orderEventBus.tell(opue, ActorRef.noSender());
 							 } );
 						tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()); });
-				} else if (mue.getStatus().equals(MachineOrderMappingManager.PRODUCING_STATE_VALUE)) {
+				} else if (mue.getStatus().toString().equals(MachineOrderMappingManager.PRODUCING_STATE_VALUE)) {
 					// now update mapping that order has arrived at that machine and is loaded
 					ordMapper.confirmOrderAtMachine(machine);
 				}
