@@ -23,6 +23,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
+import fiab.opcua.hardwaremock.methods.BlankMethod;
 import fiab.opcua.hardwaremock.methods.Methods;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
@@ -34,29 +35,30 @@ public class InputStationMock extends ManagedNamespace implements Runnable{
 
 	private UaFolderNode rootNode = null;
 	private OpcUaServer server;
+	private Methods method;
 	
-	public static void main(String args[]) throws Exception{
-		BaseOpcUaServer server1 = new BaseOpcUaServer(0);
-		InputStationMock ism1 = new InputStationMock(server1.getServer(), NAMESPACE_URI);
-		BaseOpcUaServer server2 = new BaseOpcUaServer(1);
-		InputStationMock ism2 = new InputStationMock(server2.getServer(), NAMESPACE_URI);
-		//differentiate in/out
-		Thread s1 = new Thread(ism1);
-		Thread s2 = new Thread(ism2);
-		s1.start();
-		s2.start();
-	}
+//	public static void main(String args[]) throws Exception{
+//		BaseOpcUaServer server1 = new BaseOpcUaServer(0);
+//		InputStationMock ism1 = new InputStationMock(server1.getServer(), NAMESPACE_URI);
+//		BaseOpcUaServer server2 = new BaseOpcUaServer(1);
+//		InputStationMock ism2 = new InputStationMock(server2.getServer(), NAMESPACE_URI);
+//		//differentiate in/out
+//		Thread s1 = new Thread(ism1);
+//		Thread s2 = new Thread(ism2);
+//		s1.start();
+//		s2.start();
+//	}
 	
 	public void run() {
 		
 		startup();
 		UaFolderNode handshakeNode = generateFolder(rootNode, "InputStationMachine", "HANDSHAKE_FU");
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "COMPLETE", );
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "STOP");
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "RESET");
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "READY");
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "INIT_HANDOVER");
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "START_HANDOVER");
+		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "COMPLETE", new BlankMethod());
+		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "STOP", method);
+		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "RESET", new BlankMethod());
+		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "READY", new BlankMethod());
+		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "INIT_HANDOVER", new BlankMethod());
+		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "START_HANDOVER", new BlankMethod());
 		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, "InputStationMachine/HANDSHAKE_FU", new String("CAPABILITIES"));
 		UaFolderNode capability1 = generateFolder(capabilitiesFolder, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES", "CAPABILITY");
 		UaFolderNode capability2 = generateFolder(capabilitiesFolder, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES", "CAPABILITY");
@@ -93,8 +95,9 @@ public class InputStationMock extends ManagedNamespace implements Runnable{
 	static final String NAMESPACE_URI = "urn:factory-in-a-box";
 	private final SubscriptionModel subscriptionModel;
 
-	public InputStationMock(OpcUaServer server, String namespaceUri) {
+	public InputStationMock(OpcUaServer server, String namespaceUri, Methods method) {
 		super(server, namespaceUri);
+		this.method = method;
 		this.server = server;
 		subscriptionModel = new SubscriptionModel(server, this);
 	}
