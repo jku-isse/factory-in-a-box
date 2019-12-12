@@ -23,20 +23,25 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
+import akka.actor.ActorRef;
 import fiab.opcua.hardwaremock.methods.BlankMethod;
 import fiab.opcua.hardwaremock.methods.Methods;
+import fiab.opcua.hardwaremock.methods.StopMethod;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ulong;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
-public class InputStationMock extends ManagedNamespace implements Runnable{
+public class InputStationMock extends ManagedNamespace implements Runnable {
 
 	private UaFolderNode rootNode = null;
 	private OpcUaServer server;
-	private Methods method;
+	private ActorRef actor;
+	private UaVariableNode status = null;
 	
+	//Start init etc erstellen & testen
+
 //	public static void main(String args[]) throws Exception{
 //		BaseOpcUaServer server1 = new BaseOpcUaServer(0);
 //		InputStationMock ism1 = new InputStationMock(server1.getServer(), NAMESPACE_URI);
@@ -48,27 +53,35 @@ public class InputStationMock extends ManagedNamespace implements Runnable{
 //		s1.start();
 //		s2.start();
 //	}
-	
+
 	public void run() {
-		
+
 		startup();
 		UaFolderNode handshakeNode = generateFolder(rootNode, "InputStationMachine", "HANDSHAKE_FU");
 		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "COMPLETE", new BlankMethod());
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "STOP", method);
+		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "STOP", new StopMethod(actor));
 		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "RESET", new BlankMethod());
 		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "READY", new BlankMethod());
 		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "INIT_HANDOVER", new BlankMethod());
 		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "START_HANDOVER", new BlankMethod());
-		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, "InputStationMachine/HANDSHAKE_FU", new String("CAPABILITIES"));
-		UaFolderNode capability1 = generateFolder(capabilitiesFolder, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES", "CAPABILITY");
-		UaFolderNode capability2 = generateFolder(capabilitiesFolder, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES", "CAPABILITY");
-		generateStateVariableNode(capability1, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY", "ID", new String("DefaultHandshake"));
-		generateStateVariableNode(capability1, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY", "TYPE", new String("DEFAULT"));
-		generateStateVariableNode(capability1, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY", "Provided", true);
-		generateStateVariableNode(capability2, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY", "TYPE", new String("http://fiab.actors/InputStation"));
+		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, "InputStationMachine/HANDSHAKE_FU",
+				new String("CAPABILITIES"));
+		UaFolderNode capability1 = generateFolder(capabilitiesFolder, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES",
+				"CAPABILITY");
+		UaFolderNode capability2 = generateFolder(capabilitiesFolder, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES",
+				"CAPABILITY");
+		generateStateVariableNode(capability1, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY", "ID",
+				new String("DefaultHandshake"));
+		generateStateVariableNode(capability1, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY", "TYPE",
+				new String("DEFAULT"));
+		generateStateVariableNode(capability1, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY", "Provided",
+				true);
+		generateStateVariableNode(capability2, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY", "TYPE",
+				new String("http://fiab.actors/InputStation"));
 		generateStateVariableNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "STATE", new String("READY"));
 		try {
 			server.startup().get();
+			actor.tell(this, ActorRef.noSender());
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -80,7 +93,7 @@ public class InputStationMock extends ManagedNamespace implements Runnable{
 		final CompletableFuture<Void> future = new CompletableFuture<>();
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> future.complete(null)));
-
+		
 		try {
 			future.get();
 		} catch (InterruptedException e) {
@@ -90,15 +103,16 @@ public class InputStationMock extends ManagedNamespace implements Runnable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
-	
+
 	static final String NAMESPACE_URI = "urn:factory-in-a-box";
 	private final SubscriptionModel subscriptionModel;
 
-	public InputStationMock(OpcUaServer server, String namespaceUri, Methods method) {
+	public InputStationMock(OpcUaServer server, String namespaceUri, ActorRef actor) {
 		super(server, namespaceUri);
-		this.method = method;
 		this.server = server;
+		this.actor = actor;
 		subscriptionModel = new SubscriptionModel(server, this);
 	}
 
@@ -109,110 +123,87 @@ public class InputStationMock extends ManagedNamespace implements Runnable{
 		// Create a root folder and add it to the node manager
 		NodeId folderNodeId = newNodeId("InputStationMachine");
 
-		UaFolderNode folderNode = new UaFolderNode(
-				getNodeContext(),
-				folderNodeId,
-				newQualifiedName("InputStationMachine"),
-				LocalizedText.english("InputStationMachine")
-				);
+		UaFolderNode folderNode = new UaFolderNode(getNodeContext(), folderNodeId,
+				newQualifiedName("InputStationMachine"), LocalizedText.english("InputStationMachine"));
 
 		getNodeManager().addNode(folderNode);
 
 		// Make sure our new folder shows up under the server's Objects folder.
-		folderNode.addReference(new Reference(
-				folderNode.getNodeId(),
-				Identifiers.Organizes,
-				Identifiers.ObjectsFolder.expanded(),
-				false
-				));
-		
-		//TODO check if necessary
+		folderNode.addReference(new Reference(folderNode.getNodeId(), Identifiers.Organizes,
+				Identifiers.ObjectsFolder.expanded(), false));
+
+		// TODO check if necessary
 //		generateCapabilitiesFolder(folderNode, "InputStationMachine", "CAPABILITIES");
 //		
 //		generateStateVariableNode(folderNode, "InputStationMachine", "STATE");
-		
+
 		rootNode = folderNode;
+		actor.tell(this, ActorRef.noSender());
 	}
-	 
+
 	private UaFolderNode generateFolder(UaFolderNode rootNode, String nodeIdPrefix, String folderName) {
-		
-		UaFolderNode folder = new UaFolderNode(
-	            getNodeContext(),
-	            newNodeId(nodeIdPrefix+"/" + folderName),
-	            newQualifiedName(folderName), //add different id
-	            LocalizedText.english(folderName)
-	        );
 
-	        getNodeManager().addNode(folder);
-	        rootNode.addOrganizes(folder);		
-	        return folder;
+		UaFolderNode folder = new UaFolderNode(getNodeContext(), newNodeId(nodeIdPrefix + "/" + folderName),
+				newQualifiedName(folderName), // add different id
+				LocalizedText.english(folderName));
+
+		getNodeManager().addNode(folder);
+		rootNode.addOrganizes(folder);
+		return folder;
 	}
-	
+
 	private void addMethodNode(UaFolderNode folderNode, String nodeIdPrefix, String name, Methods method) {
-        UaMethodNode methodNode = UaMethodNode.builder(this.getNodeContext())
-            .setNodeId(newNodeId(nodeIdPrefix + "/" + name))
-            .setBrowseName(newQualifiedName(name))
-            .setDisplayName(new LocalizedText(null, name))
-            .setDescription(
-                LocalizedText.english("Prints first letter of a string"))
-            .build();
+		UaMethodNode methodNode = UaMethodNode.builder(this.getNodeContext())
+				.setNodeId(newNodeId(nodeIdPrefix + "/" + name)).setBrowseName(newQualifiedName(name))
+				.setDisplayName(new LocalizedText(null, name))
+				.setDescription(LocalizedText.english("Prints first letter of a string")).build();
 
+		try {
+			AnnotationBasedInvocationHandler invocationHandler = AnnotationBasedInvocationHandler
+					.fromAnnotatedObject(this.getServer(), method);
 
-        try {
-            AnnotationBasedInvocationHandler invocationHandler =
-                AnnotationBasedInvocationHandler.fromAnnotatedObject(
-                   	this.getServer(), method);
+			methodNode.setProperty(UaMethodNode.InputArguments, invocationHandler.getInputArguments());
+			methodNode.setProperty(UaMethodNode.OutputArguments, invocationHandler.getOutputArguments());
+			methodNode.setInvocationHandler(invocationHandler);
 
-            methodNode.setProperty(UaMethodNode.InputArguments, invocationHandler.getInputArguments());
-            methodNode.setProperty(UaMethodNode.OutputArguments, invocationHandler.getOutputArguments());
-            methodNode.setInvocationHandler(invocationHandler);
+			getNodeManager().addNode(methodNode);
 
-            getNodeManager().addNode(methodNode);
+			folderNode.addReference(new Reference(folderNode.getNodeId(), Identifiers.HasComponent,
+					methodNode.getNodeId().expanded(), methodNode.getNodeClass(), true));
 
-            folderNode.addReference(new Reference(
-                folderNode.getNodeId(),
-                Identifiers.HasComponent,
-                methodNode.getNodeId().expanded(),
-                methodNode.getNodeClass(),
-                true
-            ));
-
-            methodNode.addReference(new Reference(
-                methodNode.getNodeId(),
-                Identifiers.HasComponent,
-                folderNode.getNodeId().expanded(),
-                folderNode.getNodeClass(),
-                false
-            ));
-            folderNode.addOrganizes(methodNode);
-        } catch (Exception e) {
-           	System.out.println("Error occured during creation of " + name + " method!");
-        }
-    }
-	
-	private void generateStateVariableNode(UaFolderNode rootFolder, String nodeIdPrefix, String varName, Object value) {
-        /*String name = "State";*/ String name = varName;
-		UaVariableNode node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext())
-                .setNodeId(newNodeId(nodeIdPrefix+"/" + name))
-                .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
-                .setUserAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
-                .setBrowseName(newQualifiedName(name))
-                .setDisplayName(LocalizedText.english(name))
-                .setDataType(Identifiers.String)
-                .setTypeDefinition(Identifiers.BaseDataVariableType)
-                .build();
-
-            node.setValue(new DataValue(new Variant(value)));
-            
-
-           // node.setAttributeDelegate(new ValueLoggingDelegate());
-
-            getNodeManager().addNode(node);
-            rootFolder.addOrganizes(node);
+			methodNode.addReference(new Reference(methodNode.getNodeId(), Identifiers.HasComponent,
+					folderNode.getNodeId().expanded(), folderNode.getNodeClass(), false));
+			folderNode.addOrganizes(methodNode);
+		} catch (Exception e) {
+			System.out.println("Error occured during creation of " + name + " method!");
+		}
 	}
-	
-	
-	
+
+	public void setStatusValue(String newStatus) {
+		if(status != null) {
+			status.setValue(new DataValue(new Variant(newStatus)));
+		}
+	}
+
+	private void generateStateVariableNode(UaFolderNode rootFolder, String nodeIdPrefix, String varName, Object value) {
+		/* String name = "State"; */ String name = varName;
+		UaVariableNode node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext())
+				.setNodeId(newNodeId(nodeIdPrefix + "/" + name))
+				.setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
+				.setUserAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
+				.setBrowseName(newQualifiedName(name)).setDisplayName(LocalizedText.english(name))
+				.setDataType(Identifiers.String).setTypeDefinition(Identifiers.BaseDataVariableType).build();
+
+		node.setValue(new DataValue(new Variant(value)));
+		if (varName.equals("STATUS"))
+			status = node;
+
+		// node.setAttributeDelegate(new ValueLoggingDelegate());
+
+		getNodeManager().addNode(node);
+		rootFolder.addOrganizes(node);
+	}
+
 	@Override
 	public void onDataItemsCreated(List<DataItem> dataItems) {
 		subscriptionModel.onDataItemsCreated(dataItems);
@@ -220,7 +211,7 @@ public class InputStationMock extends ManagedNamespace implements Runnable{
 
 	@Override
 	public void onDataItemsModified(List<DataItem> dataItems) {
-        subscriptionModel.onDataItemsModified(dataItems);
+		subscriptionModel.onDataItemsModified(dataItems);
 	}
 
 	@Override
@@ -230,7 +221,7 @@ public class InputStationMock extends ManagedNamespace implements Runnable{
 
 	@Override
 	public void onMonitoringModeChanged(List<MonitoredItem> monitoredItems) {
-		subscriptionModel.onMonitoringModeChanged(monitoredItems);		
-	}	
-	
+		subscriptionModel.onMonitoringModeChanged(monitoredItems);
+	}
+
 }

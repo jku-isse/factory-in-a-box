@@ -12,6 +12,7 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.opcua.hardwaremock.InputStationMock;
 
 
 public class MockServerHandshakeActor extends AbstractActor{
@@ -24,6 +25,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 	protected ActorRef self;
 	protected Set<ActorRef> subscribers = new HashSet<ActorRef>();
 	protected boolean doAutoComplete = false;
+	private InputStationMock ism = null;
 	
 	static public Props props(ActorRef machineWrapper, boolean doAutoComplete) {	    
 		return Props.create(MockServerHandshakeActor.class, () -> new MockServerHandshakeActor(machineWrapper, doAutoComplete));
@@ -84,6 +86,9 @@ public class MockServerHandshakeActor extends AbstractActor{
 						break;
 					}
 				})
+				.match(InputStationMock.class, ism -> {
+					this.ism = ism;
+				})
 				.matchAny(msg -> { 
 					log.warning("Unexpected Message received: "+msg.toString()); })
 		        .build();
@@ -93,6 +98,9 @@ public class MockServerHandshakeActor extends AbstractActor{
 		currentState = newState;
 		if (machineWrapper != null) {
 			machineWrapper.tell(newState, self);
+		}
+		if(ism != null) {
+			ism.setStatusValue(newState.name());
 		}
 		ImmutableSet.copyOf(subscribers).stream().forEach(sub -> sub.tell(newState, self));
 	}
@@ -105,7 +113,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 		}
 	}
 	
-	protected void reset() {;
+	protected void reset() {
 		publishNewState(ServerSide.Resetting);
 		context().system()
     	.scheduler()
