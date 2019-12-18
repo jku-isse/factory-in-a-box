@@ -16,12 +16,13 @@ public class MockOpc2Actor {
 		
 		BaseOpcUaServer server1 = new BaseOpcUaServer(0);
 		InputStationMock ism1 = new InputStationMock(server1.getServer(), NAMESPACE_URI, actor);
+		ism1.run();
 //		BaseOpcUaServer server2 = new BaseOpcUaServer(1);
 //		InputStationMock ism2 = new InputStationMock(server2.getServer(), NAMESPACE_URI, method, actor);
 		// differentiate in/out
-		Thread s1 = new Thread(ism1);
+//		Thread s1 = new Thread(ism1);
 //		Thread s2 = new Thread(ism2);
-		s1.start();
+//		s1.start();
 //		s2.start();
 	}
 }
