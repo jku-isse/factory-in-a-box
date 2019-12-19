@@ -22,6 +22,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
 import akka.actor.ActorRef;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.opcua.hardwaremock.methods.BlankMethod;
 import fiab.opcua.hardwaremock.methods.CompleteMethod;
 import fiab.opcua.hardwaremock.methods.Methods;
@@ -37,6 +38,7 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 	private OpcUaServer server;
 	private ActorRef actor;
 	private UaVariableNode status = null;
+	private String machineName;
 	
 	//Start init etc erstellen & testen
 
@@ -55,28 +57,32 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 	public void run() {
 
 		startup();
-		UaFolderNode handshakeNode = generateFolder(rootNode, "InputStationMachine", "HANDSHAKE_FU");
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "COMPLETE", new CompleteMethod(actor));
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "STOP", new StopMethod(actor));
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "RESET", new ResetMethod(actor));
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "READY", new ReadyEmptyMethod(actor));
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "INIT_HANDOVER", new BlankMethod()); //Fragen
-		addMethodNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "START_HANDOVER", new BlankMethod()); //Fragen
-		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, "InputStationMachine/HANDSHAKE_FU",
+		UaFolderNode handshakeNode = generateFolder(rootNode, machineName, "HANDSHAKE_FU");
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "COMPLETE", new CompleteMethod(actor));
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "STOP", new StopMethod(actor));
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "RESET", new ResetMethod(actor));
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "READY", new ReadyEmptyMethod(actor));
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "INIT_HANDOVER", new BlankMethod()); //Fragen
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "START_HANDOVER", new BlankMethod()); //Fragen
+		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, machineName + "/HANDSHAKE_FU",
 				new String("CAPABILITIES"));
-		UaFolderNode capability1 = generateFolder(capabilitiesFolder, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES",
+		UaFolderNode capability1 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/CAPABILITIES",
 				"CAPABILITY1", "CAPABILITY");
-		UaFolderNode capability2 = generateFolder(capabilitiesFolder, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES",
+		UaFolderNode capability2 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/CAPABILITIES",
 				"CAPABILITY2", "CAPABILITY");
-		generateStateVariableNode(capability1, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "ID",
+		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "ID",
 				new String("DefaultHandshake"));
-		generateStateVariableNode(capability1, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "TYPE",
+		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "TYPE",
 				new String("DEFAULT"));
-		generateStateVariableNode(capability1, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "Provided",
+		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "Provided",
 				true);
-		generateStateVariableNode(capability2, "InputStationMachine/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "TYPE",
-				new String("http://fiab.actors/InputStation"));
-		generateStateVariableNode(handshakeNode, "InputStationMachine/HANDSHAKE_FU", "STATE", new String("READY"));
+		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "TYPE",
+				new String("http://fiab.actors/" + machineName));
+		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "ID",
+				new String("DefaultHandshake"));
+		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "Provided",
+				true);
+		status = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", "STATE", ServerSide.Stopped); //init right
 		try {
 			server.startup().get();
 			actor.tell(this, ActorRef.noSender());
@@ -103,11 +109,12 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 	static final String NAMESPACE_URI = "urn:factory-in-a-box";
 	private final SubscriptionModel subscriptionModel;
 
-	public InputStationMock(OpcUaServer server, String namespaceUri, ActorRef actor) {
+	public InputStationMock(OpcUaServer server, String namespaceUri, String machineName, ActorRef actor) {
 		super(server, namespaceUri);
 		this.server = server;
 		this.actor = actor;
 		subscriptionModel = new SubscriptionModel(server, this);
+		this.machineName = machineName;
 	}
 
 	@Override
@@ -115,10 +122,10 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 		super.onStartup();
 
 		// Create a root folder and add it to the node manager
-		NodeId folderNodeId = newNodeId("InputStationMachine");
+		NodeId folderNodeId = newNodeId(machineName);
 
 		UaFolderNode folderNode = new UaFolderNode(getNodeContext(), folderNodeId,
-				newQualifiedName("InputStationMachine"), LocalizedText.english("InputStationMachine"));
+				newQualifiedName(machineName), LocalizedText.english(machineName));
 
 		getNodeManager().addNode(folderNode);
 
@@ -159,7 +166,7 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 				.setNodeId(newNodeId(nodeIdPrefix + "/" + id))
 				.setBrowseName(newQualifiedName(name))
 				.setDisplayName(new LocalizedText(null, name))
-				.setDescription(LocalizedText.english("Prints first letter of a string")).build();
+				.setDescription(LocalizedText.english(method.getInfo())).build();
 
 		try {
 			AnnotationBasedInvocationHandler invocationHandler = AnnotationBasedInvocationHandler
@@ -189,7 +196,7 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 		}
 	}
 
-	private void generateStateVariableNode(UaFolderNode rootFolder, String nodeIdPrefix, String varName, Object value) {
+	private UaVariableNode generateStateVariableNode(UaFolderNode rootFolder, String nodeIdPrefix, String varName, Object value) {
 		/* String name = "State"; */ String name = varName;
 		UaVariableNode node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext())
 				.setNodeId(newNodeId(nodeIdPrefix + "/" + name))
@@ -198,7 +205,7 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 				.setBrowseName(newQualifiedName(name)).setDisplayName(LocalizedText.english(name))
 				.setDataType(Identifiers.String).setTypeDefinition(Identifiers.BaseDataVariableType).build();
 
-		node.setValue(new DataValue(new Variant(value)));
+		node.setValue(new DataValue(new Variant(value.toString())));
 		if (varName.equals("STATUS"))
 			status = node;
 
@@ -206,6 +213,7 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 
 		getNodeManager().addNode(node);
 		rootFolder.addOrganizes(node);
+		return node;
 	}
 
 	@Override

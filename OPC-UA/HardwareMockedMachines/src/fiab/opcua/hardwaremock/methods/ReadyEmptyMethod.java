@@ -12,8 +12,13 @@ private ActorRef actor;
 
 	@Override
 	public void invoke() {
-		System.out.println("STOP GOT INVOKED");
-		actor.tell(ServerSide.ReadyEmpty, ActorRef.noSender());
+		System.out.println("READY_EMPTY GOT INVOKED");
+		actor.tell(ServerSide.ReadyEmpty, ActorRef.noSender()); //TODO serverside is not correct! MessageTypes.Ready not existing
+	}
+	
+	@Override
+	public String getInfo() {
+		return "This method signals Ready Empty!";
 	}
 
 }

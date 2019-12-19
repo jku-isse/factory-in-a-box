@@ -12,8 +12,13 @@ private ActorRef actor;
 
 	@Override
 	public void invoke() {
-		System.out.println("STOP GOT INVOKED");
+		System.out.println("READY_LOADED GOT INVOKED");
 		actor.tell(ServerSide.ReadyEmpty, ActorRef.noSender());
+	}
+
+	@Override
+	public String getInfo() {
+		return "This method signals Ready Loaded!";
 	}
 
 }
