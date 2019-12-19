@@ -46,7 +46,7 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.mes.transport.msg.TransportModuleRequest;
+import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
@@ -109,7 +109,7 @@ public class TestMockTransportModuleWrapper {
 					logEvent(mue);
 					MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
 					if (newState.equals(MachineStatus.IDLE)) {
-						ttWrapper.tell(new TransportModuleRequest("WestClient", "EastClient", "TestOrder1"), getRef());
+						ttWrapper.tell(new InternalTransportModuleRequest("WestClient", "EastClient", "TestOrder1"), getRef());
 					}
 					if (newState.equals(MachineStatus.COMPLETE)) {
 						doRun = false;
@@ -152,7 +152,7 @@ public class TestMockTransportModuleWrapper {
 					logEvent(mue);
 					MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
 					if (newState.equals(MachineStatus.IDLE)) {
-						ttWrapper.tell(new TransportModuleRequest("WestClient", "BeastClient", "TestOrder1"), getRef());
+						ttWrapper.tell(new InternalTransportModuleRequest("WestClient", "BeastClient", "TestOrder1"), getRef());
 					}
 					if (newState.equals(MachineStatus.STOPPED)) {
 						doRun = false;
@@ -212,9 +212,9 @@ public class TestMockTransportModuleWrapper {
 					MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
 					if (newState.equals(MachineStatus.IDLE)) {
 						if (mue.getMachineId().equals("TT1"))
-							ttWrapper1.tell(new TransportModuleRequest("WestClient1", "EastServer1", "TestOrder1"), getRef());
+							ttWrapper1.tell(new InternalTransportModuleRequest("WestClient1", "EastServer1", "TestOrder1"), getRef());
 						else
-							ttWrapper2.tell(new TransportModuleRequest("WestClient2", "EastClient2", "TestOrder1"), getRef());
+							ttWrapper2.tell(new InternalTransportModuleRequest("WestClient2", "EastClient2", "TestOrder1"), getRef());
 					}
 					if (newState.equals(MachineStatus.COMPLETE)) {
 						if (mue.getMachineId().equals("TT1"))

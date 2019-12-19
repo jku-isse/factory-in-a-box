@@ -16,7 +16,7 @@ import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.transport.actor.transportmodule.TransportModuleActor;
 import fiab.mes.transport.customDataTypes.TSAListElement;
 import fiab.mes.transport.messages.COM_Transport;
-import fiab.mes.transport.messages.RegisterTransportRequest;
+import fiab.mes.transport.msg.RegisterTransportRequest;
 
 public class TransportSystemActor extends AbstractActor {
 

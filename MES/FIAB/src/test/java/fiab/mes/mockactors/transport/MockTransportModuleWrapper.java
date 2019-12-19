@@ -21,7 +21,7 @@ import fiab.mes.mockactors.MockClientHandshakeActor;
 import fiab.mes.mockactors.MockServerHandshakeActor;
 import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.mes.transport.msg.TransportModuleRequest;
+import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 public class MockTransportModuleWrapper extends AbstractActor{
 
@@ -32,7 +32,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	protected MachineStatus currentState = MachineStatus.STOPPED;
 	protected HandshakeEndpointInfo eps = null;
 
-	protected TransportModuleRequest currentRequest;
+	protected InternalTransportModuleRequest currentRequest;
 	
 	// we need to pass all actors representing server/client handshake and their capability ids
 	static public Props props(InterMachineEventBus internalMachineEventBus) {	    
@@ -72,7 +72,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 						log.warning("Trying to update Handshake Endpoints in nonupdateable state: "+currentState);
 					}						
 				})
-				.match(TransportModuleRequest.class, req -> {
+				.match(InternalTransportModuleRequest.class, req -> {
 					if (currentState.equals(MachineStatus.IDLE)) {
 		        		startTransport(req);
 					} else {
@@ -145,7 +145,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
           }, context().system().dispatcher());
 	}
 	
-	private void startTransport(TransportModuleRequest req) {
+	private void startTransport(InternalTransportModuleRequest req) {
 		log.info("Starting Transport");
 		currentRequest = req;
 		setAndPublishState(MachineStatus.STARTING);

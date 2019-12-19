@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper.SimpleMessageTypes;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
-import fiab.mes.transport.msg.TransportModuleRequest;
+import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 public class MockTransportModuleWrapperDelegate implements TransportModuleWrapperInterface {
 
@@ -19,7 +19,7 @@ public class MockTransportModuleWrapperDelegate implements TransportModuleWrappe
 	}
 	
 	@Override
-	public void transport(TransportModuleRequest req) {
+	public void transport(InternalTransportModuleRequest req) {
 		logger.info("transport called");
 		wrapper.tell(req, ActorRef.noSender());
 	}

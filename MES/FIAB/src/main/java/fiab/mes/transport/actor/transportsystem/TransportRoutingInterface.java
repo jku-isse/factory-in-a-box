@@ -7,7 +7,7 @@ public interface TransportRoutingInterface {
 	// for now we use machine ids
 	List<Position> calculateRoute(Position fromMachine, Position toMachine) throws RoutingException;
 
-	Position UNKNOWN_POSITION = new Position("0.0");
+	public static Position UNKNOWN_POSITION = new Position("0.0");
 
 	public static class RoutingException extends Exception {
 
