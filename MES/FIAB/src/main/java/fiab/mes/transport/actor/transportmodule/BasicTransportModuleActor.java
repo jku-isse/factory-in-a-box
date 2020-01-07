@@ -74,9 +74,11 @@ public class BasicTransportModuleActor extends AbstractActor{
 		return receiveBuilder()
 				// map from positions to capabilityInstances local to the transport module 
 		        .match(TransportModuleRequest.class, req -> {
+		        	log.info("Received TransportModuleRequest");
 		        	if (currentState.equals(MachineStatus.IDLE)) {
 		        		processTransportModuleRequest(req);
 		        	} else {
+		        		log.warning(String.format("Received TransportModuleRequest %s in incompatible local state %s", req.getOrderId(), this.currentState));
 		        		//FIXME: respond with error message that we are not in the right state for request
 		        	}
 		        })
@@ -104,9 +106,10 @@ public class BasicTransportModuleActor extends AbstractActor{
 		Optional<String> capTo = icpm.getCapabilityIdForPosition(req.getPosTo(), selfPos);
 		if (capFrom.isPresent() && capTo.isPresent()) {
 			setAndPublishSensedState(MachineStatus.STARTING);
-			reservedForTReq = new InternalTransportModuleRequest(capFrom.get(), capTo.get(), req.getOrderId());
+			reservedForTReq = new InternalTransportModuleRequest(capFrom.get(), capTo.get(), req.getOrderId(), req.getRequestId());
 			hal.transport(reservedForTReq);
 		} else {
+			log.warning(String.format("TransportModuleRequest %s from %s to %s cannt be resolved to local capabilities", req.getOrderId(), req.getPosFrom(), req.getPosTo()));
 			//TODO: return error message to sender
 		}
 	}
@@ -121,7 +124,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 				break;
 			case COMPLETING:
 				break;
-			case EXECUTE:
+			case EXECUTE: // for now we guess to have obtained the pallet for given order, --> this would need to be confirmed by the sub actor representing the turntable
 				break;
 			case IDLE:
 				break;
@@ -142,7 +145,8 @@ public class BasicTransportModuleActor extends AbstractActor{
 	}
 	
 	private void setAndPublishSensedState(MachineStatus newState) {
-		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, reservedForTReq.getOrderId());
+		String order = reservedForTReq != null ? reservedForTReq.getOrderId() : "none";
+		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, order);
 		log.debug(msg);
 		if (currentState != newState) {
 			this.currentState = newState;

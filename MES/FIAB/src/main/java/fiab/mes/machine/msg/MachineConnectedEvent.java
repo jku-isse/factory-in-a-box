@@ -47,5 +47,14 @@ public class MachineConnectedEvent extends MachineEvent {
 
 	public AkkaActorBackedCoreModelAbstractActor getMachine() {
 		return machine;
+	}
+
+	@Override
+	public String toString() {
+		return "MachineConnectedEvent [providedMachineCapabilities=" + providedMachineCapabilities.stream().map(cap -> cap.getID()).reduce("", (list, element) -> list+", "+element)
+				+ ", requiredMachineCapabilities=" + requiredMachineCapabilities.stream().map(cap -> cap.getID()).reduce("", (list, element) -> list+", "+element) 
+				+ ", machine=" + machine.getId() + "]";
 	}		
+	
+	
 }

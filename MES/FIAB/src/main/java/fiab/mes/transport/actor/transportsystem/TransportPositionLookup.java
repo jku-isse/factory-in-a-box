@@ -4,6 +4,8 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,8 @@ import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Positi
 public class TransportPositionLookup implements TransportPositionLookupInterface {
 
 	private static final Logger logger = LoggerFactory.getLogger(TransportPositionLookup.class);
+	
+	private HashMap<Position, AkkaActorBackedCoreModelAbstractActor> lookupTable = new HashMap<>();
 	
 	@Override
 	public Position getPositionForActor(AkkaActorBackedCoreModelAbstractActor actor) {
@@ -28,7 +32,9 @@ public class TransportPositionLookup implements TransportPositionLookupInterface
 			}
 			InetAddress inetAddr = InetAddress.getByName(host);
 			int lastPos = (inetAddr.getAddress()[3]+256)%256;
-			return new Position(""+lastPos);
+			Position pos = new Position(""+lastPos);
+			lookupTable.put(pos, actor);
+			return pos;
 		} catch (URISyntaxException e) {
 			logger.warn(String.format("Unable to load URI for actor %s", actor.toString()));
 			return TransportRoutingInterface.UNKNOWN_POSITION;
@@ -37,6 +43,11 @@ public class TransportPositionLookup implements TransportPositionLookupInterface
 			return TransportRoutingInterface.UNKNOWN_POSITION;
 		}
 		
+	}
+
+	@Override
+	public Optional<AkkaActorBackedCoreModelAbstractActor> getActorForPosition(Position pos) {
+		return Optional.ofNullable(lookupTable.get(pos));
 	}
 	
 }

@@ -14,7 +14,7 @@ public class MockTransportModuleWrapperDelegate implements TransportModuleWrappe
 	
 	private ActorRef wrapper;
 	
-	MockTransportModuleWrapperDelegate(ActorRef wrapper) {
+	public MockTransportModuleWrapperDelegate(ActorRef wrapper) {
 		this.wrapper = wrapper;
 	}
 	

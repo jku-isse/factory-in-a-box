@@ -92,11 +92,13 @@ public class MockTransportModuleWrapper extends AbstractActor{
 				.match(ClientSide.class, state -> {
 					String capId = getSender().path().name();
 					log.info(String.format("ClientSide EP %s Status: %s", capId, state));
-					eps.getHandshakeEP(capId).ifPresent(leps -> {
+					String localCapId = capId.lastIndexOf("~") > 0 ?
+						capId = capId.substring(0, capId.lastIndexOf("~")) : capId;
+					eps.getHandshakeEP(localCapId).ifPresent(leps -> {
 						((LocalClientEndpointStatus) leps).setState(state);
 						switch(state) {
 						case Completing:
-							handleCompletingStateUpdate(capId);
+							handleCompletingStateUpdate(localCapId);
 							break;
 						case Idle:
 							getSender().tell(MockClientHandshakeActor.MessageTypes.Start, self);

@@ -1,5 +1,9 @@
 package fiab.mes.transport.msg;
 
+import java.util.Optional;
+
+import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
+import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 
 public class TransportModuleRequest {
@@ -7,13 +11,22 @@ public class TransportModuleRequest {
 	protected Position posFrom;
 	protected Position posTo;
 	protected String orderId;
+	protected String requestId;
+	protected TransportModuleRequest subsequentRequest = null;
+	protected AkkaActorBackedCoreModelAbstractActor executor = null;
 	
+	public TransportModuleRequest(AkkaActorBackedCoreModelAbstractActor executor, Position posFrom, Position posTo, String orderId, String requestId) {
+		this(executor, posFrom, posTo, orderId, requestId, null);
+	}
 	
-	public TransportModuleRequest(Position posFrom, Position posTo, String orderId) {
+	public TransportModuleRequest(AkkaActorBackedCoreModelAbstractActor executor, Position posFrom, Position posTo, String orderId, String requestId, TransportModuleRequest subsequentTMR) {
 		super();
-		this.posFrom = posFrom;
-		this.posTo = posTo;
+		this.executor = executor;
+		this.posFrom = posFrom == null ? TransportRoutingInterface.UNKNOWN_POSITION : posFrom;
+		this.posTo = posTo == null ? TransportRoutingInterface.UNKNOWN_POSITION : posTo;
 		this.orderId = orderId;
+		this.requestId = requestId;
+		this.subsequentRequest = subsequentTMR;
 	}
 
 
@@ -31,5 +44,15 @@ public class TransportModuleRequest {
 		return posTo;
 	}
 	
+	public String getRequestId() {
+		return requestId;
+	}
 	
+	public Optional<TransportModuleRequest> getSubsequentRequest() {
+		return Optional.ofNullable(subsequentRequest);
+	}
+	
+	public AkkaActorBackedCoreModelAbstractActor getExecutor() {
+		return executor;
+	}
 }
