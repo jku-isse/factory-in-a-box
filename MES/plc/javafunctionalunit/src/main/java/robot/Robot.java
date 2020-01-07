@@ -26,7 +26,7 @@ public class Robot {
     private ProcessEngineBase processEngineBase;
 
     @Getter private Object robotRoot;
-    @Getter private Object handshakeRoot;
+    //@Getter private Object handshakeRoot;
 
     @Getter private final String serverUrl = "opc.tcp://localhost:4840/";
     @Getter private Object server;
@@ -54,16 +54,18 @@ public class Robot {
     private void initComponents() {
         server = serverCommunication.createServer("localhost", 4840);
         robotRoot = serverCommunication.addObject(server, new RequestedNodePair<>(1, 10), "Robot");
-        Object handshakeNode = serverCommunication.createNodeString(handshakeId.getKey(), handshakeId.getValue());
-        handshakeRoot = serverCommunication.addNestedObject(getServer(), robotRoot, handshakeNode, "HANDSHAKE");
+        /*Object handshakeNode = serverCommunication.createNodeString(handshakeId.getKey(), handshakeId.getValue());
+        handshakeRoot = serverCommunication.addNestedObject(getServer(), robotRoot, handshakeNode, "HANDSHAKE");*/
         Object conveyorNode = serverCommunication.createNodeString(conveyorId.getKey(), conveyorId.getValue());
         serverCommunication.addNestedObject(getServer(), robotRoot, conveyorNode, "CONVEYOR");
         conveyorBase.setServerAndFolder(serverCommunication, server, conveyorNode);
         conveyorBase.addServerConfig();
         Object turningNode = serverCommunication.createNodeString(turningId.getKey(), turningId.getValue());
         serverCommunication.addNestedObject(getServer(), robotRoot, turningNode, "TURNING");
-        turningBase.setServerAndFolder(serverCommunication, server, turningNode);
-        turningBase.addServerConfig();
+        if(turningBase != null) {
+            turningBase.setServerAndFolder(serverCommunication, server, turningNode);
+            turningBase.addServerConfig();
+        }
         Object processEngineNode = serverCommunication.createNodeString(processEngineId.getKey(), processEngineId.getValue());
         serverCommunication.addNestedObject(getServer(), robotRoot, processEngineNode, "PROCESS_ENGINE");
         processEngineBase.setServerAndFolder(serverCommunication, server, processEngineNode);
