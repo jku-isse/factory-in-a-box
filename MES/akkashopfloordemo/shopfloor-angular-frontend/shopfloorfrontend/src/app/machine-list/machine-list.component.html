@@ -60,7 +60,8 @@
         <ng-container matColumnDef="history">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element"> 
-            <button mat-stroked-button color="primary" (click)="machineHistory(element.machineId)">
+            <button mat-stroked-button color="primary" matBadge="{{this.count.get(element.machineId)}}" 
+            matBadgePosition="after" (click)="machineHistory(element.machineId)">
               History
             </button>
           </td>

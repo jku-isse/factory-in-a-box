@@ -4,6 +4,7 @@ import { MachineService } from '../machine.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
+import { DataService } from '../data.service';
 
 @Component({
   selector: 'app-machine-history',
@@ -16,13 +17,15 @@ export class MachineHistoryComponent implements OnInit {
   machineId: string;
   latest = '';
   dataSource: MatTableDataSource<MachineEvent>;
+  count: Map<string, number>;
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private machineService: MachineService) { }
+    private machineService: MachineService,
+    private data: DataService) { }
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -30,6 +33,7 @@ export class MachineHistoryComponent implements OnInit {
     });
     this.subscribe();
     this.reloadData();
+    this.data.currentMachineCount.subscribe(count => this.count = count);
   }
 
   private subscribe() {
@@ -46,6 +50,7 @@ export class MachineHistoryComponent implements OnInit {
             this.dataSource.paginator = this.paginator;
           }
         }
+        this.newCount();
       },
       err => { console.log('Error receiving SSE in History', err); },
       () => console.log('SSE stream completed')
@@ -65,6 +70,7 @@ export class MachineHistoryComponent implements OnInit {
         if (this.dataSource) {
           this.dataSource.paginator = this.paginator;
         }
+        this.newCount();
       }, error => console.log(error));
   }
   list() {
@@ -94,6 +100,10 @@ export class MachineHistoryComponent implements OnInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  newCount() {
+    this.data.changeMachineCount(new Map<string, number>(this.count), this.machineId, this.machines.size);
   }
 
 }

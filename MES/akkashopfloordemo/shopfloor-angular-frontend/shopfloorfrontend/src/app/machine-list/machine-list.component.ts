@@ -5,6 +5,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 import { MachineService } from '../machine.service';
+import { DataService } from '../data.service';
 
 @Component({
   selector: 'app-machine-list',
@@ -16,18 +17,21 @@ export class MachineListComponent implements OnInit {
   displayedColumns: string[] = ['machineId', 'eventType', 'state', 'message', 'history'];
   machines: Map<string, MachineEvent> = new Map<string, MachineEvent>();
   dataSource: MatTableDataSource<MachineEvent>;
+  count: Map<string, number>;
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
 
   constructor(
     private machineService: MachineService,
-    private router: Router
+    private router: Router,
+    private data: DataService
   ) { }
 
   ngOnInit() {
     this.subscribe();
     this.reloadData();
+    this.data.currentMachineCount.subscribe(count => this.count = count);
   }
 
   private subscribe() {

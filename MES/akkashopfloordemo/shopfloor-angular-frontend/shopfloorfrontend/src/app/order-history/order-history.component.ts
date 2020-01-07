@@ -4,6 +4,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { OrderEvent } from '../events';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
+import { DataService } from '../data.service';
 
 @Component({
   selector: 'app-order-history',
@@ -16,13 +17,15 @@ export class OrderHistoryComponent implements OnInit {
   orderId: string;
   latest = '';
   dataSource: MatTableDataSource<OrderEvent>;
+  count: Map<string, number>;
 
-  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private orderService: OrderService) { }
+    private orderService: OrderService,
+    private data: DataService) { }
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -40,6 +43,7 @@ export class OrderHistoryComponent implements OnInit {
             this.dataSource.paginator = this.paginator;
           }
         }
+        this.newCount();
       },
       err => { console.log('Error receiving SSE in History', err); },
       () => console.log('SSE stream completed')
@@ -56,7 +60,9 @@ export class OrderHistoryComponent implements OnInit {
         if (this.dataSource) {
           this.dataSource.paginator = this.paginator;
         }
+        this.newCount();
       }, error => console.log(error));
+    this.data.currentCount.subscribe(count => this.count = count);
   }
 
   list() {
@@ -92,6 +98,10 @@ export class OrderHistoryComponent implements OnInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  newCount() {
+    this.data.changeCount(new Map<string, number>(this.count), this.orderId, this.orders.size);
   }
 
 }

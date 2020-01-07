@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
+import { DataService } from '../data.service';
 
 @Component({
   selector: 'app-order-list',
@@ -16,13 +17,15 @@ export class OrderListComponent implements OnInit {
   displayedColumns: string[] = ['orderId', 'eventType', 'machineId', 'message', 'process-button', 'history-button'];
   orders: Map<string, OrderEvent> = new Map<string, OrderEvent>();
   dataSource: MatTableDataSource<OrderEvent>;
+  count: Map<string, number>;
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
 
   constructor(
     private orderService: OrderService,
-    private router: Router
+    private router: Router,
+    private data: DataService
     ) { }
 
   ngOnInit() {
@@ -40,6 +43,7 @@ export class OrderListComponent implements OnInit {
       () => console.log('SSE stream completed')
     );
     this.reloadData();
+    this.data.currentCount.subscribe(count => this.count = count);
   }
 
   reloadData() {
@@ -71,4 +75,5 @@ export class OrderListComponent implements OnInit {
       this.dataSource.paginator.firstPage();
     }
   }
+
 }
