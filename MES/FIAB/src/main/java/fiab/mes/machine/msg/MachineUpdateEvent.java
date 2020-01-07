@@ -26,5 +26,6 @@ public abstract class MachineUpdateEvent extends MachineEvent {
 	public String getParameterName() {
 		return parameterName;
 	}
-
+	
+	abstract public Object getValue();
 }
