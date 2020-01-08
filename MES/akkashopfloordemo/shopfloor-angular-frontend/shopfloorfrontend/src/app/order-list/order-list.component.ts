@@ -3,9 +3,11 @@ import { OrderEvent } from '../events';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 import { DataService } from '../data.service';
+import { User, Role } from '../_models';
+import { AuthService } from '../_services';
 
 @Component({
   selector: 'app-order-list',
@@ -14,19 +16,23 @@ import { DataService } from '../data.service';
 })
 export class OrderListComponent implements OnInit {
 
-  displayedColumns: string[] = ['orderId', 'eventType', 'machineId', 'message', 'process-button', 'history-button'];
+  columnNames: string[] = ['orderId', 'eventType', 'machineId', 'message', 'process-button', 'history-button'];
   orders: Map<string, OrderEvent> = new Map<string, OrderEvent>();
   dataSource: MatTableDataSource<OrderEvent>;
   count: Map<string, number>;
+  currentUser: User;
 
-  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
-  @ViewChild(MatSort, {static: true}) sort: MatSort;
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
     private orderService: OrderService,
     private router: Router,
-    private data: DataService
-    ) { }
+    private data: DataService,
+    private authenticationService: AuthService
+  ) {
+    this.currentUser = this.authenticationService.currentUserValue;
+  }
 
   ngOnInit() {
     this.orderService.getOrderUpdates().subscribe(
@@ -76,4 +82,21 @@ export class OrderListComponent implements OnInit {
     }
   }
 
+  get isAdmin() {
+    return this.currentUser && this.currentUser.role === Role.Admin;
+  }
+
+  get displayedColumns() {
+    if (this.isAdmin) {
+      const adminColumns: string[] = Object.assign([], this.columnNames);
+      adminColumns.push('adminAction');
+      return adminColumns;
+    } else {
+      return this.columnNames;
+    }
+  }
+
+  adminAction(orderIds: string) {
+    // TODO
+  }
 }
