@@ -24,6 +24,6 @@ public class MockOpc2Actor {
 		Thread s1 = new Thread(ism1);
 		Thread s2 = new Thread(ism2);
 		s1.start();
-		s2.start();
+//		s2.start();
 	}
 }

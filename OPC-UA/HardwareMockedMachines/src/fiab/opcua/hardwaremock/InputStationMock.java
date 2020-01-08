@@ -20,8 +20,13 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.tools.sjavac.Log;
 
 import akka.actor.ActorRef;
+import fiab.mes.mockactors.iostation.MockIOStationWrapperDelegate;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.opcua.hardwaremock.methods.BlankMethod;
 import fiab.opcua.hardwaremock.methods.CompleteMethod;
@@ -39,36 +44,17 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 	private ActorRef actor;
 	private UaVariableNode status = null;
 	private String machineName;
+	private static final Logger log = LoggerFactory.getLogger(InputStationMock.class);
+	
+	private CompleteMethod cmplt = new CompleteMethod(actor);
+	private StopMethod stp = new StopMethod(actor);
+	private ResetMethod rst = new ResetMethod(actor);
+	private ReadyEmptyMethod rdyEmpty = new ReadyEmptyMethod(actor);
 
 	public void run() {
 
 		startup();
-		UaFolderNode handshakeNode = generateFolder(rootNode, machineName, "HANDSHAKE_FU");
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "COMPLETE", new CompleteMethod(actor));
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "STOP", new StopMethod(actor));
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "RESET", new ResetMethod(actor));
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "READY", new ReadyEmptyMethod(actor));
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "INIT_HANDOVER", new BlankMethod()); //Fragen
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "START_HANDOVER", new BlankMethod()); //Fragen
-		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, machineName + "/HANDSHAKE_FU",
-				new String("CAPABILITIES"));
-		UaFolderNode capability1 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/CAPABILITIES",
-				"CAPABILITY1", "CAPABILITY");
-		UaFolderNode capability2 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/CAPABILITIES",
-				"CAPABILITY2", "CAPABILITY");
-		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "ID",
-				new String("DefaultHandshake"));
-		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "TYPE",
-				new String("DEFAULT"));
-		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "Provided",
-				true);
-		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "TYPE",
-				new String("http://fiab.actors/" + machineName));
-		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "ID",
-				new String("DefaultHandshake"));
-		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "Provided",
-				true);
-		status = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", "STATE", ServerSide.Stopped); //init right
+		setUpServerStructure(); //All folders, nodes and Methods set in the SetUp Method
 		try {
 			server.startup().get();
 			actor.tell(this, ActorRef.noSender());
@@ -90,6 +76,48 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	public void completeMethod() {
+		cmplt.invoke();
+	}
+	public void stopMethod() {
+		stp.invoke();
+	}
+	public void resetMethod() {
+		rst.invoke();
+	}
+	public void readyEmptyMethod() {
+		rdyEmpty.invoke();
+	}
+	
+	public void setUpServerStructure() {
+		UaFolderNode handshakeNode = generateFolder(rootNode, machineName, "HANDSHAKE_FU");
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "COMPLETE", cmplt);
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "STOP", stp);
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "RESET", rst);
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "READY", rdyEmpty);
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "INIT_HANDOVER", new BlankMethod()); //Fragen
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "START_HANDOVER", new BlankMethod()); //Fragen
+		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, machineName + "/HANDSHAKE_FU",
+				new String("CAPABILITIES"));
+		UaFolderNode capability1 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/CAPABILITIES",
+				"CAPABILITY1", "CAPABILITY");
+		UaFolderNode capability2 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/CAPABILITIES",
+				"CAPABILITY2", "CAPABILITY");
+		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "ID",
+				new String("DefaultHandshake"));
+		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "TYPE",
+				new String("DEFAULT"));
+		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1", "Provided",
+				true);
+		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "TYPE",
+				new String("http://fiab.actors/" + machineName));
+		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "ID",
+				new String("DefaultHandshake"));
+		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/CAPABILITIES/CAPABILITY2", "Provided",
+				true);
+		status = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", "STATE", ServerSide.Stopped); //init right
 	}
 
 	static final String NAMESPACE_URI = "urn:factory-in-a-box";
@@ -177,6 +205,7 @@ public class InputStationMock extends ManagedNamespace implements Runnable {
 	}
 
 	public void setStatusValue(String newStatus) {
+		log.info("New Status got called!:: " + newStatus);
 		if(status != null) {
 			status.setValue(new DataValue(new Variant(newStatus)));
 		}
