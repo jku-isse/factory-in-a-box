@@ -85,7 +85,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 					}
 				})
 				.matchAny(msg -> { 
-					log.warning("Unexpected Message received: "+msg.toString()); })
+					log.warning(String.format("Unexpected Message received <%s> from %s", msg.toString(), getSender() )); })
 		        .build();
 	}
 

@@ -216,7 +216,7 @@ public class TestBasicMachineActorWithTransport {
 		actor.setID("MockMachineActor"+id);
 		actor.setActorName("MockMachineActor"+id);
 		actor.setDisplayName("MockMachineActor"+id);
-		actor.setUri("http://fiab.actors/MockMachineActor"+id);
+		actor.setUri("http://192.168.0."+id+"/MockMachineActor"+id);
 		return actor;
 	}
 	

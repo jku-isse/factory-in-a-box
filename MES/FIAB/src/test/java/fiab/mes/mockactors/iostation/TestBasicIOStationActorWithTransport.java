@@ -71,7 +71,7 @@ public class TestBasicIOStationActorWithTransport {
 		new TestKit(system) { 
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				MockIOStationFactory parts = MockIOStationFactory.getMockedInputStation(system, eventBusByRef,false);
+				MockIOStationFactory parts = MockIOStationFactory.getMockedInputStation(system, eventBusByRef,false, 34);
 				// we subscribe to the intereventbus to observe basic io station behavior
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				//eventBusByRef.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
@@ -93,7 +93,7 @@ public class TestBasicIOStationActorWithTransport {
 		new TestKit(system) { 
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				MockIOStationFactory parts = MockIOStationFactory.getMockedOutputStation(system, eventBusByRef, false);
+				MockIOStationFactory parts = MockIOStationFactory.getMockedOutputStation(system, eventBusByRef, false, 35);
 				// we subscribe to the intereventbus to observe basic io station behavior
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class));

@@ -41,7 +41,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machineId;
 	protected AbstractCapability cap;
-	protected MachineStatus currentState;
+	protected MachineStatus currentState = MachineStatus.UNKNOWN;
 	protected TransportModuleWrapperInterface hal;
 	protected InterMachineEventBus intraBus;
 	protected TransportPositionLookup tpl;

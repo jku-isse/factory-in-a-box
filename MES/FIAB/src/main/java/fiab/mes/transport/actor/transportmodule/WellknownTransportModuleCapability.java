@@ -19,7 +19,7 @@ public interface WellknownTransportModuleCapability {
 		ComparableCapability ac = new ComparableCapability();
 		ac.setDisplayName("turntable");
 		ac.setID("Capability.Turntable");
-		ac.setID("http://factory-in-a-box.fiab/capabilities/turntable");
+		ac.setUri("http://factory-in-a-box.fiab/capabilities/turntable");
 		return ac;
 	}
 	

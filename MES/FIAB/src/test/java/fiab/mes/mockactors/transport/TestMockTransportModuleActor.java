@@ -91,8 +91,8 @@ public class TestMockTransportModuleActor {
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				
-				MockIOStationFactory partsIn = MockIOStationFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload);
-				MockIOStationFactory partsOut = MockIOStationFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload);
+				MockIOStationFactory partsIn = MockIOStationFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 20);
+				MockIOStationFactory partsOut = MockIOStationFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);
 				// now add to ttWrapper client Handshake actors
 				ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+MockIOStationFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
 				ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
@@ -114,10 +114,11 @@ public class TestMockTransportModuleActor {
 				ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getRef());
 				// setup actual turntable actor:
 				
+				int ipid = 21;
 				AbstractCapability cap = WellknownTransportModuleCapability.getTurntableCapability();
-				Actor modelActor = getDefaultTransportModuleModelActor(20);
+				Actor modelActor = getDefaultTransportModuleModelActor(ipid);
 				MockTransportModuleWrapperDelegate hal = new MockTransportModuleWrapperDelegate(ttWrapper);
-				Position selfPos = new Position("20");
+				Position selfPos = new Position(ipid+"");
 				HardcodedDefaultTransportRoutingAndMapping env = new HardcodedDefaultTransportRoutingAndMapping();								
 				ActorRef ttActor = system.actorOf(BasicTransportModuleActor.props(eventBusByRef, cap, modelActor, hal, selfPos, intraEventBus, new TransportPositionLookup(), env), "TT1Actor");
 				
@@ -141,7 +142,7 @@ public class TestMockTransportModuleActor {
 						MachineStatusUpdateEvent mue = (MachineStatusUpdateEvent) msg;
 						MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
 						if (newState.equals(MachineStatus.IDLE)) {
-							ttActor.tell(new TransportModuleRequest(null, new Position("34"), new Position("21"), "TestOrder1", "TestReq1"), getRef()); // this only work because TT2 is configured to be a server
+							ttActor.tell(new TransportModuleRequest(null, new Position("20"), new Position("35"), "TestOrder1", "TestReq1"), getRef()); // this only work because TT2 is configured to be a server
 							//ttWrapper.tell(new InternalTransportModuleRequest("WestClient", "EastClient", "TestOrder1"), getRef());
 						}
 						if (newState.equals(MachineStatus.COMPLETE)) {

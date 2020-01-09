@@ -14,12 +14,12 @@ import fiab.mes.transport.handshake.HandshakeProtocol;
 
 public class MockIOStationFactory {
 
-	public static MockIOStationFactory getMockedInputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload) {
-		return new MockIOStationFactory(system, true, eventBusByRef, doAutoReload);
+	public static MockIOStationFactory getMockedInputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
+		return new MockIOStationFactory(system, true, eventBusByRef, doAutoReload, ipId);
 	}
 	
-	public static MockIOStationFactory getMockedOutputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload) {
-		return new MockIOStationFactory(system, false, eventBusByRef, doAutoReload);
+	public static MockIOStationFactory getMockedOutputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
+		return new MockIOStationFactory(system, false, eventBusByRef, doAutoReload, ipId);
 	}
 
 	
@@ -32,8 +32,8 @@ public class MockIOStationFactory {
 	public Actor model;
 	//private static AtomicInteger actorCount = new AtomicInteger();
 	
-	private MockIOStationFactory(ActorSystem system, boolean isInputStation, ActorSelection eventBusByRef, boolean doAutoReload) {
-		model = getDefaultIOStationActor(isInputStation);
+	private MockIOStationFactory(ActorSystem system, boolean isInputStation, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
+		model = getDefaultIOStationActor(isInputStation, ipId);
 		intraEventBus = new InterMachineEventBus();
 		wrapper = system.actorOf(MockIOStationWrapper.props(intraEventBus, isInputStation, doAutoReload), model.getActorName()+WRAPPER_POSTFIX);
 		MockIOStationWrapperDelegate delegate = new MockIOStationWrapperDelegate(wrapper);
@@ -41,9 +41,9 @@ public class MockIOStationFactory {
 		machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, delegate, intraEventBus), model.getActorName());
 	}
 	
-	public Actor getDefaultIOStationActor(boolean isInputStation) {
+	public Actor getDefaultIOStationActor(boolean isInputStation, int id) {
 		//int id = actorCount.getAndIncrement();
-		int id = isInputStation ? 34 : 35; //at IP/Pos 34 is inputstation, at IP/Pos3 35 is outputstation
+		//int id = isInputStation ? 34 : 35; //at IP/Pos 34 is inputstation, at IP/Pos3 35 is outputstation
 		String type = isInputStation ? "Input" : "Output";
 		Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
 		actor.setID(type+"StationActor"+id);

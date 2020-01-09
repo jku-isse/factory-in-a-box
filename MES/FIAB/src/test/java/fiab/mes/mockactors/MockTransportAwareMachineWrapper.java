@@ -50,7 +50,8 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 		// setup serverhandshake actor with autocomplete
 		boolean doAutoComplete = true;
 		self = getSelf();
-		serverSide = getContext().actorOf(MockServerHandshakeActor.props(getSelf(), doAutoComplete).withDispatcher(CallingThreadDispatcher.Id()), "ServerSideHandshakeMock"); 
+		//serverSide = getContext().actorOf(MockServerHandshakeActor.props(getSelf(), doAutoComplete).withDispatcher(CallingThreadDispatcher.Id()), "ServerSideHandshakeMock");
+		serverSide = getContext().actorOf(MockServerHandshakeActor.props(getSelf(), doAutoComplete), "ServerSideHandshakeMock");		
 	}
 	
 	public Receive createReceive() {

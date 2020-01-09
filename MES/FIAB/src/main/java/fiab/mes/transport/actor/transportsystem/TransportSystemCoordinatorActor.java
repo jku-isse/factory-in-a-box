@@ -2,7 +2,9 @@ package fiab.mes.transport.actor.transportsystem;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -20,12 +22,13 @@ import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.planer.actor.MachineCapabilityManager;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
 import fiab.mes.transport.actor.transportsystem.TransportModuleUsageTracker.TransportModuleOrderMappingStatus;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.RoutingException;
 import fiab.mes.transport.msg.RegisterTransportRequest;
+import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
+import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse.ResponseType;
 import fiab.mes.transport.msg.TransportModuleRequest;
 
 public class TransportSystemCoordinatorActor extends AbstractActor {
@@ -36,21 +39,19 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	static public Props props(TransportRoutingInterface routing, TransportPositionLookupInterface dns) {	    
 		return Props.create(TransportSystemCoordinatorActor.class, () -> new TransportSystemCoordinatorActor(routing, dns));
 	}
-	
-	
+		
 	// Externally provided:
 	protected TransportRoutingInterface routing;
 	protected TransportPositionLookupInterface dns;
 	
 
 	protected ActorSelection machineEventBus;
-	// manages which transportmodule has which capabilities
-	//protected MachineCapabilityManager capMan = new MachineCapabilityManager();
 	// tracks which transport module is in which state and how used by this actor
 	protected TransportModuleUsageTracker tmut = new TransportModuleUsageTracker();
 	protected AtomicInteger incrementalId = new AtomicInteger(0);
 	protected List<TransportModuleRequest> requestQueue = new ArrayList<>();
 	protected List<TransportModuleRequest> allocatedQueue = new ArrayList<>();
+	protected Map<String, RegisterTransportRequest> queuedRequests = new HashMap<>();
 	protected ActorRef self;
 	
 	public TransportSystemCoordinatorActor(TransportRoutingInterface routing, TransportPositionLookupInterface dns) {
@@ -97,8 +98,12 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 			if ( prevOR.getKey() != null &&				
 				 tmut.getTransportModulesInvolvedInOrder(prevOR.getKey()).size() == 0) {
 					// if so then remove from allocatedQueue
-					log.info(String.format("Transport for OrderId %s complete", prevOR.getKey()));
+					String msg = String.format("Transport for OrderId %s complete", prevOR.getKey());
+					log.info(msg);
 					allocatedQueue = allocatedQueue.stream().filter(tmr -> !tmr.getOrderId().equals(prevOR.getKey())).collect(Collectors.toList()); // basically remove that entry
+					RegisterTransportRequest rtr = queuedRequests.remove(prevOR.getKey());
+					if (rtr != null)
+						rtr.getRequestor().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.COMPLETED ,msg), self);
 				} // else wait for others turntables to complete			
 		});
 		//check if a new transport request can be completed
@@ -119,7 +124,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 		//capMan.setCapabilities(machineEvent);
 		dns.getPositionForActor(machineEvent.getMachine()); // implicit coupling to hardcoded dns impl that needs first a call with actor to allow later for resolving by position
 		tmut.trackIfTransportModule(machineEvent);
-		log.info("Storing Capabilities: "+machineEvent.getMachineId());
+		//log.info("Storing Capabilities: "+machineEvent.getMachineId());
 		// now wait for machine available event to make use of it (currently we dont know its state)
 	}
 
@@ -142,8 +147,9 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 						return new TransportModuleRequest(actor, route.get(0), route.get(2), rtr.getOrderId(), incrementalId.getAndIncrement()+""); 
 					} else {
 						// this should not be possible, perhaps we don't know about that turntable yet, thus we cant contact it, thus an error
-						// TODO return unsuccessful request generation
-						log.warning(String.format("Unable to establish transport module at Position %s for request %s", route.get(1), rtr.getOrderId()));
+						String msg = String.format("Unable to establish transport module for Position %s for request %s", route.get(1), rtr.getOrderId());
+						log.warning(msg);
+						this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.MISSING_TRANSPORT_MODULE ,msg), self);
 						return null;
 					}
 					});	
@@ -152,12 +158,16 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					Optional<AkkaActorBackedCoreModelAbstractActor> act1_4 = dns.getActorForPosition(route.get(1));
 					Optional<AkkaActorBackedCoreModelAbstractActor> act2_4 = dns.getActorForPosition(route.get(2));					
 					if (!act1_4.isPresent()) {
-						// TODO return unsuccessful route generation
-						log.warning(String.format("Unable to establish actors for position Position %s for request %s", route.get(1),  rtr.getOrderId()));
+						String msg = String.format("Unable to establish transport module for position Position %s for request %s", route.get(1),  rtr.getOrderId());
+						log.warning(msg);
+						this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.UNSUPPORTED_TRANSIT_POSITION ,msg), self);
+						break;
 					}
 					if (!act2_4.isPresent()) {
-						// TODO return unsuccessful route generation
-						log.warning(String.format("Unable to establish actors for position Position %s for request %s",  route.get(2), rtr.getOrderId()));
+						String msg = String.format("Unable to establish transport module for position Position %s for request %s", route.get(2),  rtr.getOrderId());
+						log.warning(msg);
+						this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.UNSUPPORTED_TRANSIT_POSITION ,msg), self);
+						break;
 					}
 					
 					final Optional<TransportModuleRequest> tmr1_4 = act1_4.map(actor -> { 
@@ -165,8 +175,9 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 							return new TransportModuleRequest(actor, route.get(0), route.get(2), rtr.getOrderId(), incrementalId.getAndIncrement()+""); 
 						} else {
 							// this should not be possible, perhaps we don't know about that turntable yet, thus we cant contact it, thus an error
-							// TODO return unsuccessful request generation
-							log.warning(String.format("Unable to establish router at Position %s for request %s", route.get(1), rtr.getOrderId()));
+							String msg = String.format("Unable to establish transport module for Position %s for request %s", route.get(1), rtr.getOrderId());
+							log.warning(msg);
+							this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.MISSING_TRANSPORT_MODULE ,msg), self);
 							return null;
 						}
 					});
@@ -176,8 +187,9 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 								return new TransportModuleRequest(actor, route.get(1), route.get(3), rtr.getOrderId(), incrementalId.getAndIncrement()+"", tmr1_4.get()); 
 							} else {
 								// this should not be possible, perhaps we don't know about that turntable yet, thus we cant contact it, thus an error
-								// TODO return unsuccessful request generation
-								log.warning(String.format("Unable to establish router at Position %s for request %s", route.get(2), rtr.getOrderId()));
+								String msg = String.format("Unable to establish transport module for Position %s for request %s", route.get(2), rtr.getOrderId());
+								log.warning(msg);
+								this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.MISSING_TRANSPORT_MODULE ,msg), self);
 								return null;
 							}
 						});
@@ -186,24 +198,30 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					}
 					break;
 				default:
-					// TODO return unsuccessful route generation
-					log.warning(String.format("Unable to establish route between s% with Position %s and %s with Position %s due to unsupported routesize %s", 
-							rtr.getSource().getId(), sourceP.getPos(), rtr.getDestination().getId(), destP.getPos(), routeSize));					
+					String msg = String.format("Unable to process route between s% with Position %s and %s with Position %s due to unsupported routesize %s", 
+							rtr.getSource().getId(), sourceP.getPos(), rtr.getDestination().getId(), destP.getPos(), routeSize);
+					log.warning(msg);					
+					this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.UNSUPPORTED_ENDPOINT_POSITIONS ,msg), self);
 					break;
 				}
 				tmrRoot.ifPresent(tmr -> {
-					requestQueue.add(tmr);
-					log.info(String.format("Queuing TMR from %s to %s for Order %s with RequestId %s", sourceP.getPos(), destP.getPos(), tmr.getOrderId(), tmr.getRequestId()));
+					requestQueue.add(tmr);					
+					queuedRequests.put(rtr.getOrderId(), rtr);
+					String msg = String.format("Queuing TMR from %s to %s for Order %s with RequestId %s", sourceP.getPos(), destP.getPos(), tmr.getOrderId(), tmr.getRequestId());
+					this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.QUEUED ,msg), self);		
+					log.info(msg);
 					matchRequestsToModules(); // lets check which requests we can fulfill
 				});
 			} catch (RoutingException e) {
-				log.warning(String.format("Unable to establish route between s% with Position %s and %s with Position %s due to %s", 
-						rtr.getSource().getId(), sourceP.getPos(), rtr.getDestination().getId(), destP.getPos(), e.getMessage()));
-				//TODO return unsuccessful request instead of successfull registering
+				String msg = String.format("Unable to establish route between s% with Position %s and %s with Position %s due to %s", 
+						rtr.getSource().getId(), sourceP.getPos(), rtr.getDestination().getId(), destP.getPos(), e.getMessage());
+				log.warning(msg);
+				this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.NO_ROUTE ,msg), self);
 			}
 		} else {
-			log.warning(String.format("Unable to resolve positions for actors %s and/or %s", rtr.getSource().getId(), rtr.getDestination().getId()));
-			//TODO return unsuccessful request instead of successfull registering
+			String msg = String.format("Unable to resolve positions for actors %s and/or %s", rtr.getSource().getId(), rtr.getDestination().getId());
+			log.warning(msg);
+			this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.NO_ROUTE ,msg), self);
 		}
 	}
 
@@ -214,7 +232,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 		List<TransportModuleRequest> fulfillables = this.requestQueue.stream().filter(tmr -> {			
 			boolean fulfillable = false;
 			while(tmr != null) {
-				Optional<Boolean> avail = tmut.getUsageState(tmr.getExecutor()).map(state -> state.equals(TransportModuleOrderMappingStatus.AllocationState.NONE) ? true : null); 
+				Optional<Boolean> avail = tmut.getUsageState(tmr.getExecutor()).map(state -> state.equals(TransportModuleOrderMappingStatus.AllocationState.AVAILABLE) ? true : null); 
 				// optional isPresent and always true if available, otherwise null
 				if (avail.isPresent()) {
 					fulfillable = true;
@@ -231,6 +249,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 			.map(tmr -> {
 				List<TransportModuleRequest> allocatedModules = new ArrayList<>();
 				Optional<TransportModuleRequest> optTMR = Optional.ofNullable(tmr);
+				// we iterate through list/sequence of modules on our path and call every one, to start, if an error, undo started ones
 				while (optTMR.isPresent()) {
 					try {
 						tmut.requestTransportModuleForOrder(optTMR.get().getExecutor(), optTMR.get().getOrderId(), optTMR.get().getRequestId());
@@ -239,21 +258,24 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 						optTMR.get().getExecutor().getAkkaActor().tell(optTMR.get(), this.self);
 						optTMR = optTMR.get().getSubsequentRequest();
 					} catch (MachineOrderMappingStatusLifecycleException e) { // undo allocation
-						log.warning("Tried to allocated available transport module but was rejected",e);					
+						log.warning("Tried to allocated available transport module but was rejected: "+e.getMessage());		
+						// this is based on local information thus no feedback from actual module considered here			
 						allocatedModules.stream().forEach(tmrPrev -> {
 							try {
 								//TODO: tell Transport Module Actor: tmrPrev.getExecutor().getAkkaActor().tell(optTMR.get(), this.self);
 								tmut.unrequestTransportModule(tmrPrev.getExecutor(), tmrPrev.getOrderId());
 							} catch (MachineOrderMappingStatusLifecycleException e1) {
-								log.error("Tried to deallocated transport module but was rejected",e1);
+								log.error("Tried to deallocated transport module but was rejected: "+e1.getMessage());
 								// This should really never happen, TODO: further exception handling
 							}
 						});
 						allocatedModules.clear();
+						break;
 					}
 				}
-				if (allocatedModules.size() > 0)
+				if (allocatedModules.size() > 0) {
 					return tmr; 
+				}
 				else
 					return null;
 			})
@@ -263,6 +285,12 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 		firstAllocated.ifPresent(tmr -> {
 			requestQueue.remove(tmr);
 			allocatedQueue.add(tmr);
+			String msg = String.format("Issued Transport Request(s) to Transport Module(s) for Order %s", tmr.getOrderId());
+			log.info(msg);
+			// inform requestor about new status
+			Optional.ofNullable(queuedRequests.get(tmr.getOrderId())).ifPresent(rtr -> {
+				rtr.getRequestor().tell(new RegisterTransportRequestStatusResponse(rtr, ResponseType.ISSUED, msg), self);
+			});
 		});				
 	}
 

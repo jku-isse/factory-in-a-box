@@ -16,8 +16,9 @@ import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-
+import fiab.mes.planer.actor.MachineCapabilityManager;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
+import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.actor.transportsystem.TransportModuleUsageTracker.TransportModuleOrderMappingStatus.AllocationState;
 
 public class TransportModuleUsageTracker {
@@ -32,7 +33,7 @@ public class TransportModuleUsageTracker {
 		if (mom != null) { 
 			TransportModuleOrderMappingStatus.AllocationState newType = TransportModuleOrderMappingStatus.AllocationState.REQUESTED;
 			TransportModuleOrderMappingStatus.AllocationState old = mom.getAssignmentState();
-			if (old != TransportModuleOrderMappingStatus.AllocationState.NONE) {
+			if (old != TransportModuleOrderMappingStatus.AllocationState.AVAILABLE) {
 				String errMsg = String.format("Error trying to set AssignmentState to Requested on non-Idle state (%s) for %s, ignoring request", old, orderId);
 				logger.warn(errMsg);
 				throw new MachineOrderMappingStatusLifecycleException(errMsg);
@@ -46,7 +47,7 @@ public class TransportModuleUsageTracker {
 	public void unrequestTransportModule(AkkaActorBackedCoreModelAbstractActor machine, String orderId) throws MachineOrderMappingStatusLifecycleException {
 		TransportModuleOrderMappingStatus mom = moms.get(machine);
 		if (mom != null) { 
-			TransportModuleOrderMappingStatus.AllocationState newType = TransportModuleOrderMappingStatus.AllocationState.NONE;
+			TransportModuleOrderMappingStatus.AllocationState newType = TransportModuleOrderMappingStatus.AllocationState.AVAILABLE;
 			TransportModuleOrderMappingStatus.AllocationState old = mom.getAssignmentState();
 			if (old != TransportModuleOrderMappingStatus.AllocationState.REQUESTED) {
 				String errMsg = String.format("Error trying to unrequesting AssignmentState to NONE from non-REQUESTED state (%s) for %s, ignoring request", old, orderId);
@@ -75,7 +76,7 @@ public class TransportModuleUsageTracker {
 	
 	public List<AkkaActorBackedCoreModelAbstractActor> getIdleTransportModules() {
 		return moms.values().stream()
-				.filter(tmoms -> tmoms.getAssignmentState().equals(AllocationState.NONE))
+				.filter(tmoms -> tmoms.getAssignmentState().equals(AllocationState.AVAILABLE))
 				.map(tmoms -> tmoms.getMachine())
 				.collect(Collectors.toList());
 	}
@@ -87,9 +88,14 @@ public class TransportModuleUsageTracker {
 	public void trackIfTransportModule(MachineConnectedEvent event) {
 		// if not tracked yet:
 		if (moms.values().stream().noneMatch(tmoms -> tmoms.getMachine().equals(event.getMachine()))) {
-			//TODO: check if transport module
-			moms.put(event.getMachine(), new TransportModuleOrderMappingStatus(event.getMachine(), AllocationState.NONE));
-			logger.info("Registering new TransportModule: "+event.getMachineId());
+			//check if one of the capabilities describe a transport module
+			if (event.getProvidedMachineCapabilities().stream()
+				.flatMap(cap -> MachineCapabilityManager.flatHierarchyToCapsWithNonNullId(cap).stream())
+				.filter(cap -> cap.getUri() != null)
+				.anyMatch(cap -> cap.getUri().equals(WellknownTransportModuleCapability.getTurntableCapability().getUri()))) {
+				moms.put(event.getMachine(), new TransportModuleOrderMappingStatus(event.getMachine(), AllocationState.NONE));
+				logger.info("Registering new TransportModule: "+event.getMachineId());	
+			}
 		}
 			
 	}
@@ -136,7 +142,7 @@ public class TransportModuleUsageTracker {
 				if (lastMachineState.getStatus().equals(MachineStatus.IDLE) || 
 						lastMachineState.getStatus().equals(MachineStatus.COMPLETE) ||
 						lastMachineState.getStatus().equals(MachineStatus.STOPPED)) {
-					this.allocationState = AllocationState.NONE;
+					this.allocationState = AllocationState.AVAILABLE;
 					AbstractMap.SimpleEntry<String, String> prevValues = new AbstractMap.SimpleEntry<>(this.orderId, this.requestId); 
 					this.orderId = null;
 					this.requestId = null;
@@ -165,7 +171,7 @@ public class TransportModuleUsageTracker {
 		}
 
 		public static enum AllocationState {
-			NONE, REQUESTED, OCCUPIED
+			NONE, AVAILABLE, REQUESTED, OCCUPIED
 		}
 	}
 	

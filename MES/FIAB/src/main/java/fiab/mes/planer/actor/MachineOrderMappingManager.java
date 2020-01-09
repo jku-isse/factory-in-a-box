@@ -180,7 +180,7 @@ public class MachineOrderMappingManager {
 			AssignmentState newType = AssignmentState.REQUESTED;
 			AssignmentState old = mom.getAssignmentState();
 			if (old != AssignmentState.NONE) {
-				String errMsg = String.format("Error trying to set AssignmentState to Requested on non-Idle state ($s) for %s", old, orderId);
+				String errMsg = String.format("Error trying to set AssignmentState to Requested on non-Idle state (%s) for %s", old, orderId);
 				logger.warn(errMsg);
 				throw new MachineOrderMappingStatusLifecycleException(errMsg);
 			}
