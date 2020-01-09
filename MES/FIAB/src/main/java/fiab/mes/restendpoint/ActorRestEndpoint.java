@@ -107,13 +107,10 @@ public class ActorRestEndpoint extends AllDirectives{
 	}
 	
 	private Route optionsAuth() {
-		System.out.println("################ optionsAuth");
-		
 		return options(() -> complete("This is a OPTIONS request."));
 	}
 	
 	private Route postAuth() {
-		System.out.println("################ postAuth");
 		return post(() -> entity(Jackson.unmarshaller(Credentials.class), user -> {
 			String username = user.getUsername();
 			String password = user.getPassword();
@@ -129,13 +126,15 @@ public class ActorRestEndpoint extends AllDirectives{
 	}
 	
 	private Route optionsAction() {
-		System.out.println("################ optionsAction");
 		return options(() -> complete("This is a OPTIONS request."));
 	}
 	
 	private Route postAction() {
-		System.out.println("################ postAction");
-		return post(() -> complete("This is a POST request."));
+		return post(() -> 
+			headerValueByName("Authorization", token ->
+				complete(auth.isLoggedIn(token) ? "Logged in" : "not authorized")
+			)
+		);
 	}
 
 	private RegisterProcessRequest transformToOrderProcessRequest(String xmlPayload) {

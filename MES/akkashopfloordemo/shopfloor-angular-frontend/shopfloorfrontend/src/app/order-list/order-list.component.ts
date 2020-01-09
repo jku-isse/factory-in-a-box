@@ -7,7 +7,9 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { DataService } from '../data.service';
 import { User, Role } from '../_models';
-import { AuthService } from '../_services';
+import { AuthService, UserService } from '../_services';
+import { first } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-order-list',
@@ -29,7 +31,8 @@ export class OrderListComponent implements OnInit {
     private orderService: OrderService,
     private router: Router,
     private data: DataService,
-    private authenticationService: AuthService
+    private authenticationService: AuthService,
+    private userService: UserService
   ) {
     this.currentUser = this.authenticationService.currentUserValue;
   }
@@ -96,7 +99,10 @@ export class OrderListComponent implements OnInit {
     }
   }
 
-  adminAction(orderIds: string) {
-    // TODO
+  adminAction(orderId: string) {
+    console.log('adminAction');
+    this.userService.makeAction(orderId).pipe(first()).subscribe(data => {
+      console.log('data');
+  });
   }
 }

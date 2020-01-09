@@ -19,4 +19,7 @@ export class UserService {
     return this.http.get<User>(`${environment.apiUrl}/users/${id}`);
   }
 
+  makeAction(msg) {
+    return this.http.post(`${environment.apiUrl}/action`, msg);
+  }
 }
