@@ -1,7 +1,7 @@
 package fiab.mes.transport.customDataTypes;
 
 import akka.actor.ActorRef;
-import fiab.mes.transport.messages.RegisterTransportRequest;
+import fiab.mes.transport.msg.RegisterTransportRequest;
 
 public class TSAListElement {
 	private RegisterTransportRequest rtr;

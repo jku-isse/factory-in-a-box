@@ -6,11 +6,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
 
-public class TransportRouting implements TransportRoutingInterface {
+import fiab.mes.transport.actor.transportmodule.InternalCapabilityToPositionMapping;
+import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
+
+public class HardcodedDefaultTransportRoutingAndMapping implements TransportRoutingInterface, InternalCapabilityToPositionMapping {
 	
 	// FACTORY IN A BOX - SHOPFLOOR LAYOUT:
 	// TT1 and TT2 in the middle, 20,21
@@ -34,8 +38,9 @@ public class TransportRouting implements TransportRoutingInterface {
 	private Position pos20 = new Position("20");
 	private Position pos21 = new Position("21");
 	
-	public TransportRouting() {
+	public HardcodedDefaultTransportRoutingAndMapping() {
 		setupHardcodedLayout();
+		setupHardcodedCapabilityToPositionMapping();
 	}
 	
 	private void setupHardcodedLayout() {
@@ -48,7 +53,7 @@ public class TransportRouting implements TransportRoutingInterface {
 		edgeNodeMapping.put(pos35, pos21);
 		edgeNodeMapping.put(pos38, pos21);
 		edgeNodeMapping.put(pos20, pos21);
-		
+		// router ports
 		routerConnections.put(pos20, new HashSet<Position>(Arrays.asList(pos31,pos34,pos37,pos21)));
 		routerConnections.put(pos21, new HashSet<Position>(Arrays.asList(pos32,pos35,pos38,pos20)));
 	}
@@ -105,5 +110,53 @@ public class TransportRouting implements TransportRoutingInterface {
 		}
 	}
 	
+	private Map<String, Position> tt20map = new HashMap<>();
+	private Map<String, Position> tt21map = new HashMap<>();
+	private Map<Position, String> pos20cap = new HashMap<>();
+	private Map<Position, String> pos21cap = new HashMap<>();
+	
+		
+	private void setupHardcodedCapabilityToPositionMapping() {
+		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER, pos21);
+		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, pos34);
+		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT, pos37);
+		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT, pos31);
+		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SELF, pos20);
+		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, pos35);
+		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, pos20);
+		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT, pos38);
+		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT, pos32);
+		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SELF, pos21);
+		
+		pos20cap.put(pos21, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER);
+		pos20cap.put(pos34, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT);
+		pos20cap.put(pos37, WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT);
+		pos20cap.put(pos31, WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT);
+		pos20cap.put(pos20, WellknownTransportModuleCapability.TRANSPORT_MODULE_SELF);
+		pos21cap.put(pos35, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
+		pos21cap.put(pos20, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT);
+		pos21cap.put(pos38, WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT);
+		pos21cap.put(pos32, WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT);
+		pos21cap.put(pos21, WellknownTransportModuleCapability.TRANSPORT_MODULE_SELF);		
+	}
+	
+	
+	@Override
+	public Position getPositionForCapability(String capabilityId, Position selfPos) {
+		if (selfPos.equals(pos20)) {
+			return tt20map.getOrDefault(capabilityId, TransportRoutingInterface.UNKNOWN_POSITION);
+		} else if (selfPos.equals(pos21)) {
+			return tt21map.getOrDefault(capabilityId, TransportRoutingInterface.UNKNOWN_POSITION);
+		} else return TransportRoutingInterface.UNKNOWN_POSITION;			
+	}
+
+	@Override
+	public Optional<String> getCapabilityIdForPosition(Position pos, Position selfPos) {
+		if (selfPos.equals(pos20)) {
+			return Optional.ofNullable(pos20cap.get(pos));
+		} else if (selfPos.equals(pos21)) {
+			return Optional.ofNullable(pos21cap.get(pos));
+		} else return Optional.empty();
+	}
 	
 }

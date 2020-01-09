@@ -50,8 +50,8 @@ import static org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig.USE
 
 public class BaseOpcUaServer {
 
-    private static final int TCP_BIND_PORT = 4840;
-    private static final int HTTPS_BIND_PORT = 8443;
+    private final int TCP_BIND_PORT;
+    private final int HTTPS_BIND_PORT;
 
     static {
         // Required for SecurityPolicy.Aes256_Sha256_RsaPss
@@ -69,10 +69,12 @@ public class BaseOpcUaServer {
 //
 //        future.get();
 //    }
-
+    
     private final OpcUaServer server;
 
-    public BaseOpcUaServer() throws Exception {
+    public BaseOpcUaServer(int number) throws Exception {
+    	TCP_BIND_PORT = 4840+number;
+    	HTTPS_BIND_PORT = 8443+number;
         File securityTempDir = new File(System.getProperty("java.io.tmpdir"), "security");
         if (!securityTempDir.exists() && !securityTempDir.mkdirs()) {
             throw new Exception("unable to create security temp dir: " + securityTempDir);
@@ -223,14 +225,14 @@ public class BaseOpcUaServer {
         return endpointConfigurations;
     }
 
-    private static EndpointConfiguration buildTcpEndpoint(EndpointConfiguration.Builder base) {
+    private EndpointConfiguration buildTcpEndpoint(EndpointConfiguration.Builder base) {
         return base.copy()
             .setTransportProfile(TransportProfile.TCP_UASC_UABINARY)
             .setBindPort(TCP_BIND_PORT)
             .build();
     }
 
-    private static EndpointConfiguration buildHttpsEndpoint(EndpointConfiguration.Builder base) {
+    private EndpointConfiguration buildHttpsEndpoint(EndpointConfiguration.Builder base) {
         return base.copy()
             .setTransportProfile(TransportProfile.HTTPS_UABINARY)
             .setBindPort(HTTPS_BIND_PORT)

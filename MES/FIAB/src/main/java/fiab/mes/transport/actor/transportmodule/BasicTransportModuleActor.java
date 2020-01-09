@@ -3,6 +3,7 @@ package fiab.mes.transport.actor.transportmodule;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import ActorCoreModel.Actor;
@@ -28,6 +29,9 @@ import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
+import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
+import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.mes.transport.msg.TransportModuleRequest;
 
 
@@ -40,22 +44,27 @@ public class BasicTransportModuleActor extends AbstractActor{
 	protected MachineStatus currentState;
 	protected TransportModuleWrapperInterface hal;
 	protected InterMachineEventBus intraBus;
-	
-	protected TransportModuleRequest reservedForTReq = null;
+	protected TransportPositionLookup tpl;
+	protected Position selfPos;
+	protected InternalCapabilityToPositionMapping icpm;
+	protected InternalTransportModuleRequest reservedForTReq = null;
 	
 	private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
 	
-	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, InterMachineEventBus intraBus) {	    
-		return Props.create(BasicTransportModuleActor.class, () -> new BasicTransportModuleActor(machineEventBus, cap, modelActor, hal, intraBus));
+	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, Position selfPos, InterMachineEventBus intraBus, TransportPositionLookup tpl, InternalCapabilityToPositionMapping icpm) {	    
+		return Props.create(BasicTransportModuleActor.class, () -> new BasicTransportModuleActor(machineEventBus, cap, modelActor, hal, selfPos, intraBus, tpl, icpm));
 	}
 	
-	public BasicTransportModuleActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, InterMachineEventBus intraBus) {
+	public BasicTransportModuleActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, Position selfPos, InterMachineEventBus intraBus, TransportPositionLookup tpl, InternalCapabilityToPositionMapping icpm) {
 		this.cap = cap;
 		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;
 		this.hal = hal;
 		this.intraBus = intraBus;
+		this.tpl = tpl; // later versions will obtain such info dynamically from accessing own capability OPC UA information
+		this.icpm = icpm; // later versions will obtain such info dynamically from accessing own wiring OPC UA information
+		this.selfPos = selfPos;
 		init();
 
 	}
@@ -63,13 +72,13 @@ public class BasicTransportModuleActor extends AbstractActor{
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
+				// map from positions to capabilityInstances local to the transport module 
 		        .match(TransportModuleRequest.class, req -> {
+		        	log.info("Received TransportModuleRequest");
 		        	if (currentState.equals(MachineStatus.IDLE)) {
-		        		setAndPublishSensedState(MachineStatus.STARTING);
-		        		reservedForTReq = req;
-		        		//TODO: ideally we would check if the requests directions encoded in the capabilities are indeed found on this transportmodule
-		        		hal.transport(req);
+		        		processTransportModuleRequest(req);
 		        	} else {
+		        		log.warning(String.format("Received TransportModuleRequest %s in incompatible local state %s", req.getOrderId(), this.currentState));
 		        		//FIXME: respond with error message that we are not in the right state for request
 		        	}
 		        })
@@ -91,6 +100,20 @@ public class BasicTransportModuleActor extends AbstractActor{
 		hal.subscribeToStatus();
 	}
 	
+	private void processTransportModuleRequest(TransportModuleRequest req) {
+		//we check if the requests directions encoded in the capabilities are indeed found on this transportmodule
+		Optional<String> capFrom = icpm.getCapabilityIdForPosition(req.getPosFrom(), selfPos);
+		Optional<String> capTo = icpm.getCapabilityIdForPosition(req.getPosTo(), selfPos);
+		if (capFrom.isPresent() && capTo.isPresent()) {
+			setAndPublishSensedState(MachineStatus.STARTING);
+			reservedForTReq = new InternalTransportModuleRequest(capFrom.get(), capTo.get(), req.getOrderId(), req.getRequestId());
+			hal.transport(reservedForTReq);
+		} else {
+			log.warning(String.format("TransportModuleRequest %s from %s to %s cannt be resolved to local capabilities", req.getOrderId(), req.getPosFrom(), req.getPosTo()));
+			//TODO: return error message to sender
+		}
+	}
+	
 	private void processMachineUpdateEvent(MachineStatusUpdateEvent mue) {
 		if (mue.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) {
 			MachineStatus newState = mue.getStatus();
@@ -101,7 +124,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 				break;
 			case COMPLETING:
 				break;
-			case EXECUTE:
+			case EXECUTE: // for now we guess to have obtained the pallet for given order, --> this would need to be confirmed by the sub actor representing the turntable
 				break;
 			case IDLE:
 				break;
@@ -122,7 +145,8 @@ public class BasicTransportModuleActor extends AbstractActor{
 	}
 	
 	private void setAndPublishSensedState(MachineStatus newState) {
-		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, reservedForTReq.getOrderId());
+		String order = reservedForTReq != null ? reservedForTReq.getOrderId() : "none";
+		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, order);
 		log.debug(msg);
 		if (currentState != newState) {
 			this.currentState = newState;
