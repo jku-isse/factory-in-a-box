@@ -24,7 +24,7 @@ export class AuthService {
   }
 
   login(username: string, password: string) {
-    return this.http.post<any>(`${environment.apiUrl}/users/authenticate`, { username, password }) // TODO this route doesnt work!!!!
+    return this.http.post<any>(`${environment.apiUrl}/authenticate`, { username, password })
       .pipe(map(user => {
         // login successful if there's a jwt token in the response
         if (user && user.token) {

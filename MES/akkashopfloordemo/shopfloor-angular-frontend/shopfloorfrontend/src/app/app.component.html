@@ -17,8 +17,8 @@
       
           </div>
           <span class="fill-space"></span>
-          <h3 *ngIf="currentUser" >{{currentUser.role}}</h3>
-          <mat-divider  vertical></mat-divider>
+          <h3 *ngIf="currentUser" >{{currentUser.firstName}}</h3>
+          <mat-divider *ngIf="currentUser" vertical></mat-divider>
           <button *ngIf="currentUser" mat-stroked-button (click)="logout()">Logout</button>
         </mat-toolbar-row>
       </mat-toolbar>
