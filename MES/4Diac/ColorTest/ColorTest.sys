@@ -1,0 +1,1090 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE System SYSTEM "http://www.holobloc.com/xml/LibraryElement.dtd">
+<System Comment="" Name="ColorTest">
+  <Identification/>
+  <VersionInfo Author="Mario" Date="2019-11-13" Version="1.0"/>
+  <Application Comment="" Name="Plotter">
+    <SubAppNetwork>
+      <FB Comment="" Name="ReadRed" Type="IW" x="3066.666666666667" y="4000.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.0"/>
+      </FB>
+      <FB Comment="" Name="ReadGreen" Type="IW" x="3066.666666666667" y="4933.333333333334">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.1"/>
+      </FB>
+      <FB Comment="" Name="ReadBlue" Type="IW" x="3066.666666666667" y="5866.666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.2"/>
+      </FB>
+      <FB Comment="" Name="QW" Type="QW" x="1600.0" y="4800.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.mode"/>
+        <Parameter Name="OUT" Value="4"/>
+      </FB>
+      <FB Comment="" Name="UnloadingSensor" Type="ObjectDetect" x="6400.0" y="4533.333333333334"/>
+      <FB Comment="" Name="HandShakeState" Type="PUBLISH_1" x="7866.666666666667" y="2400.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[WRITE;/Objects/Machine/CurrentStateHandshake,1:s=currentStateHandshake]"/>
+      </FB>
+      <FB Comment="" Name="reqestInitHandover" Type="SERVER_0" x="533.3333333333334" y="1066.6666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/InitHandOver,1:s=initHandOver]"/>
+      </FB>
+      <FB Comment="" Name="QX" Type="QX" x="6266.666666666667" y="133.33333333333334">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="outA.motor.enable"/>
+      </FB>
+      <FB Comment="" Name="QW_1" Type="QW" x="2533.3333333333335" y="-933.3333333333334">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="outA.motor.pwm"/>
+      </FB>
+      <FB Comment="" Name="resetHandshake" Type="SERVER_0" x="666.6666666666667" y="2933.3333333333335">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/ResetHandshake,1:s=resetHandShake]"/>
+      </FB>
+      <FB Comment="" Name="stopHandshake" Type="SERVER_0" x="666.6666666666667" y="3866.666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/StopHandshake,1:s=stopHandShake]"/>
+      </FB>
+      <FB Comment="" Name="E_MERGE_1" Type="E_MERGE" x="6133.333333333334" y="2266.666666666667"/>
+      <FB Comment="" Name="requestStartHandover" Type="SERVER_0" x="400.0" y="2000.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/StartHandOver,1:s=startHandOver]"/>
+      </FB>
+      <FB Comment="" Name="E_MERGE" Type="E_MERGE" x="6133.333333333334" y="2800.0"/>
+      <FB Comment="" Name="LoadingSensor" Type="IX" x="6800.0" y="1200.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in2.sensor.0"/>
+      </FB>
+      <FB Comment="" Name="E_SWITCH_2" Type="E_SWITCH" x="400.0" y="-400.0"/>
+      <FB Comment="" Name="HandshakeStateMachine" Type="HandshakeStateMachine" x="2533.3333333333335" y="2000.0">
+        <Parameter Name="QI" Value="1"/>
+      </FB>
+      <FB Comment="" Name="E_CYCLE" Type="E_CYCLE" x="6133.333333333334" y="1200.0">
+        <Parameter Name="DT" Value="T#250ms"/>
+      </FB>
+      <FB Comment="" Name="E_CYCLE_1" Type="E_CYCLE" x="5733.333333333334" y="4000.0">
+        <Parameter Name="DT" Value="T#250ms"/>
+      </FB>
+      <FB Comment="" Name="E_SWITCH" Type="E_SWITCH" x="5200.0" y="1200.0"/>
+      <FB Comment="" Name="PlotterState" Type="PUBLISH_1" x="7066.666666666667" y="7466.666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[WRITE;/Objects/Machine/Plotter/CurrentStatePlotter,1:s=currentStatePlotter]"/>
+      </FB>
+      <FB Comment="" Name="stopPlotter" Type="SERVER_0" x="400.0" y="8933.333333333334">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/Plotter/StopPlotter,1:s=stopPlotter]"/>
+      </FB>
+      <FB Comment="" Name="resetPlotter" Type="SERVER_0" x="400.0" y="8000.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/Plotter/ResetPlotter,1:s=resetPlotter]"/>
+      </FB>
+      <FB Comment="" Name="plot" Type="SERVER_0" x="400.0" y="6933.333333333334">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/Plotter/Plot,1:s=plot]"/>
+      </FB>
+      <FB Comment="" Name="calibrate" Type="SERVER_0" x="400.0" y="6000.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/Plotter/Calibrate,1:s=calibrate]"/>
+      </FB>
+      <FB Comment="" Name="E_MERGE_2" Type="E_MERGE" x="5200.0" y="7733.333333333334"/>
+      <FB Comment="" Name="E_MERGE_3" Type="E_MERGE" x="5200.0" y="8266.666666666668"/>
+      <FB Comment="" Name="PlottingStateMachine" Type="PlottingStateMachine" x="2933.3333333333335" y="7466.666666666667">
+        <Parameter Name="QI" Value="1"/>
+      </FB>
+      <FB Comment="" Name="E_R_TRIG_1" Type="E_R_TRIG" x="7866.666666666667" y="1333.3333333333335"/>
+      <FB Comment="" Name="E_SR" Type="E_RS" x="4666.666666666667" y="400.0"/>
+      <FB Comment="" Name="E_SWITCH_1" Type="E_SWITCH" x="7733.333333333334" y="4666.666666666667"/>
+      <FB Comment="" Name="E_SWITCH_3" Type="E_SWITCH" x="4666.666666666667" y="4000.0"/>
+      <FB Comment="" Name="QW_1_1" Type="QW" x="2533.3333333333335" y="0.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="outA.motor.pwm"/>
+        <Parameter Name="OUT" Value="40"/>
+      </FB>
+      <FB Comment="" Name="E_MERGE_4" Type="E_MERGE" x="3600.0" y="-266.6666666666667"/>
+      <FB Comment="" Name="F_INT_TO_WORD" Type="F_INT_TO_WORD" x="1333.3333333333335" y="-933.3333333333334">
+        <Parameter Name="IN" Value="-40"/>
+      </FB>
+      <EventConnections>
+        <Connection Comment="" Destination="ReadGreen.INIT" Source="ReadRed.INITO" dx1="80.0" dx2="80.0" dy="700.0"/>
+        <Connection Comment="" Destination="ReadBlue.INIT" Source="ReadGreen.INITO" dx1="80.0" dx2="80.0" dy="693.3333333333334"/>
+        <Connection Comment="" Destination="ReadGreen.REQ" Source="ReadRed.CNF" dx1="80.0" dx2="80.0" dy="646.6666666666667"/>
+        <Connection Comment="" Destination="ReadBlue.REQ" Source="ReadGreen.CNF" dx1="80.0" dx2="80.0" dy="640.0"/>
+        <Connection Comment="" Destination="QW.REQ" Source="QW.INITO" dx1="80.0" dx2="80.0" dy="-226.66666666666669"/>
+        <Connection Comment="" Destination="ReadRed.INIT" Source="QW.CNF" dx1="133.33333333333334"/>
+        <Connection Comment="" Destination="UnloadingSensor.Reset" Source="UnloadingSensor.TakeReq" dx1="113.33333333333334" dx2="80.0" dy="-413.33333333333337"/>
+        <Connection Comment="" Destination="UnloadingSensor.INIT" Source="ReadBlue.INITO" dx1="300.0"/>
+        <Connection Comment="" Destination="UnloadingSensor.REQ" Source="ReadBlue.CNF" dx1="366.6666666666667"/>
+        <Connection Comment="" Destination="QX.INIT" Source="QW_1.INITO" dx1="986.6666666666667"/>
+        <Connection Comment="" Destination="reqestInitHandover.INIT" Source="QW_1.INITO" dx1="146.66666666666669" dx2="140.0" dy="1613.3333333333335"/>
+        <Connection Comment="" Destination="reqestInitHandover.RSP" Source="reqestInitHandover.IND" dx1="80.0" dx2="80.0" dy="-273.33333333333337"/>
+        <Connection Comment="" Destination="QW.INIT" Source="QW_1.INITO" dx1="220.0" dx2="133.33333333333334" dy="1653.3333333333335"/>
+        <Connection Comment="" Destination="resetHandshake.RSP" Source="resetHandshake.IND" dx1="80.0" dx2="80.0" dy="-280.0"/>
+        <Connection Comment="" Destination="stopHandshake.INIT" Source="resetHandshake.INITO" dx1="126.66666666666667" dx2="126.66666666666667" dy="626.6666666666667"/>
+        <Connection Comment="" Destination="stopHandshake.RSP" Source="stopHandshake.IND" dx1="80.0" dx2="80.0" dy="-300.0"/>
+        <Connection Comment="" Destination="HandShakeState.REQ" Source="E_MERGE_1.EO" dx1="93.33333333333334"/>
+        <Connection Comment="" Destination="requestStartHandover.RSP" Source="requestStartHandover.IND" dx1="80.0" dx2="80.0" dy="-313.33333333333337"/>
+        <Connection Comment="" Destination="HandShakeState.REQ" Source="E_MERGE.EO" dx1="93.33333333333334"/>
+        <Connection Comment="" Destination="requestStartHandover.INIT" Source="reqestInitHandover.INITO" dx1="153.33333333333334" dx2="126.66666666666667" dy="580.0"/>
+        <Connection Comment="" Destination="resetHandshake.INIT" Source="requestStartHandover.INITO" dx1="113.33333333333334" dx2="146.66666666666669" dy="593.3333333333334"/>
+        <Connection Comment="" Destination="LoadingSensor.INIT" Source="QX.INITO" dx1="80.0" dx2="80.0" dy="753.3333333333334"/>
+        <Connection Comment="" Destination="HandShakeState.INIT" Source="LoadingSensor.INITO" dx1="100.0"/>
+        <Connection Comment="" Destination="ReadRed.REQ" Source="E_MERGE.EO" dx1="80.0" dx2="80.0" dy="793.3333333333334"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.INIT" Source="reqestInitHandover.INITO" dx1="580.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.RESET" Source="resetHandshake.IND" dx1="506.6666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.GO_IDLE" Source="UnloadingSensor.CNF" dx1="186.66666666666669" dx2="206.66666666666669" dy="-940.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.START" Source="reqestInitHandover.IND" dx1="420.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.PREPARE" Source="HandshakeStateMachine.CNF" dx1="160.0" dx2="80.0" dy="-413.33333333333337"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.READY" Source="UnloadingSensor.CNF" dx1="220.0" dx2="160.0" dy="-886.6666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.EXECUTE" Source="requestStartHandover.IND" dx1="313.33333333333337"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.START_STOPPING" Source="stopHandshake.IND" dx1="573.3333333333334"/>
+        <Connection Comment="" Destination="HandShakeState.REQ" Source="HandshakeStateMachine.CNF" dx1="2593.3333333333335"/>
+        <Connection Comment="" Destination="E_MERGE_1.EI1" Source="HandshakeStateMachine.START_MOTORS" dx1="566.6666666666667"/>
+        <Connection Comment="" Destination="E_SWITCH_2.EI" Source="HandshakeStateMachine.START_MOTORS" dx1="80.0" dx2="126.66666666666667" dy="-1406.6666666666667"/>
+        <Connection Comment="" Destination="E_MERGE_1.EI2" Source="HandshakeStateMachine.STOP_MOTORS" dx1="166.66666666666669"/>
+        <Connection Comment="" Destination="E_MERGE.EI1" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE" dx1="226.66666666666669"/>
+        <Connection Comment="" Destination="E_MERGE.EI2" Source="HandshakeStateMachine.REQ_IS_LOADED_READY" dx1="166.66666666666669"/>
+        <Connection Comment="" Destination="LoadingSensor.REQ" Source="E_CYCLE.EO" dx1="93.33333333333334"/>
+        <Connection Comment="" Destination="E_CYCLE.START" Source="E_SWITCH.EO0"/>
+        <Connection Comment="" Destination="E_CYCLE.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="1573.3333333333335"/>
+        <Connection Comment="" Destination="E_SWITCH.EI" Source="HandshakeStateMachine.START_MOTORS" dx1="500.0"/>
+        <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="1313.3333333333335"/>
+        <Connection Comment="" Destination="resetPlotter.RSP" Source="resetPlotter.IND" dx1="80.0" dx2="80.0" dy="-320.0"/>
+        <Connection Comment="" Destination="stopPlotter.RSP" Source="stopPlotter.IND" dx1="80.0" dx2="80.0" dy="-300.0"/>
+        <Connection Comment="" Destination="stopPlotter.INIT" Source="resetPlotter.INITO" dx1="126.66666666666667" dx2="126.66666666666667" dy="626.6666666666667"/>
+        <Connection Comment="" Destination="resetPlotter.INIT" Source="plot.INITO" dx1="80.0" dx2="106.66666666666667" dy="766.6666666666667"/>
+        <Connection Comment="" Destination="plot.RSP" Source="plot.IND" dx1="80.0" dx2="80.0" dy="-306.6666666666667"/>
+        <Connection Comment="" Destination="calibrate.INIT" Source="stopHandshake.INITO" dx1="80.0" dx2="80.0" dy="1066.6666666666667"/>
+        <Connection Comment="" Destination="plot.INIT" Source="calibrate.INITO" dx1="133.33333333333334" dx2="80.0" dy="640.0"/>
+        <Connection Comment="" Destination="calibrate.RSP" Source="calibrate.IND" dx1="80.0" dx2="80.0" dy="-353.33333333333337"/>
+        <Connection Comment="" Destination="PlotterState.REQ" Source="E_MERGE_2.EO" dx1="86.66666666666667"/>
+        <Connection Comment="" Destination="PlotterState.REQ" Source="E_MERGE_3.EO" dx1="206.66666666666669"/>
+        <Connection Comment="" Destination="PlottingStateMachine.INIT" Source="HandshakeStateMachine.INITO" dx1="4766.666666666667" dx2="80.0" dy="4646.666666666667"/>
+        <Connection Comment="" Destination="PlottingStateMachine.RESET" Source="resetPlotter.IND" dx1="780.0"/>
+        <Connection Comment="" Destination="PlottingStateMachine.GO_IDLE" Source="PlottingStateMachine.CNF" dx1="80.0" dx2="133.33333333333334" dy="-353.33333333333337"/>
+        <Connection Comment="" Destination="PlottingStateMachine.START" Source="plot.IND" dx1="693.3333333333334"/>
+        <Connection Comment="" Destination="PlottingStateMachine.EXECUTE" Source="PlottingStateMachine.PLOT_CALLED" dx1="140.0" dx2="186.66666666666669" dy="-586.6666666666667"/>
+        <Connection Comment="" Destination="PlottingStateMachine.COMPLETE" Source="PlottingStateMachine.CNF" dx1="80.0" dx2="266.6666666666667" dy="-413.33333333333337"/>
+        <Connection Comment="" Destination="PlottingStateMachine.DONE" Source="PlottingStateMachine.CNF" dx1="213.33333333333334" dx2="333.33333333333337" dy="-566.6666666666667"/>
+        <Connection Comment="" Destination="PlottingStateMachine.BEGIN_STOPPING" Source="stopPlotter.IND" dx1="993.3333333333334"/>
+        <Connection Comment="" Destination="PlottingStateMachine.BEGIN_STOPPING" Source="PlottingStateMachine.CALIBRATE_CALLED" dx1="300.0" dx2="400.0" dy="-866.6666666666667"/>
+        <Connection Comment="" Destination="PlottingStateMachine.STOP" Source="PlottingStateMachine.STOP_CALLED" dx1="140.0" dx2="80.0" dy="1186.6666666666667"/>
+        <Connection Comment="" Destination="PlottingStateMachine.CALIBRATE" Source="calibrate.IND" dx1="886.6666666666667"/>
+        <Connection Comment="" Destination="PlotterState.INIT" Source="PlottingStateMachine.INITO"/>
+        <Connection Comment="" Destination="E_MERGE_2.EI1" Source="PlottingStateMachine.CNF" dx1="373.33333333333337"/>
+        <Connection Comment="" Destination="E_MERGE_2.EI2" Source="PlottingStateMachine.PLOT_CALLED" dx1="373.33333333333337"/>
+        <Connection Comment="" Destination="E_MERGE_3.EI1" Source="PlottingStateMachine.CALIBRATE_CALLED" dx1="373.33333333333337"/>
+        <Connection Comment="" Destination="E_MERGE_3.EI2" Source="PlottingStateMachine.STOP_CALLED" dx1="373.33333333333337"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.DONE" Source="HandshakeStateMachine.STOP_MOTORS" dx1="273.33333333333337" dx2="266.6666666666667" dy="-720.0"/>
+        <Connection Comment="" Destination="E_R_TRIG_1.EI" Source="LoadingSensor.CNF" dx1="186.66666666666669"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.COMPLETE" Source="E_R_TRIG_1.EO" dx1="80.0" dx2="400.0" dy="-340.0"/>
+        <Connection Comment="" Destination="E_SR.R" Source="HandshakeStateMachine.STOP_MOTORS" dx1="386.6666666666667"/>
+        <Connection Comment="" Destination="E_SR.R" Source="HandshakeStateMachine.INITO" dx1="346.6666666666667"/>
+        <Connection Comment="" Destination="QX.REQ" Source="E_SR.EO" dx1="360.0"/>
+        <Connection Comment="" Destination="ReadRed.REQ" Source="E_CYCLE_1.EO" dx1="80.0" dx2="80.0" dy="-160.0"/>
+        <Connection Comment="" Destination="QX.REQ" Source="HandshakeStateMachine.STOP_MOTORS" dx1="206.66666666666669"/>
+        <Connection Comment="" Destination="E_SWITCH_1.EI" Source="UnloadingSensor.CNF" dx1="106.66666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.COMPLETE" Source="E_SWITCH_1.EO0" dx1="80.0" dx2="120.0" dy="-1013.3333333333334"/>
+        <Connection Comment="" Destination="E_SWITCH_3.EI" Source="HandshakeStateMachine.START_MOTORS" dx1="300.0"/>
+        <Connection Comment="" Destination="E_CYCLE_1.START" Source="E_SWITCH_3.EO1" dx1="266.6666666666667"/>
+        <Connection Comment="" Destination="QW_1_1.REQ" Source="E_SWITCH_2.EO1" dx1="533.3333333333334"/>
+        <Connection Comment="" Destination="QW_1_1.INIT" Source="QW_1.INITO" dx1="80.0" dx2="80.0" dy="720.0"/>
+        <Connection Comment="" Destination="E_MERGE_4.EI1" Source="QW_1.CNF" dx1="186.66666666666669"/>
+        <Connection Comment="" Destination="E_MERGE_4.EI2" Source="QW_1_1.CNF" dx1="186.66666666666669"/>
+        <Connection Comment="" Destination="E_SR.S" Source="E_MERGE_4.EO" dx1="80.0"/>
+        <Connection Comment="" Destination="QW_1.REQ" Source="F_INT_TO_WORD.CNF" dx1="220.0"/>
+        <Connection Comment="" Destination="F_INT_TO_WORD.REQ" Source="E_SWITCH_2.EO0" dx1="200.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.STOP" Source="HandshakeStateMachine.CNF" dx1="133.33333333333334" dx2="466.6666666666667" dy="-606.6666666666667"/>
+      </EventConnections>
+      <DataConnections>
+        <Connection Comment="" Destination="UnloadingSensor.Red" Source="ReadRed.IN" dx1="300.0"/>
+        <Connection Comment="" Destination="UnloadingSensor.Green" Source="ReadGreen.IN" dx1="213.33333333333334"/>
+        <Connection Comment="" Destination="UnloadingSensor.Blue" Source="ReadBlue.IN" dx1="400.0"/>
+        <Connection Comment="" Destination="HandShakeState.SD_1" Source="HandshakeStateMachine.STATE" dx1="2826.666666666667"/>
+        <Connection Comment="" Destination="E_SWITCH_2.G" Source="HandshakeStateMachine.IS_LOADED_OUT" dx1="413.33333333333337" dx2="80.0" dy="-2626.666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.IS_LOADED_IN" Source="UnloadingSensor.ObjectDetected" dx1="80.0" dx2="80.0" dy="-1200.0"/>
+        <Connection Comment="" Destination="E_SWITCH.G" Source="HandshakeStateMachine.IS_LOADED_OUT" dx1="553.3333333333334"/>
+        <Connection Comment="" Destination="PlotterState.SD_1" Source="PlottingStateMachine.STATE" dx1="2206.666666666667"/>
+        <Connection Comment="" Destination="E_R_TRIG_1.QI" Source="LoadingSensor.IN" dx1="186.66666666666669"/>
+        <Connection Comment="" Destination="QX.OUT" Source="E_SR.Q" dx1="360.0"/>
+        <Connection Comment="" Destination="E_SWITCH_1.G" Source="UnloadingSensor.ObjectDetected" dx1="106.66666666666667"/>
+        <Connection Comment="" Destination="E_SWITCH_3.G" Source="HandshakeStateMachine.IS_LOADED_OUT" dx1="233.33333333333334"/>
+        <Connection Comment="" Destination="QW_1.OUT" Source="F_INT_TO_WORD.OUT" dx1="220.0"/>
+      </DataConnections>
+    </SubAppNetwork>
+  </Application>
+  <Application Comment="" Name="OutputStack">
+    <SubAppNetwork>
+      <FB Comment="" Name="requestInitHandover" Type="SERVER_0" x="3200.0" y="2266.666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/M2M/InitLoading,1:s=initLoading]"/>
+      </FB>
+      <FB Comment="" Name="CurrentStateVar" Type="PUBLISH_1" x="10666.666666666668" y="3066.666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[WRITE;/Objects/OutputStack/CurrentState,1:s=currentState]"/>
+      </FB>
+      <FB Comment="" Name="requestStartHandover" Type="SERVER_0" x="3200.0" y="3333.3333333333335">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/M2M/StartLoading,1:s=startLoading]"/>
+      </FB>
+      <FB Comment="" Name="E_CYCLE" Type="E_CYCLE" x="6266.666666666667" y="133.33333333333334">
+        <Parameter Name="DT" Value="T#100ms"/>
+      </FB>
+      <FB Comment="" Name="ObjectDetect" Type="ObjectDetect" x="3066.666666666667" y="800.0"/>
+      <FB Comment="" Name="IW" Type="IW" x="1866.6666666666667" y="-133.33333333333334">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.0"/>
+      </FB>
+      <FB Comment="" Name="QW_2" Type="QW" x="266.6666666666667" y="0.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.mode"/>
+        <Parameter Name="OUT" Value="4"/>
+      </FB>
+      <FB Comment="" Name="IW_2" Type="IW" x="1866.6666666666667" y="2000.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.2"/>
+      </FB>
+      <FB Comment="" Name="IW_1" Type="IW" x="1866.6666666666667" y="933.3333333333334">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.1"/>
+      </FB>
+      <FB Comment="" Name="E_SWITCH" Type="E_SWITCH" x="4933.333333333334" y="800.0"/>
+      <FB Comment="" Name="reset" Type="SERVER_0" x="3466.666666666667" y="4266.666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/Reset,1:s=reset]"/>
+      </FB>
+      <FB Comment="" Name="stop" Type="SERVER_0" x="3466.666666666667" y="5200.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/Stop,1:s=stop]"/>
+      </FB>
+      <FB Comment="" Name="HandshakeStateMachine" Type="HandshakeStateMachine" x="5866.666666666667" y="2666.666666666667">
+        <Parameter Name="QI" Value="1"/>
+      </FB>
+      <FB Comment="" Name="E_CYCLE_1" Type="E_CYCLE" x="6266.666666666667" y="1066.6666666666667">
+        <Parameter Name="DT" Value="T#100ms"/>
+      </FB>
+      <FB Comment="" Name="E_SPLIT" Type="E_SPLIT" x="4933.333333333334" y="4266.666666666667"/>
+      <FB Comment="" Name="E_MERGE" Type="E_MERGE" x="8400.0" y="3866.666666666667"/>
+      <FB Comment="" Name="E_MERGE_1" Type="E_MERGE" x="8400.0" y="4400.0"/>
+      <FB Comment="" Name="E_MERGE_2" Type="E_MERGE" x="9866.666666666668" y="3066.666666666667"/>
+      <FB Comment="" Name="E_MERGE_3" Type="E_MERGE" x="9200.0" y="4000.0"/>
+      <FB Comment="" Name="Delay" Type="E_CYCLE" x="4933.333333333334" y="2000.0">
+        <Parameter Name="DT" Value="T#100ms"/>
+      </FB>
+      <EventConnections>
+        <Connection Comment="" Destination="requestInitHandover.RSP" Source="requestInitHandover.IND" dx1="80.0" dx2="80.0" dy="-286.6666666666667"/>
+        <Connection Comment="" Destination="requestStartHandover.RSP" Source="requestStartHandover.IND" dx1="126.66666666666667" dx2="80.0" dy="-313.33333333333337"/>
+        <Connection Comment="" Destination="QW_2.REQ" Source="QW_2.INITO" dx1="80.0" dx2="80.0" dy="-193.33333333333334"/>
+        <Connection Comment="" Destination="IW.INIT" Source="QW_2.CNF" dx1="320.0"/>
+        <Connection Comment="" Destination="IW.REQ" Source="E_CYCLE.EO" dx1="80.0" dx2="133.33333333333334" dy="-480.0"/>
+        <Connection Comment="" Destination="IW_1.INIT" Source="IW.INITO" dx1="80.0" dx2="80.0" dy="700.0"/>
+        <Connection Comment="" Destination="IW_2.INIT" Source="IW_1.INITO" dx1="106.66666666666667" dx2="80.0" dy="673.3333333333334"/>
+        <Connection Comment="" Destination="ObjectDetect.INIT" Source="IW_2.INITO" dx1="233.33333333333334"/>
+        <Connection Comment="" Destination="ObjectDetect.REQ" Source="IW_2.CNF" dx1="286.6666666666667"/>
+        <Connection Comment="" Destination="IW_2.REQ" Source="IW_1.CNF" dx1="80.0" dx2="120.0" dy="680.0"/>
+        <Connection Comment="" Destination="IW_1.REQ" Source="IW.CNF" dx1="126.66666666666667" dx2="106.66666666666667" dy="713.3333333333334"/>
+        <Connection Comment="" Destination="ObjectDetect.Reset" Source="ObjectDetect.TakeReq" dx1="80.0" dx2="80.0" dy="-440.0"/>
+        <Connection Comment="" Destination="requestInitHandover.INIT" Source="ObjectDetect.INITO" dx1="146.66666666666669" dx2="126.66666666666667" dy="946.6666666666667"/>
+        <Connection Comment="" Destination="E_SWITCH.EI" Source="ObjectDetect.CNF" dx1="293.33333333333337"/>
+        <Connection Comment="" Destination="reset.INIT" Source="requestStartHandover.INITO" dx1="80.0" dx2="113.33333333333334" dy="586.6666666666667"/>
+        <Connection Comment="" Destination="stop.INIT" Source="reset.INITO" dx1="113.33333333333334" dx2="106.66666666666667" dy="660.0"/>
+        <Connection Comment="" Destination="reset.RSP" Source="reset.IND" dx1="80.0" dx2="80.0" dy="-286.6666666666667"/>
+        <Connection Comment="" Destination="stop.RSP" Source="stop.IND" dx1="80.0" dx2="80.0" dy="-266.6666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.INIT" Source="stop.INITO" dx1="526.6666666666667"/>
+        <Connection Comment="" Destination="requestStartHandover.INIT" Source="requestInitHandover.INITO" dx1="133.33333333333334" dx2="120.0" dy="793.3333333333334"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.START_STOPPING" Source="stop.IND" dx1="600.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.RESET" Source="reset.IND" dx1="480.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.START" Source="requestInitHandover.IND" dx1="500.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.EXECUTE" Source="requestStartHandover.IND" dx1="333.33333333333337"/>
+        <Connection Comment="" Destination="CurrentStateVar.INIT" Source="HandshakeStateMachine.INITO" dx1="2973.3333333333335"/>
+        <Connection Comment="" Destination="E_CYCLE.START" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE" dx1="460.0" dx2="126.66666666666667" dy="-1466.6666666666667"/>
+        <Connection Comment="" Destination="E_CYCLE.STOP" Source="E_SWITCH.EO0" dx1="600.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.PREPARE" Source="HandshakeStateMachine.CNF" dx1="166.66666666666669" dx2="146.66666666666669" dy="-366.6666666666667"/>
+        <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="E_SWITCH.EO1" dx1="533.3333333333334"/>
+        <Connection Comment="" Destination="IW.REQ" Source="E_CYCLE_1.EO" dx1="133.33333333333334" dx2="80.0" dy="-1380.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.GO_IDLE" Source="E_SWITCH.EO0" dx1="326.6666666666667"/>
+        <Connection Comment="" Destination="E_CYCLE_1.START" Source="HandshakeStateMachine.START_MOTORS" dx1="200.0" dx2="80.0" dy="-900.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.COMPLETE" Source="E_SWITCH.EO1" dx1="200.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.DONE" Source="E_SPLIT.EO1" dx1="160.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.STOP" Source="E_SPLIT.EO2" dx1="100.0"/>
+        <Connection Comment="" Destination="E_MERGE_1.EI1" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE" dx1="366.6666666666667"/>
+        <Connection Comment="" Destination="E_MERGE_1.EI2" Source="HandshakeStateMachine.REQ_IS_LOADED_READY" dx1="313.33333333333337"/>
+        <Connection Comment="" Destination="E_MERGE.EI1" Source="HandshakeStateMachine.START_MOTORS" dx1="586.6666666666667"/>
+        <Connection Comment="" Destination="E_MERGE.EI2" Source="HandshakeStateMachine.STOP_MOTORS" dx1="546.6666666666667"/>
+        <Connection Comment="" Destination="E_MERGE_3.EI1" Source="E_MERGE.EO" dx1="160.0"/>
+        <Connection Comment="" Destination="E_MERGE_3.EI2" Source="E_MERGE_1.EO" dx1="160.0"/>
+        <Connection Comment="" Destination="E_MERGE_2.EI2" Source="E_MERGE_3.EO" dx1="93.33333333333334"/>
+        <Connection Comment="" Destination="E_MERGE_2.EI1" Source="HandshakeStateMachine.CNF" dx1="1166.6666666666667"/>
+        <Connection Comment="" Destination="CurrentStateVar.REQ" Source="E_MERGE_2.EO" dx1="160.0"/>
+        <Connection Comment="" Destination="Delay.START" Source="HandshakeStateMachine.STOP_MOTORS" dx1="80.0" dx2="106.66666666666667" dy="-1220.0"/>
+        <Connection Comment="" Destination="E_SPLIT.EI" Source="Delay.EO" dx1="80.0" dx2="80.0" dy="1066.6666666666667"/>
+        <Connection Comment="" Destination="Delay.STOP" Source="Delay.EO" dx1="80.0" dx2="80.0" dy="-200.0"/>
+        <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="80.0" dx2="80.0" dy="-900.0"/>
+        <Connection Comment="" Destination="E_CYCLE.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="80.0" dx2="80.0" dy="-1366.6666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.READY" Source="HandshakeStateMachine.REQ_IS_LOADED_READY" dx1="253.33333333333334" dx2="173.33333333333334" dy="-820.0"/>
+      </EventConnections>
+      <DataConnections>
+        <Connection Comment="" Destination="ObjectDetect.Red" Source="IW.IN" dx1="173.33333333333334"/>
+        <Connection Comment="" Destination="ObjectDetect.Green" Source="IW_1.IN" dx1="186.66666666666669"/>
+        <Connection Comment="" Destination="ObjectDetect.Blue" Source="IW_2.IN" dx1="333.33333333333337"/>
+        <Connection Comment="" Destination="E_SWITCH.G" Source="ObjectDetect.ObjectDetected" dx1="293.33333333333337"/>
+        <Connection Comment="" Destination="CurrentStateVar.SD_1" Source="HandshakeStateMachine.STATE" dx1="766.6666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.IS_LOADED_IN" Source="ObjectDetect.ObjectDetected" dx1="666.6666666666667"/>
+      </DataConnections>
+    </SubAppNetwork>
+  </Application>
+  <Application Comment="" Name="InputStack">
+    <SubAppNetwork>
+      <FB Comment="" Name="E_SWITCH" Type="E_SWITCH" x="4266.666666666667" y="1066.6666666666667"/>
+      <FB Comment="" Name="IW_2" Type="IW" x="1200.0" y="2266.666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.2"/>
+      </FB>
+      <FB Comment="" Name="reset" Type="SERVER_0" x="2800.0" y="4533.333333333334">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/Reset,1:s=reset]"/>
+      </FB>
+      <FB Comment="" Name="requestStartHandover" Type="SERVER_0" x="2533.3333333333335" y="3600.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/M2M/StartLoading,1:s=startLoading]"/>
+      </FB>
+      <FB Comment="" Name="IW_1" Type="IW" x="1200.0" y="1200.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.1"/>
+      </FB>
+      <FB Comment="" Name="E_CYCLE_1" Type="E_CYCLE" x="5600.0" y="1333.3333333333335">
+        <Parameter Name="DT" Value="T#100ms"/>
+      </FB>
+      <FB Comment="" Name="E_MERGE_2" Type="E_MERGE" x="9200.0" y="3333.3333333333335"/>
+      <FB Comment="" Name="stop" Type="SERVER_0" x="2800.0" y="5466.666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/Stop,1:s=stop]"/>
+      </FB>
+      <FB Comment="" Name="E_MERGE_1" Type="E_MERGE" x="7733.333333333334" y="4666.666666666667"/>
+      <FB Comment="" Name="E_CYCLE" Type="E_CYCLE" x="5600.0" y="400.0">
+        <Parameter Name="DT" Value="T#100ms"/>
+      </FB>
+      <FB Comment="" Name="E_MERGE_3" Type="E_MERGE" x="8533.333333333334" y="4266.666666666667"/>
+      <FB Comment="" Name="IW" Type="IW" x="1200.0" y="133.33333333333334">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.0"/>
+      </FB>
+      <FB Comment="" Name="requestInitHandover" Type="SERVER_0" x="2533.3333333333335" y="2533.3333333333335">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/M2M/InitLoading,1:s=initLoading]"/>
+      </FB>
+      <FB Comment="" Name="HandshakeStateMachine" Type="HandshakeStateMachine" x="5200.0" y="2933.3333333333335">
+        <Parameter Name="QI" Value="1"/>
+      </FB>
+      <FB Comment="" Name="CurrentStateVar" Type="PUBLISH_1" x="10000.0" y="3333.3333333333335">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="ID" Value="opc_ua[WRITE;/Objects/OutputStack/CurrentState,1:s=currentState]"/>
+      </FB>
+      <FB Comment="" Name="ObjectDetect" Type="ObjectDetect" x="2400.0" y="1066.6666666666667"/>
+      <FB Comment="" Name="QW_2" Type="QW" x="-400.0" y="266.6666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="in1.sensorw.mode"/>
+        <Parameter Name="OUT" Value="4"/>
+      </FB>
+      <FB Comment="" Name="E_MERGE" Type="E_MERGE" x="7733.333333333334" y="4133.333333333334"/>
+      <FB Comment="" Name="QW_1_1" Type="QW" x="10000.0" y="2266.666666666667">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="outA.motor.pwm"/>
+        <Parameter Name="OUT" Value="40"/>
+      </FB>
+      <FB Comment="" Name="QW_1" Type="QW" x="10000.0" y="1200.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="outA.motor.pwm"/>
+      </FB>
+      <FB Comment="" Name="E_SR" Type="E_RS" x="9200.0" y="133.33333333333334"/>
+      <FB Comment="" Name="QX" Type="QX" x="12133.333333333334" y="1600.0">
+        <Parameter Name="QI" Value="1"/>
+        <Parameter Name="PARAMS" Value="outA.motor.enable"/>
+      </FB>
+      <FB Comment="" Name="F_INT_TO_WORD" Type="F_INT_TO_WORD" x="8000.0" y="1466.6666666666667">
+        <Parameter Name="IN" Value="-40"/>
+      </FB>
+      <FB Comment="" Name="E_DELAY" Type="E_DELAY" x="12133.333333333334" y="133.33333333333334">
+        <Parameter Name="DT" Value="T#255ms"/>
+      </FB>
+      <FB Comment="" Name="E_SWITCH_1" Type="E_SWITCH" x="11200.0" y="133.33333333333334"/>
+      <FB Comment="" Name="E_DELAY_1" Type="E_DELAY" x="7733.333333333334" y="533.3333333333334">
+        <Parameter Name="DT" Value="T#1000ms"/>
+      </FB>
+      <EventConnections>
+        <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="80.0" dx2="160.0" dy="-900.0"/>
+        <Connection Comment="" Destination="stop.RSP" Source="stop.IND" dx1="80.0" dx2="80.0" dy="-266.6666666666667"/>
+        <Connection Comment="" Destination="stop.INIT" Source="reset.INITO" dx1="113.33333333333334" dx2="106.66666666666667" dy="660.0"/>
+        <Connection Comment="" Destination="IW.REQ" Source="E_CYCLE_1.EO" dx1="133.33333333333334" dx2="80.0" dy="-1380.0"/>
+        <Connection Comment="" Destination="CurrentStateVar.INIT" Source="HandshakeStateMachine.INITO" dx1="2973.3333333333335"/>
+        <Connection Comment="" Destination="IW_2.INIT" Source="IW_1.INITO" dx1="106.66666666666667" dx2="80.0" dy="673.3333333333334"/>
+        <Connection Comment="" Destination="reset.INIT" Source="requestStartHandover.INITO" dx1="80.0" dx2="113.33333333333334" dy="586.6666666666667"/>
+        <Connection Comment="" Destination="E_MERGE_2.EI2" Source="E_MERGE_3.EO" dx1="93.33333333333334"/>
+        <Connection Comment="" Destination="E_MERGE_3.EI2" Source="E_MERGE_1.EO" dx1="160.0"/>
+        <Connection Comment="" Destination="ObjectDetect.Reset" Source="ObjectDetect.TakeReq" dx1="80.0" dx2="80.0" dy="-440.0"/>
+        <Connection Comment="" Destination="E_MERGE.EI1" Source="HandshakeStateMachine.START_MOTORS" dx1="586.6666666666667"/>
+        <Connection Comment="" Destination="E_SWITCH.EI" Source="ObjectDetect.CNF" dx1="293.33333333333337"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.EXECUTE" Source="requestStartHandover.IND" dx1="333.33333333333337"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.PREPARE" Source="HandshakeStateMachine.CNF" dx1="166.66666666666669" dx2="146.66666666666669" dy="-366.6666666666667"/>
+        <Connection Comment="" Destination="IW_1.INIT" Source="IW.INITO" dx1="80.0" dx2="80.0" dy="700.0"/>
+        <Connection Comment="" Destination="requestStartHandover.RSP" Source="requestStartHandover.IND" dx1="126.66666666666667" dx2="80.0" dy="-313.33333333333337"/>
+        <Connection Comment="" Destination="ObjectDetect.INIT" Source="IW_2.INITO" dx1="233.33333333333334"/>
+        <Connection Comment="" Destination="reset.RSP" Source="reset.IND" dx1="80.0" dx2="80.0" dy="-286.6666666666667"/>
+        <Connection Comment="" Destination="ObjectDetect.REQ" Source="IW_2.CNF" dx1="286.6666666666667"/>
+        <Connection Comment="" Destination="E_MERGE_1.EI1" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE" dx1="366.6666666666667"/>
+        <Connection Comment="" Destination="requestInitHandover.INIT" Source="ObjectDetect.INITO" dx1="146.66666666666669" dx2="126.66666666666667" dy="946.6666666666667"/>
+        <Connection Comment="" Destination="QW_2.REQ" Source="QW_2.INITO" dx1="80.0" dx2="80.0" dy="-193.33333333333334"/>
+        <Connection Comment="" Destination="IW_2.REQ" Source="IW_1.CNF" dx1="80.0" dx2="120.0" dy="680.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.START" Source="requestInitHandover.IND" dx1="500.0"/>
+        <Connection Comment="" Destination="E_MERGE.EI2" Source="HandshakeStateMachine.STOP_MOTORS" dx1="546.6666666666667"/>
+        <Connection Comment="" Destination="IW_1.REQ" Source="IW.CNF" dx1="126.66666666666667" dx2="106.66666666666667" dy="713.3333333333334"/>
+        <Connection Comment="" Destination="E_CYCLE.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="133.33333333333334" dx2="80.0" dy="-1306.6666666666667"/>
+        <Connection Comment="" Destination="E_MERGE_3.EI1" Source="E_MERGE.EO" dx1="160.0"/>
+        <Connection Comment="" Destination="CurrentStateVar.REQ" Source="E_MERGE_2.EO" dx1="160.0"/>
+        <Connection Comment="" Destination="IW.INIT" Source="QW_2.CNF" dx1="320.0"/>
+        <Connection Comment="" Destination="E_MERGE_1.EI2" Source="HandshakeStateMachine.REQ_IS_LOADED_READY" dx1="313.33333333333337"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.INIT" Source="stop.INITO" dx1="526.6666666666667"/>
+        <Connection Comment="" Destination="E_CYCLE_1.START" Source="HandshakeStateMachine.START_MOTORS" dx1="200.0" dx2="193.33333333333334" dy="-900.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.READY" Source="HandshakeStateMachine.REQ_IS_LOADED_READY" dx1="253.33333333333334" dx2="173.33333333333334" dy="-820.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.START_STOPPING" Source="stop.IND" dx1="600.0"/>
+        <Connection Comment="" Destination="IW.REQ" Source="E_CYCLE.EO" dx1="80.0" dx2="133.33333333333334" dy="-480.0"/>
+        <Connection Comment="" Destination="E_MERGE_2.EI1" Source="HandshakeStateMachine.CNF" dx1="1166.6666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.RESET" Source="reset.IND" dx1="480.0"/>
+        <Connection Comment="" Destination="requestStartHandover.INIT" Source="requestInitHandover.INITO" dx1="133.33333333333334" dx2="120.0" dy="793.3333333333334"/>
+        <Connection Comment="" Destination="requestInitHandover.RSP" Source="requestInitHandover.IND" dx1="80.0" dx2="80.0" dy="-286.6666666666667"/>
+        <Connection Comment="" Destination="E_CYCLE.START" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE" dx1="460.0" dx2="126.66666666666667" dy="-1466.6666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.GO_IDLE" Source="E_SWITCH.EO1" dx1="200.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.COMPLETE" Source="E_SWITCH.EO0" dx1="200.0"/>
+        <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="E_SWITCH.EO0" dx1="406.6666666666667"/>
+        <Connection Comment="" Destination="E_CYCLE.STOP" Source="E_SWITCH.EO1" dx1="406.6666666666667"/>
+        <Connection Comment="" Destination="QW_1.REQ" Source="F_INT_TO_WORD.CNF" dx1="353.33333333333337"/>
+        <Connection Comment="" Destination="QW_1.INIT" Source="IW.INITO" dx1="4520.0"/>
+        <Connection Comment="" Destination="QW_1_1.INIT" Source="QW_1.INITO" dx1="80.0" dx2="113.33333333333334" dy="826.6666666666667"/>
+        <Connection Comment="" Destination="QX.INIT" Source="QW_1_1.INITO" dx1="520.0"/>
+        <Connection Comment="" Destination="E_SR.S" Source="HandshakeStateMachine.START_MOTORS" dx1="760.0"/>
+        <Connection Comment="" Destination="E_SR.R" Source="QX.INITO" dx1="80.0" dx2="80.0" dy="-886.6666666666667"/>
+        <Connection Comment="" Destination="E_SWITCH_1.EI" Source="E_SR.EO"/>
+        <Connection Comment="" Destination="E_DELAY.START" Source="E_SWITCH_1.EO1" dx1="206.66666666666669"/>
+        <Connection Comment="" Destination="E_DELAY.STOP" Source="E_SWITCH_1.EO0" dx1="213.33333333333334"/>
+        <Connection Comment="" Destination="E_SR.R" Source="E_DELAY.EO" dx1="80.0" dx2="80.0" dy="-200.0"/>
+        <Connection Comment="" Destination="QX.REQ" Source="E_SR.EO" dx1="1520.0"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.DONE" Source="E_DELAY.EO" dx1="453.33333333333337" dx2="160.0" dy="5166.666666666667"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.STOP" Source="E_DELAY.EO" dx1="353.33333333333337" dx2="80.0" dy="5053.333333333334"/>
+        <Connection Comment="" Destination="QX.REQ" Source="QW_1.CNF" dx1="726.6666666666667"/>
+        <Connection Comment="" Destination="QX.REQ" Source="QW_1_1.CNF" dx1="726.6666666666667"/>
+        <Connection Comment="" Destination="E_SR.S" Source="E_DELAY_1.EO" dx1="893.3333333333334"/>
+        <Connection Comment="" Destination="E_DELAY_1.START" Source="HandshakeStateMachine.STOP_MOTORS" dx1="433.33333333333337"/>
+        <Connection Comment="" Destination="E_DELAY_1.STOP" Source="E_DELAY_1.EO" dx1="80.0" dx2="80.0" dy="-200.0"/>
+        <Connection Comment="" Destination="F_INT_TO_WORD.REQ" Source="QW_1.INITO" dx1="80.0" dx2="80.0" dy="-193.33333333333334"/>
+      </EventConnections>
+      <DataConnections>
+        <Connection Comment="" Destination="E_SWITCH.G" Source="ObjectDetect.ObjectDetected" dx1="293.33333333333337"/>
+        <Connection Comment="" Destination="ObjectDetect.Blue" Source="IW_2.IN" dx1="333.33333333333337"/>
+        <Connection Comment="" Destination="HandshakeStateMachine.IS_LOADED_IN" Source="ObjectDetect.ObjectDetected" dx1="666.6666666666667"/>
+        <Connection Comment="" Destination="CurrentStateVar.SD_1" Source="HandshakeStateMachine.STATE" dx1="766.6666666666667"/>
+        <Connection Comment="" Destination="ObjectDetect.Red" Source="IW.IN" dx1="173.33333333333334"/>
+        <Connection Comment="" Destination="ObjectDetect.Green" Source="IW_1.IN" dx1="186.66666666666669"/>
+        <Connection Comment="" Destination="QW_1.OUT" Source="F_INT_TO_WORD.OUT" dx1="353.33333333333337"/>
+        <Connection Comment="" Destination="QX.OUT" Source="E_SR.Q" dx1="1486.6666666666667"/>
+        <Connection Comment="" Destination="E_SWITCH_1.G" Source="E_SR.Q"/>
+      </DataConnections>
+    </SubAppNetwork>
+  </Application>
+  <Device Comment="" Name="Plotter" Type="FORTE_PC" x="2666.666666666667" y="1073.3333333333335">
+    <Parameter Name="MGR_ID" Value="&quot;192.168.0.40:61499&quot;"/>
+    <Attribute Comment="device profile" Name="Profile" Type="STRING" Value="HOLOBLOC"/>
+    <Attribute Comment="color" Name="Color" Type="STRING" Value="82,44,230"/>
+    <Resource Comment="" Name="EMB_RES" Type="EMB_RES" x="0.0" y="0.0">
+      <FBNetwork>
+        <FB Comment="" Name="LoadingSensor" Type="IX" x="6800.0" y="1200.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in2.sensor.0"/>
+        </FB>
+        <FB Comment="" Name="QW_1" Type="QW" x="3600.0" y="-533.3333333333334">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="outA.motor.pwm"/>
+        </FB>
+        <FB Comment="" Name="HandShakeState" Type="PUBLISH_1" x="7733.333333333334" y="2400.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[WRITE;/Objects/Machine/CurrentStateHandshake,1:s=currentStateHandshake]"/>
+        </FB>
+        <FB Comment="" Name="HandshakeStateMachine" Type="HandshakeStateMachine" x="2533.3333333333335" y="2000.0">
+          <Parameter Name="QI" Value="1"/>
+        </FB>
+        <FB Comment="" Name="requestStartHandover" Type="SERVER_0" x="400.0" y="2000.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/StartHandOver,1:s=startHandOver]"/>
+        </FB>
+        <FB Comment="" Name="E_CYCLE" Type="E_CYCLE" x="6133.333333333334" y="1200.0">
+          <Parameter Name="DT" Value="T#250ms"/>
+        </FB>
+        <FB Comment="" Name="E_SWITCH" Type="E_SWITCH" x="5200.0" y="1200.0"/>
+        <FB Comment="" Name="E_SWITCH_2" Type="E_SWITCH" x="800.0" y="266.6666666666667"/>
+        <FB Comment="" Name="E_MERGE_1" Type="E_MERGE" x="6133.333333333334" y="2266.666666666667"/>
+        <FB Comment="" Name="resetHandshake" Type="SERVER_0" x="666.6666666666667" y="2933.3333333333335">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/ResetHandshake,1:s=resetHandShake]"/>
+        </FB>
+        <FB Comment="" Name="QX" Type="QX" x="6266.666666666667" y="133.33333333333334">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="outA.motor.enable"/>
+        </FB>
+        <FB Comment="" Name="reqestInitHandover" Type="SERVER_0" x="533.3333333333334" y="1066.6666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/InitHandOver,1:s=initHandOver]"/>
+        </FB>
+        <FB Comment="" Name="E_MERGE" Type="E_MERGE" x="6133.333333333334" y="2800.0"/>
+        <FB Comment="" Name="ReadRed" Type="IW" x="3066.666666666667" y="4000.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.0"/>
+        </FB>
+        <FB Comment="" Name="QW" Type="QW" x="1600.0" y="4800.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.mode"/>
+          <Parameter Name="OUT" Value="4"/>
+        </FB>
+        <FB Comment="" Name="E_CYCLE_1" Type="E_CYCLE" x="4533.333333333334" y="4000.0">
+          <Parameter Name="DT" Value="T#250ms"/>
+        </FB>
+        <FB Comment="" Name="UnloadingSensor" Type="ObjectDetect" x="5333.333333333334" y="4533.333333333334"/>
+        <FB Comment="" Name="ReadGreen" Type="IW" x="3066.666666666667" y="4933.333333333334">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.1"/>
+        </FB>
+        <FB Comment="" Name="stopHandshake" Type="SERVER_0" x="666.6666666666667" y="3866.666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/StopHandshake,1:s=stopHandShake]"/>
+        </FB>
+        <FB Comment="" Name="ReadBlue" Type="IW" x="3066.666666666667" y="5866.666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.2"/>
+        </FB>
+        <FB Comment="" Name="PlotterState" Type="PUBLISH_1" x="5733.333333333334" y="7600.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[WRITE;/Objects/Machine/Plotter/CurrentStatePlotter,1:s=currentStatePlotter]"/>
+        </FB>
+        <FB Comment="" Name="stopPlotter" Type="SERVER_0" x="400.0" y="8933.333333333334">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/Plotter/StopPlotter,1:s=stopPlotter]"/>
+        </FB>
+        <FB Comment="" Name="resetPlotter" Type="SERVER_0" x="400.0" y="8000.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/Plotter/ResetPlotter,1:s=resetPlotter]"/>
+        </FB>
+        <FB Comment="" Name="plot" Type="SERVER_0" x="400.0" y="6933.333333333334">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/Plotter/Plot,1:s=plot]"/>
+        </FB>
+        <FB Comment="" Name="calibrate" Type="SERVER_0" x="400.0" y="6000.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/Machine/Plotter/Calibrate,1:s=calibrate]"/>
+        </FB>
+        <FB Comment="" Name="E_MERGE_2" Type="E_MERGE" x="5200.0" y="7733.333333333334"/>
+        <FB Comment="" Name="E_MERGE_3" Type="E_MERGE" x="5200.0" y="8266.666666666668"/>
+        <FB Comment="" Name="PlottingStateMachine" Type="PlottingStateMachine" x="2933.3333333333335" y="7466.666666666667">
+          <Parameter Name="QI" Value="1"/>
+        </FB>
+        <FB Comment="" Name="E_R_TRIG_1" Type="E_R_TRIG" x="7866.666666666667" y="1333.3333333333335"/>
+        <FB Comment="" Name="E_SR" Type="E_RS" x="4666.666666666667" y="400.0"/>
+        <FB Comment="" Name="E_SWITCH_1" Type="E_SWITCH" x="6933.333333333334" y="4666.666666666667"/>
+        <FB Comment="" Name="E_SWITCH_3" Type="E_SWITCH" x="4666.666666666667" y="4000.0"/>
+        <FB Comment="" Name="QW_1_1" Type="QW" x="2533.3333333333335" y="0.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="outA.motor.pwm"/>
+          <Parameter Name="OUT" Value="40"/>
+        </FB>
+        <FB Comment="" Name="E_MERGE_4" Type="E_MERGE" x="3600.0" y="-266.6666666666667"/>
+        <FB Comment="" Name="F_INT_TO_WORD" Type="F_INT_TO_WORD" x="1333.3333333333335" y="-933.3333333333334">
+          <Parameter Name="IN" Value="-40"/>
+        </FB>
+        <EventConnections>
+          <Connection Comment="" Destination="HandShakeState.INIT" Source="LoadingSensor.INITO" dx1="120.0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.PREPARE" Source="HandshakeStateMachine.CNF" dx1="80.0" dx2="80.0" dy="146.66666666666669"/>
+          <Connection Comment="" Destination="HandShakeState.REQ" Source="HandshakeStateMachine.CNF" dx1="1766.6666666666667"/>
+          <Connection Comment="" Destination="requestStartHandover.RSP" Source="requestStartHandover.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.EXECUTE" Source="requestStartHandover.IND" dx1="600.0"/>
+          <Connection Comment="" Destination="E_CYCLE.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="966.6666666666667"/>
+          <Connection Comment="" Destination="LoadingSensor.REQ" Source="E_CYCLE.EO" dx1="93.33333333333334"/>
+          <Connection Comment="" Destination="E_SWITCH.EI" Source="HandshakeStateMachine.START_MOTORS" dx1="500.0"/>
+          <Connection Comment="" Destination="E_CYCLE.START" Source="E_SWITCH.EO0"/>
+          <Connection Comment="" Destination="E_SWITCH_2.EI" Source="HandshakeStateMachine.START_MOTORS" dx1="80.0" dx2="80.0" dy="-966.6666666666667"/>
+          <Connection Comment="" Destination="E_MERGE_1.EI1" Source="HandshakeStateMachine.START_MOTORS" dx1="966.6666666666667"/>
+          <Connection Comment="" Destination="E_MERGE_1.EI2" Source="HandshakeStateMachine.STOP_MOTORS" dx1="966.6666666666667"/>
+          <Connection Comment="" Destination="HandShakeState.REQ" Source="E_MERGE_1.EO" dx1="560.0"/>
+          <Connection Comment="" Destination="resetHandshake.INIT" Source="requestStartHandover.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="resetHandshake.RSP" Source="resetHandshake.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.RESET" Source="resetHandshake.IND" dx1="660.0"/>
+          <Connection Comment="" Destination="QX.INIT" Source="QW_1.INITO" dx1="986.6666666666667"/>
+          <Connection Comment="" Destination="LoadingSensor.INIT" Source="QX.INITO" dx1="80.0" dx2="80.0" dy="533.3333333333334"/>
+          <Connection Comment="" Destination="reqestInitHandover.INIT" Source="QW_1.INITO" dx1="80.0" dx2="80.0" dy="800.0"/>
+          <Connection Comment="" Destination="reqestInitHandover.RSP" Source="reqestInitHandover.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="requestStartHandover.INIT" Source="reqestInitHandover.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.INIT" Source="reqestInitHandover.INITO" dx1="580.0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.START" Source="reqestInitHandover.IND" dx1="580.0"/>
+          <Connection Comment="" Destination="E_MERGE.EI1" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE" dx1="966.6666666666667"/>
+          <Connection Comment="" Destination="E_MERGE.EI2" Source="HandshakeStateMachine.REQ_IS_LOADED_READY" dx1="966.6666666666667"/>
+          <Connection Comment="" Destination="HandShakeState.REQ" Source="E_MERGE.EO" dx1="560.0"/>
+          <Connection Comment="" Destination="ReadRed.REQ" Source="E_MERGE.EO" dx1="80.0" dx2="80.0" dy="646.6666666666667"/>
+          <Connection Comment="" Destination="QW.INIT" Source="QW_1.INITO" dx1="80.0" dx2="80.0" dy="2666.666666666667"/>
+          <Connection Comment="" Destination="QW.REQ" Source="QW.INITO" dx1="80.0" dx2="80.0" dy="46.66666666666667"/>
+          <Connection Comment="" Destination="ReadRed.INIT" Source="QW.CNF" dx1="386.6666666666667"/>
+          <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="166.66666666666669"/>
+          <Connection Comment="" Destination="UnloadingSensor.Reset" Source="UnloadingSensor.TakeReq" dx1="80.0" dx2="80.0" dy="-46.66666666666667"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.GO_IDLE" Source="UnloadingSensor.CNF" dx1="80.0" dx2="80.0" dy="-1213.3333333333335"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.READY" Source="UnloadingSensor.CNF" dx1="80.0" dx2="80.0" dy="-1066.6666666666667"/>
+          <Connection Comment="" Destination="ReadGreen.INIT" Source="ReadRed.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="ReadGreen.REQ" Source="ReadRed.CNF" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="stopHandshake.INIT" Source="resetHandshake.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="stopHandshake.RSP" Source="stopHandshake.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.START_STOPPING" Source="stopHandshake.IND" dx1="660.0"/>
+          <Connection Comment="" Destination="ReadBlue.INIT" Source="ReadGreen.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="ReadBlue.REQ" Source="ReadGreen.CNF" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="UnloadingSensor.INIT" Source="ReadBlue.INITO" dx1="786.6666666666667"/>
+          <Connection Comment="" Destination="UnloadingSensor.REQ" Source="ReadBlue.CNF" dx1="786.6666666666667"/>
+          <Connection Comment="" Destination="stopPlotter.RSP" Source="stopPlotter.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="resetPlotter.RSP" Source="resetPlotter.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="stopPlotter.INIT" Source="resetPlotter.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="resetPlotter.INIT" Source="plot.INITO" dx1="80.0" dx2="80.0" dy="533.3333333333334"/>
+          <Connection Comment="" Destination="plot.RSP" Source="plot.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="calibrate.INIT" Source="stopHandshake.INITO" dx1="80.0" dx2="80.0" dy="1066.6666666666667"/>
+          <Connection Comment="" Destination="plot.INIT" Source="calibrate.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="calibrate.RSP" Source="calibrate.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="PlotterState.REQ" Source="E_MERGE_2.EO" dx1="80.0" dx2="80.0" dy="-13.333333333333334"/>
+          <Connection Comment="" Destination="PlotterState.REQ" Source="E_MERGE_3.EO" dx1="80.0" dx2="80.0" dy="-280.0"/>
+          <Connection Comment="" Destination="PlottingStateMachine.INIT" Source="HandshakeStateMachine.INITO" dx1="80.0" dx2="80.0" dy="2733.3333333333335"/>
+          <Connection Comment="" Destination="PlottingStateMachine.RESET" Source="resetPlotter.IND" dx1="986.6666666666667"/>
+          <Connection Comment="" Destination="PlottingStateMachine.GO_IDLE" Source="PlottingStateMachine.CNF" dx1="80.0" dx2="80.0" dy="46.66666666666667"/>
+          <Connection Comment="" Destination="PlottingStateMachine.START" Source="plot.IND" dx1="993.3333333333334"/>
+          <Connection Comment="" Destination="PlottingStateMachine.EXECUTE" Source="PlottingStateMachine.PLOT_CALLED" dx1="80.0" dx2="80.0" dy="100.0"/>
+          <Connection Comment="" Destination="PlottingStateMachine.COMPLETE" Source="PlottingStateMachine.CNF" dx1="80.0" dx2="80.0" dy="200.0"/>
+          <Connection Comment="" Destination="PlottingStateMachine.DONE" Source="PlottingStateMachine.CNF" dx1="80.0" dx2="80.0" dy="246.66666666666669"/>
+          <Connection Comment="" Destination="PlottingStateMachine.BEGIN_STOPPING" Source="stopPlotter.IND" dx1="993.3333333333334"/>
+          <Connection Comment="" Destination="PlottingStateMachine.BEGIN_STOPPING" Source="PlottingStateMachine.CALIBRATE_CALLED" dx1="80.0" dx2="80.0" dy="200.0"/>
+          <Connection Comment="" Destination="PlottingStateMachine.STOP" Source="PlottingStateMachine.STOP_CALLED" dx1="80.0" dx2="80.0" dy="200.0"/>
+          <Connection Comment="" Destination="PlottingStateMachine.CALIBRATE" Source="calibrate.IND" dx1="993.3333333333334"/>
+          <Connection Comment="" Destination="PlotterState.INIT" Source="PlottingStateMachine.INITO" dx1="633.3333333333334"/>
+          <Connection Comment="" Destination="E_MERGE_2.EI1" Source="PlottingStateMachine.CNF" dx1="366.6666666666667"/>
+          <Connection Comment="" Destination="E_MERGE_2.EI2" Source="PlottingStateMachine.PLOT_CALLED" dx1="366.6666666666667"/>
+          <Connection Comment="" Destination="E_MERGE_3.EI1" Source="PlottingStateMachine.CALIBRATE_CALLED" dx1="366.6666666666667"/>
+          <Connection Comment="" Destination="E_MERGE_3.EI2" Source="PlottingStateMachine.STOP_CALLED" dx1="366.6666666666667"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.DONE" Source="HandshakeStateMachine.STOP_MOTORS" dx1="80.0" dx2="80.0" dy="246.66666666666669"/>
+          <Connection Comment="" Destination="E_R_TRIG_1.EI" Source="LoadingSensor.CNF" dx1="186.66666666666669"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.COMPLETE" Source="E_R_TRIG_1.EO" dx1="80.0" dx2="80.0" dy="680.0"/>
+          <Connection Comment="" Destination="QW_1.INIT" Source="START.COLD" dx1="1846.6666666666667"/>
+          <Connection Comment="" Destination="QW_1.INIT" Source="START.WARM" dx1="1846.6666666666667"/>
+          <Connection Comment="" Destination="E_SR.R" Source="HandshakeStateMachine.STOP_MOTORS" dx1="233.33333333333334"/>
+          <Connection Comment="" Destination="E_SR.R" Source="HandshakeStateMachine.INITO" dx1="233.33333333333334"/>
+          <Connection Comment="" Destination="QX.REQ" Source="E_SR.EO" dx1="626.6666666666667"/>
+          <Connection Comment="" Destination="ReadRed.REQ" Source="E_CYCLE_1.EO" dx1="80.0" dx2="80.0" dy="46.66666666666667"/>
+          <Connection Comment="" Destination="QX.REQ" Source="HandshakeStateMachine.STOP_MOTORS" dx1="1033.3333333333335"/>
+          <Connection Comment="" Destination="E_SWITCH_1.EI" Source="UnloadingSensor.CNF" dx1="293.33333333333337"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.COMPLETE" Source="E_SWITCH_1.EO0" dx1="80.0" dx2="80.0" dy="-980.0"/>
+          <Connection Comment="" Destination="E_SWITCH_3.EI" Source="HandshakeStateMachine.START_MOTORS" dx1="233.33333333333334"/>
+          <Connection Comment="" Destination="E_CYCLE_1.START" Source="E_SWITCH_3.EO1" dx1="80.0" dx2="80.0" dy="-46.66666666666667"/>
+          <Connection Comment="" Destination="QW_1_1.INIT" Source="QW_1.INITO" dx1="80.0" dx2="80.0" dy="266.6666666666667"/>
+          <Connection Comment="" Destination="QW_1_1.REQ" Source="E_SWITCH_2.EO1" dx1="600.0"/>
+          <Connection Comment="" Destination="E_MERGE_4.EI1" Source="QW_1.CNF" dx1="80.0" dx2="80.0" dy="80.0"/>
+          <Connection Comment="" Destination="E_MERGE_4.EI2" Source="QW_1_1.CNF" dx1="186.66666666666669"/>
+          <Connection Comment="" Destination="E_SR.S" Source="E_MERGE_4.EO" dx1="293.33333333333337"/>
+          <Connection Comment="" Destination="F_INT_TO_WORD.REQ" Source="E_SWITCH_2.EO0" dx1="80.0" dx2="80.0" dy="-600.0"/>
+          <Connection Comment="" Destination="QW_1.REQ" Source="F_INT_TO_WORD.CNF" dx1="753.3333333333334"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.STOP" Source="HandshakeStateMachine.CNF"/>
+        </EventConnections>
+        <DataConnections>
+          <Connection Comment="" Destination="HandShakeState.SD_1" Source="HandshakeStateMachine.STATE" dx1="1766.6666666666667"/>
+          <Connection Comment="" Destination="E_SWITCH.G" Source="HandshakeStateMachine.IS_LOADED_OUT" dx1="500.0"/>
+          <Connection Comment="" Destination="E_SWITCH_2.G" Source="HandshakeStateMachine.IS_LOADED_OUT" dx1="80.0" dx2="80.0" dy="-1413.3333333333335"/>
+          <Connection Comment="" Destination="UnloadingSensor.Red" Source="ReadRed.IN" dx1="786.6666666666667"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.IS_LOADED_IN" Source="UnloadingSensor.ObjectDetected" dx1="80.0" dx2="80.0" dy="-813.3333333333334"/>
+          <Connection Comment="" Destination="UnloadingSensor.Green" Source="ReadGreen.IN" dx1="786.6666666666667"/>
+          <Connection Comment="" Destination="UnloadingSensor.Blue" Source="ReadBlue.IN" dx1="786.6666666666667"/>
+          <Connection Comment="" Destination="PlotterState.SD_1" Source="PlottingStateMachine.STATE" dx1="633.3333333333334"/>
+          <Connection Comment="" Destination="E_R_TRIG_1.QI" Source="LoadingSensor.IN" dx1="186.66666666666669"/>
+          <Connection Comment="" Destination="QX.OUT" Source="E_SR.Q" dx1="626.6666666666667"/>
+          <Connection Comment="" Destination="E_SWITCH_1.G" Source="UnloadingSensor.ObjectDetected" dx1="293.33333333333337"/>
+          <Connection Comment="" Destination="E_SWITCH_3.G" Source="HandshakeStateMachine.IS_LOADED_OUT" dx1="233.33333333333334"/>
+          <Connection Comment="" Destination="QW_1.OUT" Source="F_INT_TO_WORD.OUT" dx1="753.3333333333334"/>
+        </DataConnections>
+      </FBNetwork>
+    </Resource>
+  </Device>
+  <Device Comment="" Name="Outputstack" Type="FORTE_PC" x="4633.333333333334" y="886.6666666666667">
+    <Parameter Name="MGR_ID" Value="&quot;192.168.0.41:61499&quot;"/>
+    <Attribute Comment="device profile" Name="Profile" Type="STRING" Value="HOLOBLOC"/>
+    <Attribute Comment="color" Name="Color" Type="STRING" Value="108,201,99"/>
+    <Resource Comment="" Name="EMB_RES" Type="EMB_RES" x="0.0" y="0.0">
+      <FBNetwork>
+        <FB Comment="" Name="requestInitHandover" Type="SERVER_0" x="7866.666666666667" y="266.6666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/M2M/InitLoading,1:s=initLoading]"/>
+        </FB>
+        <FB Comment="" Name="CurrentStateVar" Type="PUBLISH_1" x="7866.666666666667" y="1466.6666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[WRITE;/Objects/OutputStack/CurrentState,1:s=currentState]"/>
+        </FB>
+        <FB Comment="" Name="requestStartHandover" Type="SERVER_0" x="7866.666666666667" y="2533.3333333333335">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/M2M/StartLoading,1:s=startLoading]"/>
+        </FB>
+        <FB Comment="" Name="QW_2" Type="QW" x="1333.3333333333335" y="266.6666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.mode"/>
+          <Parameter Name="OUT" Value="4"/>
+        </FB>
+        <FB Comment="" Name="E_CYCLE" Type="E_CYCLE" x="1333.3333333333335" y="1333.3333333333335">
+          <Parameter Name="DT" Value="T#100ms"/>
+        </FB>
+        <FB Comment="" Name="IW_2" Type="IW" x="2666.666666666667" y="2400.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.2"/>
+        </FB>
+        <FB Comment="" Name="IW" Type="IW" x="2666.666666666667" y="533.3333333333334">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.0"/>
+        </FB>
+        <FB Comment="" Name="ObjectDetect" Type="ObjectDetect" x="3733.3333333333335" y="1466.6666666666667"/>
+        <FB Comment="" Name="IW_1" Type="IW" x="2666.666666666667" y="1466.6666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.1"/>
+        </FB>
+        <FB Comment="" Name="E_SWITCH" Type="E_SWITCH" x="4533.333333333334" y="1866.6666666666667"/>
+        <FB Comment="" Name="reset" Type="SERVER_0" x="7600.0" y="3466.666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/Reset,1:s=reset]"/>
+        </FB>
+        <FB Comment="" Name="stop" Type="SERVER_0" x="7600.0" y="4266.666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/Stop,1:s=stop]"/>
+        </FB>
+        <FB Comment="" Name="HandshakeStateMachine" Type="HandshakeStateMachine" x="8266.666666666668" y="1200.0">
+          <Parameter Name="QI" Value="1"/>
+        </FB>
+        <FB Comment="" Name="E_CYCLE_1" Type="E_CYCLE" x="6586.666666666667" y="1340.0">
+          <Parameter Name="DT" Value="T#100ms"/>
+        </FB>
+        <FB Comment="" Name="E_SPLIT" Type="E_SPLIT" x="8133.333333333334" y="2133.3333333333335"/>
+        <FB Comment="" Name="E_MERGE" Type="E_MERGE" x="8400.0" y="3866.666666666667"/>
+        <FB Comment="" Name="E_MERGE_1" Type="E_MERGE" x="8400.0" y="4400.0"/>
+        <FB Comment="" Name="E_MERGE_3" Type="E_MERGE" x="9200.0" y="4000.0"/>
+        <FB Comment="" Name="E_MERGE_2" Type="E_MERGE" x="9866.666666666668" y="3066.666666666667"/>
+        <FB Comment="" Name="Delay" Type="E_CYCLE" x="8720.0" y="1033.3333333333335">
+          <Parameter Name="DT" Value="T#100ms"/>
+        </FB>
+        <EventConnections>
+          <Connection Comment="" Destination="requestInitHandover.RSP" Source="requestInitHandover.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="requestStartHandover.RSP" Source="requestStartHandover.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="QW_2.REQ" Source="QW_2.INITO" dx1="80.0" dx2="80.0" dy="46.66666666666667"/>
+          <Connection Comment="" Destination="IW.INIT" Source="QW_2.CNF" dx1="320.0"/>
+          <Connection Comment="" Destination="IW.REQ" Source="E_CYCLE.EO" dx1="426.6666666666667"/>
+          <Connection Comment="" Destination="ObjectDetect.INIT" Source="IW_2.INITO" dx1="186.66666666666669"/>
+          <Connection Comment="" Destination="ObjectDetect.REQ" Source="IW_2.CNF" dx1="186.66666666666669"/>
+          <Connection Comment="" Destination="IW_1.INIT" Source="IW.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="IW_1.REQ" Source="IW.CNF" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="IW_2.INIT" Source="IW_1.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="IW_2.REQ" Source="IW_1.CNF" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="ObjectDetect.Reset" Source="ObjectDetect.TakeReq" dx1="80.0" dx2="80.0" dy="-46.66666666666667"/>
+          <Connection Comment="" Destination="requestInitHandover.INIT" Source="ObjectDetect.INITO" dx1="893.3333333333334"/>
+          <Connection Comment="" Destination="QW_2.INIT" Source="START.COLD" dx1="326.6666666666667"/>
+          <Connection Comment="" Destination="QW_2.INIT" Source="START.WARM" dx1="326.6666666666667"/>
+          <Connection Comment="" Destination="E_SWITCH.EI" Source="ObjectDetect.CNF"/>
+          <Connection Comment="" Destination="reset.INIT" Source="requestStartHandover.INITO"/>
+          <Connection Comment="" Destination="stop.INIT" Source="reset.INITO"/>
+          <Connection Comment="" Destination="reset.RSP" Source="reset.IND"/>
+          <Connection Comment="" Destination="stop.RSP" Source="stop.IND"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.INIT" Source="stop.INITO"/>
+          <Connection Comment="" Destination="requestStartHandover.INIT" Source="requestInitHandover.INITO"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.START_STOPPING" Source="stop.IND"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.RESET" Source="reset.IND"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.START" Source="requestInitHandover.IND"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.EXECUTE" Source="requestStartHandover.IND"/>
+          <Connection Comment="" Destination="CurrentStateVar.INIT" Source="HandshakeStateMachine.INITO"/>
+          <Connection Comment="" Destination="E_CYCLE.START" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE"/>
+          <Connection Comment="" Destination="E_CYCLE.STOP" Source="E_SWITCH.EO0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.PREPARE" Source="HandshakeStateMachine.CNF"/>
+          <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="E_SWITCH.EO1"/>
+          <Connection Comment="" Destination="IW.REQ" Source="E_CYCLE_1.EO"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.GO_IDLE" Source="E_SWITCH.EO0"/>
+          <Connection Comment="" Destination="E_CYCLE_1.START" Source="HandshakeStateMachine.START_MOTORS"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.COMPLETE" Source="E_SWITCH.EO1"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.DONE" Source="E_SPLIT.EO1"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.STOP" Source="E_SPLIT.EO2"/>
+          <Connection Comment="" Destination="E_MERGE.EI1" Source="HandshakeStateMachine.START_MOTORS"/>
+          <Connection Comment="" Destination="E_MERGE.EI2" Source="HandshakeStateMachine.STOP_MOTORS"/>
+          <Connection Comment="" Destination="E_MERGE_1.EI1" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE"/>
+          <Connection Comment="" Destination="E_MERGE_1.EI2" Source="HandshakeStateMachine.REQ_IS_LOADED_READY"/>
+          <Connection Comment="" Destination="E_MERGE_3.EI1" Source="E_MERGE.EO"/>
+          <Connection Comment="" Destination="E_MERGE_3.EI2" Source="E_MERGE_1.EO"/>
+          <Connection Comment="" Destination="E_MERGE_2.EI1" Source="HandshakeStateMachine.CNF"/>
+          <Connection Comment="" Destination="E_MERGE_2.EI2" Source="E_MERGE_3.EO"/>
+          <Connection Comment="" Destination="CurrentStateVar.REQ" Source="E_MERGE_2.EO"/>
+          <Connection Comment="" Destination="Delay.START" Source="HandshakeStateMachine.STOP_MOTORS"/>
+          <Connection Comment="" Destination="E_SPLIT.EI" Source="Delay.EO"/>
+          <Connection Comment="" Destination="Delay.STOP" Source="Delay.EO"/>
+          <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="HandshakeStateMachine.STOP_MOTORS"/>
+          <Connection Comment="" Destination="E_CYCLE.STOP" Source="HandshakeStateMachine.STOP_MOTORS"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.READY" Source="HandshakeStateMachine.REQ_IS_LOADED_READY"/>
+        </EventConnections>
+        <DataConnections>
+          <Connection Comment="" Destination="ObjectDetect.Red" Source="IW.IN" dx1="186.66666666666669"/>
+          <Connection Comment="" Destination="ObjectDetect.Blue" Source="IW_2.IN" dx1="186.66666666666669"/>
+          <Connection Comment="" Destination="ObjectDetect.Green" Source="IW_1.IN"/>
+          <Connection Comment="" Destination="E_SWITCH.G" Source="ObjectDetect.ObjectDetected"/>
+          <Connection Comment="" Destination="CurrentStateVar.SD_1" Source="HandshakeStateMachine.STATE"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.IS_LOADED_IN" Source="ObjectDetect.ObjectDetected"/>
+        </DataConnections>
+      </FBNetwork>
+    </Resource>
+  </Device>
+  <Device Comment="" Name="InputStack" Type="FORTE_PC" x="6666.666666666667" y="800.0">
+    <Parameter Name="MGR_ID" Value="&quot;192.168.0.42:61499&quot;"/>
+    <Attribute Comment="device profile" Name="Profile" Type="STRING" Value="HOLOBLOC"/>
+    <Attribute Comment="color" Name="Color" Type="STRING" Value="0,128,255"/>
+    <Resource Comment="" Name="EMB_RES" Type="EMB_RES" x="0.0" y="0.0">
+      <FBNetwork>
+        <FB Comment="" Name="ObjectDetect" Type="ObjectDetect" x="2400.0" y="1066.6666666666667"/>
+        <FB Comment="" Name="E_MERGE_2" Type="E_MERGE" x="9200.0" y="3333.3333333333335"/>
+        <FB Comment="" Name="requestStartHandover" Type="SERVER_0" x="2533.3333333333335" y="3600.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/M2M/StartLoading,1:s=startLoading]"/>
+        </FB>
+        <FB Comment="" Name="E_SWITCH" Type="E_SWITCH" x="4266.666666666667" y="1066.6666666666667"/>
+        <FB Comment="" Name="requestInitHandover" Type="SERVER_0" x="2533.3333333333335" y="2533.3333333333335">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/M2M/InitLoading,1:s=initLoading]"/>
+        </FB>
+        <FB Comment="" Name="E_MERGE_1" Type="E_MERGE" x="7733.333333333334" y="4666.666666666667"/>
+        <FB Comment="" Name="IW_1" Type="IW" x="1200.0" y="1200.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.1"/>
+        </FB>
+        <FB Comment="" Name="reset" Type="SERVER_0" x="2800.0" y="4533.333333333334">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/Reset,1:s=reset]"/>
+        </FB>
+        <FB Comment="" Name="IW" Type="IW" x="1200.0" y="133.33333333333334">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.0"/>
+        </FB>
+        <FB Comment="" Name="HandshakeStateMachine" Type="HandshakeStateMachine" x="5200.0" y="2933.3333333333335">
+          <Parameter Name="QI" Value="1"/>
+        </FB>
+        <FB Comment="" Name="IW_2" Type="IW" x="1200.0" y="2266.666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.2"/>
+        </FB>
+        <FB Comment="" Name="CurrentStateVar" Type="PUBLISH_1" x="10000.0" y="3333.3333333333335">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[WRITE;/Objects/OutputStack/CurrentState,1:s=currentState]"/>
+        </FB>
+        <FB Comment="" Name="E_CYCLE" Type="E_CYCLE" x="5600.0" y="400.0">
+          <Parameter Name="DT" Value="T#100ms"/>
+        </FB>
+        <FB Comment="" Name="QW_2" Type="QW" x="-400.0" y="266.6666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="in1.sensorw.mode"/>
+          <Parameter Name="OUT" Value="4"/>
+        </FB>
+        <FB Comment="" Name="E_MERGE_3" Type="E_MERGE" x="8533.333333333334" y="4266.666666666667"/>
+        <FB Comment="" Name="E_CYCLE_1" Type="E_CYCLE" x="5600.0" y="1333.3333333333335">
+          <Parameter Name="DT" Value="T#100ms"/>
+        </FB>
+        <FB Comment="" Name="stop" Type="SERVER_0" x="2800.0" y="5466.666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="ID" Value="opc_ua[CREATE_METHOD;/Objects/OutputStack/Stop,1:s=stop]"/>
+        </FB>
+        <FB Comment="" Name="E_MERGE" Type="E_MERGE" x="7733.333333333334" y="4133.333333333334"/>
+        <FB Comment="" Name="QW_1_1" Type="QW" x="10000.0" y="2266.666666666667">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="outA.motor.pwm"/>
+          <Parameter Name="OUT" Value="40"/>
+        </FB>
+        <FB Comment="" Name="QW_1" Type="QW" x="10000.0" y="1200.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="outA.motor.pwm"/>
+        </FB>
+        <FB Comment="" Name="E_SWITCH_1" Type="E_SWITCH" x="11200.0" y="133.33333333333334"/>
+        <FB Comment="" Name="QX" Type="QX" x="12133.333333333334" y="1600.0">
+          <Parameter Name="QI" Value="1"/>
+          <Parameter Name="PARAMS" Value="outA.motor.enable"/>
+        </FB>
+        <FB Comment="" Name="E_SR" Type="E_RS" x="8133.333333333334" y="133.33333333333334"/>
+        <FB Comment="" Name="F_INT_TO_WORD" Type="F_INT_TO_WORD" x="7866.666666666667" y="1333.3333333333335">
+          <Parameter Name="IN" Value="-40"/>
+        </FB>
+        <FB Comment="" Name="E_DELAY" Type="E_DELAY" x="12000.0" y="0.0">
+          <Parameter Name="DT" Value="T#255ms"/>
+        </FB>
+        <FB Comment="" Name="E_DELAY_1" Type="E_DELAY" x="8000.0" y="2133.3333333333335">
+          <Parameter Name="DT" Value="T#1000ms"/>
+        </FB>
+        <EventConnections>
+          <Connection Comment="" Destination="ObjectDetect.Reset" Source="ObjectDetect.TakeReq" dx1="80.0" dx2="80.0" dy="-46.66666666666667"/>
+          <Connection Comment="" Destination="requestStartHandover.RSP" Source="requestStartHandover.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="E_SWITCH.EI" Source="ObjectDetect.CNF" dx1="426.6666666666667"/>
+          <Connection Comment="" Destination="requestInitHandover.INIT" Source="ObjectDetect.INITO" dx1="80.0" dx2="80.0" dy="733.3333333333334"/>
+          <Connection Comment="" Destination="requestInitHandover.RSP" Source="requestInitHandover.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="requestStartHandover.INIT" Source="requestInitHandover.INITO" dx1="80.0" dx2="80.0" dy="533.3333333333334"/>
+          <Connection Comment="" Destination="reset.INIT" Source="requestStartHandover.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="reset.RSP" Source="reset.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="IW_1.INIT" Source="IW.INITO" dx1="80.0" dx2="80.0" dy="533.3333333333334"/>
+          <Connection Comment="" Destination="IW_1.REQ" Source="IW.CNF" dx1="80.0" dx2="80.0" dy="533.3333333333334"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.RESET" Source="reset.IND" dx1="926.6666666666667"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.START" Source="requestInitHandover.IND" dx1="893.3333333333334"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.PREPARE" Source="HandshakeStateMachine.CNF" dx1="80.0" dx2="80.0" dy="146.66666666666669"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.READY" Source="HandshakeStateMachine.REQ_IS_LOADED_READY" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.EXECUTE" Source="requestStartHandover.IND" dx1="866.6666666666667"/>
+          <Connection Comment="" Destination="E_MERGE_2.EI1" Source="HandshakeStateMachine.CNF" dx1="1166.6666666666667"/>
+          <Connection Comment="" Destination="E_MERGE_1.EI1" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE" dx1="433.33333333333337"/>
+          <Connection Comment="" Destination="E_MERGE_1.EI2" Source="HandshakeStateMachine.REQ_IS_LOADED_READY" dx1="433.33333333333337"/>
+          <Connection Comment="" Destination="IW_2.INIT" Source="IW_1.INITO" dx1="80.0" dx2="80.0" dy="533.3333333333334"/>
+          <Connection Comment="" Destination="IW_2.REQ" Source="IW_1.CNF" dx1="80.0" dx2="80.0" dy="533.3333333333334"/>
+          <Connection Comment="" Destination="ObjectDetect.INIT" Source="IW_2.INITO" dx1="253.33333333333334"/>
+          <Connection Comment="" Destination="ObjectDetect.REQ" Source="IW_2.CNF" dx1="253.33333333333334"/>
+          <Connection Comment="" Destination="CurrentStateVar.INIT" Source="HandshakeStateMachine.INITO" dx1="1566.6666666666667"/>
+          <Connection Comment="" Destination="CurrentStateVar.REQ" Source="E_MERGE_2.EO" dx1="160.0"/>
+          <Connection Comment="" Destination="E_CYCLE.START" Source="HandshakeStateMachine.REQ_IS_LOADED_IDLE" dx1="80.0" dx2="80.0" dy="-1466.6666666666667"/>
+          <Connection Comment="" Destination="E_CYCLE.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="80.0" dx2="80.0" dy="-1366.6666666666667"/>
+          <Connection Comment="" Destination="IW.REQ" Source="E_CYCLE.EO" dx1="80.0" dx2="80.0" dy="-80.0"/>
+          <Connection Comment="" Destination="QW_2.REQ" Source="QW_2.INITO" dx1="80.0" dx2="80.0" dy="46.66666666666667"/>
+          <Connection Comment="" Destination="IW.INIT" Source="QW_2.CNF" dx1="453.33333333333337"/>
+          <Connection Comment="" Destination="E_MERGE_3.EI2" Source="E_MERGE_1.EO" dx1="160.0"/>
+          <Connection Comment="" Destination="E_MERGE_2.EI2" Source="E_MERGE_3.EO" dx1="93.33333333333334"/>
+          <Connection Comment="" Destination="E_CYCLE_1.START" Source="HandshakeStateMachine.START_MOTORS" dx1="80.0" dx2="80.0" dy="-900.0"/>
+          <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="HandshakeStateMachine.STOP_MOTORS" dx1="80.0" dx2="80.0" dy="-900.0"/>
+          <Connection Comment="" Destination="IW.REQ" Source="E_CYCLE_1.EO" dx1="80.0" dx2="80.0" dy="-546.6666666666667"/>
+          <Connection Comment="" Destination="stop.INIT" Source="reset.INITO" dx1="80.0" dx2="80.0" dy="466.6666666666667"/>
+          <Connection Comment="" Destination="stop.RSP" Source="stop.IND" dx1="80.0" dx2="80.0" dy="160.0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.INIT" Source="stop.INITO" dx1="926.6666666666667"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.START_STOPPING" Source="stop.IND" dx1="926.6666666666667"/>
+          <Connection Comment="" Destination="E_MERGE.EI1" Source="HandshakeStateMachine.START_MOTORS" dx1="433.33333333333337"/>
+          <Connection Comment="" Destination="E_MERGE.EI2" Source="HandshakeStateMachine.STOP_MOTORS" dx1="433.33333333333337"/>
+          <Connection Comment="" Destination="E_MERGE_3.EI1" Source="E_MERGE.EO" dx1="160.0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.GO_IDLE" Source="E_SWITCH.EO1" dx1="200.0"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.COMPLETE" Source="E_SWITCH.EO0" dx1="200.0"/>
+          <Connection Comment="" Destination="QW_2.INIT" Source="START.COLD" dx1="113.33333333333334"/>
+          <Connection Comment="" Destination="QW_2.INIT" Source="START.WARM" dx1="113.33333333333334"/>
+          <Connection Comment="" Destination="E_CYCLE_1.STOP" Source="E_SWITCH.EO0" dx1="406.6666666666667"/>
+          <Connection Comment="" Destination="E_CYCLE.STOP" Source="E_SWITCH.EO1" dx1="406.6666666666667"/>
+          <Connection Comment="" Destination="QW_1.INIT" Source="IW.INITO"/>
+          <Connection Comment="" Destination="QW_1_1.INIT" Source="QW_1.INITO"/>
+          <Connection Comment="" Destination="QX.INIT" Source="QW_1_1.INITO"/>
+          <Connection Comment="" Destination="E_SR.R" Source="QX.INITO"/>
+          <Connection Comment="" Destination="E_SR.S" Source="HandshakeStateMachine.START_MOTORS"/>
+          <Connection Comment="" Destination="E_SWITCH_1.EI" Source="E_SR.EO"/>
+          <Connection Comment="" Destination="QW_1.REQ" Source="F_INT_TO_WORD.CNF"/>
+          <Connection Comment="" Destination="E_DELAY.START" Source="E_SWITCH_1.EO1"/>
+          <Connection Comment="" Destination="E_DELAY.STOP" Source="E_SWITCH_1.EO0"/>
+          <Connection Comment="" Destination="E_SR.R" Source="E_DELAY.EO"/>
+          <Connection Comment="" Destination="QX.REQ" Source="E_SR.EO"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.DONE" Source="E_DELAY.EO"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.STOP" Source="E_DELAY.EO"/>
+          <Connection Comment="" Destination="QX.REQ" Source="QW_1.CNF"/>
+          <Connection Comment="" Destination="QX.REQ" Source="QW_1_1.CNF"/>
+          <Connection Comment="" Destination="E_SR.S" Source="E_DELAY_1.EO"/>
+          <Connection Comment="" Destination="E_DELAY_1.START" Source="HandshakeStateMachine.STOP_MOTORS"/>
+          <Connection Comment="" Destination="E_DELAY_1.STOP" Source="E_DELAY_1.EO"/>
+          <Connection Comment="" Destination="F_INT_TO_WORD.REQ" Source="QW_1.INITO"/>
+        </EventConnections>
+        <DataConnections>
+          <Connection Comment="" Destination="E_SWITCH.G" Source="ObjectDetect.ObjectDetected" dx1="426.6666666666667"/>
+          <Connection Comment="" Destination="ObjectDetect.Green" Source="IW_1.IN" dx1="253.33333333333334"/>
+          <Connection Comment="" Destination="ObjectDetect.Red" Source="IW.IN" dx1="253.33333333333334"/>
+          <Connection Comment="" Destination="HandshakeStateMachine.IS_LOADED_IN" Source="ObjectDetect.ObjectDetected" dx1="893.3333333333334"/>
+          <Connection Comment="" Destination="ObjectDetect.Blue" Source="IW_2.IN" dx1="253.33333333333334"/>
+          <Connection Comment="" Destination="CurrentStateVar.SD_1" Source="HandshakeStateMachine.STATE" dx1="1566.6666666666667"/>
+          <Connection Comment="" Destination="QX.OUT" Source="E_SR.Q"/>
+          <Connection Comment="" Destination="E_SWITCH_1.G" Source="E_SR.Q"/>
+          <Connection Comment="" Destination="QW_1.OUT" Source="F_INT_TO_WORD.OUT"/>
+        </DataConnections>
+      </FBNetwork>
+    </Resource>
+  </Device>
+  <Mapping From="OutputStack.requestInitHandover" To="Outputstack.EMB_RES.requestInitHandover"/>
+  <Mapping From="OutputStack.CurrentStateVar" To="Outputstack.EMB_RES.CurrentStateVar"/>
+  <Mapping From="OutputStack.requestStartHandover" To="Outputstack.EMB_RES.requestStartHandover"/>
+  <Mapping From="OutputStack.QW_2" To="Outputstack.EMB_RES.QW_2"/>
+  <Mapping From="OutputStack.E_CYCLE" To="Outputstack.EMB_RES.E_CYCLE"/>
+  <Mapping From="OutputStack.IW_2" To="Outputstack.EMB_RES.IW_2"/>
+  <Mapping From="OutputStack.IW" To="Outputstack.EMB_RES.IW"/>
+  <Mapping From="OutputStack.ObjectDetect" To="Outputstack.EMB_RES.ObjectDetect"/>
+  <Mapping From="OutputStack.IW_1" To="Outputstack.EMB_RES.IW_1"/>
+  <Mapping From="OutputStack.E_SWITCH" To="Outputstack.EMB_RES.E_SWITCH"/>
+  <Mapping From="OutputStack.reset" To="Outputstack.EMB_RES.reset"/>
+  <Mapping From="OutputStack.stop" To="Outputstack.EMB_RES.stop"/>
+  <Mapping From="Plotter.LoadingSensor" To="Plotter.EMB_RES.LoadingSensor"/>
+  <Mapping From="Plotter.QW_1" To="Plotter.EMB_RES.QW_1"/>
+  <Mapping From="Plotter.HandShakeState" To="Plotter.EMB_RES.HandShakeState"/>
+  <Mapping From="Plotter.HandshakeStateMachine" To="Plotter.EMB_RES.HandshakeStateMachine"/>
+  <Mapping From="Plotter.requestStartHandover" To="Plotter.EMB_RES.requestStartHandover"/>
+  <Mapping From="Plotter.E_CYCLE" To="Plotter.EMB_RES.E_CYCLE"/>
+  <Mapping From="Plotter.E_SWITCH" To="Plotter.EMB_RES.E_SWITCH"/>
+  <Mapping From="Plotter.E_SWITCH_2" To="Plotter.EMB_RES.E_SWITCH_2"/>
+  <Mapping From="Plotter.E_MERGE_1" To="Plotter.EMB_RES.E_MERGE_1"/>
+  <Mapping From="Plotter.resetHandshake" To="Plotter.EMB_RES.resetHandshake"/>
+  <Mapping From="Plotter.QX" To="Plotter.EMB_RES.QX"/>
+  <Mapping From="Plotter.reqestInitHandover" To="Plotter.EMB_RES.reqestInitHandover"/>
+  <Mapping From="Plotter.E_MERGE" To="Plotter.EMB_RES.E_MERGE"/>
+  <Mapping From="Plotter.ReadRed" To="Plotter.EMB_RES.ReadRed"/>
+  <Mapping From="Plotter.QW" To="Plotter.EMB_RES.QW"/>
+  <Mapping From="Plotter.E_CYCLE_1" To="Plotter.EMB_RES.E_CYCLE_1"/>
+  <Mapping From="Plotter.UnloadingSensor" To="Plotter.EMB_RES.UnloadingSensor"/>
+  <Mapping From="Plotter.ReadGreen" To="Plotter.EMB_RES.ReadGreen"/>
+  <Mapping From="Plotter.stopHandshake" To="Plotter.EMB_RES.stopHandshake"/>
+  <Mapping From="Plotter.ReadBlue" To="Plotter.EMB_RES.ReadBlue"/>
+  <Mapping From="Plotter.PlotterState" To="Plotter.EMB_RES.PlotterState"/>
+  <Mapping From="Plotter.stopPlotter" To="Plotter.EMB_RES.stopPlotter"/>
+  <Mapping From="Plotter.resetPlotter" To="Plotter.EMB_RES.resetPlotter"/>
+  <Mapping From="Plotter.plot" To="Plotter.EMB_RES.plot"/>
+  <Mapping From="Plotter.calibrate" To="Plotter.EMB_RES.calibrate"/>
+  <Mapping From="Plotter.E_MERGE_2" To="Plotter.EMB_RES.E_MERGE_2"/>
+  <Mapping From="Plotter.E_MERGE_3" To="Plotter.EMB_RES.E_MERGE_3"/>
+  <Mapping From="Plotter.PlottingStateMachine" To="Plotter.EMB_RES.PlottingStateMachine"/>
+  <Mapping From="Plotter.E_R_TRIG_1" To="Plotter.EMB_RES.E_R_TRIG_1"/>
+  <Mapping From="Plotter.E_SR" To="Plotter.EMB_RES.E_SR"/>
+  <Mapping From="Plotter.E_SWITCH_1" To="Plotter.EMB_RES.E_SWITCH_1"/>
+  <Mapping From="Plotter.E_SWITCH_3" To="Plotter.EMB_RES.E_SWITCH_3"/>
+  <Mapping From="Plotter.QW_1_1" To="Plotter.EMB_RES.QW_1_1"/>
+  <Mapping From="Plotter.E_MERGE_4" To="Plotter.EMB_RES.E_MERGE_4"/>
+  <Mapping From="Plotter.F_INT_TO_WORD" To="Plotter.EMB_RES.F_INT_TO_WORD"/>
+  <Mapping From="OutputStack.HandshakeStateMachine" To="Outputstack.EMB_RES.HandshakeStateMachine"/>
+  <Mapping From="OutputStack.E_CYCLE_1" To="Outputstack.EMB_RES.E_CYCLE_1"/>
+  <Mapping From="OutputStack.E_SPLIT" To="Outputstack.EMB_RES.E_SPLIT"/>
+  <Mapping From="OutputStack.E_MERGE" To="Outputstack.EMB_RES.E_MERGE"/>
+  <Mapping From="OutputStack.E_MERGE_1" To="Outputstack.EMB_RES.E_MERGE_1"/>
+  <Mapping From="OutputStack.E_MERGE_3" To="Outputstack.EMB_RES.E_MERGE_3"/>
+  <Mapping From="OutputStack.E_MERGE_2" To="Outputstack.EMB_RES.E_MERGE_2"/>
+  <Mapping From="OutputStack.Delay" To="Outputstack.EMB_RES.Delay"/>
+  <Mapping From="InputStack.ObjectDetect" To="InputStack.EMB_RES.ObjectDetect"/>
+  <Mapping From="InputStack.E_MERGE_2" To="InputStack.EMB_RES.E_MERGE_2"/>
+  <Mapping From="InputStack.requestStartHandover" To="InputStack.EMB_RES.requestStartHandover"/>
+  <Mapping From="InputStack.E_SWITCH" To="InputStack.EMB_RES.E_SWITCH"/>
+  <Mapping From="InputStack.requestInitHandover" To="InputStack.EMB_RES.requestInitHandover"/>
+  <Mapping From="InputStack.E_MERGE_1" To="InputStack.EMB_RES.E_MERGE_1"/>
+  <Mapping From="InputStack.IW_1" To="InputStack.EMB_RES.IW_1"/>
+  <Mapping From="InputStack.reset" To="InputStack.EMB_RES.reset"/>
+  <Mapping From="InputStack.IW" To="InputStack.EMB_RES.IW"/>
+  <Mapping From="InputStack.HandshakeStateMachine" To="InputStack.EMB_RES.HandshakeStateMachine"/>
+  <Mapping From="InputStack.IW_2" To="InputStack.EMB_RES.IW_2"/>
+  <Mapping From="InputStack.CurrentStateVar" To="InputStack.EMB_RES.CurrentStateVar"/>
+  <Mapping From="InputStack.E_CYCLE" To="InputStack.EMB_RES.E_CYCLE"/>
+  <Mapping From="InputStack.QW_2" To="InputStack.EMB_RES.QW_2"/>
+  <Mapping From="InputStack.E_MERGE_3" To="InputStack.EMB_RES.E_MERGE_3"/>
+  <Mapping From="InputStack.E_CYCLE_1" To="InputStack.EMB_RES.E_CYCLE_1"/>
+  <Mapping From="InputStack.stop" To="InputStack.EMB_RES.stop"/>
+  <Mapping From="InputStack.E_MERGE" To="InputStack.EMB_RES.E_MERGE"/>
+  <Mapping From="InputStack.QW_1_1" To="InputStack.EMB_RES.QW_1_1"/>
+  <Mapping From="InputStack.QW_1" To="InputStack.EMB_RES.QW_1"/>
+  <Mapping From="InputStack.E_SWITCH_1" To="InputStack.EMB_RES.E_SWITCH_1"/>
+  <Mapping From="InputStack.QX" To="InputStack.EMB_RES.QX"/>
+  <Mapping From="InputStack.E_SR" To="InputStack.EMB_RES.E_SR"/>
+  <Mapping From="InputStack.F_INT_TO_WORD" To="InputStack.EMB_RES.F_INT_TO_WORD"/>
+  <Mapping From="InputStack.E_DELAY" To="InputStack.EMB_RES.E_DELAY"/>
+  <Mapping From="InputStack.E_DELAY_1" To="InputStack.EMB_RES.E_DELAY_1"/>
+  <Segment Comment="" Name="Ethernet" Type="Ethernet" dx1="2000.0" x="3553.3333333333335" y="433.33333333333337">
+    <Attribute Comment="color" Name="Color" Type="STRING" Value="192,51,105"/>
+  </Segment>
+  <Link CommResource="Plotter" Comment="" SegmentName="Ethernet"/>
+  <Link CommResource="Outputstack" Comment="" SegmentName="Ethernet"/>
+  <Link CommResource="InputStack" Comment="" SegmentName="Ethernet"/>
+</System>
