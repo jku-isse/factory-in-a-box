@@ -87,21 +87,36 @@ public class ActorRestEndpoint extends AllDirectives{
 	public Route createRoute() {
 		return respondWithDefaultHeaders(defaultCorsHeaders, () ->
 			concat(
-				
-//				path("users/authenticate", () -> {
-//					System.out.println("########## authenticate");
-//					return options( () -> authenticate());
-//				}),
-				path("authenticate",	() -> concat( optionsAuth(), postAuth() )),
-				path("action",			() -> concat( optionsAction(), postAction() )),
-				path("orderevents",		() -> get(() -> parameterOptional("orderId", orderId -> getSSESourceForOrderEvents(orderId)))),
-				path("machineEvents",	() -> get(() -> parameterOptional("machineId", machineId -> getSSESourceForMachineEvents(machineId)))),
-				path("machines",		() -> concat( postMachines(), getMachines(), options(() -> complete("This is a OPTIONS request.")) )),
-				path("orders",			() -> concat( postOrders(), getOrders(), options(() -> complete("This is a OPTIONS request.")) )),
-				get(() -> pathPrefix("processevents",	() -> path(PathMatchers.remaining() , (String orderId) -> getSSESourceForOrderProcessUpdateEvents(orderId)))),	
-				get(() -> pathPrefix("order",			() -> path(PathMatchers.remaining() , (String req) -> makeOrderStatusRequest(req)))),	
-				get(() -> pathPrefix("orderHistory",	() -> path(PathMatchers.remaining() , (String req) -> makeOrderHistoryRequest(req)))),
-				get(() -> pathPrefix("machineHistory",	() -> path(PathMatchers.remaining() , (String req) -> makeMachineHistoryRequest(req))))
+				path("authenticate", () -> 
+					concat( optionsAuth(), postAuth() )
+				),
+				path("action", () -> 
+					concat( optionsAction(), postAction() )
+				),
+				path("orderevents",	() -> 
+					get(() -> parameterOptional("orderId", orderId -> getSSESourceForOrderEvents(orderId)))
+				),
+				path("machineEvents", () -> 
+					get(() -> parameterOptional("machineId", machineId -> getSSESourceForMachineEvents(machineId)))
+				),
+				path("machines", () -> 
+					concat( postMachines(), getMachines(), options(() -> complete("This is a OPTIONS request.")) )
+				),
+				path("orders", () -> 
+					concat( postOrders(), getOrders(), options(() -> complete("This is a OPTIONS request.")) )
+				),
+				pathPrefix("processevents",	() -> path(PathMatchers.remaining() , (String orderId) -> 
+					concat( get(() -> getSSESourceForOrderProcessUpdateEvents(orderId)), options(() -> complete("This is a OPTIONS request.")) )
+				)),	
+				pathPrefix("order",	() -> path(PathMatchers.remaining() , (String req) -> 
+					concat( get(() -> makeOrderStatusRequest(req)), options(() -> complete("This is a OPTIONS request.")) )
+				)),	
+				pathPrefix("orderHistory", () -> path(PathMatchers.remaining() , (String req) -> 
+					concat( get(() -> makeOrderHistoryRequest(req)), options(() -> complete("This is a OPTIONS request.")) )
+				)),
+				pathPrefix("machineHistory", () -> path(PathMatchers.remaining() , (String req) -> 
+					concat( get(() -> makeMachineHistoryRequest(req)), options(() -> complete("This is a OPTIONS request.")) )
+				))
 			)
 		);	    			    	
 	}

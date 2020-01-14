@@ -100,7 +100,6 @@ export class OrderListComponent implements OnInit {
   }
 
   adminAction(orderId: string) {
-    console.log('adminAction');
     this.userService.makeAction(orderId).pipe(first()).subscribe(data => {
       console.log('data');
   });

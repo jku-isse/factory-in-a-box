@@ -21,6 +21,7 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
+import akka.http.javadsl.HttpsConnectionContext;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
@@ -28,6 +29,7 @@ import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
 import akka.testkit.javadsl.TestKit;
 import fiab.mes.DefaultShopfloorInfrastructure;
+import fiab.mes.auth.HttpsConfigurator;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
@@ -67,6 +69,10 @@ public class OrderEmittingTestServer {
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
 		final Http http = Http.get(system);
+		
+		HttpsConnectionContext https = HttpsConfigurator.useHttps(system);
+	    http.setDefaultServerHttpContext(https);
+		
 	    final ActorMaterializer materializer = ActorMaterializer.create(system);
 	    DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system);
 	    orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
