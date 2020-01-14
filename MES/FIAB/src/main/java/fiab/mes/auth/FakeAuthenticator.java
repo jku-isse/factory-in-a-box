@@ -4,24 +4,41 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.security.Key;
+import java.lang.reflect.Type;
 
 public class FakeAuthenticator {
 	
 	private List<User> users;
 	private static Key jwtKey;
+	private static Gson gson;
+	private static JsonReader reader;
+	private static final Type USER_TYPE = new TypeToken<List<User>>() { }.getType();
+
+
 	
 	public FakeAuthenticator() {
 		jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-		users = new ArrayList<User>();
-		users.add(new User("1", "admin", "admin", "Admin", "User", User.Role.Admin));
-		users.add(new User("2", "user", "user", "Normal", "User", User.Role.User));
-		
+		gson = new Gson();
+		try {
+			reader = new JsonReader(new FileReader("cred.json"));
+			users = gson.fromJson(reader, USER_TYPE);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		users.stream().forEach(u -> u.setToken());
 	}
 	
 	public Optional<User> authenticate(String username, String password) {
@@ -59,9 +76,12 @@ public class FakeAuthenticator {
 			this.firstName = firstName;
 			this.lastName = lastName;
 			this.role = role;
-			this.token = Jwts.builder().setSubject(id).signWith(jwtKey).compact();
 		}
 
+		public void setToken() {
+			this.token = Jwts.builder().setSubject(id).signWith(jwtKey).compact();
+		}
+		
 		public String getId() {
 			return id;
 		}

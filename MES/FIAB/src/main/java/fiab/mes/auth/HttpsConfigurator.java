@@ -24,17 +24,9 @@ public class HttpsConfigurator {
 	public static HttpsConnectionContext useHttps(ActorSystem system) {
 		HttpsConnectionContext https = null;
 	    try {
-	      // initialise the keystore
 	      // !!! never put passwords into code !!!
 	      final char[] password = new char[]{'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
 
-//	      final KeyStore ks = KeyStore.getInstance("PKCS12");
-//	      final InputStream keystore = SimpleServerApp.class.getClassLoader().getResourceAsStream("./keystore.jks");
-//	      if (keystore == null) {
-//	        throw new RuntimeException("Keystore required!");
-//	      }
-//	      ks.load(keystore, password);
-	      
 	      final KeyStore ks = KeyStore.getInstance("PKCS12");
 	      ks.load(new FileInputStream("keystore.jks"), password);
 

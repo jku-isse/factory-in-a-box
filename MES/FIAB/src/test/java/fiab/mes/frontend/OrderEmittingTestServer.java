@@ -85,7 +85,7 @@ public class OrderEmittingTestServer {
 	    final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
 	    binding = http.bindAndHandle(routeFlow, ConnectHttp.toHost("localhost", 8080), materializer);
 	
-	    System.out.println("Server online at http://localhost:8080/");
+	    System.out.println("Server online at https://localhost:8080/");
 	}
 
 	@BeforeEach
