@@ -1,6 +1,5 @@
 package fiab.mes.auth;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +13,6 @@ import io.jsonwebtoken.security.SignatureException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.security.Key;
 import java.lang.reflect.Type;
