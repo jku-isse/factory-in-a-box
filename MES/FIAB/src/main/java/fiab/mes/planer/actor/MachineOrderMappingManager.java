@@ -4,6 +4,7 @@ import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,10 +18,14 @@ import ProcessCore.ProcessStep;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
+import fiab.mes.machine.actor.WellknownMachinePropertyFields;
+import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
+import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus.AssignmentState;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
@@ -29,15 +34,15 @@ public class MachineOrderMappingManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(MachineOrderMappingManager.class);
 	
-	public static final String IDLE_STATE_VALUE = "IDLE";
-	public static final String COMPLETING_STATE_VALUE = "COMPLETING";
-	public static final String PRODUCING_STATE_VALUE = "EXECUTE";
-	public static final String STATE_VAR_NAME = "STATE";
+//	public static final String IDLE_STATE_VALUE = "IDLE";
+//	public static final String COMPLETING_STATE_VALUE = "COMPLETING";
+//	public static final String PRODUCING_STATE_VALUE = "EXECUTE";
+//	public static final String STATE_VAR_NAME = "STATE";
 	
 	protected ActorSelection orderEventBus; 
 	protected String publisherName;
 	protected Map<AkkaActorBackedCoreModelAbstractActor,MachineOrderMappingStatus> moms = new HashMap<>();
-	protected Map<String,SimpleEntry<RegisterProcessRequest, OrderEventType>> orders = new HashMap<>();
+	protected Map<String,SimpleEntry<RegisterProcessRequest, OrderEventType>> orders = new LinkedHashMap<>(); //we want to check/iterative through orders/processes in sequence of their arrival
 	
 	public MachineOrderMappingManager(ActorSelection orderEventBus, String parentActorName) {
 		this.orderEventBus = orderEventBus;
@@ -72,15 +77,19 @@ public class MachineOrderMappingManager {
 		transitionOrder(orderId, OrderEventType.PAUSED);
 	}
 	
-	private void transitionOrder(String orderId, OrderEventType newState) {
+	private void transitionOrder(String orderId, OrderEventType newState, String message) {
 		Optional.of(orders.get(orderId)).ifPresent(pair -> {
 			OrderEventType oldState = pair.getValue();
-			if (oldState != newState) { // only when not paused yet
+			if (oldState != newState) { 
 				pair.setValue(newState);
-				String msg = String.format("transition from %s to %s ", oldState, newState);
+				String msg = message != null ? message : String.format("transition from %s to %s ", oldState, newState);
 				publishEvent(orderId, newState, msg);
 			}
 		});
+	}
+	
+	private void transitionOrder(String orderId, OrderEventType newState) {
+		transitionOrder(orderId, newState, null);
 	}
 	
 	public void allocateProcess(String orderId) {
@@ -89,6 +98,38 @@ public class MachineOrderMappingManager {
 	
 	public void scheduleProcess(String orderId) {
 		transitionOrder(orderId, OrderEventType.SCHEDULED);
+	}
+	
+	public void markOrderWaitingForTransport(String orderId) {
+		transitionOrder(orderId, OrderEventType.TRANSPORT_REQUESTED);
+	}
+	
+	public void markOrderDeniedTransport(String orderId, String msg) {
+		transitionOrder(orderId, OrderEventType.TRANSPORT_DENIED, msg);
+	}
+	
+	public void markOrderInTransit(String orderId) {
+		transitionOrder(orderId, OrderEventType.TRANSPORT_IN_PROGRESS);
+	}
+	
+	public void markOrderCompletedTransport(String orderId) {
+		transitionOrder(orderId, OrderEventType.TRANSPORT_COMPLETED);
+	}
+	
+	public void markOrderFailedTransport(String orderId, String msg) {
+		transitionOrder(orderId, OrderEventType.TRANSPORT_FAILED, msg);
+	}
+	
+	public void markOrderCompleted(String orderId, String msg) {
+		transitionOrder(orderId, OrderEventType.COMPLETED, msg);
+	}
+	
+	public void markOrderCanceled(String orderId, String msg) {
+		transitionOrder(orderId, OrderEventType.CANCELED, msg);
+	}
+	
+	public void markOrderRemovedFromShopfloor(String orderId, String msg) {
+		transitionOrder(orderId, OrderEventType.REMOVED, msg);
 	}
 	
 	public void removeOrder(String orderId) {
@@ -133,8 +174,8 @@ public class MachineOrderMappingManager {
 	public Optional<AkkaActorBackedCoreModelAbstractActor> getCurrentMachineOfOrder(String orderId) {		
 		return moms.values().stream()
 				.filter(mom -> mom.getOrderId() != null)
-				.filter(mom -> mom.getOrderId().contentEquals(orderId))
-				.filter(mom -> mom.getAssignmentState().equals(AssignmentState.OCCUPIED) )
+				.filter(mom -> mom.getOrderId().contentEquals(orderId))						// will also select inputstation when first step in this order
+				.filter(mom -> mom.getAssignmentState().equals(AssignmentState.OCCUPIED) )  
 				.map(mom -> mom.getMachine())
 				.findFirst();		
 	}
@@ -147,17 +188,17 @@ public class MachineOrderMappingManager {
 	}
 
 	public List<AkkaActorBackedCoreModelAbstractActor> getIdleMachines() {
-		return getMachinesInState(IDLE_STATE_VALUE);
+		return getMachinesInState(MachineStatus.IDLE);
 	}
 	
 	public List<AkkaActorBackedCoreModelAbstractActor> getMachinesReadyForUnloading() {
-		return getMachinesInState(COMPLETING_STATE_VALUE);
+		return getMachinesInState(MachineStatus.COMPLETING);
 	}
 	
-	private List<AkkaActorBackedCoreModelAbstractActor> getMachinesInState(String state) {
+	private List<AkkaActorBackedCoreModelAbstractActor> getMachinesInState(MachineStatus state) {
 		return moms.values().stream()
 				.filter(mapping -> {
-					return mapping.getLastMachineState().getStatus().equals(state);
+					return mapping.getLastMachineState().getValue().toString().equals(state.toString()); // we match only Machines with MachineStatus but not IOStations
 				})
 				.map(mapping -> {
 					return mapping.getMachine();
@@ -165,10 +206,15 @@ public class MachineOrderMappingManager {
 				.collect(Collectors.toList());
 	} 
 	
-	public void freeUpMachine(AkkaActorBackedCoreModelAbstractActor machine) {
+	public void freeUpMachine(AkkaActorBackedCoreModelAbstractActor machine, boolean waitForNewState) {
 		Optional.of(moms.get(machine)).ifPresent(mom -> { 
 			mom.setOrderId(null); 
-			mom.setAllocationState(AssignmentState.NONE); 
+			mom.setProductionJob(null);
+			if (waitForNewState) {
+				mom.setAllocationState(AssignmentState.UNKNOWN);
+			} else {
+				mom.setAllocationState(AssignmentState.NONE);
+			}
 			}); 		
 	}
 	
@@ -190,6 +236,7 @@ public class MachineOrderMappingManager {
 			logger.debug(String.format("Updateing OrderMapping for order %s from %s to %s", mom.getOrderId(), old, newType));			
 		};					
 	}
+
 	
 	public void reserveOrderAtMachine(AkkaActorBackedCoreModelAbstractActor machine)  {
 		updateMachineMappingStatus(machine, AssignmentState.RESERVED);						
@@ -199,21 +246,34 @@ public class MachineOrderMappingManager {
 		updateMachineMappingStatus(machine, AssignmentState.OCCUPIED);					
 	}
 	
+	public void removeOrderAllocationIfMachineStillOccupied(AkkaActorBackedCoreModelAbstractActor machine) {
+		Optional.of(moms.get(machine)).ifPresent(mom -> {
+			if (mom.getAssignmentState().equals(AssignmentState.OCCUPIED)) {
+				updateMachineMappingStatus(machine, AssignmentState.UNKNOWN); //we wait for the machine to signal idle => NONE
+			}
+		});
+	}
+	
 	private void updateMachineMappingStatus(AkkaActorBackedCoreModelAbstractActor machine, AssignmentState type) {
 		Optional.of(moms.get(machine)).ifPresent(mom -> { 
-			AssignmentState old = mom.getAssignmentState();
 			logger.debug(String.format("Updateing OrderMapping for order %s from %s to %s", mom.getOrderId(), mom.getAssignmentState(), type));			
 			mom.setAllocationState(type);
 		});
 	}
 	
-	public void updateMachineStatus(AkkaActorBackedCoreModelAbstractActor machine, MachineStatusUpdateEvent event) {				
-			moms.computeIfAbsent(machine, k -> new MachineOrderMappingStatus(machine, AssignmentState.NONE))
+	public void updateMachineStatus(AkkaActorBackedCoreModelAbstractActor machine, MachineUpdateEvent event) {				
+			moms.computeIfAbsent(machine, k -> new MachineOrderMappingStatus(machine, AssignmentState.UNKNOWN))
 										.setLastMachineState(event);			
 	}		
 	
 	public Optional<MachineOrderMappingStatus> removeMachine(AkkaActorBackedCoreModelAbstractActor machine) {
 		return Optional.of(moms.remove(machine));		
+	}
+	
+	public Optional<MachineOrderMappingStatus> getMappingStatusOfMachine(String machineId) {
+		return moms.values().stream()
+				.filter(mom -> mom.machine.getId().equals(machineId))
+				.findAny();
 	}
 	
 	public Optional<MachineOrderMappingStatus> getMappingStatusOfMachine(AkkaActorBackedCoreModelAbstractActor machine) {
@@ -230,7 +290,7 @@ public class MachineOrderMappingManager {
 	public static class MachineOrderMappingStatus {
 		AkkaActorBackedCoreModelAbstractActor machine;
 		AssignmentState allocationState; 
-		MachineStatusUpdateEvent lastMachineState = null;
+		MachineUpdateEvent lastMachineState = null;
 		String orderId = null;
 		ProcessStep productionJob = null;
 		
@@ -246,16 +306,23 @@ public class MachineOrderMappingManager {
 		public void setAllocationState(AssignmentState allocationState) {
 			this.allocationState = allocationState;
 		}
-		public MachineStatusUpdateEvent getLastMachineState() {
+		public MachineUpdateEvent getLastMachineState() {
 			return lastMachineState;
 		}
-		public void setLastMachineState(MachineStatusUpdateEvent lastMachineState) {
-			if (lastMachineState.getParameterName().equals(STATE_VAR_NAME)) { // only update the state of the machine
-				this.lastMachineState = lastMachineState;		
-				if (lastMachineState.getStatus().equals(MachineOrderMappingManager.IDLE_STATE_VALUE)) {
+		public void setLastMachineState(MachineUpdateEvent lastMachineState) {
+			if (lastMachineState instanceof MachineStatusUpdateEvent) {
+				if (((MachineStatusUpdateEvent) lastMachineState).getStatus().equals(MachineStatus.IDLE)) {
 					this.allocationState = AssignmentState.NONE;
-					this.orderId = null;
+					this.orderId = null;	
 				}
+				this.lastMachineState = lastMachineState;
+			} else if (lastMachineState instanceof IOStationStatusUpdateEvent) {
+				if (((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSide.IdleEmpty) ||
+						((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSide.IdleLoaded)) {
+					this.allocationState = AssignmentState.NONE;
+					this.orderId = null;	
+				}
+				this.lastMachineState = lastMachineState;
 			}
 		}
 		public String getOrderId() {
@@ -274,7 +341,7 @@ public class MachineOrderMappingManager {
 			this.productionJob = step;
 		}
 		public static enum AssignmentState {
-			NONE, REQUESTED, RESERVED, OCCUPIED
+			UNKNOWN, NONE, REQUESTED, RESERVED, OCCUPIED
 		}
 	}
 }

@@ -22,6 +22,7 @@ import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
+import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
@@ -77,6 +78,9 @@ public class BasicMachineActor extends AbstractActor{
 		        		log.warning("Received lock for order in state: "+currentState);
 		        	}
 		        })
+		        .match(CancelOrTerminateOrder.class, cto -> {
+		        	//TODO: implement
+		        })
 		        .match(MachineStatusUpdateEvent.class, mue -> {
 		        	processMachineUpdateEvent(mue);
 		        })
@@ -130,7 +134,7 @@ public class BasicMachineActor extends AbstractActor{
 		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, lastOrder);
 		log.debug(msg);
 		this.currentState = newState;
-		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, msg, newState);
+		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, msg, newState);
 		tellEventBus(mue);
 	}
 	

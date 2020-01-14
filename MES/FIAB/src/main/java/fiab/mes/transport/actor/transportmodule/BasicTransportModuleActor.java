@@ -150,7 +150,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 		log.debug(msg);
 		if (currentState != newState) {
 			this.currentState = newState;
-			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, msg, newState);
+			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, msg, newState);
 			tellEventBus(mue);
 		}
 	}

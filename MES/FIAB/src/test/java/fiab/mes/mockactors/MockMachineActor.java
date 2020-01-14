@@ -14,6 +14,7 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
+import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineStatus;
@@ -84,7 +85,7 @@ public class MockMachineActor extends AbstractActor{
 	private void setAndPublishNewState(MachineStatus newState) {
 		log.debug(String.format("%s sets state from %s to %s", this.machine.getId(), this.currentState, newState));
 		this.currentState = newState;
-		eventBusByRef.tell(new MachineStatusUpdateEvent(machine.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, "", newState), self());
+		eventBusByRef.tell(new MachineStatusUpdateEvent(machine.getId(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, "", newState), self());
 	}
 	
 	private void checkIfAvailableForNextOrder() {
