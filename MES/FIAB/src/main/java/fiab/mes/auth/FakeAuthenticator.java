@@ -59,27 +59,56 @@ public class FakeAuthenticator {
 		}
 	}
 	
-	public static class User {
-		private String id;
-		private String username;
-		private String password;
+	public static class PublicUser {
 		private String firstName;
-		private String lastName;
 		private Role role;
 		private String token;
 		
+		public static enum Role {User, Admin}
+
+		private PublicUser(String firstName, Role role) {
+			this.firstName = firstName;
+			this.role = role;
+		}
+		
+		private PublicUser(String firstName, Role role, String token) {
+			this(firstName, role);
+			this.token = token;
+		}
+		
+		public String getFirstName() {
+			return firstName;
+		}
+		
+		public Role getRole() {
+			return role;
+		}
+		
+		public String getToken() {
+			return token;
+		}
+	}
+	
+	public static class User extends PublicUser {
+		private String id;
+		private String username;
+		private String password;
+		private String lastName;
+		
 		public User(String id, String username, String password, String firstName, String lastName, Role role) {
-			super();
+			super(firstName, role);
 			this.id = id;
 			this.username = username;
 			this.password = password;
-			this.firstName = firstName;
 			this.lastName = lastName;
-			this.role = role;
 		}
 
+		public PublicUser createPublicCopy() {
+			return new PublicUser(this.getFirstName(), this.getRole(), this.getToken());
+		}
+		
 		public void setToken() {
-			this.token = Jwts.builder().setSubject(id).signWith(jwtKey).compact();
+			super.token = Jwts.builder().setSubject(id).signWith(jwtKey).compact();
 		}
 		
 		public String getId() {
@@ -94,23 +123,10 @@ public class FakeAuthenticator {
 			return password;
 		}
 
-		public String getFirstName() {
-			return firstName;
-		}
-
 		public String getLastName() {
 			return lastName;
 		}
 
-		public Role getRole() {
-			return role;
-		}
-		
-		public String getToken() {
-			return token;
-		}
-
-		public static enum Role {User, Admin}
 	}
 	
 	public static class Credentials {

@@ -41,6 +41,7 @@ import akka.util.Timeout;
 import fiab.mes.auth.FakeAuthenticator;
 import fiab.mes.auth.FakeAuthenticator.Credentials;
 import fiab.mes.auth.FakeAuthenticator.User;
+import fiab.mes.auth.FakeAuthenticator.PublicUser;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -132,8 +133,8 @@ public class ActorRestEndpoint extends AllDirectives{
             CompletionStage<Optional<User>> futureMaybeItem = CompletableFuture.completedFuture(auth.authenticate(username, password));
             return onSuccess(futureMaybeItem, maybeItem ->
 	            maybeItem.map(item -> 
-	            	respondWithHeader(RawHeader.create("Access-Token", item.getToken()), () -> //TODO test this!!!
-	            		completeOK(item, Jackson.marshaller())
+	            	respondWithHeader(RawHeader.create("Access-Token", item.getToken()), () ->
+	            		completeOK( item.createPublicCopy() , Jackson.marshaller())
 	            	)
 	            ).orElseGet(() -> complete(StatusCodes.UNAUTHORIZED, "Username or password is incorrect"))
 	        );
