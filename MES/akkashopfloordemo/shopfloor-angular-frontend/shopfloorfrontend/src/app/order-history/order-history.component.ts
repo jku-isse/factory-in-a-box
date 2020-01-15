@@ -1,10 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { OrderService } from '../order.service';
+import { OrderService } from '../_services/order.service';
 import { Router, ActivatedRoute } from '@angular/router';
-import { OrderEvent } from '../events';
+import { OrderEvent } from '../_models/events';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
-import { DataService } from '../data.service';
+import { DataService } from '../_services/data.service';
 
 @Component({
   selector: 'app-order-history',

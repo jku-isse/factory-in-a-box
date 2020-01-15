@@ -1,11 +1,11 @@
-import { OrderService } from '../order.service';
-import { OrderEvent } from '../events';
+import { OrderService } from '../_services/order.service';
+import { OrderEvent } from '../_models/events';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { DataService } from '../data.service';
+import { DataService } from '../_services/data.service';
 import { User, Role } from '../_models';
 import { AuthService, UserService } from '../_services';
 import { first } from 'rxjs/operators';

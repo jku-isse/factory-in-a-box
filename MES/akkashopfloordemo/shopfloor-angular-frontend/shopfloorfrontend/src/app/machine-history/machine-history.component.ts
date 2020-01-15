@@ -1,10 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { MachineEvent } from '../events';
-import { MachineService } from '../machine.service';
+import { MachineEvent } from '../_models/events';
+import { MachineService } from '../_services/machine.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
-import { DataService } from '../data.service';
+import { DataService } from '../_services/data.service';
 
 @Component({
   selector: 'app-machine-history',

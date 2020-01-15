@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { MachineEvent } from '../events';
+import { MachineEvent } from '../_models/events';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Router } from '@angular/router';
-import { MachineService } from '../machine.service';
-import { DataService } from '../data.service';
+import { MachineService } from '../_services/machine.service';
+import { DataService } from '../_services/data.service';
 import { UserService, AuthService } from '../_services';
 import { User, Role } from '../_models';
 import { first } from 'rxjs/operators';
