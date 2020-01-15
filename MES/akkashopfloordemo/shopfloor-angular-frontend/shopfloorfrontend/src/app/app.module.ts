@@ -17,6 +17,7 @@ import { JwtInterceptor } from './_helpers/jwt.interceptor';
 import { ErrorInterceptor } from './_helpers/error.interceptor';
 // used to create fake backend
 import { fakeBackendProvider } from './_helpers/fake-backend';
+import { DialogConfirmComponent } from './dialog-confirm/dialog-confirm.component';
 
 @NgModule({
   declarations: [
@@ -26,8 +27,10 @@ import { fakeBackendProvider } from './_helpers/fake-backend';
     OrderHistoryComponent,
     MachineListComponent,
     MachineHistoryComponent,
-    LoginComponent
+    LoginComponent,
+    DialogConfirmComponent,
   ],
+  entryComponents: [DialogConfirmComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

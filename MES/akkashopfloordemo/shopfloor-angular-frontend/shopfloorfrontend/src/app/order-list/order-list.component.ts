@@ -9,6 +9,8 @@ import { DataService } from '../_services/data.service';
 import { User, Role } from '../_models';
 import { AuthService, UserService } from '../_services';
 import { first } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { DialogConfirmComponent } from '../dialog-confirm/dialog-confirm.component';
 
 
 @Component({
@@ -32,7 +34,8 @@ export class OrderListComponent implements OnInit {
     private router: Router,
     private data: DataService,
     private authenticationService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    public dialog: MatDialog
   ) {
     this.currentUser = this.authenticationService.currentUserValue;
   }
@@ -100,8 +103,23 @@ export class OrderListComponent implements OnInit {
   }
 
   adminAction(orderId: string) {
+    console.log('Action not implemented!');
     this.userService.makeAction(orderId).pipe(first()).subscribe(data => {
-      console.log('data');
-  });
+      console.log('User Service returned from admin action: ', data);
+    });
   }
+
+  openDialog(orderId: string): void {
+    const dialogRef = this.dialog.open(DialogConfirmComponent, {
+      width: '300px',
+      data: {action: 'delete', id: orderId}
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.adminAction(orderId);
+      }
+    });
+  }
+
 }
