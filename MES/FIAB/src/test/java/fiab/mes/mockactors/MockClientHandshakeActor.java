@@ -76,6 +76,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 						switch(msg) {
 						case IdleEmpty: //fallthrough
 						case IdleLoaded:
+							if (currentState.equals(ClientSide.Starting) || currentState.equals(ClientSide.Initiating))
 							requestInitiateHandover();
 							break;
 						case Completed: //fallthrough, if serverside is done, we can do the same 

@@ -1,5 +1,6 @@
 package fiab.mes.machine.actor.plotter;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.stream.Collectors;
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
@@ -42,6 +44,7 @@ public class BasicMachineActor extends AbstractActor{
 	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	private String lastOrder;
+	private ActorRef self;
 	protected RegisterProcessStepRequest reservedForOrder = null;
 	
 	private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
@@ -57,6 +60,7 @@ public class BasicMachineActor extends AbstractActor{
 		this.eventBusByRef = machineEventBus;
 		this.hal = hal;
 		this.intraBus = intraBus;
+		this.self = self();
 		init();
 
 	}
@@ -94,8 +98,8 @@ public class BasicMachineActor extends AbstractActor{
 	}
 
 	private void init() {
-		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self());
-		intraBus.subscribe(getSelf(), new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
+		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self);
+		intraBus.subscribe(self, new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
 		hal.subscribeToStatus();
 	}
 	
@@ -138,11 +142,6 @@ public class BasicMachineActor extends AbstractActor{
 		tellEventBus(mue);
 	}
 	
-	private void tellEventBus(MachineUpdateEvent mue) {
-		externalHistory.add(mue);
-		eventBusByRef.tell(mue, self());
-	}
-	
 	private void checkIfAvailableForNextOrder() {
 		log.debug(String.format("Checking if %s is IDLE: %s", this.machineId.getId(), this.currentState));
 		if (currentState == MachineStatus.IDLE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
@@ -154,4 +153,28 @@ public class BasicMachineActor extends AbstractActor{
     	}	
 	}	
 	
+	private void tellEventBus(MachineUpdateEvent mue) {
+		externalHistory.add(mue);
+		tellEventBusWithoutAddingToHistory(mue);
+		lastMUE=mue;
+		resendLastEvent();
+	}
+	
+	private void tellEventBusWithoutAddingToHistory(MachineUpdateEvent mue) {
+		eventBusByRef.tell(mue, self);
+	}
+		
+	private MachineUpdateEvent lastMUE;
+	
+	private void resendLastEvent() {
+		context().system()
+    	.scheduler()
+    	.scheduleOnce(Duration.ofMillis(1000*10), 
+    			 new Runnable() {
+            @Override
+            public void run() {
+            	tellEventBusWithoutAddingToHistory(lastMUE);
+            }
+          }, context().system().dispatcher());
+	}
 }

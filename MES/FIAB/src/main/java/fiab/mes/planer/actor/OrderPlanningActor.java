@@ -249,31 +249,34 @@ public class OrderPlanningActor extends AbstractActor{
 							return ordMapper.isMachineIdle(pair.getValue());
 						}) //continue with those where actor is idle
 						.filter(pair -> {
-							return ordMapper.getMappingStatusOfMachine(pair.getValue()).orElse(new MachineOrderMappingStatus(pair.getValue(), AssignmentState.NONE)).getAssignmentState() == AssignmentState.NONE; // and also where we havent assigned any order to yet
+							return ordMapper.getMappingStatusOfMachine(pair.getValue()).orElse(new MachineOrderMappingStatus(pair.getValue(), AssignmentState.UNKNOWN)).getAssignmentState().equals(AssignmentState.NONE); // and also where we havent assigned any order to yet
 						})
 						.findFirst(); // then from this list pick the first
 				
 				maOpt.ifPresent(aa -> {								
 					// scheduled, not yet producing
-					try {
-						ordMapper.requestMachineForOrder(aa.getValue(), rootOrderId, aa.getKey());
-					} catch (MachineOrderMappingStatusLifecycleException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}	
-					
 					Optional<AkkaActorBackedCoreModelAbstractActor> currentLoc = ordMapper.getCurrentMachineOfOrder(rootOrderId);
-					if (!currentLoc.isPresent()) {
+					if (!currentLoc.isPresent()) {												
 //						assign inputstation 
 						Optional<AkkaActorBackedCoreModelAbstractActor> inputStation = tryReserveNewProcessAtInputStation(rootOrderId);
 						if (!inputStation.isPresent()) {
 						// if not possible we wont do anything with this order at the moment and wait for inputstation to become available
+							log.info(String.format("Order %s and potential (not yet requested) machine %s waiting for next available inputstation", rootOrderId, aa.getValue().getId()));
 							return;
-						}	// else, we have now the reservation of the inputstation for this order and we continue with registering
-					}
+						} 
+					} 
+					// order at machine, we now register/request that machine  
+					try {
+						ordMapper.requestMachineForOrder(aa.getValue(), rootOrderId, aa.getKey());
+					} catch (MachineOrderMappingStatusLifecycleException e) {
+						// TODO Auto-generated catch block
+						// should not occur
+						e.printStackTrace();						
+					}					
 					//TODO: alternatively the machine could issue a SCHEDULED event (BUT WE NEED TO TRACK OUR REQUESTS)
 					ordMapper.scheduleProcess(rootOrderId);
 					// get machine actor reference				
+					log.info(String.format("Order %s about to be registered at machine %s", rootOrderId, aa.getValue().getId()));
 					aa.getValue().getAkkaActor().tell( new RegisterProcessStepRequest(rootOrderId, aa.getKey().toString(), aa.getKey(), this.self()), this.self());					
 
 				});

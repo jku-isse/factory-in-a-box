@@ -122,7 +122,7 @@ class OrderPlanningActorTest {
 				String oid = "Order1";
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
-				orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", oid)), getRef() );
+				//orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", oid)), getRef() );
 							
 				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
@@ -137,10 +137,11 @@ class OrderPlanningActorTest {
 						countConnEvents++; 
 					}
 				} 
-				ProcessCore.Process p = TestMockMachineActor.getSingleStepProcess(oid);
-				OrderProcess op = new OrderProcess(p);
-				RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op, getRef());
-				orderPlanningActor.tell(req, getRef());
+				//ProcessCore.Process p = TestMockMachineActor.getSingleStepProcess(oid);
+				//OrderProcess op = new OrderProcess(p);
+				//RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op, getRef());
+				//orderPlanningActor.tell(req, getRef());
+				subscribeAndRegisterSinglePrintRedOrder(oid, getRef());
 				boolean orderDone = false;
 				while (!orderDone) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), TimedEvent.class); 
@@ -152,6 +153,116 @@ class OrderPlanningActorTest {
 				} 
 			}	
 		};
+	}
+	
+	@Test
+	void testInitOrderPlannerWithMultipleSingleStepProcessesAndTransport() throws InterruptedException, ExecutionException {
+		new TestKit(system) { 
+			{ 															
+				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );	
+							
+				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				int countConnEvents = 0;
+				boolean isPlannerFunctional = false;
+				while (!isPlannerFunctional && countConnEvents < 8 ) {
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class); 
+					logEvent(te);
+					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
+						 isPlannerFunctional = true;
+					}
+					if (te instanceof MachineConnectedEvent) {
+						countConnEvents++; 
+					}
+				} 
+				
+				String oid1 = "Order1";
+				String oid2 = "Order2";
+				subscribeAndRegisterSinglePrintRedOrder(oid1, getRef());
+				subscribeAndRegisterSinglePrintRedOrder(oid2, getRef());
+				boolean order1Done = false;
+				boolean order2Done = false;
+				while (!order1Done || !order2Done) {
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class); 
+					logEvent(te);
+					if (te instanceof OrderEvent) {
+						OrderEvent oe = (OrderEvent) te;
+						if (oe.getEventType().equals(OrderEvent.OrderEventType.COMPLETED)) {
+							System.out.println(" ---------------- Order complete: "+oe.getOrderId());
+						}						
+						if (oe.getEventType().equals(OrderEvent.OrderEventType.REMOVED)) {
+							if (oe.getOrderId().equals(oid1)) {
+								order1Done = true;
+							} else if (oe.getOrderId().equals(oid2)) {
+								order2Done = true;
+							}
+						}
+					}														
+				} 
+			}	
+		};
+	}
+	
+	@Test
+	void testInitOrderPlannerWithMultipleParallelSingleStepProcessesAndTransport() throws InterruptedException, ExecutionException {
+		new TestKit(system) { 
+			{ 															
+				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );	
+							
+				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				int countConnEvents = 0;
+				boolean isPlannerFunctional = false;
+				while (!isPlannerFunctional && countConnEvents < 8 ) {
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class); 
+					logEvent(te);
+					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
+						 isPlannerFunctional = true;
+					}
+					if (te instanceof MachineConnectedEvent) {
+						countConnEvents++; 
+					}
+				} 
+				
+				String oid1 = "Order1";
+				String oid2 = "Order2";
+				subscribeAndRegisterSinglePrintRedOrder(oid1, getRef());
+				subscribeAndRegisterSinglePrintGreenOrder(oid2, getRef());
+				boolean order1Done = false;
+				boolean order2Done = false;
+				while (!order1Done || !order2Done) {
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class); 
+					logEvent(te);
+					if (te instanceof OrderEvent) {
+						OrderEvent oe = (OrderEvent) te;
+						if (oe.getEventType().equals(OrderEvent.OrderEventType.COMPLETED)) {
+							System.out.println(" ---------------- Order complete: "+oe.getOrderId());
+						}						
+						if (oe.getEventType().equals(OrderEvent.OrderEventType.REMOVED)) {
+							if (oe.getOrderId().equals(oid1)) {
+								order1Done = true;
+							} else if (oe.getOrderId().equals(oid2)) {
+								order2Done = true;
+							}
+						}
+					}														
+				} 
+			}	
+		};
+	}
+	
+	public void subscribeAndRegisterSinglePrintRedOrder(String oid, ActorRef testProbe) {		
+		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
+		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleRedStepProcess(oid));				
+		RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op1, testProbe);
+		orderPlanningActor.tell(req, testProbe);
+	}
+	
+	public void subscribeAndRegisterSinglePrintGreenOrder(String oid, ActorRef testProbe) {		
+		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
+		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleGreenStepProcess(oid));				
+		RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op1, testProbe);
+		orderPlanningActor.tell(req, testProbe);
 	}
 	
 //	@Test

@@ -1,14 +1,18 @@
 package fiab.mes.transport.actor.transportmodule;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.sun.xml.bind.v2.WellKnownNamespace;
+
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
@@ -20,6 +24,7 @@ import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
+import fiab.mes.machine.msg.MachineInWrongStateResponse;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
@@ -48,6 +53,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 	protected Position selfPos;
 	protected InternalCapabilityToPositionMapping icpm;
 	protected InternalTransportModuleRequest reservedForTReq = null;
+	private ActorRef self;
 	
 	private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
@@ -65,6 +71,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 		this.tpl = tpl; // later versions will obtain such info dynamically from accessing own capability OPC UA information
 		this.icpm = icpm; // later versions will obtain such info dynamically from accessing own wiring OPC UA information
 		this.selfPos = selfPos;
+		this.self = self();
 		init();
 
 	}
@@ -74,12 +81,13 @@ public class BasicTransportModuleActor extends AbstractActor{
 		return receiveBuilder()
 				// map from positions to capabilityInstances local to the transport module 
 		        .match(TransportModuleRequest.class, req -> {
-		        	log.info("Received TransportModuleRequest");
+		        	log.info(String.format("Received TransportModuleRequest from %s to %s for order %s", req.getPosFrom(), req.getPosTo(), req.getOrderId()));
 		        	if (currentState.equals(MachineStatus.IDLE)) {
 		        		processTransportModuleRequest(req);
 		        	} else {
-		        		log.warning(String.format("Received TransportModuleRequest %s in incompatible local state %s", req.getOrderId(), this.currentState));
-		        		//FIXME: respond with error message that we are not in the right state for request
+		        		String msg = String.format("Received TransportModuleRequest %s in incompatible local state %s", req.getOrderId(), this.currentState);
+		        		log.warning(msg);
+		        		getSender().tell(new MachineInWrongStateResponse(machineId.getId(), WellknownMachinePropertyFields.STATE_VAR_NAME, msg, this.currentState, req, MachineStatus.IDLE), self());
 		        	}
 		        })
 		        .match(MachineStatusUpdateEvent.class, mue -> {
@@ -152,13 +160,32 @@ public class BasicTransportModuleActor extends AbstractActor{
 			this.currentState = newState;
 			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, msg, newState);
 			tellEventBus(mue);
+			
 		}
 	}
 	
 	private void tellEventBus(MachineUpdateEvent mue) {
 		externalHistory.add(mue);
-		eventBusByRef.tell(mue, self());
+		tellEventBusWithoutAddingToHistory(mue);
+		lastMUE=mue;
+		resendLastEvent();
 	}
-		
 	
+	private void tellEventBusWithoutAddingToHistory(MachineUpdateEvent mue) {
+		eventBusByRef.tell(mue, self);
+	}
+	
+	private MachineUpdateEvent lastMUE;
+		
+	private void resendLastEvent() {
+		context().system()
+    	.scheduler()
+    	.scheduleOnce(Duration.ofMillis(1000*10), 
+    			 new Runnable() {
+            @Override
+            public void run() {
+            	tellEventBusWithoutAddingToHistory(lastMUE);
+            }
+          }, context().system().dispatcher());
+	}
 }

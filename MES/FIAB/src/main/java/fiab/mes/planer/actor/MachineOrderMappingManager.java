@@ -233,7 +233,7 @@ public class MachineOrderMappingManager {
 			mom.setAllocationState(newType);
 			mom.setOrderId(orderId);
 			mom.setProductionJob(productionJob);
-			logger.debug(String.format("Updateing OrderMapping for order %s from %s to %s", mom.getOrderId(), old, newType));			
+			logger.info(String.format("Updateing OrderMapping for order %s on machine %s from %s to %s", mom.getOrderId(), machine.getId(), old, newType));			
 		};					
 	}
 
@@ -310,6 +310,7 @@ public class MachineOrderMappingManager {
 			return lastMachineState;
 		}
 		public void setLastMachineState(MachineUpdateEvent lastMachineState) {
+			if (!isDifferentState(lastMachineState)) return;
 			if (lastMachineState instanceof MachineStatusUpdateEvent) {
 				if (((MachineStatusUpdateEvent) lastMachineState).getStatus().equals(MachineStatus.IDLE)) {
 					this.allocationState = AssignmentState.NONE;
@@ -325,6 +326,23 @@ public class MachineOrderMappingManager {
 				this.lastMachineState = lastMachineState;
 			}
 		}
+		
+		private boolean isDifferentState(MachineUpdateEvent lastMachineState) {
+			if(lastMachineState == null)
+				return false;
+			if(this.lastMachineState == null)
+				return true;
+			if (lastMachineState instanceof MachineStatusUpdateEvent) {
+				if (((MachineStatusUpdateEvent) lastMachineState).getStatus().equals(((MachineStatusUpdateEvent) this.lastMachineState).getStatus()))
+					return false; // no update upon same state
+			}
+			if (lastMachineState instanceof IOStationStatusUpdateEvent) {
+				if (((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(((IOStationStatusUpdateEvent) this.lastMachineState).getStatus()))
+					return false; // no update upon same state
+			}
+			return true;
+		}
+		
 		public String getOrderId() {
 			return orderId;
 		}

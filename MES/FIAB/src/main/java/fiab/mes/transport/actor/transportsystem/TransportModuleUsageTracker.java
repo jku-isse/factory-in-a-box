@@ -16,6 +16,7 @@ import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
+import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.planer.actor.MachineCapabilityManager;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
 import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
@@ -138,18 +139,30 @@ public class TransportModuleUsageTracker {
 		}
 		public Optional<AbstractMap.SimpleEntry<String,String>> setLastMachineState(MachineStatusUpdateEvent lastMachineState) {
 			if (lastMachineState.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) { // only update the state of the machine
-				this.lastMachineState = lastMachineState;		
-				if (lastMachineState.getStatus().equals(MachineStatus.IDLE) || 
-						lastMachineState.getStatus().equals(MachineStatus.COMPLETE) ||
-						lastMachineState.getStatus().equals(MachineStatus.STOPPED)) {
-					this.allocationState = AllocationState.AVAILABLE;
-					AbstractMap.SimpleEntry<String, String> prevValues = new AbstractMap.SimpleEntry<>(this.orderId, this.requestId); 
-					this.orderId = null;
-					this.requestId = null;
-					return Optional.of(prevValues);
-				}
-			}
+				if (!isDifferentState(lastMachineState)) // no update on same state
+					return Optional.empty(); 
+				else {
+					this.lastMachineState = lastMachineState;		
+					if (lastMachineState.getStatus().equals(MachineStatus.IDLE) //||  only when idle, can we asked for new request
+							//lastMachineState.getStatus().equals(MachineStatus.COMPLETE) ||
+							//lastMachineState.getStatus().equals(MachineStatus.STOPPED)
+							){
+						this.allocationState = AllocationState.AVAILABLE;
+						AbstractMap.SimpleEntry<String, String> prevValues = new AbstractMap.SimpleEntry<>(this.orderId, this.requestId); 
+						this.orderId = null;
+						this.requestId = null;
+						return Optional.of(prevValues);
+					}
+				}}
 			return Optional.empty();
+		}
+		
+		private boolean isDifferentState(MachineStatusUpdateEvent lastMachineState) {
+			if (lastMachineState == null) return false;
+			if (this.lastMachineState == null) return true;
+			if (this.lastMachineState.getStatus().equals(lastMachineState.getStatus()))
+				return false;
+			else return true;
 		}
 		public String getOrderId() {
 			return orderId;

@@ -85,7 +85,7 @@ public class MockIOStationWrapper extends AbstractActor {
 	
 	private void reloadPallet() {
 		//tell handshake that the pallet is loaded if inputstation, otherwise setempty
-			log.debug("Auto Reloading Pallet");
+			log.info(self.path().name()+": Auto Reloading Pallet");
 			if (isInputStation) {
 				serverSide.tell(StateOverrideRequests.SetLoaded, self); 
 			} else {
