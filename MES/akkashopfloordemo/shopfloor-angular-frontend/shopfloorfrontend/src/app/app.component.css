@@ -25,3 +25,9 @@
 .fill-space {
     flex: 1 1 auto;
 }
+
+.mat-divider {
+    height: 40px;
+    margin-left: 20px;
+    margin-right: 20px;
+}

@@ -6,22 +6,28 @@ import java.util.List;
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.iostation.wrapper.IOStationWrapperInterface;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
+import fiab.mes.machine.msg.GenericMachineRequests.Reset;
+import fiab.mes.machine.msg.GenericMachineRequests.Stop;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
+import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
@@ -37,7 +43,8 @@ public class BasicIOStationActor extends AbstractActor {
 	protected boolean doAutoReset = true;
 	protected boolean isInputStation = false;
 	protected boolean isOutputStation = false;
-	
+	private ActorRef self;
+	protected HistoryTracker externalHistory=null;
 	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	private String lastOrder;
@@ -54,6 +61,8 @@ public class BasicIOStationActor extends AbstractActor {
 		this.eventBusByRef = machineEventBus;
 		this.hal = hal;
 		this.intraBus = intraBus;
+		this.externalHistory = new HistoryTracker(machineId.getId());
+		this.self = self();
 		init();
 	}
 	
@@ -81,6 +90,25 @@ public class BasicIOStationActor extends AbstractActor {
         .match(IOStationStatusUpdateEvent.class, mue -> {
         	processIOStationStatusUpdateEvent(mue);
         })
+        .match(Stop.class, req -> {
+        	log.info(String.format("IOStation %s received StopRequest", machineId.getId()));
+        	setAndPublishSensedState(ServerSide.Stopping);
+        	hal.stop();
+        })
+        .match(Reset.class, req -> {
+        	if (currentState.equals(ServerSide.Completed) 
+        			|| currentState.equals(ServerSide.Stopped) ) {
+        		log.info(String.format("IOStation %s received ResetRequest in suitable state", machineId.getId()));
+        		setAndPublishSensedState(ServerSide.Resetting); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
+        		hal.reset();
+        	} else {
+        		log.warning(String.format("IOStation %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
+        	}
+        })
+        .match(MachineHistoryRequest.class, req -> {
+        	log.info(String.format("Machine %s received MachineHistoryRequest", machineId.getId()));
+        	externalHistory.sendHistoryResponseTo(req, getSender(), self);
+        })
         .build();
 	}
 
@@ -102,6 +130,7 @@ public class BasicIOStationActor extends AbstractActor {
 		log.info(msg);
 		this.currentState = newState;
 		MachineUpdateEvent mue = new IOStationStatusUpdateEvent(machineId.getId(), msg, newState);
+		externalHistory.add(mue);
 		tellEventBus(mue);
 	}
 	

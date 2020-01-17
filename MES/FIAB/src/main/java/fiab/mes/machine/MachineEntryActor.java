@@ -13,6 +13,8 @@ import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.machine.msg.GenericMachineRequests;
+import fiab.mes.machine.msg.GenericMachineRequests.BaseRequest;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
@@ -53,6 +55,9 @@ public class MachineEntryActor extends AbstractActor {
 				.match(MachineEvent.class, e -> {
 					latestChange.put(e.getMachineId(), e);
 				})
+				.match(GenericMachineRequests.BaseRequest.class, req -> {
+					forwardBaseRequestToMachineActor(req);
+				})
 				.matchAny(o -> log.info("MachineEntryActor received Invalid message type: "+o.getClass().getSimpleName()))
 				.build();
 	}
@@ -64,6 +69,17 @@ public class MachineEntryActor extends AbstractActor {
 			oa.forward(req, getContext());
 		} else {
 			log.warning(String.format("Received MachineHistoryRequest for non-existing machine: %s", req.getMachineId()));
+			sender().tell(Optional.empty(), getSelf());
+		}
+	}
+	
+	private void forwardBaseRequestToMachineActor(BaseRequest req) {
+		ActorRef oa = machineActors.get(req.getMachineId());
+		if (oa != null) {
+			log.debug("Forwarding BaseRequest to "+req.getMachineId());
+			oa.forward(req, getContext());
+		} else {
+			log.warning(String.format("Received BaseRequest for non-existing machine: %s", req.getMachineId()));
 			sender().tell(Optional.empty(), getSelf());
 		}
 	}

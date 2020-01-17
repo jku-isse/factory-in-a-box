@@ -1,5 +1,6 @@
 package fiab.mes.machine.actor.plotter;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,20 +9,26 @@ import java.util.stream.Collectors;
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
+import fiab.mes.machine.msg.MachineInWrongStateResponse;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
+import fiab.mes.machine.msg.GenericMachineRequests.Reset;
+import fiab.mes.machine.msg.GenericMachineRequests.Stop;
+import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
@@ -41,9 +48,11 @@ public class BasicMachineActor extends AbstractActor{
 	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	private String lastOrder;
+	private ActorRef self;
 	protected RegisterProcessStepRequest reservedForOrder = null;
 	
-	private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
+	protected HistoryTracker externalHistory=null;
+	//private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
 	
 	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, InterMachineEventBus intraBus) {	    
@@ -56,6 +65,8 @@ public class BasicMachineActor extends AbstractActor{
 		this.eventBusByRef = machineEventBus;
 		this.hal = hal;
 		this.intraBus = intraBus;
+		this.self = self();
+		this.externalHistory = new HistoryTracker(machineId.getId());
 		init();
 
 	}
@@ -72,9 +83,29 @@ public class BasicMachineActor extends AbstractActor{
 		        	log.info("received LockForOrder msg "+lockReq.getStepId()+", current state: "+currentState);
 		        	if (currentState == MachineStatus.IDLE) {
 		        		hal.plot("", ""); // TODO pass on the correct values
-		        		//TODO: here we assume correct invocation: thus on overtaking etc, will be improved later
+		        		//TODO: here we assume correct invocation: thus order overtaking etc, will be improved later
 		        	} else {
-		        		log.warning("Received lock for order in state: "+currentState);
+		        		String msg = "Received lock for order in non-IDLE state: "+currentState;
+		        		log.warning(msg);
+		        		sender().tell(new MachineInWrongStateResponse(this.machineId.getId(), WellknownMachinePropertyFields.STATE_VAR_NAME, msg, currentState, lockReq, MachineStatus.IDLE), self);
+		        	}
+		        })
+		        .match(CancelOrTerminateOrder.class, cto -> {
+		        	//TODO: implement
+		        })
+		        .match(Stop.class, req -> {
+		        	log.info(String.format("Machine %s received StopRequest", machineId.getId()));
+		        	setAndPublishSensedState(MachineStatus.STOPPING);
+		        	hal.stop();
+		        })
+		        .match(Reset.class, req -> {
+		        	if (currentState.equals(MachineStatus.COMPLETE) 
+		        			|| currentState.equals(MachineStatus.STOPPED) ) {
+		        		log.info(String.format("Machine %s received ResetRequest in suitable state", machineId.getId()));
+		        		setAndPublishSensedState(MachineStatus.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
+		        		hal.reset();
+		        	} else {
+		        		log.warning(String.format("Machine %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
 		        	}
 		        })
 		        .match(MachineStatusUpdateEvent.class, mue -> {
@@ -82,16 +113,14 @@ public class BasicMachineActor extends AbstractActor{
 		        })
 		        .match(MachineHistoryRequest.class, req -> {
 		        	log.info(String.format("Machine %s received MachineHistoryRequest", machineId.getId()));
-		        	List<MachineEvent> events = req.shouldResponseIncludeDetails() ? externalHistory :	externalHistory.stream().map(event -> event.getCloneWithoutDetails()).collect(Collectors.toList());
-		        	MachineHistoryRequest.Response response = new MachineHistoryRequest.Response(machineId.getId(), events, req.shouldResponseIncludeDetails());
-		        	sender().tell(response, getSelf());
+		        	externalHistory.sendHistoryResponseTo(req, getSender(), self);
 		        })
 		        .build();
 	}
 
 	private void init() {
-		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self());
-		intraBus.subscribe(getSelf(), new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
+		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self);
+		intraBus.subscribe(self, new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
 		hal.subscribeToStatus();
 	}
 	
@@ -115,7 +144,6 @@ public class BasicMachineActor extends AbstractActor{
 			case STARTING:
 				break;
 			case STOPPED:
-				hal.reset(); // FIXME: how to handle, when we want to stop the whole shopfloor and not just immediately restart?!
 				break;
 			case STOPPING:
 				break;
@@ -130,13 +158,8 @@ public class BasicMachineActor extends AbstractActor{
 		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, lastOrder);
 		log.debug(msg);
 		this.currentState = newState;
-		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, MachineOrderMappingManager.STATE_VAR_NAME, msg, newState);
+		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, msg, newState);
 		tellEventBus(mue);
-	}
-	
-	private void tellEventBus(MachineUpdateEvent mue) {
-		externalHistory.add(mue);
-		eventBusByRef.tell(mue, self());
 	}
 	
 	private void checkIfAvailableForNextOrder() {
@@ -150,4 +173,28 @@ public class BasicMachineActor extends AbstractActor{
     	}	
 	}	
 	
+	private void tellEventBus(MachineUpdateEvent mue) {
+		externalHistory.add(mue);
+		tellEventBusWithoutAddingToHistory(mue);
+		lastMUE=mue;
+		resendLastEvent();
+	}
+	
+	private void tellEventBusWithoutAddingToHistory(MachineUpdateEvent mue) {
+		eventBusByRef.tell(mue, self);
+	}
+		
+	private MachineUpdateEvent lastMUE;
+	
+	private void resendLastEvent() {
+		context().system()
+    	.scheduler()
+    	.scheduleOnce(Duration.ofMillis(1000*10), 
+    			 new Runnable() {
+            @Override
+            public void run() {
+            	tellEventBusWithoutAddingToHistory(lastMUE);
+            }
+          }, context().system().dispatcher());
+	}
 }

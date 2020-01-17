@@ -21,7 +21,7 @@ import fiab.mes.mockactors.MockClientHandshakeActor;
 import fiab.mes.mockactors.MockServerHandshakeActor;
 import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.mes.transport.msg.TransportModuleRequest;
+import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 public class MockTransportModuleWrapper extends AbstractActor{
 
@@ -32,7 +32,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	protected MachineStatus currentState = MachineStatus.STOPPED;
 	protected HandshakeEndpointInfo eps = null;
 
-	protected TransportModuleRequest currentRequest;
+	protected InternalTransportModuleRequest currentRequest;
 	
 	// we need to pass all actors representing server/client handshake and their capability ids
 	static public Props props(InterMachineEventBus internalMachineEventBus) {	    
@@ -72,7 +72,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 						log.warning("Trying to update Handshake Endpoints in nonupdateable state: "+currentState);
 					}						
 				})
-				.match(TransportModuleRequest.class, req -> {
+				.match(InternalTransportModuleRequest.class, req -> {
 					if (currentState.equals(MachineStatus.IDLE)) {
 		        		startTransport(req);
 					} else {
@@ -81,30 +81,40 @@ public class MockTransportModuleWrapper extends AbstractActor{
 		        	}
 				})
 				.match(ServerSide.class, state -> {
-					String capId = getSender().path().name();
-					log.info(String.format("ServerSide EP %s Status: %s", capId, state));
-					eps.getHandshakeEP(capId).ifPresent(leps -> {
-						((LocalServerEndpointStatus) leps).setState(state);
-						if (state.equals(ServerSide.Completing))
-							handleCompletingStateUpdate(capId);
-					});
+					if (currentState.equals(MachineStatus.EXECUTE)) {
+						String capId = getSender().path().name();
+						log.info(String.format("ServerSide EP %s Status: %s", capId, state));
+						eps.getHandshakeEP(capId).ifPresent(leps -> {
+							((LocalServerEndpointStatus) leps).setState(state);
+							if (state.equals(ServerSide.Completing))
+								handleCompletingStateUpdate(capId);
+						});
+					} else {
+						log.error(String.format("Received ServerSide Event %s from %s in non EXECUTE state: %s", state, getSender().path().name(), currentState));
+					}
 				})
-				.match(ClientSide.class, state -> {
-					String capId = getSender().path().name();
-					log.info(String.format("ClientSide EP %s Status: %s", capId, state));
-					eps.getHandshakeEP(capId).ifPresent(leps -> {
-						((LocalClientEndpointStatus) leps).setState(state);
-						switch(state) {
-						case Completing:
-							handleCompletingStateUpdate(capId);
-							break;
-						case Idle:
-							getSender().tell(MockClientHandshakeActor.MessageTypes.Start, self);
-							break;
-						default:
-							break;
-						}	
-					});
+				.match(ClientSide.class, state -> {										
+					if (currentState.equals(MachineStatus.EXECUTE)) {
+						String capId = getSender().path().name();
+						log.info(String.format("ClientSide EP %s Status: %s", capId, state));
+						String localCapId = capId.lastIndexOf("~") > 0 ? capId.substring(0, capId.lastIndexOf("~")) : capId;
+
+						eps.getHandshakeEP(localCapId).ifPresent(leps -> {
+							((LocalClientEndpointStatus) leps).setState(state);
+							switch(state) {
+							case Completing:
+								handleCompletingStateUpdate(localCapId);
+								break;
+							case Idle:
+								getSender().tell(MockClientHandshakeActor.MessageTypes.Start, self);
+								break;
+							default:
+								break;
+							}	
+						}); 					
+					} else {
+						log.info(String.format("Received ClientSide Event %s from %s in non EXECUTE state: %s, ignoring",state, getSender().path().name(), currentState));
+					}
 				})				
 				.build();
 	}
@@ -145,7 +155,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
           }, context().system().dispatcher());
 	}
 	
-	private void startTransport(TransportModuleRequest req) {
+	private void startTransport(InternalTransportModuleRequest req) {
 		log.info("Starting Transport");
 		currentRequest = req;
 		setAndPublishState(MachineStatus.STARTING);
@@ -174,10 +184,15 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	}
 	
 	private void handleCompletingStateUpdate(String capId) {
-		if (currentRequest.getCapabilityInstanceIdFrom().equals(capId)) // first finished
+		try {
+		if (currentRequest.getCapabilityInstanceIdFrom().equals(capId)) { // first finished
 			continueTransport();
-		else if (currentRequest.getCapabilityInstanceIdTo().equals(capId)) {
+		} else if (currentRequest.getCapabilityInstanceIdTo().equals(capId)) { //second finished
 			finalizeTransport();
+		}
+		} catch(Exception e) {
+			// woops
+			System.out.println(capId);
 		}
 	}
 	
@@ -249,8 +264,11 @@ public class MockTransportModuleWrapper extends AbstractActor{
 			this.handshakeEPs = handshakeEPs;
 		}
 		
-		public Optional<LocalEndpointStatus> getHandshakeEP(String capabilityId) {
-			return Optional.ofNullable(handshakeEPs.get(capabilityId));
+		public Optional<LocalEndpointStatus> getHandshakeEP(String capabilityId) {			
+			if (capabilityId != null && handshakeEPs.containsKey(capabilityId))
+				return Optional.ofNullable(handshakeEPs.get(capabilityId));
+			else
+				return Optional.empty();
 		}			
 	}
 	

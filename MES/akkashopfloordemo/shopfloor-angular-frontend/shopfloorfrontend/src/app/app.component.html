@@ -16,6 +16,10 @@
             <a mat-button [routerLink]="'/machines'"> Machine List </a>
       
           </div>
+          <span class="fill-space"></span>
+          <h3 *ngIf="currentUser" >{{currentUser.firstName}}</h3>
+          <mat-divider *ngIf="currentUser" vertical></mat-divider>
+          <button *ngIf="currentUser" mat-stroked-button (click)="logout()">Logout</button>
         </mat-toolbar-row>
       </mat-toolbar>
       

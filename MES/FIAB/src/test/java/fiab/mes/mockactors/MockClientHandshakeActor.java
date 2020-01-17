@@ -70,12 +70,13 @@ public class MockClientHandshakeActor extends AbstractActor{
 					}
 				})				
 				.match(ServerSide.class, msg -> { // state event updates
-					log.info(String.format("Received %s from %s", msg, getSender()));
+					log.info(String.format("Received %s from %s in local state %s", msg, getSender(), currentState));
 					if (getSender().equals(serverSide)) {
 						remoteState = msg;
 						switch(msg) {
 						case IdleEmpty: //fallthrough
 						case IdleLoaded:
+							if (currentState.equals(ClientSide.Starting) || currentState.equals(ClientSide.Initiating))
 							requestInitiateHandover();
 							break;
 						case Completed: //fallthrough, if serverside is done, we can do the same 

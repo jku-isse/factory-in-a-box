@@ -1,10 +1,17 @@
-import { OrderService } from '../order.service';
-import { OrderEvent } from '../events';
+import { OrderService } from '../_services/order.service';
+import { OrderEvent } from '../_models/events';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { DataService } from '../_services/data.service';
+import { User, Role } from '../_models';
+import { AuthService, UserService } from '../_services';
+import { first } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { DialogConfirmComponent } from '../dialog-confirm/dialog-confirm.component';
+
 
 @Component({
   selector: 'app-order-list',
@@ -13,17 +20,25 @@ import {MatSort} from '@angular/material/sort';
 })
 export class OrderListComponent implements OnInit {
 
-  displayedColumns: string[] = ['orderId', 'eventType', 'machineId', 'message', 'process-button', 'history-button'];
+  columnNames: string[] = ['orderId', 'eventType', 'machineId', 'message', 'process-button', 'history-button'];
   orders: Map<string, OrderEvent> = new Map<string, OrderEvent>();
   dataSource: MatTableDataSource<OrderEvent>;
+  count: Map<string, number>;
+  currentUser: User;
 
-  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
-  @ViewChild(MatSort, {static: true}) sort: MatSort;
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
     private orderService: OrderService,
-    private router: Router
-    ) { }
+    private router: Router,
+    private data: DataService,
+    private authenticationService: AuthService,
+    private userService: UserService,
+    public dialog: MatDialog
+  ) {
+    this.currentUser = this.authenticationService.currentUserValue;
+  }
 
   ngOnInit() {
     this.orderService.getOrderUpdates().subscribe(
@@ -40,6 +55,7 @@ export class OrderListComponent implements OnInit {
       () => console.log('SSE stream completed')
     );
     this.reloadData();
+    this.data.currentCount.subscribe(count => this.count = count);
   }
 
   reloadData() {
@@ -71,4 +87,39 @@ export class OrderListComponent implements OnInit {
       this.dataSource.paginator.firstPage();
     }
   }
+
+  get isAdmin() {
+    return this.currentUser && this.currentUser.role === Role.Admin;
+  }
+
+  get displayedColumns() {
+    if (this.isAdmin) {
+      const adminColumns: string[] = Object.assign([], this.columnNames);
+      adminColumns.push('adminAction');
+      return adminColumns;
+    } else {
+      return this.columnNames;
+    }
+  }
+
+  adminAction(orderId: string) {
+    console.log('Action not implemented!');
+    this.userService.makeAction(orderId).pipe(first()).subscribe(data => {
+      console.log('User Service returned from admin action: ', data);
+    });
+  }
+
+  openDialog(orderId: string): void {
+    const dialogRef = this.dialog.open(DialogConfirmComponent, {
+      width: '300px',
+      data: {action: 'delete', id: orderId}
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.adminAction(orderId);
+      }
+    });
+  }
+
 }

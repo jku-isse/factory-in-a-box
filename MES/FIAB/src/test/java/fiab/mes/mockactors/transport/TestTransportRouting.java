@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import fiab.mes.transport.actor.transportsystem.TransportRouting;
+import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.RoutingException;
 
@@ -23,7 +23,7 @@ class TestTransportRouting {
 	
 	@Test
 	void test1FIABStandardLayout() throws RoutingException {
-		TransportRouting tr = new TransportRouting();
+		HardcodedDefaultTransportRoutingAndMapping tr = new HardcodedDefaultTransportRoutingAndMapping();
 		List<Position> route = tr.calculateRoute(pos31,pos20);
 		System.out.println(route);
 		assertTrue(route.size()==2);
@@ -31,7 +31,7 @@ class TestTransportRouting {
 
 	@Test
 	void test2FIABStandardLayout() throws RoutingException {
-		TransportRouting tr = new TransportRouting();
+		HardcodedDefaultTransportRoutingAndMapping tr = new HardcodedDefaultTransportRoutingAndMapping();
 		List<Position> route = tr.calculateRoute(pos31,pos37);
 		System.out.println(route);
 		assertTrue(route.size()==3);
@@ -39,7 +39,7 @@ class TestTransportRouting {
 	
 	@Test
 	void test3FIABStandardLayout() throws RoutingException {
-		TransportRouting tr = new TransportRouting();
+		HardcodedDefaultTransportRoutingAndMapping tr = new HardcodedDefaultTransportRoutingAndMapping();
 		List<Position> route = tr.calculateRoute(pos34,pos35);
 		System.out.println(route);
 		assertTrue(route.size()==4);
@@ -47,7 +47,7 @@ class TestTransportRouting {
 	
 	@Test
 	void test4FIABStandardLayout() throws RoutingException {
-		TransportRouting tr = new TransportRouting();
+		HardcodedDefaultTransportRoutingAndMapping tr = new HardcodedDefaultTransportRoutingAndMapping();
 		List<Position> route = tr.calculateRoute(pos21,pos20);
 		System.out.println(route);
 		assertTrue(route.size()==2);

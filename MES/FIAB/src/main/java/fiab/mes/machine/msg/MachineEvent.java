@@ -56,7 +56,7 @@ public class MachineEvent extends TimedEvent {
 	}
 	
 	public static enum MachineEventType {
-		CONNECTED, DISCONNECTED, UPDATED
+		CONNECTED, DISCONNECTED, UPDATED, INITIALIZING
 	}
 
 }

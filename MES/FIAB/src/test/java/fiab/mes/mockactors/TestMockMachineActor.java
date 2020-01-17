@@ -171,4 +171,25 @@ public class TestMockMachineActor { //extends AbstractJavaTest {
 		return p;
 	}
 	
+	public static ProcessCore.Process getSingleRedStepProcess(String prefix) {
+		CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		s1.setID(prefix+"1");
+		s1.setDisplayName("red plotting");
+		s1.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Red")));
+		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
+		p.getSteps().add(s1);
+		return p;
+	}
+	
+	public static ProcessCore.Process getSingleGreenStepProcess(String prefix) {
+		CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+		s1.setID(prefix+"1");
+		s1.setDisplayName("green plotting");
+		s1.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Green")));
+		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
+		p.setID(prefix);
+		p.setDisplayName(prefix);
+		p.getSteps().add(s1);
+		return p;
+	}
 }

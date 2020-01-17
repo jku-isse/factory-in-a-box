@@ -45,7 +45,7 @@ public class MachineCapabilityManager {
 	}
 	
 	// we flatten all capabilities into a list regardless of hierarchy structure, only include caps when they have an id
-	private List<AbstractCapability> flatHierarchyToCapsWithNonNullId(AbstractCapability cap) {
+	public static List<AbstractCapability> flatHierarchyToCapsWithNonNullId(AbstractCapability cap) {
 		List<AbstractCapability> caps = new ArrayList<>();
 		if (cap.getID() != null) {
 			caps.add(cap);
