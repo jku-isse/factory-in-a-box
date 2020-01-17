@@ -1,3 +1,4 @@
+import capabilities.HandshakeCapability;
 import capabilities.HandshakeFU;
 import functionalUnits.ConveyorTurnTable;
 import functionalUnits.ProcessTurnTable;
@@ -5,6 +6,7 @@ import functionalUnits.TurningTurnTable;
 import hardware.ConveyorMockHardware;
 import hardware.TurningMockHardware;
 import helper.CapabilityId;
+import helper.CapabilityRole;
 import robot.Robot;
 
 /**
@@ -22,12 +24,11 @@ public class MockTurnTableApplication {
                 new TurningTurnTable(turningMockHardware.getTurningMockMotor(), turningMockHardware.getMockSensorHoming()),
                 new ProcessTurnTable());
 
-
-      //  robot.addHandshakeFU(CapabilityId.NORTH_SERVER, new HandshakeFU(robot.getServerCommunication(),
-       //         robot.getServer(), robot.getRobotRoot(), CapabilityId.NORTH_SERVER));
-
-   //     robot.addHandshakeFU(CapabilityId.NORTH_CLIENT, new HandshakeFU(robot.getCommunication(),
-   //             robot.getServer(), robot.getClient(), robot.getHandshakeRoot(), CapabilityId.NORTH_SERVER));
+        HandshakeFU hsFU = new HandshakeFU(robot.getCommunication(), robot.getServer(), robot.getClient(), robot.getRobotRoot());
+        HandshakeCapability handshakeCapability = hsFU.addHanshakeEndpoint(CapabilityId.NORTH_CLIENT, CapabilityRole.Provided);
+        HandshakeCapability handshakeCapabilityClient = hsFU.addHanshakeEndpoint(CapabilityId.NORTH_SERVER, CapabilityRole.Required);
+        hsFU.addWiringCapability(CapabilityId.NORTH_SERVER, handshakeCapability.getEndpoint_NodeId(), handshakeCapability.getCapabilities_NodeId());
+        hsFU.addWiringCapability(CapabilityId.NORTH_CLIENT, handshakeCapabilityClient.getEndpoint_NodeId(), handshakeCapabilityClient.getCapabilities_NodeId());
 
         robot.runServerAndClient();
     }

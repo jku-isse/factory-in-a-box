@@ -1,3 +1,5 @@
+import capabilities.HandshakeCapability;
+import capabilities.HandshakeFU;
 import functionalUnits.ConveyorTurnTable;
 import functionalUnits.ProcessTurnTable;
 import functionalUnits.TurningTurnTable;
@@ -5,6 +7,8 @@ import hardware.actuators.motorsEV3.LargeMotorEV3;
 import hardware.actuators.motorsEV3.MediumMotorEV3;
 import hardware.sensors.sensorsEV3.ColorSensorEV3;
 import hardware.sensors.sensorsEV3.TouchSensorEV3;
+import helper.CapabilityId;
+import helper.CapabilityRole;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
 import robot.Robot;
@@ -22,12 +26,13 @@ public class TurnTableApplication {
                 new TouchSensorEV3(SensorPort.S2), new ColorSensorEV3(SensorPort.S3)),
                 new TurningTurnTable(new LargeMotorEV3(MotorPort.D), new TouchSensorEV3(SensorPort.S4)),
                 new ProcessTurnTable());
-        /*
-        robot.addHandshakeFU(CapabilityId.NORTH_SERVER, new HandshakeFU(robot.getServerCommunication(),
-                robot.getServer(), robot.getRobotRoot(), CapabilityId.NORTH_SERVER));
-        robot.addHandshakeFU(CapabilityId.NORTH_CLIENT, new HandshakeFU(robot.getCommunication(),
-                robot.getServer(), robot.getClient(), robot.getRobotRoot(), CapabilityId.NORTH_SERVER));
-                */
+
+        HandshakeFU hsFU = new HandshakeFU(robot.getCommunication(), robot.getServer(), robot.getClient(), robot.getRobotRoot());
+        HandshakeCapability handshakeCapability = hsFU.addHanshakeEndpoint(CapabilityId.NORTH_CLIENT, CapabilityRole.Provided);
+        HandshakeCapability handshakeCapabilityClient = hsFU.addHanshakeEndpoint(CapabilityId.NORTH_SERVER, CapabilityRole.Required);
+        hsFU.addWiringCapability(CapabilityId.NORTH_SERVER, handshakeCapability.getEndpoint_NodeId(), handshakeCapability.getCapabilities_NodeId());
+        hsFU.addWiringCapability(CapabilityId.NORTH_CLIENT, handshakeCapabilityClient.getEndpoint_NodeId(), handshakeCapabilityClient.getCapabilities_NodeId());
+
         robot.runServerAndClient();
     }
 }

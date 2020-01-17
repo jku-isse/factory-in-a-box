@@ -16,7 +16,6 @@ repositories {
 }
 
 dependencies {
-    //compile("org.slf4j:slf4j-simple:1.7.25")  causes multiple bindings warning, use api instead
     compile("org.slf4j:slf4j-api:1.7.25")
     compile("com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3")
     compile("com.github.oxo42:stateless4j:2.5.0")
@@ -27,8 +26,11 @@ dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
     testCompile('junit:junit:4.12')
     testImplementation('org.awaitility:awaitility:4.0.1')
+    //compile('org.eclipse.milo:sdk-client:0.3.6')
+    //compile('org.eclipse.milo:sdk-server:0.3.6')
 }
-apply from: './tttableconfig.gradle'
+
+apply from: './brickConfig/turnTableConfig.gradle';
 
 compileJava.options.encoding = 'UTF-8'
 

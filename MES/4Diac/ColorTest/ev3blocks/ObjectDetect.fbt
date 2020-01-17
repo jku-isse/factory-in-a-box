@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE FBType SYSTEM "http://www.holobloc.com/xml/LibraryElement.dtd">
+<FBType Comment="Template for a simple Basic Function Block Type" Name="ObjectDetect">
+  <Identification Standard="61499-2"/>
+  <VersionInfo Author="Promok" Date="2019-06-07" Version="1.0"/>
+  <InterfaceList>
+    <EventInputs>
+      <Event Comment="" Name="INIT" Type="Event"/>
+      <Event Comment="" Name="Reset" Type="Event"/>
+      <Event Comment="Normal Execution Request" Name="REQ" Type="Event">
+        <With Var="Red"/>
+        <With Var="Green"/>
+        <With Var="Blue"/>
+      </Event>
+    </EventInputs>
+    <EventOutputs>
+      <Event Comment="" Name="INITO" Type="Event"/>
+      <Event Comment="" Name="CNF" Type="Event">
+        <With Var="ObjectDetected"/>
+      </Event>
+      <Event Comment="" Name="TakeReq" Type="Event"/>
+    </EventOutputs>
+    <InputVars>
+      <VarDeclaration Comment="Input event qualifier" Name="Red" Type="WORD"/>
+      <VarDeclaration Comment="" Name="Green" Type="WORD"/>
+      <VarDeclaration Comment="" Name="Blue" Type="WORD"/>
+    </InputVars>
+    <OutputVars>
+      <VarDeclaration Comment="" Name="ObjectDetected" Type="BOOL"/>
+    </OutputVars>
+  </InterfaceList>
+  <BasicFB>
+    <InternalVars>
+      <VarDeclaration Comment="Internal Variable" InitialValue="" Name="ObjectRecognized" Type="BOOL"/>
+      <VarDeclaration Comment="Internal Variable" InitialValue="" Name="ReqAlreadyStarted" Type="BOOL"/>
+      <VarDeclaration Comment="Internal Variable" InitialValue="" Name="StartRequest" Type="BOOL"/>
+      <VarDeclaration Comment="Internal Variable" InitialValue="" Name="Init" Type="BOOL"/>
+      <VarDeclaration Comment="Internal Variable" InitialValue="" Name="NewObject" Type="BOOL"/>
+    </InternalVars>
+    <ECC>
+      <ECState Comment="Initial State" Name="START" x="473.33333333333337" y="1120.0"/>
+      <ECState Comment="Normal execution" Name="NormalOp" x="1300.0" y="1100.0">
+        <ECAction Algorithm="ObjectDetection" Output="CNF"/>
+      </ECState>
+      <ECState Comment="" Name="Init" x="266.6666666666667" y="486.6666666666667">
+        <ECAction Algorithm="initialize" Output="INITO"/>
+      </ECState>
+      <ECState Comment="" Name="Reset" x="293.33333333333337" y="1860.0">
+        <ECAction Algorithm="reset"/>
+      </ECState>
+      <ECState Comment="" Name="State" x="2220.0" y="1486.6666666666667">
+        <ECAction Algorithm="Req" Output="TakeReq"/>
+      </ECState>
+      <ECTransition Comment="" Condition="REQ" Destination="NormalOp" Source="START" x="1066.6666666666667" y="606.6666666666667"/>
+      <ECTransition Comment="" Condition="1" Destination="START" Source="Init" x="120.0" y="1000.0"/>
+      <ECTransition Comment="" Condition="Reset" Destination="Reset" Source="START" x="700.0" y="1573.3333333333335"/>
+      <ECTransition Comment="" Condition="1" Destination="START" Source="Reset" x="226.66666666666669" y="1500.0"/>
+      <ECTransition Comment="" Condition="[StartRequest = TRUE]" Destination="State" Source="NormalOp" x="1866.6666666666667" y="1340.0"/>
+      <ECTransition Comment="" Condition="[StartRequest = FALSE]" Destination="START" Source="NormalOp" x="1406.6666666666667" y="1553.3333333333335"/>
+      <ECTransition Comment="" Condition="1" Destination="START" Source="State" x="1253.3333333333335" y="1853.3333333333335"/>
+      <ECTransition Comment="" Condition="Reset" Destination="Reset" Source="NormalOp" x="800.0" y="1793.3333333333335"/>
+      <ECTransition Comment="" Condition="INIT" Destination="Init" Source="START" x="600.0" y="840.0"/>
+    </ECC>
+    <Algorithm Comment="new algorithm" Name="ObjectDetection">
+      <ST Text="&#13;&#10;IF Red&gt;= 10 AND  Green &gt;=20 AND Blue &gt;=20 THEN&#13;&#10;&#9;IF Init = TRUE THEN&#13;&#10;&#9;&#9;NewObject := FALSE;&#13;&#10;&#9;END_IF; &#13;&#10;&#9;ObjectDetected := TRUE;&#13;&#10;&#9;&#13;&#10;&#9;IF ReqAlreadyStarted = FALSE AND NewObject = TRUE THEN&#13;&#10;&#9;&#9;StartRequest := TRUE;&#13;&#10;&#9;END_IF;&#13;&#10;&#9;&#13;&#10;ELSE&#13;&#10;&#9;&#9;ObjectDetected := FALSE;&#13;&#10;&#9;&#9;NewObject := TRUE;&#13;&#10;END_IF;&#13;&#10;&#13;&#10;Init := FALSE;&#13;&#10;&#13;&#10;"/>
+    </Algorithm>
+    <Algorithm Comment="new algorithm" Name="initialize">
+      <ST Text="Init := TRUE;&#13;&#10;NewObject := TRUE;"/>
+    </Algorithm>
+    <Algorithm Comment="new algorithm" Name="reset">
+      <ST Text="&#13;&#10;ReqAlreadyStarted := FALSE;&#13;&#10;StartRequest := FALSE;&#13;&#10;NewObject := TRUE;&#13;&#10;Init := TRUE;&#13;&#10;"/>
+    </Algorithm>
+    <Algorithm Comment="new algorithm" Name="Req">
+      <ST Text="//ColourAlreadyDetected := TRUE;&#13;&#10;ReqAlreadyStarted := TRUE;&#13;&#10;StartRequest := FALSE;&#13;&#10;NewObject := TRUE;&#13;&#10;Init := TRUE;"/>
+    </Algorithm>
+  </BasicFB>
+</FBType>

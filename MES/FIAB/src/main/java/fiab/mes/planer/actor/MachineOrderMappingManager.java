@@ -20,6 +20,7 @@ import akka.actor.ActorSelection;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
+
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
@@ -313,6 +314,7 @@ public class MachineOrderMappingManager {
 			if (!isDifferentState(lastMachineState)) return;
 			if (lastMachineState instanceof MachineStatusUpdateEvent) {
 				if (((MachineStatusUpdateEvent) lastMachineState).getStatus().equals(MachineStatus.IDLE)) {
+
 					this.allocationState = AssignmentState.NONE;
 					this.orderId = null;	
 				}

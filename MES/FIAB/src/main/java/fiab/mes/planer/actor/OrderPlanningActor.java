@@ -390,6 +390,7 @@ public class OrderPlanningActor extends AbstractActor{
 			// will only process event if the parameter changes is "STATE"
 			ordMapper.updateMachineStatus(machine, mue);
 			if (mue.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) {
+
 				if (mue.getStatus().equals(MachineStatus.IDLE)) {
 					// if idle --> machine ready --> lets check if any order is waiting for that machine
 					ordMapper.getPausedProcessesOnSomeMachine().stream()
