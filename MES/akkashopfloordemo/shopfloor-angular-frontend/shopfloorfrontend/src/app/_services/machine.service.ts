@@ -1,22 +1,21 @@
 import { Injectable, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MachineService {
 
-  private baseUrl = 'http://localhost:8080/';
-
   constructor(private _zone: NgZone, private http: HttpClient) { }
 
   getMachineList(): Observable<any> {
-    return this.http.get(`${this.baseUrl}machines`);
+    return this.http.get(`${environment.apiUrl}/machines`);
   }
 
   getMachineHistory(id: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}machineHistory/${id}`);
+    return this.http.get(`${environment.apiUrl}/machineHistory/${id}`);
   }
 
   getMachineUpdates(): Observable<any> {
@@ -39,7 +38,7 @@ export class MachineService {
   }
 
   private getMachineEventStream(): EventSource {
-    return new EventSource(`${this.baseUrl}machineEvents`);
+    return new EventSource(`${environment.apiUrl}/machineEvents`);
   }
 
 }

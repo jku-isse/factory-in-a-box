@@ -1,0 +1,9 @@
+.material-icons {
+    vertical-align: middle;
+}
+
+mat-dialog-container {
+    background-color: #000;
+    width: 800px  !important;
+    height: 250px
+}

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +17,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.typesafe.sslconfig.util.PrintlnLogger;
+
 import ProcessCore.XmlRoot;
+import akka.Done;
 import akka.NotUsed;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -34,6 +38,10 @@ import akka.http.javadsl.server.directives.RouteAdapter;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Source;
 import akka.util.Timeout;
+import fiab.mes.auth.FakeAuthenticator;
+import fiab.mes.auth.FakeAuthenticator.Credentials;
+import fiab.mes.auth.FakeAuthenticator.User;
+import fiab.mes.auth.FakeAuthenticator.PublicUser;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -58,12 +66,15 @@ public class ActorRestEndpoint extends AllDirectives{
 	ActorSelection machineEventBusByRef;
 	ActorRef orderEntryActor;
 	ActorRef machineEntryActor;
+	
+	FakeAuthenticator auth;
 
 	public ActorRestEndpoint(ActorSystem system, ActorRef orderEntryActor, ActorRef machineEntryActor) {
 		eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
 		machineEventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		this.orderEntryActor = orderEntryActor;
 		this.machineEntryActor = machineEntryActor;
+		this.auth = new FakeAuthenticator();
 	}
 
 	private static int bufferSize = 10;
@@ -71,22 +82,75 @@ public class ActorRestEndpoint extends AllDirectives{
 	final RawHeader acaoAll = RawHeader.create("Access-Control-Allow-Origin", "*");
 	final RawHeader acacEnable = RawHeader.create("Access-Control-Allow-Credentials", "true");
 	final RawHeader aceh = RawHeader.create("Access-Control-Expose-Headers", "*");
-	final RawHeader acah = RawHeader.create( "Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
+	final RawHeader acah = RawHeader.create( "Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With, OPTIONS, POST, PUT, GET, DELETE");	
 	final List<HttpHeader> defaultCorsHeaders = Arrays.asList(acaoAll, aceh, acacEnable, acah);
 
 	public Route createRoute() {
 		return respondWithDefaultHeaders(defaultCorsHeaders, () ->
 			concat(
-				path("orderevents",		() -> get(() -> parameterOptional("orderId", orderId -> getSSESourceForOrderEvents(orderId)))),
-				path("machineEvents",	() -> get(() -> parameterOptional("machineId", machineId -> getSSESourceForMachineEvents(machineId)))),
-				path("machines",		() -> concat( postMachines(), getMachines() )),
-				path("orders",			() -> concat( postOrders(), getOrders() )),
-				get(() -> pathPrefix("processevents",	() -> path(PathMatchers.remaining() , (String orderId) -> getSSESourceForOrderProcessUpdateEvents(orderId)))),	
-				get(() -> pathPrefix("order",			() -> path(PathMatchers.remaining() , (String req) -> makeOrderStatusRequest(req)))),	
-				get(() -> pathPrefix("orderHistory",	() -> path(PathMatchers.remaining() , (String req) -> makeOrderHistoryRequest(req)))),
-				get(() -> pathPrefix("machineHistory",	() -> path(PathMatchers.remaining() , (String req) -> makeMachineHistoryRequest(req))))
+				path("authenticate", () -> 
+					concat( optionsAuth(), postAuth() )
+				),
+				path("action", () -> 
+					concat( optionsAction(), postAction() )
+				),
+				path("orderevents",	() -> 
+					get(() -> parameterOptional("orderId", orderId -> getSSESourceForOrderEvents(orderId)))
+				),
+				path("machineEvents", () -> 
+					get(() -> parameterOptional("machineId", machineId -> getSSESourceForMachineEvents(machineId)))
+				),
+				path("machines", () -> 
+					concat( postMachines(), getMachines(), options(() -> complete("This is a OPTIONS request.")) )
+				),
+				path("orders", () -> 
+					concat( postOrders(), getOrders(), options(() -> complete("This is a OPTIONS request.")) )
+				),
+				pathPrefix("processevents",	() -> path(PathMatchers.remaining() , (String orderId) -> 
+					concat( get(() -> getSSESourceForOrderProcessUpdateEvents(orderId)), options(() -> complete("This is a OPTIONS request.")) )
+				)),	
+				pathPrefix("order",	() -> path(PathMatchers.remaining() , (String req) -> 
+					concat( get(() -> makeOrderStatusRequest(req)), options(() -> complete("This is a OPTIONS request.")) )
+				)),	
+				pathPrefix("orderHistory", () -> path(PathMatchers.remaining() , (String req) -> 
+					concat( get(() -> makeOrderHistoryRequest(req)), options(() -> complete("This is a OPTIONS request.")) )
+				)),
+				pathPrefix("machineHistory", () -> path(PathMatchers.remaining() , (String req) -> 
+					concat( get(() -> makeMachineHistoryRequest(req)), options(() -> complete("This is a OPTIONS request.")) )
+				))
 			)
 		);	    			    	
+	}
+	
+	private Route optionsAuth() {
+		return options(() -> complete("This is a OPTIONS request."));
+	}
+	
+	private Route postAuth() {
+		return post(() -> entity(Jackson.unmarshaller(Credentials.class), user -> {
+			String username = user.getUsername();
+			String password = user.getPassword();
+            CompletionStage<Optional<User>> futureMaybeItem = CompletableFuture.completedFuture(auth.authenticate(username, password));
+            return onSuccess(futureMaybeItem, maybeItem ->
+	            maybeItem.map(item -> 
+	            	respondWithHeader(RawHeader.create("Access-Token", item.getToken()), () ->
+	            		completeOK( item.createPublicCopy() , Jackson.marshaller())
+	            	)
+	            ).orElseGet(() -> complete(StatusCodes.UNAUTHORIZED, "Username or password is incorrect"))
+	        );
+          }));
+	}
+	
+	private Route optionsAction() {
+		return options(() -> complete("This is a OPTIONS request."));
+	}
+	
+	private Route postAction() {
+		return post(() -> 
+			headerValueByName("Authorization", token ->
+				complete(auth.isLoggedIn(token) ? "Logged in" : "not authorized")
+			)
+		);
 	}
 
 	private RegisterProcessRequest transformToOrderProcessRequest(String xmlPayload) {

@@ -1,26 +1,25 @@
 import { Injectable, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrderService {
 
-  private baseUrl = 'http://localhost:8080/';
-
   constructor(private _zone: NgZone, private http: HttpClient) { }
 
   getOrder(id: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}order/${id}`);
+    return this.http.get(`${environment.apiUrl}/order/${id}`);
   }
 
   getOrderHistory(id: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}orderHistory/${id}`);
+    return this.http.get(`${environment.apiUrl}/orderHistory/${id}`);
   }
 
   getOrderList(): Observable<any> {
-    return this.http.get(`${this.baseUrl}orders`);
+    return this.http.get(`${environment.apiUrl}/orders`);
   }
 
   getOrderUpdates(): Observable<any> {
@@ -61,11 +60,11 @@ export class OrderService {
   }
 
   getOrderEventStream(): EventSource {
-    return new EventSource(`${this.baseUrl}orderevents`);
+    return new EventSource(`${environment.apiUrl}/orderevents`);
   }
 
   getProcessEventStream(orderId: string): EventSource {
-    return new EventSource(`${this.baseUrl}processevents/${orderId}`);
+    return new EventSource(`${environment.apiUrl}/processevents/${orderId}`);
   }
 
 }
