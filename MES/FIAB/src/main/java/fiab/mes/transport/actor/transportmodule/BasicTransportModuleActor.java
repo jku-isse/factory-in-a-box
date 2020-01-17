@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Sets;
 import com.sun.xml.bind.v2.WellKnownNamespace;
 
 import ActorCoreModel.Actor;
@@ -19,9 +20,13 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
+import fiab.mes.machine.msg.GenericMachineRequests.BaseRequest;
+import fiab.mes.machine.msg.GenericMachineRequests.Reset;
+import fiab.mes.machine.msg.GenericMachineRequests.Stop;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineInWrongStateResponse;
@@ -55,7 +60,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 	protected InternalTransportModuleRequest reservedForTReq = null;
 	private ActorRef self;
 	
-	private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
+	private HistoryTracker externalHistory;
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
 	
 	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, Position selfPos, InterMachineEventBus intraBus, TransportPositionLookup tpl, InternalCapabilityToPositionMapping icpm) {	    
@@ -72,6 +77,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 		this.icpm = icpm; // later versions will obtain such info dynamically from accessing own wiring OPC UA information
 		this.selfPos = selfPos;
 		this.self = self();
+		this.externalHistory = new HistoryTracker(machineId.getId());
 		init();
 
 	}
@@ -94,10 +100,23 @@ public class BasicTransportModuleActor extends AbstractActor{
 		        	processMachineUpdateEvent(mue);
 		        })
 		        .match(MachineHistoryRequest.class, req -> {
-		        	log.info(String.format("TransportModule %s received MachineHistoryRequest", machineId.getId()));
-		        	List<MachineEvent> events = req.shouldResponseIncludeDetails() ? externalHistory :	externalHistory.stream().map(event -> event.getCloneWithoutDetails()).collect(Collectors.toList());
-		        	MachineHistoryRequest.Response response = new MachineHistoryRequest.Response(machineId.getId(), events, req.shouldResponseIncludeDetails());
-		        	sender().tell(response, getSelf());
+		        	log.info(String.format("Machine %s received MachineHistoryRequest", machineId.getId()));
+		        	externalHistory.sendHistoryResponseTo(req, getSender(), self);
+		        })
+		        .match(Stop.class, req -> {
+		        	log.info(String.format("TransportModule %s received StopRequest", machineId.getId()));
+		        	setAndPublishSensedState(MachineStatus.STOPPING);
+		        	hal.stop();
+		        })
+		        .match(Reset.class, req -> {
+		        	if (currentState.equals(MachineStatus.COMPLETE) 
+		        			|| currentState.equals(MachineStatus.STOPPED) ) {
+		        		log.info(String.format("TransportModule %s received ResetRequest in suitable state", machineId.getId()));
+		        		setAndPublishSensedState(MachineStatus.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
+		        		hal.reset();
+		        	} else {
+		        		log.warning(String.format("TransportModule %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
+		        	}
 		        })
 		        .build();
 	}
@@ -141,7 +160,6 @@ public class BasicTransportModuleActor extends AbstractActor{
 			case STARTING:
 				break;
 			case STOPPED:
-				hal.reset(); // FIXME: how to handle, when we want to stop the whole shopfloor and not just immediately restart?!
 				break;
 			case STOPPING:
 				break;
@@ -160,7 +178,6 @@ public class BasicTransportModuleActor extends AbstractActor{
 			this.currentState = newState;
 			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, msg, newState);
 			tellEventBus(mue);
-			
 		}
 	}
 	

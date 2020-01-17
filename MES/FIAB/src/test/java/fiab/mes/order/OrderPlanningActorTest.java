@@ -2,6 +2,7 @@ package fiab.mes.order;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.AfterClass;
@@ -26,9 +27,11 @@ import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
+import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
+import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockMachineActor;
@@ -46,6 +49,7 @@ import fiab.mes.shopfloor.DefaultLayout;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 class OrderPlanningActorTest {
 
@@ -101,7 +105,7 @@ class OrderPlanningActorTest {
 				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
-				while (!isPlannerFunctional && countConnEvents < 8 ) {
+				while (!isPlannerFunctional || countConnEvents < 8 ) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class); 
 					logEvent(te);
 					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
@@ -110,6 +114,14 @@ class OrderPlanningActorTest {
 					if (te instanceof MachineConnectedEvent) {
 						countConnEvents++; 
 					}
+					if (te instanceof MachineStatusUpdateEvent) {
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+							getLastSender().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());
+					}
+//					if (te instanceof IOStationStatusUpdateEvent) {
+//						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSide.Stopped)) 
+//							getLastSender().tell(new GenericMachineRequests.Reset(((IOStationStatusUpdateEvent) te).getMachineId()), getRef());
+//					}
 				} 
 			}	
 		};
@@ -127,7 +139,7 @@ class OrderPlanningActorTest {
 				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
-				while (!isPlannerFunctional && countConnEvents < 8 ) {
+				while (!isPlannerFunctional || countConnEvents < 8 ) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class); 
 					logEvent(te);
 					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
@@ -135,19 +147,28 @@ class OrderPlanningActorTest {
 					}
 					if (te instanceof MachineConnectedEvent) {
 						countConnEvents++; 
+						knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+					}
+					if (te instanceof MachineStatusUpdateEvent) {
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
+									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
+							);	
 					}
 				} 
-				//ProcessCore.Process p = TestMockMachineActor.getSingleStepProcess(oid);
-				//OrderProcess op = new OrderProcess(p);
-				//RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op, getRef());
-				//orderPlanningActor.tell(req, getRef());
 				subscribeAndRegisterSinglePrintRedOrder(oid, getRef());
 				boolean orderDone = false;
 				while (!orderDone) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), TimedEvent.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class); 
 					logEvent(te);
 					if (te instanceof OrderEvent && ((OrderEvent) te).getEventType().equals(OrderEvent.OrderEventType.REMOVED)) {
 						orderDone = true;
+					}
+					if (te instanceof MachineStatusUpdateEvent) {
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
+									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
+							);
 					}
 					
 				} 
@@ -165,7 +186,7 @@ class OrderPlanningActorTest {
 				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
-				while (!isPlannerFunctional && countConnEvents < 8 ) {
+				while (!isPlannerFunctional || countConnEvents < 8 ) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class); 
 					logEvent(te);
 					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
@@ -173,6 +194,13 @@ class OrderPlanningActorTest {
 					}
 					if (te instanceof MachineConnectedEvent) {
 						countConnEvents++; 
+						knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+					}
+					if (te instanceof MachineStatusUpdateEvent) {
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
+									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
+							);	
 					}
 				} 
 				
@@ -197,7 +225,13 @@ class OrderPlanningActorTest {
 								order2Done = true;
 							}
 						}
-					}														
+					}
+					if (te instanceof MachineStatusUpdateEvent) {
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
+									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
+							);	
+					}
 				} 
 			}	
 		};
@@ -213,7 +247,7 @@ class OrderPlanningActorTest {
 				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
-				while (!isPlannerFunctional && countConnEvents < 8 ) {
+				while (!isPlannerFunctional || countConnEvents < 8 ) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class); 
 					logEvent(te);
 					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {

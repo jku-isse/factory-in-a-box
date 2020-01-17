@@ -187,6 +187,8 @@ public class TestMockMachineActor { //extends AbstractJavaTest {
 		s1.setDisplayName("green plotting");
 		s1.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Green")));
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
+		p.setID(prefix);
+		p.setDisplayName(prefix);
 		p.getSteps().add(s1);
 		return p;
 	}
