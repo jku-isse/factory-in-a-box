@@ -27,11 +27,11 @@ import akka.actor.ActorRef;
 import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.mockactors.iostation.MockIOStationWrapperDelegate;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.opcua.hardwaremock.methods.BlankMethod;
 import fiab.opcua.hardwaremock.methods.CompleteMethod;
+import fiab.opcua.hardwaremock.methods.InitHandoverMethod;
 import fiab.opcua.hardwaremock.methods.Methods;
-import fiab.opcua.hardwaremock.methods.ReadyEmptyMethod;
 import fiab.opcua.hardwaremock.methods.ResetMethod;
+import fiab.opcua.hardwaremock.methods.StartHandoverMethod;
 import fiab.opcua.hardwaremock.methods.StopMethod;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
@@ -48,8 +48,29 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 	private CompleteMethod cmplt ;
 	private StopMethod stp;
 	private ResetMethod rst;
-	private ReadyEmptyMethod rdyEmpty;
+	//private ReadyEmptyMethod rdyEmpty;
+	private StartHandoverMethod startHO;
+	private InitHandoverMethod initHO;
 
+	static final String NAMESPACE_URI = "urn:factory-in-a-box";
+	private final SubscriptionModel subscriptionModel;
+
+	public OPCUAInputStationMock(OpcUaServer server, String namespaceUri, String machineName, ActorRef actor) {
+		super(server, namespaceUri);
+		this.server = server;
+		this.actor = actor;
+		subscriptionModel = new SubscriptionModel(server, this);
+		this.machineName = machineName;
+		
+		cmplt = new CompleteMethod(actor);
+		stp = new StopMethod(actor);
+		rst = new ResetMethod(actor);
+		startHO = new StartHandoverMethod(actor);
+		initHO = new InitHandoverMethod(actor);
+		//rdyEmpty = new ReadyEmptyMethod(actor);
+		
+	}
+	
 	public void run() {
 
 		startup();
@@ -78,27 +99,27 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 		
 	}
 	
-	public void completeMethod() {
-		cmplt.invoke();
-	}
-	public void stopMethod() {
-		stp.invoke();
-	}
-	public void resetMethod() {
-		rst.invoke();
-	}
-	public void readyEmptyMethod() {
-		rdyEmpty.invoke();
-	}
+//	public void completeMethod() {
+//		cmplt.invoke();
+//	}
+//	public void stopMethod() {
+//		stp.invoke();
+//	}
+//	public void resetMethod() {
+//		rst.invoke();
+//	}
+//	public void readyEmptyMethod() {
+//		rdyEmpty.invoke();
+//	}
 	
 	public void setUpServerStructure() {
 		UaFolderNode handshakeNode = generateFolder(rootNode, machineName, "HANDSHAKE_FU");
 		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "COMPLETE", cmplt);
 		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "STOP", stp);
 		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "RESET", rst);
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "READY", rdyEmpty);
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "INIT_HANDOVER", new BlankMethod()); //Fragen
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "START_HANDOVER", new BlankMethod()); //Fragen
+		//addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "READY", rdyEmpty);
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "INIT_HANDOVER", initHO); 
+		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "START_HANDOVER", startHO); 
 		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, machineName + "/HANDSHAKE_FU",
 				new String("CAPABILITIES"));
 		UaFolderNode capability1 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/CAPABILITIES",
@@ -120,21 +141,7 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 		status = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", "STATE", ServerSide.Stopped); //init right
 	}
 
-	static final String NAMESPACE_URI = "urn:factory-in-a-box";
-	private final SubscriptionModel subscriptionModel;
-
-	public OPCUAInputStationMock(OpcUaServer server, String namespaceUri, String machineName, ActorRef actor) {
-		super(server, namespaceUri);
-		this.server = server;
-		this.actor = actor;
-		subscriptionModel = new SubscriptionModel(server, this);
-		this.machineName = machineName;
-		
-		cmplt = new CompleteMethod(actor);
-		stp = new StopMethod(actor);
-		rst = new ResetMethod(actor);
-		rdyEmpty = new ReadyEmptyMethod(actor);
-	}
+	
 
 	@Override
 	protected void onStartup() {
@@ -174,9 +181,9 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 	
 	private void addMethodNode(UaFolderNode folderNode, String nodeIdPrefix, String id, Methods method) {
 		addMethodNode(folderNode, nodeIdPrefix, id, id, method);
-		for(int i = 0; i < 5; i++) {
-			System.out.println();
-		}
+//		for(int i = 0; i < 5; i++) {
+//			System.out.println();
+//		}
 		System.out.println("METHOD " + id + " HAS BEEN CREATED!");
 	}
 

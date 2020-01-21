@@ -41,7 +41,7 @@ public class MockIOStationFactory {
 		machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, delegate, intraEventBus), model.getActorName());
 	}
 	
-	public Actor getDefaultIOStationActor(boolean isInputStation, int id) {
+	public static Actor getDefaultIOStationActor(boolean isInputStation, int id) {
 		//int id = actorCount.getAndIncrement();
 		//int id = isInputStation ? 34 : 35; //at IP/Pos 34 is inputstation, at IP/Pos3 35 is outputstation
 		String type = isInputStation ? "Input" : "Output";

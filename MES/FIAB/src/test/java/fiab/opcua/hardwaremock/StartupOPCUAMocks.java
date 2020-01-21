@@ -13,7 +13,7 @@ public class StartupOPCUAMocks {
 		ActorSystem system = ActorSystem.create("ROOT_SYSTEM");
 
 		
-		ActorRef actor1 = system.actorOf(OPCUAMockIOStationWrapper.props(true, true));
+		ActorRef actor1 = system.actorOf(OPCUAMockIOStationWrapper.props( true, true));
 		
 		//ActorRef actor2 = system.actorOf(MockOutputStationServerHandshakeActor.props());
 		BaseOpcUaServer server1 = new BaseOpcUaServer(0);
