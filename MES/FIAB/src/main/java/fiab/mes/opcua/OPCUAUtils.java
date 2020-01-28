@@ -45,7 +45,7 @@ public class OPCUAUtils {
             if (!discoveryUrl.endsWith("/")) {
                 discoveryUrl += "/";
             }
-            discoveryUrl += "discovery";
+            discoveryUrl += "milo";
 
             logger.info("Trying explicit discovery URL: {}", discoveryUrl);
             endpoints = DiscoveryClient.getEndpoints(discoveryUrl).get();

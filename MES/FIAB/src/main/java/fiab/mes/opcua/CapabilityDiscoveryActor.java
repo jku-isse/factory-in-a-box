@@ -116,7 +116,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 		try {
 			List<Node> nodes = client.getAddressSpace().browse(rootNode).get();
 			for (Node n : nodes) {
-				log.info("Checking node: "+n.getBrowseName().get().toParseableString());
+			//	log.info("Checking node: "+n.getNodeId().get().toParseableString());
 				if (n instanceof UaObjectNode) {
 					if (isCapabilitiesFolder(n)) {	// then the rootNode is the actorNode				
 						browseCapabilitiesFolder(req, client, n, rootNode);
