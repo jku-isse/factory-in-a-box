@@ -30,6 +30,7 @@ import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.mockactors.iostation.MockIOStationFactory;
+import fiab.mes.opcua.OPCUAUtils;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.transport.handshake.HandshakeProtocol;
@@ -87,8 +88,7 @@ class TestIOStationOPCUAWrapper {
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				boolean doRun = true;
 				int countConnEvents = 0;
-				boolean isPlannerFunctional = false;
-				while (!isPlannerFunctional || countConnEvents < 1 || doRun) {
+				while ( countConnEvents < 1 || doRun) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent) {

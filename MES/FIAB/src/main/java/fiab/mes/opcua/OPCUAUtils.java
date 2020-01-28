@@ -1,4 +1,4 @@
-package fiab.mes.opcuawrappers;
+package fiab.mes.opcua;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

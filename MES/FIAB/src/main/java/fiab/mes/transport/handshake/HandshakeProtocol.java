@@ -17,12 +17,19 @@ public class HandshakeProtocol {
 	
 	public static final String STATE_CLIENTSIDE_VAR_NAME = "HANDSHAKE_CLIENTSIDE_STATE";
 	
+	public static final String IOSTATION_PROVIDED_OPCUA_METHOD_RESET = "RESET";
+	public static final String IOSTATION_PROVIDED_OPCUA_METHOD_STOP = "STOP";
+	public static final String IOSTATION_PROVIDED_OPCUA_STATE_VAR = "STATE";
+	
+	public static final String INPUTSTATION_CAPABILITY_URI = "http://factory-in-a-box.fiab/capabilities/inputstation";
+	public static final String OUTPUTSTATION_CAPABILITY_URI = "http://factory-in-a-box.fiab/capabilities/outputstation";
+	public static final String HANDSHAKE_CAPABILITY_URI = "http://factory-in-a-box.fiab/capabilities/handshake";
 	
 	public static AbstractCapability getHandshakeCapability() {
 		ComparableCapability ac = new ComparableCapability();
 		ac.setDisplayName("Execute Pallet Handover Handshake");
 		ac.setID("Capability.Handshake");
-		ac.setUri("http://factory-in-a-box.fiab/capabilities/handshake");
+		ac.setUri(HANDSHAKE_CAPABILITY_URI);
 		return ac;
 	}
 	
@@ -30,7 +37,7 @@ public class HandshakeProtocol {
 		ComparableCapability ac = new ComparableCapability();
 		ac.setDisplayName("InputStation");
 		ac.setID("Capability.InputStation");
-		ac.setUri("http://factory-in-a-box.fiab/capabilities/inputstation");
+		ac.setUri(INPUTSTATION_CAPABILITY_URI);
 		ac.getCapabilities().add(getHandshakeCapability());
 		return ac;
 	}
@@ -39,7 +46,7 @@ public class HandshakeProtocol {
 		ComparableCapability ac = new ComparableCapability();
 		ac.setDisplayName("OutputStation");
 		ac.setID("Capability.OutputStation");
-		ac.setUri("http://factory-in-a-box.fiab/capabilities/outputstation");
+		ac.setUri(OUTPUTSTATION_CAPABILITY_URI);
 		ac.getCapabilities().add(getHandshakeCapability());
 		return ac;
 	}

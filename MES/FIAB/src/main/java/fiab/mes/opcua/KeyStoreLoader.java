@@ -1,4 +1,4 @@
-package fiab.mes.opcuawrappers;
+package fiab.mes.opcua;
 
 /*
  * Copyright (c) 2019 the Eclipse Milo Authors
