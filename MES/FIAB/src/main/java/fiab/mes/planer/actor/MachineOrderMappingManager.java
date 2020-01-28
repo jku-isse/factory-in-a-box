@@ -61,6 +61,12 @@ public class MachineOrderMappingManager {
 		} else return Optional.empty();
 	}
 	
+	public Optional<OrderEventType> getLastOrderState(String orderId) {
+		if (orders.containsKey(orderId)) {
+			return Optional.of(orders.get(orderId).getValue());
+		} else return Optional.empty();
+	}
+	
 	public boolean isOrderMappedAtLeastOneMachine(String orderId) {
 		return moms.values().stream()
 		.filter(mom -> mom.getOrderId().equals(orderId))
@@ -132,7 +138,7 @@ public class MachineOrderMappingManager {
 	public void markOrderRemovedFromShopfloor(String orderId, String msg) {
 		transitionOrder(orderId, OrderEventType.REMOVED, msg);
 	}
-	
+		
 	public void removeOrder(String orderId) {
 		orders.remove(orderId);
 	}
@@ -262,13 +268,23 @@ public class MachineOrderMappingManager {
 		});
 	}
 	
+	public MachineStatus getMachineStatus(AkkaActorBackedCoreModelAbstractActor machine) {
+		if (moms.containsKey(machine)) {
+			MachineOrderMappingStatus mom  = moms.get(machine);
+			if (mom.getLastMachineState() != null && mom.getLastMachineState() instanceof MachineStatusUpdateEvent) {
+				return ((MachineStatusUpdateEvent) mom.getLastMachineState()).getStatus();
+			}
+		} 
+		return MachineStatus.UNKNOWN;		
+	}
+	
 	public void updateMachineStatus(AkkaActorBackedCoreModelAbstractActor machine, MachineUpdateEvent event) {				
 			moms.computeIfAbsent(machine, k -> new MachineOrderMappingStatus(machine, AssignmentState.UNKNOWN))
 										.setLastMachineState(event);			
 	}		
 	
 	public Optional<MachineOrderMappingStatus> removeMachine(AkkaActorBackedCoreModelAbstractActor machine) {
-		return Optional.of(moms.remove(machine));		
+		return Optional.ofNullable(moms.remove(machine));		
 	}
 	
 	public Optional<MachineOrderMappingStatus> getMappingStatusOfMachine(String machineId) {

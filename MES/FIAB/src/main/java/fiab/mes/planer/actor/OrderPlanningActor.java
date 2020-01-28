@@ -56,6 +56,7 @@ import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.mes.transport.msg.CancelTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
 
@@ -387,57 +388,110 @@ public class OrderPlanningActor extends AbstractActor{
 	private void handleMachineUpdateEvent(MachineStatusUpdateEvent mue) {
 		log.info(String.format("MachineUpdateEvent for machine %s : %s", mue.getMachineId(), mue.getStatus().toString()));
 		capMan.resolveById(mue.getMachineId()).ifPresent(machine -> {
-			// will only process event if the parameter changes is "STATE"
-			ordMapper.updateMachineStatus(machine, mue);
-			if (mue.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) {
+			MachineStatus prevState = ordMapper.getMachineStatus(machine);
+			ordMapper.updateMachineStatus(machine, mue);			
+			switch(mue.getStatus()) {
+			case RESETTING:
+				break;
+			case IDLE:
+				// if idle --> machine ready --> lets check if any order is waiting for that machine
+				ordMapper.getPausedProcessesOnSomeMachine().stream()
+				.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+				// we don't abort upon first success but try for every one, shouldn't matter, just takes a bit of processing
 
-				if (mue.getStatus().equals(MachineStatus.IDLE)) {
-					// if idle --> machine ready --> lets check if any order is waiting for that machine
-					ordMapper.getPausedProcessesOnSomeMachine().stream()
-						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
-					// we don't abort upon first success but try for every one, shouldn't matter, just takes a bit of processing
-					
-					// order that are paused but not assigned to any machine yet (not efficient as will check all those already checked above)
-					ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
-						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
-					
-					//if none, then just wait for next incoming event
-				} else if (mue.getStatus().equals(MachineStatus.COMPLETING)) {
-					// TODO: step done, now update the process, so which step has been completed?
-					// we cannot rely on ProductionCompletionevent as there could be a race condition which event arrives first
-					
-					// then we still have the order occupying the machine  --> now check if next place is ready somewhere
-					// update process, get next step --> check if possible somewhere
-					ordMapper.getOrderRequestOnMachine(machine).ifPresent(rpr -> { 
-						 log.debug(String.format("%s in state %s with register process request of %s", machine.getId(), mue.getStatus().toString(), rpr.getRootOrderId()));
-						 ordMapper.getJobOnMachine(machine).ifPresent(step -> { 
-							 ProcessChangeImpact pci = rpr.getProcess().markStepComplete(step); 
-							 String msg = String.format("Update process that step %s is complete at machine with ID %s and with order ID %s", step.getDisplayName(), machine.getId(), rpr.getRootOrderId());
-							 log.info(msg);
-							 OrderProcessUpdateEvent opue = new OrderProcessUpdateEvent(rpr.getRootOrderId(), this.self().path().name(), msg, pci);
-							 orderEventBus.tell(opue, ActorRef.noSender());
-							 } );
-						tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()); });
-				} else if (mue.getStatus().equals(MachineStatus.EXECUTE)) {
-					// now update mapping that order has arrived at that machine and is loaded
-					ordMapper.confirmOrderAtMachine(machine);
-				}
-			}						
-		});		
-		
-		
+				// order that are paused but not assigned to any machine yet (not efficient as will check all those already checked above)
+				ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
+				.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+
+				//if none, then just wait for next incoming event
+				break;
+			case STARTING:
+				break;	
+			case EXECUTE:
+				// now update mapping that order has arrived at that machine and is loaded
+				ordMapper.confirmOrderAtMachine(machine);
+				break;
+			case COMPLETE:
+				break;
+			case COMPLETING:
+				// TODO: step done, now update the process, so which step has been completed?
+				// we cannot rely on ProductionCompletionevent as there could be a race condition which event arrives first
+
+				// then we still have the order occupying the machine  --> now check if next place is ready somewhere
+				// update process, get next step --> check if possible somewhere
+				ordMapper.getOrderRequestOnMachine(machine).ifPresent(rpr -> { 
+					log.debug(String.format("%s in state %s with register process request of %s", machine.getId(), mue.getStatus().toString(), rpr.getRootOrderId()));
+					ordMapper.getJobOnMachine(machine).ifPresent(step -> { 
+						ProcessChangeImpact pci = rpr.getProcess().markStepComplete(step); 
+						String msg = String.format("Update process that step %s is complete at machine with ID %s and with order ID %s", step.getDisplayName(), machine.getId(), rpr.getRootOrderId());
+						log.info(msg);
+						OrderProcessUpdateEvent opue = new OrderProcessUpdateEvent(rpr.getRootOrderId(), this.self().path().name(), msg, pci);
+						orderEventBus.tell(opue, ActorRef.noSender());
+					} );
+					tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()); });
+				break;																				
+			case STOPPING:// fallthrough
+			case STOPPED:
+				handleStoppingOrStoppedMachine(machine);
+				break;
+			case UNKNOWN:
+				break;
+			default:
+				break;
+
+			}				
+		});						
+	}
+	
+	private void handleStoppingOrStoppedMachine(AkkaActorBackedCoreModelAbstractActor machine) {
+		// this is called when the machine is explicitly stopped, e.g. to shut it down or because of emergency, 
+		// we now need to check how we use this machine in the scheduling 
+		ordMapper.getMappingStatusOfMachine(machine.getId()).ifPresent(moms -> {
+			switch(moms.getAssignmentState())
+			{
+			case UNKNOWN: //fallthrough						
+			case NONE:
+				break;					
+			case REQUESTED: //we asked machine but it has not responded, thus order still in previous location
+				ordMapper.freeUpMachine(machine, true);			
+				ordMapper.pauseOrder(moms.getOrderId());
+				break;
+			case RESERVED: // we got a positive response to work and perhaps asked for transport
+				ordMapper.freeUpMachine(machine, true);
+				// now we need to check if order is (about to be) in transit
+				ordMapper.getLastOrderState(moms.getOrderId()).ifPresent(state -> {
+					if (state.equals(OrderEventType.TRANSPORT_REQUESTED) || state.equals(OrderEventType.TRANSPORT_IN_PROGRESS)) {
+						// cancel transport, we might be in state requested, then we may continue, but transport might just have started
+						transportCoordinator.tell(new CancelTransportRequest(moms.getOrderId()), self);
+						// transport will tell us whether it started already, we then react to these transport update events
+						// so we don't mark it at all, if not started then we can continue it elsewhere					
+					}
+				});						
+				break;
+			case OCCUPIED: // the machine is working on this order, cancel Order, then manual removal needed
+				//order might completed and about to be in transit
+				ordMapper.getLastOrderState(moms.getOrderId()).ifPresent(state -> {
+					if (state.equals(OrderEventType.TRANSPORT_REQUESTED) || state.equals(OrderEventType.TRANSPORT_IN_PROGRESS)) {
+						// ensure, the transport is canceled, transportmodules are freed up
+						transportCoordinator.tell(new CancelTransportRequest(moms.getOrderId()), self);			
+					}
+				});
+				ordMapper.removeOrderAllocationIfMachineStillOccupied(machine);						
+				ordMapper.markOrderRemovedFromShopfloor(moms.getOrderId(), "Machine stopped unexpectedly, please manally remove order from machine: "+machine.getId());						
+				break;
+			default:
+				break;					
+			}
+		}); // if not present, then nothing to do
+		// if this is called a second time (after stopping) then also in stopped, nothing will happen as the ordMapper has set the machine to Unknown, or None
 	}
 		
- 	private void handleNoLongerAvailableMachine(MachineDisconnectedEvent mde) {		
+ 	private void handleNoLongerAvailableMachine(MachineDisconnectedEvent mde) {	
+ 		// handling similar to stopping machine
+ 		handleStoppingOrStoppedMachine(mde.getMachine());
+ 		// now we can remove the machine
 		capMan.removeActor(mde.getMachine());
-		Optional<MachineOrderMappingStatus> momStatus = ordMapper.removeMachine(mde.getMachine());
-		momStatus.ifPresent(mom -> {
-			// check if it was producing anything
-			if (mom.getOrderId() == null) return;			
-			// TODO: if so, where that product/pallet/order currently is
-			// check if it was allocated to produce something
-			// if so, undo order allocation	
-		});
+		ordMapper.removeMachine(mde.getMachine());		
 		checkIOStations();
 	}
 	
@@ -549,6 +603,23 @@ public class OrderPlanningActor extends AbstractActor{
 			// all is fine, transport now is going to start
 			ordMapper.markOrderInTransit(orderId);
 			log.info(String.format("Transport of Order %s about to start", orderId));
+			break;
+		case CANCELED:
+			// transport did not happen, request is removed, pallet still at current location, we need to reset state to paused			
+			// if order at non-stopped machine, then			
+			ordMapper.getLastOrderState(orderId).ifPresent(state -> {
+				if (state.equals(OrderEventType.REMOVED)) // order has been removed as machine stopped
+					return; // nothing to do, we already told to remove it or it has been automatically removed
+			}); // else we assume order can be rerouted to another machine later
+			ordMapper.pauseOrder(orderId);			
+			break;
+		case ABORTED:
+			// transport was already under way, pallet needs to be removed manually from current locaton, which may be between machine and turntable
+			msg = String.format("Transport was aborted, please remove manually");
+			log.warning(msg);
+			ordMapper.markOrderRemovedFromShopfloor(orderId, msg);
+			// TODO: we could have just managed to transport way from a stopped machine, then we would not need to do this, but this needs to be handled in the transport coordinator
+			// and this would need better handling in the handleStoppedOrStoppingMachine()
 			break;
 		default:
 			break;
