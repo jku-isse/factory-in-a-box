@@ -107,6 +107,8 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 			return;
 		});
 		// otherwise the transport might have started, lets just ask to remove it manually
+		// requires stopping the transport module that will potentially deadlock waiting for a stopped machine
+		// then needs resetting after a stop
 		Optional<TransportModuleRequest> tmrOp2 = allocatedQueue.stream()
 				.filter(tmr -> tmr.getOrderId().equals(req.getOrderId()))
 				.findAny();

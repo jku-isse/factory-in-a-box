@@ -105,7 +105,11 @@ public class OrderProcess {
 		EObject parentAsO = step.eContainer();
 		if (parentAsO != null && parentAsO instanceof ProcessStep) {			
 			ProcessStep parent = (ProcessStep)parentAsO;
-			if (areAllChildrenOfProcessCancelledOrCompleted(parent)) {
+			StepStatusEnum parentStatus = stepStatus.getOrDefault(parent, StepStatusEnum.INITIATED);
+			if (parentStatus.equals(StepStatusEnum.CANCELED) || parentStatus.equals(StepStatusEnum.COMPLETED)) {
+				// already earlier completed or canceled, perhaps a late arriving, thus dont further propagate
+				return;
+			} else	if (areAllChildrenOfProcessCancelledOrCompleted(parent)) {
 				// if all child steps complete or canceled propagate up
 				stepStatus.put(parent, StepStatusEnum.COMPLETED);	
 				pci.markStepInNewState(StepStatusEnum.COMPLETED, parent);

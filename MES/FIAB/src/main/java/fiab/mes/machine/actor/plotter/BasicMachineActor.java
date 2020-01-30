@@ -91,7 +91,7 @@ public class BasicMachineActor extends AbstractActor{
 		        	}
 		        })
 		        .match(CancelOrTerminateOrder.class, cto -> {
-		        	//TODO: implement
+		        	handleOrderCancelRequest(cto);
 		        })
 		        .match(Stop.class, req -> {
 		        	log.info(String.format("Machine %s received StopRequest", machineId.getId()));
@@ -99,7 +99,7 @@ public class BasicMachineActor extends AbstractActor{
 		        	hal.stop();
 		        })
 		        .match(Reset.class, req -> {
-		        	if (currentState.equals(MachineStatus.COMPLETE) 
+		         	if (currentState.equals(MachineStatus.COMPLETE) 
 		        			|| currentState.equals(MachineStatus.STOPPED) ) {
 		        		log.info(String.format("Machine %s received ResetRequest in suitable state", machineId.getId()));
 		        		setAndPublishSensedState(MachineStatus.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
@@ -122,6 +122,34 @@ public class BasicMachineActor extends AbstractActor{
 		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self);
 		intraBus.subscribe(self, new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
 		hal.subscribeToStatus();
+	}
+	
+	private void handleOrderCancelRequest(CancelOrTerminateOrder req) {
+		log.info(String.format("Machine %s received CancelOrderRequest in state %s", machineId.getId(), currentState));
+		// in what ever state, we remove it from the list of orders
+		orders = orders.stream()
+				.filter(rpsr -> !rpsr.getRootOrderId().equals(req.getRootOrderId()))
+				.collect(Collectors.toList());		
+		switch(currentState) {			
+		case EXECUTE: // we just finish the order, hardcancel via a machine stop is available
+			break;
+		case IDLE:
+			// check if current order is affected
+			// currently we cancel at the level of root orders
+			if (reservedForOrder.getRootOrderId().equals(req.getRootOrderId())) {
+				reservedForOrder = null;
+				checkIfAvailableForNextOrder();
+			} 
+			break;				
+		case STARTING: // here we might not get the order transported incoming
+		case COMPLETING:			
+        	setAndPublishSensedState(MachineStatus.STOPPING);
+        	hal.stop();
+			// here we might not get the order transported away
+			// thus we stop the machine
+			doAutoResetAfterXseconds();
+			break;										
+		}
 	}
 	
 	private void processMachineUpdateEvent(MachineStatusUpdateEvent mue) {
@@ -194,6 +222,26 @@ public class BasicMachineActor extends AbstractActor{
             @Override
             public void run() {
             	tellEventBusWithoutAddingToHistory(lastMUE);
+            }
+          }, context().system().dispatcher());
+	}
+	
+	private void doAutoResetAfterXseconds() {
+		context().system()
+    	.scheduler()
+    	.scheduleOnce(Duration.ofSeconds(3), 
+    			 new Runnable() {
+            @Override
+            public void run() {
+            	if (currentState.equals(MachineStatus.COMPLETE) 
+            			|| currentState.equals(MachineStatus.STOPPED) ) {	        		
+            		setAndPublishSensedState(MachineStatus.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)            		
+            		hal.reset();
+            	} else if (currentState.equals(MachineStatus.COMPLETING) 
+            			|| currentState.equals(MachineStatus.STOPPING) ) {
+            		// we only recheck later of we are still in states leading to complete or stopped
+            		doAutoResetAfterXseconds() ;          		
+            	}
             }
           }, context().system().dispatcher());
 	}

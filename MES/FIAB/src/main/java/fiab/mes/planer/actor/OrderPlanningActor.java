@@ -119,9 +119,12 @@ public class OrderPlanningActor extends AbstractActor{
 					} else {
 						String msg = String.format("Cannot accept request for process %s when not in %s state, currently in state %s",rpReq.getRootOrderId(), PlannerState.FULLY_OPERATIONAL, state);
 						log.warning(msg);
-						orderEventBus.tell(new OrderEvent(rpReq.getRootOrderId(), this.self().path().name(), OrderEventType.REJECTED, msg), ActorRef.noSender());
+						ordMapper.markOrderRejected(rpReq.getRootOrderId(), msg);						
 					}
-				}) 
+				})
+				.match(CancelOrTerminateOrder.class, req -> {
+					handleCancelOrderRequest(req);
+				})
 				.match(ReadyForProcessEvent.class, readyE -> {
 					produceProcessAtMachine(readyE);
 				})
@@ -327,8 +330,10 @@ public class OrderPlanningActor extends AbstractActor{
 
 	private void produceProcessAtMachine(ReadyForProcessEvent readyE) {
 		String orderId = readyE.getResponseTo().getRootOrderId();
+		//TODO: if order is canceled already,  freeup has happened, machine has been told
+		
 		capMan.resolveByAkkaActor(getSender()).ifPresent(machine -> {
-			if (readyE.isReady()) {		
+			if (readyE.isReady()) {														
 				ordMapper.reserveOrderAtMachine(machine);			
 				this.getSender().tell(new LockForOrder(readyE.getResponseTo().getProcessStepId(), orderId), this.getSelf());
 				//upon lockfororder,the machine should transition into starting state
@@ -385,10 +390,89 @@ public class OrderPlanningActor extends AbstractActor{
 	}
 
 	
+	private void handleCancelOrderRequest(CancelOrTerminateOrder req) {
+		// we first mark all steps as canceled
+		ordMapper.getOrderRequest(req.getRootOrderId()).ifPresent(oreq -> {
+			// completed steps remain marked completed, everthing else is canceled
+			String msg = String.format("Request to cancel Order %s - canceling all remaining steps", req.getRootOrderId());
+			log.info(msg);
+			oreq.getProcess().markStepCanceled(oreq.getProcess().getProcess());			
+		});		
+
+		ordMapper.getLastOrderState(req.getRootOrderId()).ifPresent(oStatus -> {
+			// transient states exist only briefly and thus should never be set when we enter here
+			switch(oStatus) {													
+				
+			case PRODUCING: // fallthrough		
+				// when machine finishes, we override automatically the step as completed, but all other steps will be canceled thus order will be transported off to outputstation
+			case COMPLETED:
+				// process is waiting for output station, nothing to do here, no point in further canceling
+				// will be transported to output station with next available 
+				break;			
+			case SCHEDULED:
+				// waiting for machine to respond, lets cancel this at the machine
+				ordMapper.getRequestedMachineOfOrder(req.getRootOrderId()).ifPresent(machine -> {
+					machine.getAkkaActor().tell(new CancelOrTerminateOrder(req.getRootOrderId()), self);
+				});
+				// then remove from current machine
+				// via fallthrough
+			case PAUSED: // at machine or before first machine
+				Optional<AkkaActorBackedCoreModelAbstractActor> currentLoc = ordMapper.getCurrentMachineOfOrder(req.getRootOrderId());
+				if (!currentLoc.isPresent()) {	
+					String msg = String.format("Request to cancel Order %s confirmed before order entered shopfloor", req.getRootOrderId());
+					log.info(msg);
+					ordMapper.markOrderRejected(req.getRootOrderId(), msg);
+				} else { // order at machine
+					String msg = String.format("Request to cancel Order %s confirmed while pause at machine, will be transported to output station", req.getRootOrderId());					
+					log.info(msg);
+					ordMapper.markOrderCanceled(req.getRootOrderId(), msg);
+					Optional<AkkaActorBackedCoreModelAbstractActor> outputStation = tryReserveOutputStation(req.getRootOrderId());
+					if (!outputStation.isPresent()) {
+					// if not possible we wont do anything with this order at the moment and wait for outputstation to become available
+						return;
+					} else {// else, we have now  the reservation of the outputstation for this order and we continue with transport
+						requestTransport(outputStation.get(), req.getRootOrderId());
+					}
+				}				
+				break;						
+			case TRANSPORT_REQUESTED: // fallthrough, we are still at start machine		
+				// if cancel of transport successful, then next check will move to output
+			case TRANSPORT_IN_PROGRESS: // cancel at receiving machine, 
+				String msg = String.format("Request to cancel Order %s confirmed while order waiting for transport or in transit", req.getRootOrderId());					
+				log.info(msg);
+				ordMapper.markOrderCanceled(req.getRootOrderId(), msg);
+				ordMapper.getRequestedMachineOfOrder(req.getRootOrderId()).ifPresent(machine -> {
+					machine.getAkkaActor().tell(new CancelOrTerminateOrder(req.getRootOrderId()), self);
+				});
+				transportCoordinator.tell(new CancelTransportRequest(req.getRootOrderId()), self);
+				// we will ask the user to extract from turntable
+				break;									
+			case ALLOCATED: // transient
+			case PRODUCTION_UPDATE: // transient state
+			case TRANSPORT_COMPLETED: // transient state
+			case TRANSPORT_DENIED: //fallthrough: transient state				
+			case TRANSPORT_FAILED:	//fallthrough: transient state		
+			case CREATED:	// transient state			
+			case REGISTERED: // transient state
+			case CANCELED: // transient state
+				log.error("Encountered order in transient state "+oStatus+" when trying to cancel or terminate, ignoring request");
+				break;
+			case REJECTED: // fallthrough
+			case REMOVED: // fallthrough				
+			case PREMATURE_REMOVAL:
+				// nothing to do
+				break;
+
+			default:
+				break;
+			}
+		});
+	}
+	
 	private void handleMachineUpdateEvent(MachineStatusUpdateEvent mue) {
 		log.info(String.format("MachineUpdateEvent for machine %s : %s", mue.getMachineId(), mue.getStatus().toString()));
 		capMan.resolveById(mue.getMachineId()).ifPresent(machine -> {
-			MachineStatus prevState = ordMapper.getMachineStatus(machine);
+			//MachineStatus prevState = ordMapper.getMachineStatus(machine);
 			ordMapper.updateMachineStatus(machine, mue);			
 			switch(mue.getStatus()) {
 			case RESETTING:
@@ -410,6 +494,9 @@ public class OrderPlanningActor extends AbstractActor{
 			case EXECUTE:
 				// now update mapping that order has arrived at that machine and is loaded
 				ordMapper.confirmOrderAtMachine(machine);
+				ordMapper.getOrderRequestOnMachine(machine).ifPresent(rpr -> { 
+					ordMapper.markOrderProducing(rpr.getRootOrderId());
+				});
 				break;
 			case COMPLETE:
 				break;
@@ -438,7 +525,6 @@ public class OrderPlanningActor extends AbstractActor{
 				break;
 			default:
 				break;
-
 			}				
 		});						
 	}
@@ -477,7 +563,7 @@ public class OrderPlanningActor extends AbstractActor{
 					}
 				});
 				ordMapper.removeOrderAllocationIfMachineStillOccupied(machine);						
-				ordMapper.markOrderRemovedFromShopfloor(moms.getOrderId(), "Machine stopped unexpectedly, please manally remove order from machine: "+machine.getId());						
+				ordMapper.markOrderPrematureRemovalFromShopfloor(moms.getOrderId(), "Machine stopped unexpectedly, please manally remove order from machine: "+machine.getId());						
 				break;
 			default:
 				break;					
@@ -534,7 +620,7 @@ public class OrderPlanningActor extends AbstractActor{
 			String msg = "Unable to located current machine of order: "+orderId;
 			log.warning(msg);
 			// now this is really an error as we ensure when requesting a machine that we do this only when first reserving and allocating an inputstation
-			ordMapper.markOrderFailedTransport(orderId, msg);
+			ordMapper.markOrderPrematureRemovalFromShopfloor(orderId, msg);
 			// free up destination
 			ordMapper.freeUpMachine(destination, true);
 			//TODO: if outputstation then dont need a new event, depending where the request failed, perhaps already at new machine?!
@@ -551,6 +637,14 @@ public class OrderPlanningActor extends AbstractActor{
 		String msg = "";
 		switch(resp.getResponse()) {
 		case COMPLETED:
+			ordMapper.getLastOrderState(orderId).ifPresent(state -> {
+				if (state.equals(OrderEventType.CANCELED)) { // order at new machine, remove there and reset machine
+					String msg2 = String.format("Order was canceled please remove manually from destination machine and reset destination machine");
+					log.warning(msg2);
+					ordMapper.markOrderPrematureRemovalFromShopfloor(orderId, msg2);
+				} 
+			}); // else we assume order can be rerouted to another machine later
+					
 			log.info(String.format("Transport of Order %s complete", orderId));
 			ordMapper.markOrderCompletedTransport(orderId); 
 			AkkaActorBackedCoreModelAbstractActor machine2 = resp.getOriginalRequest().getDestination();
@@ -569,6 +663,7 @@ public class OrderPlanningActor extends AbstractActor{
 		case FAILED_IN_TRANSPORT:
 			msg = String.format("Transport of Order %s failed with reason %s : %s", orderId, resp.getResponse(), resp.getMessage());
 			ordMapper.markOrderFailedTransport(orderId, msg);
+			ordMapper.markOrderPrematureRemovalFromShopfloor(orderId, msg);
 			log.warning(msg);
 			// we need to manually remove the pallet and reset the transport modules, nothing we can handle here.
 			ordMapper.freeUpMachine(resp.getOriginalRequest().getDestination(), true);
@@ -584,6 +679,7 @@ public class OrderPlanningActor extends AbstractActor{
 		case UNSUPPORTED_TRANSIT_POSITION: //fallthrough
 			msg = String.format("Transport of Order %s failed with reason %s : %s", orderId, resp.getResponse(), resp.getMessage());
 			ordMapper.markOrderDeniedTransport(orderId, msg);
+			ordMapper.markOrderPrematureRemovalFromShopfloor(orderId, msg);
 			log.warning(msg);
 			// we need to manually remove the pallet from machine and reset the machine, nothing we can handle here.
 			//deallocate destination machine from reservation
@@ -608,16 +704,21 @@ public class OrderPlanningActor extends AbstractActor{
 			// transport did not happen, request is removed, pallet still at current location, we need to reset state to paused			
 			// if order at non-stopped machine, then			
 			ordMapper.getLastOrderState(orderId).ifPresent(state -> {
-				if (state.equals(OrderEventType.REMOVED)) // order has been removed as machine stopped
-					return; // nothing to do, we already told to remove it or it has been automatically removed
+				if (state.equals(OrderEventType.CANCELED)) { // order still at machine, 
+					// we move to next outputstation when ready
+					ordMapper.getProcessesInState(OrderEventType.CANCELED).stream() //orders that need to be prematurely removed
+					.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+					return; 
+				} 
 			}); // else we assume order can be rerouted to another machine later
-			ordMapper.pauseOrder(orderId);			
+			ordMapper.pauseOrder(orderId);
+			// we wait for next machine update
 			break;
 		case ABORTED:
 			// transport was already under way, pallet needs to be removed manually from current locaton, which may be between machine and turntable
-			msg = String.format("Transport was aborted, please remove manually");
+			msg = String.format("Transport was aborted, please remove manually from turntable");
 			log.warning(msg);
-			ordMapper.markOrderRemovedFromShopfloor(orderId, msg);
+			ordMapper.markOrderPrematureRemovalFromShopfloor(orderId, msg);
 			// TODO: we could have just managed to transport way from a stopped machine, then we would not need to do this, but this needs to be handled in the transport coordinator
 			// and this would need better handling in the handleStoppedOrStoppingMachine()
 			break;

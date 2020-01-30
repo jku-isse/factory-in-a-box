@@ -22,10 +22,11 @@ public class CancelOrTerminateOrder {
 		this.rootOrderId = rootOrderId;
 	}
 
-	public CancelOrTerminateOrder(String stepId) {
+	// cancel all steps for that order, regardless of stepId
+	public CancelOrTerminateOrder(String orderId) {
 		super();
-		this.stepId = stepId;
-		this.rootOrderId = stepId;
+		this.stepId = null;
+		this.rootOrderId = orderId;
 	}	
 	
 	public CancelOrTerminateOrder(String stepId, String rootOrderId) {

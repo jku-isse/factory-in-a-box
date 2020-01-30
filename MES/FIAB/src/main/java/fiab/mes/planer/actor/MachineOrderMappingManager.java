@@ -99,6 +99,10 @@ public class MachineOrderMappingManager {
 		transitionOrder(orderId, newState, null);
 	}
 	
+	public void markOrderRejected(String orderId, String msg) {
+		transitionOrder(orderId, OrderEventType.REJECTED, msg);
+	}
+	
 	public void allocateProcess(String orderId) {
 		transitionOrder(orderId, OrderEventType.ALLOCATED);
 	}
@@ -131,6 +135,10 @@ public class MachineOrderMappingManager {
 		transitionOrder(orderId, OrderEventType.COMPLETED, msg);
 	}
 	
+	public void markOrderProducing(String orderId) {
+		transitionOrder(orderId, OrderEventType.PRODUCING);
+	}
+	
 	public void markOrderCanceled(String orderId, String msg) {
 		transitionOrder(orderId, OrderEventType.CANCELED, msg);
 	}
@@ -138,7 +146,11 @@ public class MachineOrderMappingManager {
 	public void markOrderRemovedFromShopfloor(String orderId, String msg) {
 		transitionOrder(orderId, OrderEventType.REMOVED, msg);
 	}
-		
+	
+	public void markOrderPrematureRemovalFromShopfloor(String orderId, String msg) {
+		transitionOrder(orderId, OrderEventType.PREMATURE_REMOVAL, msg);
+	}
+	
 	public void removeOrder(String orderId) {
 		orders.remove(orderId);
 	}
@@ -183,6 +195,15 @@ public class MachineOrderMappingManager {
 				.filter(mom -> mom.getOrderId() != null)
 				.filter(mom -> mom.getOrderId().contentEquals(orderId))						// will also select inputstation when first step in this order
 				.filter(mom -> mom.getAssignmentState().equals(AssignmentState.OCCUPIED) )  
+				.map(mom -> mom.getMachine())
+				.findFirst();		
+	}
+	
+	public Optional<AkkaActorBackedCoreModelAbstractActor> getRequestedMachineOfOrder(String orderId) {		
+		return moms.values().stream()
+				.filter(mom -> mom.getOrderId() != null)
+				.filter(mom -> mom.getOrderId().contentEquals(orderId))						// will also select inputstation when first step in this order
+				.filter(mom -> mom.getAssignmentState().equals(AssignmentState.REQUESTED) )  
 				.map(mom -> mom.getMachine())
 				.findFirst();		
 	}
