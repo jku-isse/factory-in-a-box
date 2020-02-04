@@ -4,34 +4,24 @@ import static akka.pattern.PatternsCS.ask;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.typesafe.sslconfig.util.PrintlnLogger;
-
-import ProcessCore.XmlRoot;
-import akka.Done;
 import akka.NotUsed;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.marshalling.sse.EventStreamMarshalling;
-import akka.http.javadsl.model.ContentTypes;
-import akka.http.javadsl.model.HttpEntity;
 import akka.http.javadsl.model.HttpHeader;
-import akka.http.javadsl.model.HttpResponse;
-import akka.http.javadsl.model.StatusCode;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.model.headers.RawHeader;
 import akka.http.javadsl.model.sse.ServerSentEvent;
@@ -39,14 +29,12 @@ import akka.http.javadsl.server.AllDirectives;
 import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.server.directives.RouteAdapter;
-import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Source;
 import akka.util.Timeout;
 import fiab.mes.auth.Authenticator;
 import fiab.mes.auth.Authenticator.Credentials;
 import fiab.mes.auth.Authenticator.User;
-import fiab.mes.auth.Authenticator.PublicUser;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -62,6 +50,7 @@ import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
 import scala.concurrent.duration.FiniteDuration;
+import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.MachineEvent;
 
 public class ActorRestEndpoint extends AllDirectives{
@@ -139,17 +128,13 @@ public class ActorRestEndpoint extends AllDirectives{
 				if (auth.isLoggedIn(token)) {
 						switch (req.getAction()) {
 							case "stop":
-								System.out.println("Stop request");
-								// TODO send stop request
+								machineEventBusByRef.tell(new GenericMachineRequests.Stop(req.getId()), null);
 								break;
 							case "reset":
-								System.out.println("Reset request");
-								// TODO send reset request
+								machineEventBusByRef.tell(new GenericMachineRequests.Reset(req.getId()), null);
 								break;
 							case "delete":
-								System.out.println("Delete request");
-								// TODO send delete request
-								// eventBusByRef.tell(new CancelOrTerminateOrder(null, req.getId()), null); //TODO replace null
+								 eventBusByRef.tell(new CancelOrTerminateOrder(null, req.getId()), null);
 								break;
 							default:
 								logger.warn("Received invalid action request with action: \""+req.getAction()+"\"");

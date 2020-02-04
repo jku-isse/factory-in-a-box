@@ -5,6 +5,7 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.general.TimedEvent;
+import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.order.msg.OrderEvent;
 
@@ -40,6 +41,14 @@ public class InterMachineEventBusWrapperActor extends AbstractActor {
 				.match(MachineEvent.class, e -> {
 					log.debug("Received Publish Event: "+e.toString() );
 					meb.publish(e);
+				})
+				.match(GenericMachineRequests.Reset.class, req -> {
+					log.info("Initiate resetting of "+req.getMachineId());
+					// TODO
+				})
+				.match(GenericMachineRequests.Stop.class, req -> {
+					log.info("Initiate stopping of "+req.getMachineId());
+					// TODO
 				})
 		.build();
 	}

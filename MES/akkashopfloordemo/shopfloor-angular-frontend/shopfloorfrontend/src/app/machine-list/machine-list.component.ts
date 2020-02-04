@@ -118,7 +118,7 @@ export class MachineListComponent implements OnInit {
           }
         },
         error => {
-          console.log(error);
+          this.openSnackBar('Error: ' + error);
         }
       );
   }

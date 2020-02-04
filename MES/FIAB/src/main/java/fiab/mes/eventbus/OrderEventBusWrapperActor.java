@@ -4,6 +4,7 @@ import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
 
 public class OrderEventBusWrapperActor extends AbstractActor {
@@ -39,6 +40,10 @@ public class OrderEventBusWrapperActor extends AbstractActor {
 				.match(OrderEvent.class, oe -> {
 					log.debug("Received Publish Event: "+oe.toString() );
 					oeb.publish(oe);
+				})
+				.match(CancelOrTerminateOrder.class, msg -> {
+					log.info("Initiate deleting of"+msg.getRootOrderId());
+					// TODO
 				})
 		.build();
 	}
