@@ -12,6 +12,7 @@ import { first } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmComponent } from '../dialog-confirm/dialog-confirm.component';
 import { DialogData, ActionRequest } from '../_models/dialog-data';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-machine-list',
@@ -35,7 +36,8 @@ export class MachineListComponent implements OnInit {
     private data: DataService,
     private authenticationService: AuthService,
     private userService: UserService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private _snackBar: MatSnackBar
   ) {
     this.currentUser = this.authenticationService.currentUserValue;
   }
@@ -105,11 +107,20 @@ export class MachineListComponent implements OnInit {
   }
 
   adminAction(machineId: string, action: string) {
-    console.log('Action not implemented!');
     const msg: DialogData = new ActionRequest(action, machineId);
-    this.userService.action(msg).subscribe(data => {
-      console.log('data', data);
-    });
+    this.userService.action(msg)
+      .subscribe(
+        resp => {
+          if (resp.status < 400) {
+            this.openSnackBar(action + ' initiated!');
+          } else {
+            this.openSnackBar('Unauthorized');
+          }
+        },
+        error => {
+          console.log(error);
+        }
+      );
   }
 
   openDialog(machineId: string, action: string): void {
@@ -122,6 +133,12 @@ export class MachineListComponent implements OnInit {
       if (result) {
         this.adminAction(machineId, action);
       }
+    });
+  }
+
+  openSnackBar(message: string) {
+    this._snackBar.open(message, 'OK', {
+      duration: 5000,
     });
   }
 
