@@ -11,6 +11,7 @@ import { User, Role } from '../_models';
 import { first } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmComponent } from '../dialog-confirm/dialog-confirm.component';
+import { DialogData, ActionRequest } from '../_models/dialog-data';
 
 @Component({
   selector: 'app-machine-list',
@@ -103,22 +104,23 @@ export class MachineListComponent implements OnInit {
     }
   }
 
-  adminAction(orderId: string) {
+  adminAction(machineId: string, action: string) {
     console.log('Action not implemented!');
-    this.userService.makeAction(orderId).pipe(first()).subscribe(data => {
+    const msg: DialogData = new ActionRequest(action, machineId);
+    this.userService.action(msg).subscribe(data => {
       console.log('data', data);
-  });
+    });
   }
 
-  openDialog(orderId: string, action: string): void {
+  openDialog(machineId: string, action: string): void {
     const dialogRef = this.dialog.open(DialogConfirmComponent, {
       width: '300px',
-      data: {action, id: orderId}
+      data: {action, id: machineId}
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.adminAction(orderId);
+        this.adminAction(machineId, action);
       }
     });
   }
