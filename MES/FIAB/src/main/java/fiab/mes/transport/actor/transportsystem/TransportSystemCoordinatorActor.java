@@ -26,6 +26,7 @@ import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatu
 import fiab.mes.transport.actor.transportsystem.TransportModuleUsageTracker.TransportModuleOrderMappingStatus;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.RoutingException;
+import fiab.mes.transport.msg.CancelTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse.ResponseType;
@@ -85,8 +86,40 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 				.match(MachineStatusUpdateEvent.class, machineEvent -> {
 					handleMachineUpdateEvent(machineEvent);
 				})
+				.match(CancelTransportRequest.class, req -> {
+					handleCancelTransportRequest(req);
+				})
 				// TODO: include transportModuleErrorEvent/Message
 				.build();
+	}
+	
+	//REFACTOR this when adding code to handle transport module error such as stopping unexpectedly
+	private void handleCancelTransportRequest(CancelTransportRequest req) {
+		// if just queued, then remove,
+		Optional<TransportModuleRequest> tmrOp = requestQueue.stream()
+			.filter(tmr -> tmr.getOrderId().equals(req.getOrderId()))
+			.findAny();
+		tmrOp.ifPresent(tmr -> { requestQueue.remove(tmr); 
+			RegisterTransportRequest rtr = queuedRequests.remove(req.getOrderId());
+			String msg = "Successfully canceled transport request "+req.getOrderId();
+			log.info(msg);
+			rtr.getRequestor().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.CANCELED ,msg), self);
+			return;
+		});
+		// otherwise the transport might have started, lets just ask to remove it manually
+		// requires stopping the transport module that will potentially deadlock waiting for a stopped machine
+		// then needs resetting after a stop
+		Optional<TransportModuleRequest> tmrOp2 = allocatedQueue.stream()
+				.filter(tmr -> tmr.getOrderId().equals(req.getOrderId()))
+				.findAny();
+			tmrOp2.ifPresent(tmr -> { 
+				allocatedQueue.remove(tmr); 
+				RegisterTransportRequest rtr = queuedRequests.remove(req.getOrderId());
+				String msg = "Aborted transport in progress, please remove order from transport system "+req.getOrderId();
+				log.warning(msg);
+				rtr.getRequestor().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.ABORTED ,msg), self);
+				return;
+			});		
 	}
 
 	private void handleMachineUpdateEvent(MachineStatusUpdateEvent machineEvent) {
@@ -100,7 +133,9 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					// if so then remove from allocatedQueue
 					String msg = String.format("Transport for OrderId %s complete", prevOR.getKey());
 					log.info(msg);
-					allocatedQueue = allocatedQueue.stream().filter(tmr -> !tmr.getOrderId().equals(prevOR.getKey())).collect(Collectors.toList()); // basically remove that entry
+					allocatedQueue = allocatedQueue.stream()
+							.filter(tmr -> !tmr.getOrderId().equals(prevOR.getKey()))
+							.collect(Collectors.toList()); // basically remove that entry
 					RegisterTransportRequest rtr = queuedRequests.remove(prevOR.getKey());
 					if (rtr != null)
 						rtr.getRequestor().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.COMPLETED ,msg), self);

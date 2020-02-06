@@ -14,6 +14,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.order.msg.RegisterProcessRequest;
@@ -62,6 +63,10 @@ public class OrderActor extends AbstractActor{
 		        .match(OrderHistoryRequest.class, req -> {
 		        	List<OrderEvent> events = req.shouldResponseIncludeDetails() ? history :	history.stream().map(event -> event.getCloneWithoutDetails()).collect(Collectors.toList());
 		        	sender().tell(new OrderHistoryRequest.Response(orderId, events, req.shouldResponseIncludeDetails()), getSelf());
+		        })
+		        .match(CancelOrTerminateOrder.class, req -> {
+		        	// forward to Planner to halt production and remove order from shopfloor
+		        	orderPlannerByRef.tell(req, getSelf());
 		        })
 		        .build();
 	}

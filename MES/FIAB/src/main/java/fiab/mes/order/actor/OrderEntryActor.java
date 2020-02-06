@@ -12,6 +12,7 @@ import akka.actor.Props;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.actor.OrderPlanningActor;
@@ -77,6 +78,16 @@ public class OrderEntryActor extends AbstractActor{
 			        })
 			        .match(OrderEvent.class, e -> {
 			        	this.latestChange.put(e.getOrderId(), e);
+			        })
+			        .match(CancelOrTerminateOrder.class, req -> {
+			        	ActorRef oa = orderActors.get(req.getRootOrderId()) ;
+			        	if (oa != null) {
+			        		log.info("Forwarding CancelOrTerminateOrder Request");
+			 				oa.forward(req, getContext());
+			        	} else {
+			        		log.info("CancelOrTerminateOrder received for nonexisting order: "+req.getRootOrderId());
+			        		sender().tell(Optional.empty(), getSelf());
+			        	}
 			        })
 			        .matchAny(o -> log.info("OrderEntryActor received Invalid message type: "+o.getClass().getSimpleName()))
 			        .build();
