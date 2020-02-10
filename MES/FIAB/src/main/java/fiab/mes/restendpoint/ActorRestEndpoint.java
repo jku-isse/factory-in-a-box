@@ -46,6 +46,7 @@ import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEventWrapper;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
+import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
@@ -65,8 +66,8 @@ public class ActorRestEndpoint extends AllDirectives{
 	Authenticator auth;
 
 	public ActorRestEndpoint(ActorSystem system, ActorRef orderEntryActor, ActorRef machineEntryActor) {
-		eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
-		machineEventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		this.eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
+		this.machineEventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		this.orderEntryActor = orderEntryActor;
 		this.machineEntryActor = machineEntryActor;
 		this.auth = new Authenticator();
@@ -128,13 +129,13 @@ public class ActorRestEndpoint extends AllDirectives{
 				if (auth.isLoggedIn(token)) {
 						switch (req.getAction()) {
 							case "stop":
-								machineEventBusByRef.tell(new GenericMachineRequests.Stop(req.getId()), null);
+								machineEntryActor.tell(new GenericMachineRequests.Stop(req.getId()), null);
 								break;
 							case "reset":
-								machineEventBusByRef.tell(new GenericMachineRequests.Reset(req.getId()), null);
+								machineEntryActor.tell(new GenericMachineRequests.Reset(req.getId()), null);
 								break;
 							case "delete":
-								 eventBusByRef.tell(new CancelOrTerminateOrder(null, req.getId()), null);
+								orderEntryActor.tell(new CancelOrTerminateOrder(null, req.getId()), null);
 								break;
 							default:
 								logger.warn("Received invalid action request with action: \""+req.getAction()+"\"");

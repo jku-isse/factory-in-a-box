@@ -41,10 +41,6 @@ public class OrderEventBusWrapperActor extends AbstractActor {
 					log.debug("Received Publish Event: "+oe.toString() );
 					oeb.publish(oe);
 				})
-				.match(CancelOrTerminateOrder.class, msg -> {
-					log.info("Initiate deleting of"+msg.getRootOrderId());
-					// TODO
-				})
 		.build();
 	}
 }
