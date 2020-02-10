@@ -17,7 +17,7 @@ import java.io.FileReader;
 import java.security.Key;
 import java.lang.reflect.Type;
 
-public class FakeAuthenticator {
+public class Authenticator {
 	
 	private List<User> users;
 	private static Key jwtKey;
@@ -27,7 +27,7 @@ public class FakeAuthenticator {
 
 
 	
-	public FakeAuthenticator() {
+	public Authenticator() {
 		jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 		gson = new Gson();
 		try {

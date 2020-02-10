@@ -30,6 +30,7 @@ import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
+import static fiab.mes.shopfloor.GlobalTransitionDelaySingelton.*;
 
 public class MockTransportAwareMachineWrapper extends AbstractActor{
 
@@ -175,7 +176,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 		setAndPublishState(MachineStatus.EXECUTE);
 		context().system()
     	.scheduler()
-    	.scheduleOnce(Duration.ofMillis(5000), 
+    	.scheduleOnce(get_PLOTTER_EXECUTE2COMPLETING(), 
     			 new Runnable() {
             @Override
             public void run() {

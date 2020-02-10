@@ -26,26 +26,26 @@ public class HttpsConfigurator {
 	public static HttpsConnectionContext useHttps(ActorSystem system) {
 		HttpsConnectionContext https = null;
 	    try {
-		  cred = gson.fromJson(new FileReader("keystore.json"), Credentials.class);
-			
-	      final KeyStore ks = KeyStore.getInstance("PKCS12");
-	      ks.load(new FileInputStream("keystore.jks"), cred.getPassword());
-
-	      final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-	      keyManagerFactory.init(ks, cred.getPassword());
-
-	      final TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-	      tmf.init(ks);
-
-	      final SSLContext sslContext = SSLContext.getInstance("TLS");
-	      sslContext.init(keyManagerFactory.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
-
-	      https = ConnectionContext.https(sslContext);
+			cred = gson.fromJson(new FileReader("keystore.json"), Credentials.class);
+				
+		    final KeyStore ks = KeyStore.getInstance("PKCS12");
+		    ks.load(new FileInputStream("keystore.jks"), cred.getPassword());
+	
+		    final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+		    keyManagerFactory.init(ks, cred.getPassword());
+	
+		    final TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+		    tmf.init(ks);
+	
+		    final SSLContext sslContext = SSLContext.getInstance("TLS");
+		    sslContext.init(keyManagerFactory.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
+	
+		    https = ConnectionContext.https(sslContext);
 
 	    } catch (NoSuchAlgorithmException | KeyManagementException e) {
-	      system.log().error("Exception while configuring HTTPS.", e);
+	    	system.log().error("Exception while configuring HTTPS.", e);
 	    } catch (CertificateException | KeyStoreException | UnrecoverableKeyException | IOException e) {
-	      system.log().error("Exception while ", e);
+	    	system.log().error("Exception while ", e);
 	    } catch(Exception e) {
 	    	e.printStackTrace();
 	    }

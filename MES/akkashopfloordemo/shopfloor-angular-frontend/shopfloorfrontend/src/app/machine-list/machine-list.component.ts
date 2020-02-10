@@ -11,6 +11,8 @@ import { User, Role } from '../_models';
 import { first } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmComponent } from '../dialog-confirm/dialog-confirm.component';
+import { DialogData, ActionRequest } from '../_models/dialog-data';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-machine-list',
@@ -34,7 +36,8 @@ export class MachineListComponent implements OnInit {
     private data: DataService,
     private authenticationService: AuthService,
     private userService: UserService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private _snackBar: MatSnackBar
   ) {
     this.currentUser = this.authenticationService.currentUserValue;
   }
@@ -103,23 +106,39 @@ export class MachineListComponent implements OnInit {
     }
   }
 
-  adminAction(orderId: string) {
-    console.log('Action not implemented!');
-    this.userService.makeAction(orderId).pipe(first()).subscribe(data => {
-      console.log('data', data);
-  });
+  adminAction(machineId: string, action: string) {
+    const msg: DialogData = new ActionRequest(action, machineId);
+    this.userService.action(msg)
+      .subscribe(
+        resp => {
+          if (resp.status < 400) {
+            this.openSnackBar(action + ' initiated!');
+          } else {
+            this.openSnackBar('Unauthorized');
+          }
+        },
+        error => {
+          this.openSnackBar('Error: ' + error);
+        }
+      );
   }
 
-  openDialog(orderId: string, action: string): void {
+  openDialog(machineId: string, action: string): void {
     const dialogRef = this.dialog.open(DialogConfirmComponent, {
       width: '300px',
-      data: {action, id: orderId}
+      data: {action, id: machineId}
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.adminAction(orderId);
+        this.adminAction(machineId, action);
       }
+    });
+  }
+
+  openSnackBar(message: string) {
+    this._snackBar.open(message, 'OK', {
+      duration: 5000,
     });
   }
 

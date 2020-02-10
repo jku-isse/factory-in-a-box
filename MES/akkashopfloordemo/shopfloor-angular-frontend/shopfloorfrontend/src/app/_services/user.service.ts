@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 
 import { environment } from '../../environment';
 import { User } from '../_models';
+import { DialogData } from '../_models/dialog-data';
+import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +22,8 @@ export class UserService {
     return this.http.get<User>(`${environment.apiUrl}/users/${id}`);
   }
 
-  makeAction(msg) {
-    return this.http.post(`${environment.apiUrl}/action`, msg);
+  action(msg: DialogData): Observable<HttpResponse<DialogData>>  {
+    return this.http.post<DialogData>(`${environment.apiUrl}/action`, msg, {observe: 'response'});
   }
+
 }

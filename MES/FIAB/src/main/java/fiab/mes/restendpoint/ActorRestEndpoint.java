@@ -4,23 +4,17 @@ import static akka.pattern.PatternsCS.ask;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.typesafe.sslconfig.util.PrintlnLogger;
-
-import ProcessCore.XmlRoot;
-import akka.Done;
 import akka.NotUsed;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -38,24 +32,26 @@ import akka.http.javadsl.server.directives.RouteAdapter;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Source;
 import akka.util.Timeout;
-import fiab.mes.auth.FakeAuthenticator;
-import fiab.mes.auth.FakeAuthenticator.Credentials;
-import fiab.mes.auth.FakeAuthenticator.User;
-import fiab.mes.auth.FakeAuthenticator.PublicUser;
+import fiab.mes.auth.Authenticator;
+import fiab.mes.auth.Authenticator.Credentials;
+import fiab.mes.auth.Authenticator.User;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.machine.msg.MachineEventWrapper;
 import fiab.mes.order.OrderProcessWrapper;
+import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEventWrapper;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
+import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
 import scala.concurrent.duration.FiniteDuration;
+import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.MachineEvent;
 
 public class ActorRestEndpoint extends AllDirectives{
@@ -67,14 +63,14 @@ public class ActorRestEndpoint extends AllDirectives{
 	ActorRef orderEntryActor;
 	ActorRef machineEntryActor;
 	
-	FakeAuthenticator auth;
+	Authenticator auth;
 
 	public ActorRestEndpoint(ActorSystem system, ActorRef orderEntryActor, ActorRef machineEntryActor) {
-		eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
-		machineEventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		this.eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
+		this.machineEventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		this.orderEntryActor = orderEntryActor;
 		this.machineEntryActor = machineEntryActor;
-		this.auth = new FakeAuthenticator();
+		this.auth = new Authenticator();
 	}
 
 	private static int bufferSize = 10;
@@ -82,7 +78,7 @@ public class ActorRestEndpoint extends AllDirectives{
 	final RawHeader acaoAll = RawHeader.create("Access-Control-Allow-Origin", "*");
 	final RawHeader acacEnable = RawHeader.create("Access-Control-Allow-Credentials", "true");
 	final RawHeader aceh = RawHeader.create("Access-Control-Expose-Headers", "*");
-	final RawHeader acah = RawHeader.create( "Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With, OPTIONS, POST, PUT, GET, DELETE");	
+	final RawHeader acah = RawHeader.create( "Access-Control-Allow-Headers", "*");	
 	final List<HttpHeader> defaultCorsHeaders = Arrays.asList(acaoAll, aceh, acacEnable, acah);
 
 	public Route createRoute() {
@@ -91,7 +87,7 @@ public class ActorRestEndpoint extends AllDirectives{
 				path("authenticate", () -> 
 					concat( optionsAuth(), postAuth() )
 				),
-				path("action", () -> 
+				path("action", () ->
 					concat( optionsAction(), postAction() )
 				),
 				path("orderevents",	() -> 
@@ -121,6 +117,37 @@ public class ActorRestEndpoint extends AllDirectives{
 			)
 		);	    			    	
 	}
+
+	private Route optionsAction() {
+		
+		return options(() -> complete("This is a OPTIONS request."));
+	}
+	
+	private Route postAction() {
+		return post(() -> entity(Jackson.unmarshaller(ActionRequest.class), req ->		
+			headerValueByName("Authorization", token -> {
+				if (auth.isLoggedIn(token)) {
+						switch (req.getAction()) {
+							case "stop":
+								machineEntryActor.tell(new GenericMachineRequests.Stop(req.getId()), null);
+								break;
+							case "reset":
+								machineEntryActor.tell(new GenericMachineRequests.Reset(req.getId()), null);
+								break;
+							case "delete":
+								orderEntryActor.tell(new CancelOrTerminateOrder(null, req.getId()), null);
+								break;
+							default:
+								logger.warn("Received invalid action request with action: \""+req.getAction()+"\"");
+						}
+					return complete(StatusCodes.ACCEPTED, req, Jackson.<ActionRequest>marshaller());
+				}
+				else {
+					return complete(StatusCodes.UNAUTHORIZED);
+				}
+			})
+		));
+	}
 	
 	private Route optionsAuth() {
 		return options(() -> complete("This is a OPTIONS request."));
@@ -139,18 +166,6 @@ public class ActorRestEndpoint extends AllDirectives{
 	            ).orElseGet(() -> complete(StatusCodes.UNAUTHORIZED, "Username or password is incorrect"))
 	        );
           }));
-	}
-	
-	private Route optionsAction() {
-		return options(() -> complete("This is a OPTIONS request."));
-	}
-	
-	private Route postAction() {
-		return post(() -> 
-			headerValueByName("Authorization", token ->
-				complete(auth.isLoggedIn(token) ? "Logged in" : "not authorized")
-			)
-		);
 	}
 
 	private RegisterProcessRequest transformToOrderProcessRequest(String xmlPayload) {
@@ -191,13 +206,18 @@ public class ActorRestEndpoint extends AllDirectives{
 	}
 	
 	private Route postOrders() {
-		return post(() ->	            
-			entity(Jackson.unmarshaller(String.class), orderAsXML -> { //TODO this needs to be an XML unmarshaller, not JSON!! 
-				final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
-				// TODO: transform XML string into Ecore model: XML
-				RegisterProcessRequest order = transformToOrderProcessRequest(orderAsXML); // not sure how to do this yet
-				CompletionStage<String> returnId = ask(orderEntryActor, order, timeout).thenApply((String.class::cast));
-				return completeOKWithFuture(returnId, Jackson.marshaller());
+		return post(() ->	  
+			headerValueByName("Authorization", token -> {
+				if (auth.isLoggedIn(token)) {
+					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { //TODO this needs to be an XML unmarshaller, not JSON!! 
+						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
+						// TODO: transform XML string into Ecore model: XML
+						RegisterProcessRequest order = transformToOrderProcessRequest(orderAsXML); // not sure how to do this yet
+						CompletionStage<String> returnId = ask(orderEntryActor, order, timeout).thenApply((String.class::cast));
+						return completeOKWithFuture(returnId, Jackson.marshaller());
+					});
+				}
+				return complete(StatusCodes.UNAUTHORIZED);
 			})
 		);
 	}
@@ -262,10 +282,15 @@ public class ActorRestEndpoint extends AllDirectives{
 	}
 	
 	private Route postMachines() {
-		return post(() ->	            
-			entity(Jackson.unmarshaller(String.class), orderAsXML -> { 
-				// TODO 
-				throw new RuntimeException("not implemented");
+		return post(() ->
+			headerValueByName("Authorization", token -> {
+				if (auth.isLoggedIn(token)) {
+					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { 
+						// TODO 
+						throw new RuntimeException("not implemented");
+					});
+				}
+				return complete(StatusCodes.UNAUTHORIZED);
 			})
 		);
 	}

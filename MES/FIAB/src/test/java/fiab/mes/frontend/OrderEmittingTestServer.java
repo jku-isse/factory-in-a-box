@@ -164,18 +164,18 @@ public class OrderEmittingTestServer {
 					ActorRef red1 = getMachineMockActor(1, "Red");
 					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineConnectedEvent.class);
 					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
+//					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
 					ActorRef blue2 = getMachineMockActor(2, "Blue");
 					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
 					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineStatusUpdateEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
+//					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
 					ActorRef green3 = getMachineMockActor(3, "Green");
 					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
 					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineStatusUpdateEvent.class);
-					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
+//					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
 					ActorRef yellow4 = getMachineMockActor(4, "Yellow");
 					expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-					expectMsgClass(Duration.ofSeconds(1), MachineStatusUpdateEvent.class);
+//					expectMsgClass(Duration.ofSeconds(1), MachineStatusUpdateEvent.class);
 					expectMsgAnyClassOf(Duration.ofSeconds(3), MachineStatusUpdateEvent.class);
 
 				    CountDownLatch count = new CountDownLatch(5);

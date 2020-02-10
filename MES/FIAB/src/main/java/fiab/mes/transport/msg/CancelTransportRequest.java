@@ -2,12 +2,13 @@
 package fiab.mes.transport.msg;
 
 public class CancelTransportRequest {
-	private String orderId;
+	protected String orderId;
 	
 	public CancelTransportRequest(String orderId) {
+		super();
 		this.orderId = orderId;
 	}
-	
+
 	public String getOrderId() {
 		return orderId;
 	}

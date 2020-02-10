@@ -11,6 +11,8 @@ import { AuthService, UserService } from '../_services';
 import { first } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmComponent } from '../dialog-confirm/dialog-confirm.component';
+import { ActionRequest, DialogData } from '../_models/dialog-data';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 
 @Component({
@@ -35,7 +37,8 @@ export class OrderListComponent implements OnInit {
     private data: DataService,
     private authenticationService: AuthService,
     private userService: UserService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private _snackBar: MatSnackBar
   ) {
     this.currentUser = this.authenticationService.currentUserValue;
   }
@@ -102,11 +105,21 @@ export class OrderListComponent implements OnInit {
     }
   }
 
-  adminAction(orderId: string) {
-    console.log('Action not implemented!');
-    this.userService.makeAction(orderId).pipe(first()).subscribe(data => {
-      console.log('User Service returned from admin action: ', data);
-    });
+  deleteOrder(orderId: string) {
+    const msg: DialogData = new ActionRequest('delete', orderId);
+    this.userService.action(msg)
+      .subscribe(
+        resp => {
+          if (resp.status < 400) {
+            this.openSnackBar('Deleting of order initiated!');
+          } else {
+            this.openSnackBar('Unauthorized');
+          }
+        },
+        error => {
+          this.openSnackBar('Error: ' + error);
+        }
+      );
   }
 
   openDialog(orderId: string): void {
@@ -117,8 +130,14 @@ export class OrderListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.adminAction(orderId);
+        this.deleteOrder(orderId);
       }
+    });
+  }
+
+  openSnackBar(message: string) {
+    this._snackBar.open(message, 'OK', {
+      duration: 5000,
     });
   }
 

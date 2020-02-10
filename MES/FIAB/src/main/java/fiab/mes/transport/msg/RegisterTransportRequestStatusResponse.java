@@ -39,9 +39,11 @@ public class RegisterTransportRequestStatusResponse extends TimedEvent{
 
 
 	public static enum ResponseType {
-		COMPLETED, //successfully executed 
+		COMPLETED, //successfully executed 		
 		QUEUED, // possible but transport modules not ready yet
-		ISSUED, // fowarded requests to individual modules
+		CANCELED, // successfully removed before being transported
+		ISSUED, // fowarded requests to individual modules,
+		ABORTED, // stopped somewhere in transite, req manual intervention
 		FAILED_IN_TRANSPORT, // transport module signal failure
 		MISSING_TRANSPORT_MODULE, UNSUPPORTED_TRANSIT_POSITION, UNSUPPORTED_ENDPOINT_POSITIONS, NO_ROUTE // not possible to transport, request not possible to execute at the moment  
 	}
