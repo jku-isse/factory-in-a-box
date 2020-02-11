@@ -19,7 +19,7 @@ public class OPCUAMockIOStationWrapper extends AbstractActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected boolean doPublishState = true;
-	protected ServerSide handshakeStatus = ServerSide.Stopped;
+	protected ServerSide handshakeStatus = ServerSide.STOPPED;
 	protected ActorRef serverSide;
 	protected ActorRef self;
 	protected boolean isInputStation = true;
@@ -58,7 +58,7 @@ public class OPCUAMockIOStationWrapper extends AbstractActor {
 					if (getSender().equals(serverSide)) {
 						handshakeStatus = msg;
 						setAndPublishState(msg);
-						if (msg.equals(ServerSide.Completed)) { //we auto reload here
+						if (msg.equals(ServerSide.COMPLETED)) { //we auto reload here
 							context().system()
 					    	.scheduler()
 					    	.scheduleOnce(Duration.ofMillis(1000), 

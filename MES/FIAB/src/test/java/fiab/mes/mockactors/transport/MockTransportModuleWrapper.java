@@ -86,7 +86,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 						log.info(String.format("ServerSide EP %s Status: %s", capId, state));
 						eps.getHandshakeEP(capId).ifPresent(leps -> {
 							((LocalServerEndpointStatus) leps).setState(state);
-							if (state.equals(ServerSide.Completing))
+							if (state.equals(ServerSide.COMPLETING))
 								handleCompletingStateUpdate(capId);
 						});
 					} else {
@@ -102,10 +102,10 @@ public class MockTransportModuleWrapper extends AbstractActor{
 						eps.getHandshakeEP(localCapId).ifPresent(leps -> {
 							((LocalClientEndpointStatus) leps).setState(state);
 							switch(state) {
-							case Completing:
+							case COMPLETING:
 								handleCompletingStateUpdate(localCapId);
 								break;
-							case Idle:
+							case IDLE:
 								getSender().tell(MockClientHandshakeActor.MessageTypes.Start, self);
 								break;
 							default:
@@ -297,7 +297,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	
 	public static class LocalServerEndpointStatus extends LocalEndpointStatus{
 		
-		private ServerSide state = ServerSide.Stopped;
+		private ServerSide state = ServerSide.STOPPED;
 		
 		public LocalServerEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
 			super(actor, isProvidedCapability, capabilityId);			
@@ -318,7 +318,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	
 	public static class LocalClientEndpointStatus extends LocalEndpointStatus{
 		
-		private ClientSide state = ClientSide.Stopped;
+		private ClientSide state = ClientSide.STOPPED;
 		
 		public LocalClientEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
 			super(actor, isProvidedCapability, capabilityId);			

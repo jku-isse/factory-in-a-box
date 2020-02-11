@@ -30,7 +30,7 @@ public class MockOutputStationServerHandshakeActor extends MockServerHandshakeAc
 	
 	@Override
 	protected void reset() {
-		publishNewState(ServerSide.Resetting);
+		publishNewState(ServerSide.RESETTING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -38,7 +38,7 @@ public class MockOutputStationServerHandshakeActor extends MockServerHandshakeAc
             @Override
             public void run() {
             	if (!isLoaded) {
-            		publishNewState(ServerSide.IdleEmpty);
+            		publishNewState(ServerSide.IDLE_EMPTY);
             	} else {
             		// stay in resetting
             	}
@@ -50,16 +50,16 @@ public class MockOutputStationServerHandshakeActor extends MockServerHandshakeAc
 	protected void updateLoadState(boolean isLoaded) {
 		if (this.isLoaded != isLoaded) {
 			this.isLoaded = isLoaded;
-			if (currentState.equals(ServerSide.Resetting)) {
+			if (currentState.equals(ServerSide.RESETTING)) {
 				reset(); // we reset again to reach IdleLoaded
-			} else if (currentState != ServerSide.Stopped) {
+			} else if (currentState != ServerSide.STOPPED) {
 				stopAndAutoReset();
 			}
 		}
 	}
 	
 	private void stopAndAutoReset() {
-		publishNewState(ServerSide.Stopping);
+		publishNewState(ServerSide.STOPPING);
 		clientSide = null;
 		context().system()
     	.scheduler()
@@ -67,7 +67,7 @@ public class MockOutputStationServerHandshakeActor extends MockServerHandshakeAc
     			 new Runnable() {
             @Override
             public void run() {
-            	publishNewState(ServerSide.Stopped);
+            	publishNewState(ServerSide.STOPPED);
             	reset();
             }
           }, context().system().dispatcher());

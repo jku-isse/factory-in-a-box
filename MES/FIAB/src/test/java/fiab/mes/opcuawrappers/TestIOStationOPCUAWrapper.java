@@ -99,7 +99,7 @@ class TestIOStationOPCUAWrapper {
 							getLastSender().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());
 					}
 					if (te instanceof IOStationStatusUpdateEvent) {
-						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSide.IdleLoaded)) {
+						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSide.IDLE_LOADED)) {
 							doRun = false;
 						}
 					}

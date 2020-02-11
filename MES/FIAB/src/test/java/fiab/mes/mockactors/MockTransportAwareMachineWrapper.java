@@ -87,14 +87,14 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 					if (getSender().equals(serverSide)) {
 						handshakeStatus = msg;
 						switch(msg) {
-						case Completed: // handshake complete, thus un/loading done
+						case COMPLETED: // handshake complete, thus un/loading done
 							if  (currentState.equals(MachineStatus.STARTING) ) { // pallet is now loaded
 								transitionStartingToExecute();
 							} else if (currentState.equals(MachineStatus.COMPLETING)) { // pallet is now unloaded
 								transitionCompletingToComplete();
 							}
 							break;
-						case Stopped: 
+						case STOPPED: 
 							if (currentState.equals(MachineStatus.STOPPING) ) //only if we wait for FU to stop
 								transitionToStop();
 							break;
@@ -142,7 +142,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
             @Override
             public void run() {
             	// only when handshakeFU and other FUs have stopped
-            	if (handshakeStatus.equals(ServerSide.Stopped)) {
+            	if (handshakeStatus.equals(ServerSide.STOPPED)) {
             		transitionToStop();
             	}
             }
@@ -165,7 +165,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
             public void run() {
             	// we only transition when the pallet is loaded, e.g., the server handshake is completing or completed,
             	//sending of the complete() command (by the here nonexisting converyerFU when loaded) --> not necessary if we set serverside protocol actor to auto-complete
-            	if (handshakeStatus.equals(ServerSide.Completed)) {
+            	if (handshakeStatus.equals(ServerSide.COMPLETED)) {
             		transitionStartingToExecute();
             	}
             }
@@ -194,7 +194,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	if (handshakeStatus.equals(ServerSide.Completed)) {
+            	if (handshakeStatus.equals(ServerSide.COMPLETED)) {
             		//only when the handshake is in completed are we good to continue, actually we only care about loadstate
             		transitionCompletingToComplete();
             	}

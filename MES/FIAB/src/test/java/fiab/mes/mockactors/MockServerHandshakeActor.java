@@ -19,7 +19,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);	
 	protected boolean isLoaded = false; //assume at bootup that no pallet is loaded
 	private ActorRef machineWrapper;
-	protected ServerSide currentState = ServerSide.Stopped;
+	protected ServerSide currentState = ServerSide.STOPPED;
 	protected ActorRef clientSide;
 	protected ActorRef self;
 	protected Set<ActorRef> subscribers = new HashSet<ActorRef>();
@@ -42,7 +42,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 					log.info(String.format("Received %s from %s", msg, getSender()));
 					switch(msg) {					
 					case Complete:
-						if (currentState.equals(ServerSide.Execute)) {
+						if (currentState.equals(ServerSide.EXECUTE)) {
 							complete();
 						}
 						break;
@@ -53,7 +53,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 						startHandover();
 						break;
 					case Reset:
-						if (currentState.equals(ServerSide.Stopped) || currentState.equals(ServerSide.Completed)) {
+						if (currentState.equals(ServerSide.STOPPED) || currentState.equals(ServerSide.COMPLETED)) {
 							reset();
 						}
 						break;
@@ -100,13 +100,13 @@ public class MockServerHandshakeActor extends AbstractActor{
 	protected void updateLoadState(boolean isLoaded) {
 		if (this.isLoaded != isLoaded) {
 			this.isLoaded = isLoaded;
-			if (currentState != ServerSide.Stopped)
+			if (currentState != ServerSide.STOPPED)
 				stop();
 		}
 	}
 	
 	protected void reset() {;
-		publishNewState(ServerSide.Resetting);
+		publishNewState(ServerSide.RESETTING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -114,17 +114,17 @@ public class MockServerHandshakeActor extends AbstractActor{
             @Override
             public void run() {
             	if (isLoaded) {
-            		publishNewState(ServerSide.IdleLoaded);
+            		publishNewState(ServerSide.IDLE_LOADED);
             	} else {
-            		publishNewState(ServerSide.IdleEmpty);
+            		publishNewState(ServerSide.IDLE_EMPTY);
             	}
             }
           }, context().system().dispatcher());
 	}	
 	
 	private void initHandover() {
-		if (currentState.equals(ServerSide.IdleEmpty) || currentState.equals(ServerSide.IdleLoaded)) {
-			publishNewState(ServerSide.Starting);
+		if (currentState.equals(ServerSide.IDLE_EMPTY) || currentState.equals(ServerSide.IDLE_LOADED)) {
+			publishNewState(ServerSide.STARTING);
 			clientSide = getSender();
 			log.info(String.format("Responding with OkResponseInitHandover to %s", getSender()));
 			clientSide.tell(MessageTypes.OkResponseInitHandover, self);
@@ -134,11 +134,11 @@ public class MockServerHandshakeActor extends AbstractActor{
 	    			 new Runnable() {
 	            @Override
 	            public void run() {
-	            	publishNewState(ServerSide.Preparing);
+	            	publishNewState(ServerSide.PREPARING);
 	            	if (isLoaded) {	            		
-	            		publishNewState(ServerSide.ReadyLoaded);
+	            		publishNewState(ServerSide.READY_LOADED);
 	            	} else {	            		
-	            		publishNewState(ServerSide.ReadyEmpty);
+	            		publishNewState(ServerSide.READY_EMPTY);
 	            	}
 	            }
 	          }, context().system().dispatcher());
@@ -150,8 +150,8 @@ public class MockServerHandshakeActor extends AbstractActor{
 	} 		
 	
 	private void  startHandover() {
-		if ((currentState.equals(ServerSide.ReadyEmpty) || currentState.equals(ServerSide.ReadyLoaded)) && getSender().equals(clientSide)) {
-			publishNewState(ServerSide.Execute);
+		if ((currentState.equals(ServerSide.READY_EMPTY) || currentState.equals(ServerSide.READY_LOADED)) && getSender().equals(clientSide)) {
+			publishNewState(ServerSide.EXECUTE);
 			log.info(String.format("Responding with OkResponseStartHandover to %s", getSender()));
 			clientSide.tell(MessageTypes.OkResponseStartHandover, self);
 		} else {
@@ -172,7 +172,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 	}
 	
 	private void complete() {
-		publishNewState(ServerSide.Completing);
+		publishNewState(ServerSide.COMPLETING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -181,14 +181,14 @@ public class MockServerHandshakeActor extends AbstractActor{
             public void run() {
             	// we toggle load flag as when we were empty now we are loaded and vice versa
             	isLoaded = !isLoaded;
-            	publishNewState(ServerSide.Completed); 
+            	publishNewState(ServerSide.COMPLETED); 
 //            	stop(); // we automatically stop --> no longer stop, just remain in complete
             }
           }, context().system().dispatcher());
 	}			
 	
 	private void stop() {
-		publishNewState(ServerSide.Stopping);
+		publishNewState(ServerSide.STOPPING);
 		clientSide = null;
 		context().system()
     	.scheduler()
@@ -196,7 +196,7 @@ public class MockServerHandshakeActor extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	publishNewState(ServerSide.Stopped);
+            	publishNewState(ServerSide.STOPPED);
             }
           }, context().system().dispatcher());
 	}	

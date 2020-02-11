@@ -50,25 +50,25 @@ public class TestClientHandshakeSide {
 					ClientSide state = expectMsgClass(Duration.ofSeconds(5), ClientSide.class);
 					logEvent(state);
 					switch(state) {
-					case Idle:
+					case IDLE:
 						clientSide.tell(MessageTypes.Start, getRef());
-						logEvent(expectMsg(Duration.ofSeconds(5), ClientSide.Starting));
+						logEvent(expectMsg(Duration.ofSeconds(5), ClientSide.STARTING));
 						logMsg(expectMsg(Duration.ofSeconds(5), MockServerHandshakeActor.MessageTypes.SubscribeToStateUpdates));
-						logEvent(expectMsg(Duration.ofSeconds(5), ClientSide.Initiating));
+						logEvent(expectMsg(Duration.ofSeconds(5), ClientSide.INITIATING));
 						// now we send our update, lets assume first we are resetting, then idle
-						clientSide.tell(ServerSide.Resetting, getRef());
-						clientSide.tell(ServerSide.IdleEmpty, getRef());
+						clientSide.tell(ServerSide.RESETTING, getRef());
+						clientSide.tell(ServerSide.IDLE_EMPTY, getRef());
 						logMsg(expectMsg(Duration.ofSeconds(5), MockServerHandshakeActor.MessageTypes.RequestInitiateHandover));
 						clientSide.tell(MockServerHandshakeActor.MessageTypes.OkResponseInitHandover, getRef());
 						break;
-					case Ready:
-						clientSide.tell(ServerSide.ReadyEmpty, getRef());
+					case READY:
+						clientSide.tell(ServerSide.READY_EMPTY, getRef());
 						logMsg(expectMsg(Duration.ofSeconds(5), MockServerHandshakeActor.MessageTypes.RequestStartHandover));
 						clientSide.tell(MockServerHandshakeActor.MessageTypes.OkResponseStartHandover, getRef());
 						break;
-					case Execute: // now we tell to complete playing the local FU
+					case EXECUTE: // now we tell to complete playing the local FU
 						clientSide.tell(MessageTypes.Complete, getRef());
-					case Completed:
+					case COMPLETED:
 						done = true; // end of the handshake cycle
 						break;
 					default:

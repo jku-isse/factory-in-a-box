@@ -78,19 +78,19 @@ public class TestServerHandshakeSide {
 					ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
 					logEvent(state);
 					switch(state) {
-					case IdleEmpty:
+					case IDLE_EMPTY:
 						serverSide.tell(MessageTypes.RequestInitiateHandover, getRef());
-						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.Starting));
+						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.STARTING));
 						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseInitHandover));
 						break;
-					case ReadyEmpty:
+					case READY_EMPTY:
 						serverSide.tell(MessageTypes.RequestStartHandover, getRef());
-						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.Execute));
+						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE));
 						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseStartHandover));
 						// here we play the FU signaling that handover is complete
 						serverSide.tell(MessageTypes.Complete, getRef());
 						break;
-					case Completed:
+					case COMPLETED:
 						done = true; // end of the handshake cycle
 						break;
 					default:
@@ -113,19 +113,19 @@ public class TestServerHandshakeSide {
 					ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
 					logEvent(state);
 					switch(state) {
-					case IdleEmpty:
+					case IDLE_EMPTY:
 						serverSide.tell(MessageTypes.RequestInitiateHandover, getRef());
-						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.Starting));
+						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.STARTING));
 						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseInitHandover));
 						break;
-					case ReadyEmpty:
+					case READY_EMPTY:
 						serverSide.tell(MessageTypes.RequestStartHandover, getRef());
-						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.Execute));
+						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE));
 						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseStartHandover));
 						// here we play the FU signaling that handover is complete
 						serverSide.tell(MessageTypes.Complete, getRef());
 						break;
-					case Completed:
+					case COMPLETED:
 						done = true; // end of the handshake cycle
 						break;
 					default:
@@ -138,19 +138,19 @@ public class TestServerHandshakeSide {
 					ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
 					logEvent(state);
 					switch(state) {
-					case IdleLoaded:
+					case IDLE_LOADED:
 						serverSide.tell(MessageTypes.RequestInitiateHandover, getRef());
-						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.Starting));
+						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.STARTING));
 						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseInitHandover));
 						break;
-					case ReadyLoaded:
+					case READY_LOADED:
 						serverSide.tell(MessageTypes.RequestStartHandover, getRef());
-						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.Execute));
+						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE));
 						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseStartHandover));
 						// here we play the FU signaling that handover is complete
 						serverSide.tell(MessageTypes.Complete, getRef());
 						break;
-					case Completed:
+					case COMPLETED:
 						done = true; // end of the handshake cycle
 						break;
 					default:

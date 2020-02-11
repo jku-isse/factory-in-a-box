@@ -32,9 +32,9 @@ import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
-class TestIOStationOPCUADiscovery {
+class Test4DIACInputStationOPCUADiscovery {
 
-	private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUADiscovery.class);
+	private static final Logger logger = LoggerFactory.getLogger(Test4DIACInputStationOPCUADiscovery.class);
 	
 //	InterMachineEventBus intraEventBus;
 //	AbstractCapability capability;
@@ -53,13 +53,13 @@ class TestIOStationOPCUADiscovery {
 	}
 
 	@Test
-	void testDiscoveryIntegration() {
+	void testDiscovery() {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://localhost:4840/";
+				String endpointURL = "opc.tcp://192.168.0.42:4840/";
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
@@ -92,58 +92,7 @@ class TestIOStationOPCUADiscovery {
 			}};
 	}
 	
-	@Test
-	void testDiscoveryIntegrationInputAndOutputStation() {
-		new TestKit(system) { 
-			{ 
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
-				// setup discoveryactor
-				String endpointURL = "opc.tcp://localhost:4840/milo";
-				String endpointURL2 = "opc.tcp://localhost:4841/milo";
-				
-				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
-					@Override
-					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
-					}
-				});
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
-					@Override
-					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
-					}
-				});
-				ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-				discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(endpointURL, capURI2Spawning), getRef());
-				ActorRef discovAct2 = system.actorOf(CapabilityDiscoveryActor.props());
-				discovAct2.tell(new CapabilityDiscoveryActor.BrowseRequest(endpointURL2, capURI2Spawning), getRef());
-				
-				//boolean doRun = true;
-				int countIdle = 0;
-				int countConnEvents = 0;
-				while (countConnEvents < 2 || countIdle < 2) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
-					logEvent(te);
-					if (te instanceof MachineConnectedEvent) {
-						countConnEvents++; 
-					}
-					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
-							getLastSender().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());
-					}
-					if (te instanceof IOStationStatusUpdateEvent) {
-						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSide.IDLE_LOADED)) {
-							countIdle++;
-						}
-						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSide.IDLE_EMPTY)) {
-							countIdle++;
-						}
-					}
-				}
-			}};
-	}
+	
 	
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());

@@ -37,7 +37,7 @@ public class BasicIOStationActor extends AbstractActor {
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machineId;
 	protected AbstractCapability cap;
-	protected HandshakeProtocol.ServerSide currentState = ServerSide.Unknown;
+	protected HandshakeProtocol.ServerSide currentState = ServerSide.UNKNOWN;
 	protected IOStationWrapperInterface hal;
 	protected InterMachineEventBus intraBus;
 	protected boolean doAutoReset = true;
@@ -72,15 +72,15 @@ public class BasicIOStationActor extends AbstractActor {
 		.match(RegisterProcessStepRequest.class, registerReq -> {
         	orders.add(registerReq);
         	log.info(String.format("Order %s registered.", registerReq.getRootOrderId()));
-        	if ((currentState == ServerSide.IdleEmpty && isOutputStation) || 
-        			(currentState == ServerSide.IdleLoaded && isInputStation)) {
+        	if ((currentState == ServerSide.IDLE_EMPTY && isOutputStation) || 
+        			(currentState == ServerSide.IDLE_LOADED && isInputStation)) {
         		triggerNextQueuedOrder();
         	}
         } )
         .match(LockForOrder.class, lockReq -> {
         	log.info("received LockForOrder msg "+lockReq.getStepId()+", current state: "+currentState);
-        	if ((currentState == ServerSide.IdleEmpty && isOutputStation) || 
-        			(currentState == ServerSide.IdleLoaded && isInputStation)) {
+        	if ((currentState == ServerSide.IDLE_EMPTY && isOutputStation) || 
+        			(currentState == ServerSide.IDLE_LOADED && isInputStation)) {
         		// we are still in the right state, now we provide/receive the reserved order
         		// nothing to be done here
         	} else {
@@ -92,14 +92,14 @@ public class BasicIOStationActor extends AbstractActor {
         })
         .match(Stop.class, req -> {
         	log.info(String.format("IOStation %s received StopRequest", machineId.getId()));
-        	setAndPublishSensedState(ServerSide.Stopping);
+        	setAndPublishSensedState(ServerSide.STOPPING);
         	hal.stop();
         })
         .match(Reset.class, req -> {
-        	if (currentState.equals(ServerSide.Completed) 
-        			|| currentState.equals(ServerSide.Stopped) ) {
+        	if (currentState.equals(ServerSide.COMPLETED) 
+        			|| currentState.equals(ServerSide.STOPPED) ) {
         		log.info(String.format("IOStation %s received ResetRequest in suitable state", machineId.getId()));
-        		setAndPublishSensedState(ServerSide.Resetting); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
+        		setAndPublishSensedState(ServerSide.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
         		hal.reset();
         	} else {
         		log.warning(String.format("IOStation %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
@@ -144,21 +144,21 @@ public class BasicIOStationActor extends AbstractActor {
 			ServerSide newState = mue.getStatus();
 			setAndPublishSensedState(newState);
 			switch(newState) {
-			case IdleEmpty:
+			case IDLE_EMPTY:
 				if (isOutputStation) { // ready to receive pallet as an outputstation
 					triggerNextQueuedOrder();
 		    	}
 				break;
-			case IdleLoaded:
+			case IDLE_LOADED:
 				if (isInputStation) { // ready to provide pallet as an inputstation
 					triggerNextQueuedOrder();
 		    	}	
 				break;
-			case Stopped:
+			case STOPPED:
 				if (doAutoReset)
 					reset();
 				break;
-			case Completed:
+			case COMPLETED:
 				reset(); //we automatically reset, might be done also by station itself, but we need to clean state here as well
 				break;
 			default:

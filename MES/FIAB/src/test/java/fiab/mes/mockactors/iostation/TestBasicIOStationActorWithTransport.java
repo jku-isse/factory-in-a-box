@@ -80,7 +80,7 @@ public class TestBasicIOStationActorWithTransport {
 				while (doRun) {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
-					if (mue.getStatus().equals(ServerSide.IdleLoaded)) {
+					if (mue.getStatus().equals(ServerSide.IDLE_LOADED)) {
 						doRun = false;
 					}
 				}
@@ -102,7 +102,7 @@ public class TestBasicIOStationActorWithTransport {
 				while (doRun) {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
-					if (mue.getStatus().equals(ServerSide.IdleEmpty)) {
+					if (mue.getStatus().equals(ServerSide.IDLE_EMPTY)) {
 						doRun = false;
 					}
 				}

@@ -6,13 +6,13 @@ import fiab.mes.general.ComparableCapability;
 public class HandshakeProtocol {
 
 	public enum ServerSide {
-		Unknown,Stopping, Stopped, Resetting, IdleLoaded, IdleEmpty, Starting, Preparing, ReadyLoaded, ReadyEmpty, Execute, Completing, Completed
+		UNKNOWN,STOPPING, STOPPED, RESETTING, IDLE_LOADED, IDLE_EMPTY, STARTING, PREPARING, READY_LOADED, READY_EMPTY, EXECUTE, COMPLETING, COMPLETED
 	}
 	
 	public static final String STATE_SERVERSIDE_VAR_NAME = "HANDSHAKE_SERVERSIDE_STATE";
 	
 	public enum ClientSide {
-		Stopping, Stopped, Resetting, Idle, Starting, Initiating, Initiated, Ready, Execute, Completing, Completed
+		STOPPING, STOPPED, RESETTING, IDLE, STARTING, INITIATING, INITIATED, READY, EXECUTE, COMPLETING, COMPLETED
 	}
 	
 	public static final String STATE_CLIENTSIDE_VAR_NAME = "HANDSHAKE_CLIENTSIDE_STATE";

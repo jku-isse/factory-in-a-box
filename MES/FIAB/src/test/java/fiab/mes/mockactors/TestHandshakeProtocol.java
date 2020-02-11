@@ -55,16 +55,16 @@ public class TestHandshakeProtocol {
 				while (!(serverDone && clientDone)) {
 					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), ClientSide.class, ServerSide.class);
 					logEvent(msg, getLastSender());
-					if (msg.equals(ClientSide.Idle)) {
+					if (msg.equals(ClientSide.IDLE)) {
 						clientSide.tell(MockClientHandshakeActor.MessageTypes.Start, getRef());
 					}
-					if (msg.equals(ServerSide.Execute)) {
+					if (msg.equals(ServerSide.EXECUTE)) {
 						serverSide.tell(MockServerHandshakeActor.MessageTypes.Complete, getRef());
 					}
-					if (msg.equals(ServerSide.Completed)) {
+					if (msg.equals(ServerSide.COMPLETED)) {
 						serverDone = true;
 					}
-					if (msg.equals(ClientSide.Completed)) {
+					if (msg.equals(ClientSide.COMPLETED)) {
 						clientDone = true;
 					}
 				}				

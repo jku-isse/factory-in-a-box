@@ -103,14 +103,14 @@ public class TestBasicMachineActorWithTransport {
 						while (!handshakeDone) {
 							ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
 							switch(state) {
-							case IdleEmpty:
+							case IDLE_EMPTY:
 								serverSide.tell(MockServerHandshakeActor.MessageTypes.RequestInitiateHandover, getRef());
-								expectMsg(Duration.ofSeconds(5), ServerSide.Starting);
+								expectMsg(Duration.ofSeconds(5), ServerSide.STARTING);
 								expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseInitHandover);
 								break;
-							case ReadyEmpty:
+							case READY_EMPTY:
 								serverSide.tell(MessageTypes.RequestStartHandover, getRef());
-								expectMsg(Duration.ofSeconds(5), ServerSide.Execute);
+								expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE);
 								expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseStartHandover);
 								serverSide.tell(MockServerHandshakeActor.MessageTypes.UnsubscribeToStateUpdates, getRef()); //otherwise the handshake events interfere with other expected events
 								handshakeDone = true; // part until where we need to be involved, thanks to autocomplete

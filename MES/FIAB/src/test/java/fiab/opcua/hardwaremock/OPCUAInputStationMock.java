@@ -142,7 +142,7 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 				new String("DefaultHandshakeServerSide"));
 		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesWellknownBrowsenames.ROLE,
 				new String(OPCUACapabilitiesWellknownBrowsenames.ROLE_VALUE_PROVIDED));
-		status = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_STATE_VAR, ServerSide.Stopped); //init right
+		status = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_STATE_VAR, ServerSide.STOPPED); //init right
 	}
 
 	

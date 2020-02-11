@@ -149,10 +149,15 @@ public class IOStationOPCUAWrapper implements IOStationWrapperInterface {
 		if( value.getValue().isNotNull() ) {
 			String stateAsString = value.getValue().getValue().toString();
 			System.out.println(stateAsString);
-			ServerSide state = ServerSide.valueOf(stateAsString);
-			if (this.intraMachineBus != null) {
-				intraMachineBus.publish(new IOStationStatusUpdateEvent("", "OPCUA State Endpoint has new State", state));
+			try {
+				ServerSide state = ServerSide.valueOf(stateAsString);
+				if (this.intraMachineBus != null) {
+					intraMachineBus.publish(new IOStationStatusUpdateEvent("", "OPCUA State Endpoint has new State", state));
+				}
+			} catch (java.lang.IllegalArgumentException e) {
+				logger.error("Received Unknown State: "+e.getMessage());
 			}
+			
 		}
 	}
 
