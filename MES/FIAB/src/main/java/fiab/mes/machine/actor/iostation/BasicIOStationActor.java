@@ -3,6 +3,8 @@ package fiab.mes.machine.actor.iostation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.AbstractActor;
@@ -24,6 +26,7 @@ import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.machine.msg.GenericMachineRequests.Reset;
 import fiab.mes.machine.msg.GenericMachineRequests.Stop;
+import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
@@ -87,6 +90,10 @@ public class BasicIOStationActor extends AbstractActor {
         		log.warning("Received lock for order in state: "+currentState);
         	}
         })
+        .match(CancelOrTerminateOrder.class, cto -> {
+        	log.info(String.format("IOStation %s received CancelOrTerminateOrder request for %s", machineId.getId(), cto.getRootOrderId()));
+        	handleOrderCancelRequest(cto);
+        })
         .match(IOStationStatusUpdateEvent.class, mue -> {
         	processIOStationStatusUpdateEvent(mue);
         })
@@ -96,7 +103,7 @@ public class BasicIOStationActor extends AbstractActor {
         	hal.stop();
         })
         .match(Reset.class, req -> {
-        	if (currentState.equals(ServerSide.COMPLETED) 
+        	if (currentState.equals(ServerSide.COMPLETE) 
         			|| currentState.equals(ServerSide.STOPPED) ) {
         		log.info(String.format("IOStation %s received ResetRequest in suitable state", machineId.getId()));
         		setAndPublishSensedState(ServerSide.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
@@ -111,6 +118,7 @@ public class BasicIOStationActor extends AbstractActor {
         })
         .build();
 	}
+
 
 	private void init() {
 		if (this.cap.equals(HandshakeProtocol.getInputStationCapability())) {
@@ -158,7 +166,7 @@ public class BasicIOStationActor extends AbstractActor {
 				if (doAutoReset)
 					reset();
 				break;
-			case COMPLETED:
+			case COMPLETE:
 				reset(); //we automatically reset, might be done also by station itself, but we need to clean state here as well
 				break;
 			default:
@@ -167,6 +175,27 @@ public class BasicIOStationActor extends AbstractActor {
 			}
 		}
 	}
+	
+	private void handleOrderCancelRequest(CancelOrTerminateOrder cto) {
+		// if in orders, just remove, 
+		Optional<RegisterProcessStepRequest> req = orders.stream()
+			.filter(rpsr -> rpsr.getRootOrderId().equals(cto.getRootOrderId()))
+			.findAny();
+		req.ifPresent(r -> { orders.remove(r); });
+		// if current order
+		if (reservedForOrder != null && reservedForOrder.getRootOrderId().equals(cto.getRootOrderId())) {
+			switch(currentState) {
+			case IDLE_EMPTY: //falltrough
+			case IDLE_LOADED: // cancel by stopping and autoresetting 
+				setAndPublishSensedState(ServerSide.STOPPING);
+				hal.stop();
+				break;
+			default: // finish handshake, or just remain in whatever state otherwise, stopping, etc, 
+			}
+			 
+		}
+	}
+
 	
 	private void triggerNextQueuedOrder() {
 		if ( !orders.isEmpty() && reservedForOrder == null) { 

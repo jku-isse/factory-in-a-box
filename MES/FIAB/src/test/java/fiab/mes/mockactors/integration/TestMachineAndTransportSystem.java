@@ -39,7 +39,6 @@ import fiab.mes.mockactors.MockServerHandshakeActor;
 import fiab.mes.mockactors.MockTransportAwareMachineWrapper;
 import fiab.mes.mockactors.TestBasicMachineActorWithTransport;
 import fiab.mes.mockactors.TestMockMachineActor;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.mockactors.iostation.MockIOStationFactory;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
@@ -59,6 +58,7 @@ import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 

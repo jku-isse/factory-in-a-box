@@ -1,4 +1,4 @@
-package fiab.opcua.hardwaremock;
+package fiab.opcua.hardwaremock.iostation;
 
 import java.time.Duration;
 
@@ -9,11 +9,13 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.mockactors.MockServerHandshakeActor.StateOverrideRequests;
 import fiab.mes.mockactors.iostation.MockInputStationServerHandshakeActor;
 import fiab.mes.mockactors.iostation.MockOutputStationServerHandshakeActor;
+import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.opcua.hardwaremock.StatePublisher;
 
 public class OPCUAMockIOStationWrapper extends AbstractActor {
 
@@ -44,21 +46,22 @@ public class OPCUAMockIOStationWrapper extends AbstractActor {
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(MessageTypes.class, msg -> {
+				.match(HandshakeProtocol.ServerMessageTypes.class, msg -> {
 					switch(msg) {
 					case SubscribeToStateUpdates: 
 						doPublishState = true;
 						//setAndPublishState(handshakeStatus); //we publish the current state
-						//fallthrough
+						serverSide.tell(msg, self); //we subscribe to iostationserverhandshake
+						break;
 					default:
-						serverSide.tell(msg, self); //forward to iostationserverhandshake
+						serverSide.forward(msg, getContext()); //but everything else is forward to iostationserverhandshake
 					}
 				})
 				.match(ServerSide.class, msg -> { // state event updates from handshake, pass upward
 					if (getSender().equals(serverSide)) {
 						handshakeStatus = msg;
 						setAndPublishState(msg);
-						if (msg.equals(ServerSide.COMPLETED)) { //we auto reload here
+						if (msg.equals(ServerSide.COMPLETE)) { //we auto reload here
 							context().system()
 					    	.scheduler()
 					    	.scheduleOnce(Duration.ofMillis(1000), 

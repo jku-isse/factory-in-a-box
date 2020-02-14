@@ -6,8 +6,10 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.opcua.hardwaremock.StatePublisher;
 
 
 public class MockClientHandshakeActor extends AbstractActor{
@@ -19,8 +21,14 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private ServerSide remoteState = null;
 	private ActorRef self;
 	
+	private StatePublisher publishEP;
+	
 	static public Props props(ActorRef machineWrapper, ActorRef serverSide) {	    
 		return Props.create(MockClientHandshakeActor.class, () -> new MockClientHandshakeActor(machineWrapper, serverSide));
+	}
+	
+	static public Props props(ActorRef machineWrapper, ActorRef serverSide, StatePublisher publishEP) {	    
+		return Props.create(MockClientHandshakeActor.class, () -> new MockClientHandshakeActor(machineWrapper, serverSide, publishEP));
 	}
 	
 	public MockClientHandshakeActor(ActorRef machineWrapper, ActorRef serverSide) {
@@ -29,10 +37,17 @@ public class MockClientHandshakeActor extends AbstractActor{
 		this.self = getSelf();
 	}
 	
+	public MockClientHandshakeActor(ActorRef machineWrapper, ActorRef serverSide, StatePublisher publishEP) {
+		this.machineWrapper = machineWrapper;
+		this.serverSide = serverSide;
+		this.publishEP = publishEP;
+		this.self = getSelf();
+	}
+	
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(MessageTypes.class, msg -> { // commands from parent FU
+				.match(HandshakeProtocol.ClientMessageTypes.class, msg -> { // commands from parent FU
 					switch(msg) {					
 					case Reset:
 						reset(); // prepare for next round
@@ -50,7 +65,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 						break;
 					}
 				})
-				.match(MockServerHandshakeActor.MessageTypes.class , resp -> { // responses to requests
+				.match(HandshakeProtocol.ServerMessageTypes.class , resp -> { // responses to requests
 					switch(resp) {				
 					case NotOkResponseInitHandover:
 						stop();
@@ -79,7 +94,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 							if (currentState.equals(ClientSide.STARTING) || currentState.equals(ClientSide.INITIATING))
 							requestInitiateHandover();
 							break;
-						case COMPLETED: //fallthrough, if serverside is done, we can do the same 
+						case COMPLETE: //fallthrough, if serverside is done, we can do the same 
 						case COMPLETING:
 							// onlfy if in executing
 							if (currentState.equals(ClientSide.EXECUTE))
@@ -117,7 +132,9 @@ public class MockClientHandshakeActor extends AbstractActor{
 
 	private void publishNewState(ClientSide newState) {
 		currentState = newState;
-		machineWrapper.tell(newState, getSelf());		
+		machineWrapper.tell(newState, getSelf());	
+		if (publishEP != null)
+			publishEP.setStatusValue(newState.toString());
 	}
 	
 	private void reset() {
@@ -148,7 +165,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private void start() {
 		if (currentState.equals(ClientSide.IDLE)) {
 			publishNewState(ClientSide.STARTING);
-			serverSide.tell(MockServerHandshakeActor.MessageTypes.SubscribeToStateUpdates, getSelf()); //subscribe for updates
+			serverSide.tell(HandshakeProtocol.ServerMessageTypes.SubscribeToStateUpdates, getSelf()); //subscribe for updates
 			publishNewState(ClientSide.INITIATING);
 		} else {
 			log.warning("was requested invalid command 'Start' in state: "+currentState); 
@@ -156,10 +173,27 @@ public class MockClientHandshakeActor extends AbstractActor{
 	} 		
 	
 	private void requestInitiateHandover() {
-		getSender().tell(MockServerHandshakeActor.MessageTypes.RequestInitiateHandover, self);
+		getSender().tell(HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover, self);
+		retryInit();
 	}
 	
-	private void receiveInitiateOkResponse() {
+	private void retryInit() {
+		context().system()
+    	.scheduler()
+    	.scheduleOnce(Duration.ofMillis(5000), 
+    			 new Runnable() {
+            @Override
+            public void run() {
+            	// if still waiting:
+            	if (currentState.equals(ClientSide.INITIATING)) {
+            		log.info("Retrying to send InitiateHandover");
+            		requestInitiateHandover();
+            	}            		            	
+            }
+          }, context().system().dispatcher());
+	}
+	
+	private void receiveInitiateOkResponse() {		
 		publishNewState(ClientSide.INITIATED);
 		context().system()
     	.scheduler()
@@ -183,11 +217,30 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private void  requestStartHandover() {
 		if (currentState.equals(ClientSide.READY) ) {	
 			log.info(String.format("Requesting StartHandover from remote %s", serverSide));
-			serverSide.tell(MockServerHandshakeActor.MessageTypes.RequestStartHandover, self);
+			serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestStartHandover, self);
+			retryStartHandover();
 		} else {
 			log.warning("was requested invalid command 'StartHandover' in state: "+currentState); 
 		}				
 	}
+	
+	private void retryStartHandover() {		
+			context().system()
+	    	.scheduler()
+	    	.scheduleOnce(Duration.ofMillis(3000), 
+	    			 new Runnable() {
+	            @Override
+	            public void run() {
+	            	// if still Ready:
+	            	if (currentState.equals(ClientSide.READY)) {	            			            		
+	            		log.info("Retrying to send StartHandover");
+	            		requestStartHandover();
+	            	}            		            	
+	            }
+	          }, context().system().dispatcher());		
+	}
+	
+	
 	
 	private void receiveStartOkResponse() {
 		publishNewState(ClientSide.EXECUTE);
@@ -195,6 +248,9 @@ public class MockClientHandshakeActor extends AbstractActor{
 	
 	private void complete() {
 		publishNewState(ClientSide.COMPLETING);
+		if (serverSide != null) {
+			serverSide.tell(HandshakeProtocol.ServerMessageTypes.UnsubscribeToStateUpdates, self);
+		}
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -202,7 +258,6 @@ public class MockClientHandshakeActor extends AbstractActor{
             @Override
             public void run() {
             	publishNewState(ClientSide.COMPLETED); 
-            	//stop(); // we automatically stop --> we no longer stop but remain in completed, reactiving via reset()
             }
           }, context().system().dispatcher());
 	}			
@@ -210,7 +265,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private void stop() {
 		publishNewState(ClientSide.STOPPING);
 		if (serverSide != null) {
-			serverSide.tell(MockServerHandshakeActor.MessageTypes.UnsubscribeToStateUpdates, self);
+			serverSide.tell(HandshakeProtocol.ServerMessageTypes.UnsubscribeToStateUpdates, self);
 		}
 		context().system()
     	.scheduler()
@@ -221,9 +276,5 @@ public class MockClientHandshakeActor extends AbstractActor{
             	publishNewState(ClientSide.STOPPED);
             }
           }, context().system().dispatcher());
-	}	
-	
-	public static enum MessageTypes {
-		Reset, Stop, Start, Complete
 	}
 }

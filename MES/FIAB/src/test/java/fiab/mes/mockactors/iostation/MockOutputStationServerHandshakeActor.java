@@ -16,7 +16,7 @@ public class MockOutputStationServerHandshakeActor extends MockServerHandshakeAc
 	}
 	
 	public MockOutputStationServerHandshakeActor() {
-		super(null, true);
+		super(null, true, null);
 	}
 	
 	@Override
@@ -60,7 +60,7 @@ public class MockOutputStationServerHandshakeActor extends MockServerHandshakeAc
 	
 	private void stopAndAutoReset() {
 		publishNewState(ServerSide.STOPPING);
-		clientSide = null;
+		//clientSide = null;
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 

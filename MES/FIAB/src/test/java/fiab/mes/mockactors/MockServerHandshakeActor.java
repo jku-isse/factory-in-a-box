@@ -11,7 +11,9 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.opcua.hardwaremock.StatePublisher;
 
 
 public class MockServerHandshakeActor extends AbstractActor{
@@ -20,25 +22,31 @@ public class MockServerHandshakeActor extends AbstractActor{
 	protected boolean isLoaded = false; //assume at bootup that no pallet is loaded
 	private ActorRef machineWrapper;
 	protected ServerSide currentState = ServerSide.STOPPED;
-	protected ActorRef clientSide;
+	//protected ActorRef clientSide;
 	protected ActorRef self;
 	protected Set<ActorRef> subscribers = new HashSet<ActorRef>();
 	protected boolean doAutoComplete = false;
+	protected StatePublisher publishEP;
 	
 	static public Props props(ActorRef machineWrapper, boolean doAutoComplete) {	    
-		return Props.create(MockServerHandshakeActor.class, () -> new MockServerHandshakeActor(machineWrapper, doAutoComplete));
+		return Props.create(MockServerHandshakeActor.class, () -> new MockServerHandshakeActor(machineWrapper, doAutoComplete, null));
 	}
 	
-	public MockServerHandshakeActor(ActorRef machineWrapper, boolean doAutoComplete) {
+	static public Props props(ActorRef machineWrapper, boolean doAutoComplete, StatePublisher publishEP) {	    
+		return Props.create(MockServerHandshakeActor.class, () -> new MockServerHandshakeActor(machineWrapper, doAutoComplete, publishEP));
+	}
+	
+	public MockServerHandshakeActor(ActorRef machineWrapper, boolean doAutoComplete, StatePublisher publishEP) {
 		this.machineWrapper = machineWrapper;
 		this.doAutoComplete = doAutoComplete;
+		this.publishEP = publishEP;
 		self = getSelf();
 	}
 	
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(MessageTypes.class, msg -> {
+				.match(HandshakeProtocol.ServerMessageTypes.class, msg -> {
 					log.info(String.format("Received %s from %s", msg, getSender()));
 					switch(msg) {					
 					case Complete:
@@ -53,7 +61,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 						startHandover();
 						break;
 					case Reset:
-						if (currentState.equals(ServerSide.STOPPED) || currentState.equals(ServerSide.COMPLETED)) {
+						if (currentState.equals(ServerSide.STOPPED) || currentState.equals(ServerSide.COMPLETE)) {
 							reset();
 						}
 						break;
@@ -94,6 +102,9 @@ public class MockServerHandshakeActor extends AbstractActor{
 		if (machineWrapper != null) {
 			machineWrapper.tell(newState, self);
 		}
+		if (publishEP != null) {
+			publishEP.setStatusValue(newState.toString());
+		}
 		ImmutableSet.copyOf(subscribers).stream().forEach(sub -> sub.tell(newState, self));
 	}
 	
@@ -124,10 +135,9 @@ public class MockServerHandshakeActor extends AbstractActor{
 	
 	private void initHandover() {
 		if (currentState.equals(ServerSide.IDLE_EMPTY) || currentState.equals(ServerSide.IDLE_LOADED)) {
-			publishNewState(ServerSide.STARTING);
-			clientSide = getSender();
+			publishNewState(ServerSide.STARTING);			
 			log.info(String.format("Responding with OkResponseInitHandover to %s", getSender()));
-			clientSide.tell(MessageTypes.OkResponseInitHandover, self);
+			getSender().tell(HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover, self);
 			context().system()
 	    	.scheduler()
 	    	.scheduleOnce(Duration.ofMillis(200), 
@@ -142,21 +152,25 @@ public class MockServerHandshakeActor extends AbstractActor{
 	            	}
 	            }
 	          }, context().system().dispatcher());
+		} else if (currentState.equals(ServerSide.READY_EMPTY) || currentState.equals(ServerSide.READY_LOADED)){
+			getSender().tell(HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover, self); // resending
 		} else {
 			log.warning(String.format("Responding with NotOkResponseInitHandover to %s in state %s", getSender(), currentState));
-			getSender().tell(MessageTypes.NotOkResponseInitHandover, self);
+			getSender().tell(HandshakeProtocol.ServerMessageTypes.NotOkResponseInitHandover, self);
 		}
 		
 	} 		
 	
 	private void  startHandover() {
-		if ((currentState.equals(ServerSide.READY_EMPTY) || currentState.equals(ServerSide.READY_LOADED)) && getSender().equals(clientSide)) {
+		if ((currentState.equals(ServerSide.READY_EMPTY) || currentState.equals(ServerSide.READY_LOADED))) {
 			publishNewState(ServerSide.EXECUTE);
 			log.info(String.format("Responding with OkResponseStartHandover to %s", getSender()));
-			clientSide.tell(MessageTypes.OkResponseStartHandover, self);
+			getSender().tell(HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover, self);
+		} else if ( currentState.equals(ServerSide.EXECUTE) ){ //resending
+			getSender().tell(HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover, self);
 		} else {
 			log.warning(String.format("Responding with NotOkResponseStartHandover to %s in state %s", getSender(), currentState));
-			clientSide.tell(MessageTypes.NotOkResponseStartHandover, self);
+			getSender().tell(HandshakeProtocol.ServerMessageTypes.NotOkResponseStartHandover, self);
 		}	
 		if (doAutoComplete) {
 			context().system()
@@ -181,7 +195,7 @@ public class MockServerHandshakeActor extends AbstractActor{
             public void run() {
             	// we toggle load flag as when we were empty now we are loaded and vice versa
             	isLoaded = !isLoaded;
-            	publishNewState(ServerSide.COMPLETED); 
+            	publishNewState(ServerSide.COMPLETE); 
 //            	stop(); // we automatically stop --> no longer stop, just remain in complete
             }
           }, context().system().dispatcher());
@@ -189,7 +203,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 	
 	private void stop() {
 		publishNewState(ServerSide.STOPPING);
-		clientSide = null;
+		//clientSide = null;
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -200,12 +214,6 @@ public class MockServerHandshakeActor extends AbstractActor{
             }
           }, context().system().dispatcher());
 	}	
-	
-	public static enum MessageTypes {
-		Reset, Stop, RequestInitiateHandover, OkResponseInitHandover, NotOkResponseInitHandover, 
-		RequestStartHandover, OkResponseStartHandover, NotOkResponseStartHandover, Complete, 
-		SubscribeToStateUpdates, UnsubscribeToStateUpdates 
-	}
 	
 	public static enum StateOverrideRequests {
 		SetLoaded, SetEmpty

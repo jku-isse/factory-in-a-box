@@ -20,7 +20,7 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
 	}
 	
 	public MockInputStationServerHandshakeActor() {
-		super(null, true);
+		super(null, true, null);
 	}
 
 	// we accept the usual request but we implement an auto reset, except for an initial reset to become active
@@ -44,7 +44,7 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
           }, context().system().dispatcher());
 	}
 	
-	private Set<ServerSide> loadChangeableStates = Sets.newHashSet(ServerSide.COMPLETED, ServerSide.COMPLETING, ServerSide.STOPPED, ServerSide.STOPPING);
+	private Set<ServerSide> loadChangeableStates = Sets.newHashSet(ServerSide.COMPLETE, ServerSide.COMPLETING, ServerSide.STOPPED, ServerSide.STOPPING);
 	
 	@Override
 	protected void updateLoadState(boolean isLoaded) {
@@ -62,7 +62,7 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
 	private void stopAndAutoReset() {
 		
 		publishNewState(ServerSide.STOPPING);
-		clientSide = null;
+		//clientSide = null;
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 

@@ -29,12 +29,14 @@ import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.opcua.CapabilityImplementationMetadata;
 import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
+import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
+import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
 import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
-class Test4DIACInputStationOPCUADiscovery {
+class TestTurntableOPCUADiscovery {
 
-	private static final Logger logger = LoggerFactory.getLogger(Test4DIACInputStationOPCUADiscovery.class);
+	private static final Logger logger = LoggerFactory.getLogger(TestTurntableOPCUADiscovery.class);
 	
 //	InterMachineEventBus intraEventBus;
 //	AbstractCapability capability;
@@ -53,19 +55,19 @@ class Test4DIACInputStationOPCUADiscovery {
 	}
 
 	@Test
-	void testDiscovery() {
+	void testDiscoveryIntegration() {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://192.168.0.42:4840/";
+				String endpointURL = "opc.tcp://localhost:4843/";
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownTransportModuleCapability.TURNTABLE_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
+						return context.actorOf(LocalTransportModuleActorSpawner.props());
 					}
 				});
 				ActorRef discovAct = system.actorOf(CapabilityDiscoveryActor.props());
@@ -80,14 +82,14 @@ class Test4DIACInputStationOPCUADiscovery {
 						countConnEvents++; 
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
-							getLastSender().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());
-					}
-					if (te instanceof IOStationStatusUpdateEvent) {
-						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSide.IDLE_LOADED)) {
-							doRun = false;
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) { 							
+							ActorSelection tt1 = system.actorSelection("/user/$a/$a/Turntable_FU20");
+							tt1.tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());							
 						}
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.IDLE))
+							doRun = false;
 					}
+
 				}
 			}};
 	}

@@ -31,13 +31,14 @@ import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
+import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.ReadyForProcessEvent;
@@ -73,24 +74,24 @@ public class TestServerHandshakeSide {
 				boolean doAutoComplete = false;
 				ActorRef serverSide = system.actorOf(MockServerHandshakeActor.props(getRef(), doAutoComplete), "ServerSide"); // we want to see events
 				boolean done = false;
-				serverSide.tell(MessageTypes.Reset, getRef());
+				serverSide.tell(HandshakeProtocol.ServerMessageTypes.Reset, getRef());
 				while (!done) {
 					ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
 					logEvent(state);
 					switch(state) {
 					case IDLE_EMPTY:
-						serverSide.tell(MessageTypes.RequestInitiateHandover, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover, getRef());
 						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.STARTING));
-						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseInitHandover));
+						logMsg(expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover));
 						break;
 					case READY_EMPTY:
-						serverSide.tell(MessageTypes.RequestStartHandover, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestStartHandover, getRef());
 						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE));
-						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseStartHandover));
+						logMsg(expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover));
 						// here we play the FU signaling that handover is complete
-						serverSide.tell(MessageTypes.Complete, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.Complete, getRef());
 						break;
-					case COMPLETED:
+					case COMPLETE:
 						done = true; // end of the handshake cycle
 						break;
 					default:
@@ -108,24 +109,24 @@ public class TestServerHandshakeSide {
 				boolean doAutoComplete = false;
 				ActorRef serverSide = system.actorOf(MockServerHandshakeActor.props(getRef(), doAutoComplete), "ServerSide"); // we want to see events
 				boolean done = false;
-				serverSide.tell(MessageTypes.Reset, getRef());
+				serverSide.tell(HandshakeProtocol.ServerMessageTypes.Reset, getRef());
 				while (!done) {
 					ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
 					logEvent(state);
 					switch(state) {
 					case IDLE_EMPTY:
-						serverSide.tell(MessageTypes.RequestInitiateHandover, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover, getRef());
 						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.STARTING));
-						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseInitHandover));
+						logMsg(expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover));
 						break;
 					case READY_EMPTY:
-						serverSide.tell(MessageTypes.RequestStartHandover, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestStartHandover, getRef());
 						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE));
-						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseStartHandover));
+						logMsg(expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover));
 						// here we play the FU signaling that handover is complete
-						serverSide.tell(MessageTypes.Complete, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.Complete, getRef());
 						break;
-					case COMPLETED:
+					case COMPLETE:
 						done = true; // end of the handshake cycle
 						break;
 					default:
@@ -133,24 +134,24 @@ public class TestServerHandshakeSide {
 					}
 				}	
 				done = false;
-				serverSide.tell(MessageTypes.Reset, getRef());
+				serverSide.tell(HandshakeProtocol.ServerMessageTypes.Reset, getRef());
 				while (!done) {
 					ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
 					logEvent(state);
 					switch(state) {
 					case IDLE_LOADED:
-						serverSide.tell(MessageTypes.RequestInitiateHandover, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover, getRef());
 						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.STARTING));
-						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseInitHandover));
+						logMsg(expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover));
 						break;
 					case READY_LOADED:
-						serverSide.tell(MessageTypes.RequestStartHandover, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestStartHandover, getRef());
 						logEvent(expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE));
-						logMsg(expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseStartHandover));
+						logMsg(expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover));
 						// here we play the FU signaling that handover is complete
-						serverSide.tell(MessageTypes.Complete, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.Complete, getRef());
 						break;
-					case COMPLETED:
+					case COMPLETE:
 						done = true; // end of the handshake cycle
 						break;
 					default:
@@ -165,7 +166,7 @@ public class TestServerHandshakeSide {
 		logger.info(event.toString());
 	}
 	
-	private void logMsg(MessageTypes event) {
+	private void logMsg(HandshakeProtocol.ServerMessageTypes event) {
 		logger.info(event.toString());
 	}
 	

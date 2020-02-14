@@ -72,7 +72,7 @@ public class BaseOpcUaServer {
     
     private final OpcUaServer server;
 
-    public BaseOpcUaServer(int number) throws Exception {
+    public BaseOpcUaServer(int number, String serverName) throws Exception {
     	TCP_BIND_PORT = 4840+number;
     	HTTPS_BIND_PORT = 8443+number;
         File securityTempDir = new File(System.getProperty("java.io.tmpdir"), "security");
@@ -133,13 +133,13 @@ public class BaseOpcUaServer {
 
         OpcUaServerConfig serverConfig = OpcUaServerConfig.builder()
             .setApplicationUri(applicationUri)
-            .setApplicationName(LocalizedText.english("Eclipse Milo OPC UA Example Server"))
+            .setApplicationName(LocalizedText.english(serverName))
             .setEndpoints(endpointConfigurations)
             .setBuildInfo(
                 new BuildInfo(
-                    "urn:eclipse:milo:example-server",
-                    "eclipse",
-                    "eclipse milo example server",
+                    "urn:jku:fiab",
+                    "JKU",
+                    serverName,
                     OpcUaServer.SDK_VERSION,
                     "", DateTime.now()))
             .setCertificateManager(certificateManager)

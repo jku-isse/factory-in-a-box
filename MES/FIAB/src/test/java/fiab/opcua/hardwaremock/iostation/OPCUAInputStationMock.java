@@ -1,4 +1,4 @@
-package fiab.opcua.hardwaremock;
+package fiab.opcua.hardwaremock.iostation;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -10,6 +10,7 @@ import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.api.DataItem;
 import org.eclipse.milo.opcua.sdk.server.api.ManagedNamespace;
 import org.eclipse.milo.opcua.sdk.server.api.MonitoredItem;
+import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
@@ -24,11 +25,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.mockactors.iostation.MockIOStationWrapperDelegate;
 import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
 import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.opcua.hardwaremock.MockMethod;
+import fiab.opcua.hardwaremock.StatePublisher;
+import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
+import fiab.opcua.hardwaremock.iostation.methods.StartHandover;
 import fiab.opcua.hardwaremock.methods.CompleteMethod;
 import fiab.opcua.hardwaremock.methods.InitHandoverMethod;
 import fiab.opcua.hardwaremock.methods.Methods;
@@ -43,7 +48,8 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 	private UaFolderNode rootNode = null;
 	private OpcUaServer server;
 	private ActorRef actor;
-	private UaVariableNode status = null;
+	private UaVariableNode statusHS = null;
+	private UaVariableNode statusIOS = null;
 	private String machineName;
 	private String machineCap;
 	private static final Logger log = LoggerFactory.getLogger(OPCUAInputStationMock.class);
@@ -51,9 +57,6 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 	private CompleteMethod cmplt ;
 	private StopMethod stp;
 	private ResetMethod rst;
-	//private ReadyEmptyMethod rdyEmpty;
-	private StartHandoverMethod startHO;
-	private InitHandoverMethod initHO;
 
 	static final String NAMESPACE_URI = "urn:factory-in-a-box";
 	private final SubscriptionModel subscriptionModel;
@@ -69,9 +72,6 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 		cmplt = new CompleteMethod(actor);
 		stp = new StopMethod(actor);
 		rst = new ResetMethod(actor);
-		startHO = new StartHandoverMethod(actor);
-		initHO = new InitHandoverMethod(actor);
-		//rdyEmpty = new ReadyEmptyMethod(actor);
 		
 	}
 	
@@ -82,7 +82,7 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 		try {
 			server.startup().get();
 			actor.tell(this, ActorRef.noSender());
-			actor.tell(MessageTypes.SubscribeToStateUpdates, ActorRef.noSender());
+			actor.tell(HandshakeProtocol.ServerMessageTypes.SubscribeToStateUpdates, ActorRef.noSender());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (ExecutionException e) {
@@ -103,27 +103,18 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 		
 	}
 	
-//	public void completeMethod() {
-//		cmplt.invoke();
-//	}
-//	public void stopMethod() {
-//		stp.invoke();
-//	}
-//	public void resetMethod() {
-//		rst.invoke();
-//	}
-//	public void readyEmptyMethod() {
-//		rdyEmpty.invoke();
-//	}
-	
 	public void setUpServerStructure() {
 		UaFolderNode handshakeNode = generateFolder(rootNode, machineName, "HANDSHAKE_FU");
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "COMPLETE", cmplt);
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_METHOD_STOP, stp);
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_METHOD_RESET, rst);
+		addMethodNodeViaAnnotation(handshakeNode, machineName + "/HANDSHAKE_FU", "COMPLETE", cmplt);
+		addMethodNodeViaAnnotation(handshakeNode, machineName + "/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_METHOD_STOP, stp);
+		addMethodNodeViaAnnotation(handshakeNode, machineName + "/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_METHOD_RESET, rst);
 		//addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "READY", rdyEmpty);
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "INIT_HANDOVER", initHO); 
-		addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "START_HANDOVER", startHO); 
+		
+		UaMethodNode n1 = createPartialMethodNode(machineName + "/HANDSHAKE_FU", HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover.toString(), "Requests init");		
+		addMethodNode(handshakeNode, n1, new InitHandover(n1, actor)); 		
+		UaMethodNode n2 = createPartialMethodNode(machineName + "/HANDSHAKE_FU", HandshakeProtocol.ServerMessageTypes.RequestStartHandover.toString(), "Requests start");		
+		addMethodNode(handshakeNode, n2, new StartHandover(n2, actor));
+		
 		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, machineName + "/HANDSHAKE_FU",
 				new String( OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES));
 		UaFolderNode capability1 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/"+ OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES,
@@ -131,7 +122,7 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 		UaFolderNode capability2 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/"+ OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES,
 				"CAPABILITY2",  OPCUACapabilitiesWellknownBrowsenames.CAPABILITY);		
 		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY1",  OPCUACapabilitiesWellknownBrowsenames.ID,
-				new String("DefaultInputstationCapability"));
+				new String("DefaultHandshakeServerSide"));
 		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY1",  OPCUACapabilitiesWellknownBrowsenames.TYPE,
 				new String(HandshakeProtocol.HANDSHAKE_CAPABILITY_URI));
 		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY1", OPCUACapabilitiesWellknownBrowsenames.ROLE,
@@ -139,10 +130,13 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesWellknownBrowsenames.TYPE,
 				new String(machineCap));
 		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesWellknownBrowsenames.ID,
-				new String("DefaultHandshakeServerSide"));
+				new String("DefaultIOStationCapability"));
 		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesWellknownBrowsenames.ROLE,
 				new String(OPCUACapabilitiesWellknownBrowsenames.ROLE_VALUE_PROVIDED));
-		status = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_STATE_VAR, ServerSide.STOPPED); //init right
+		if (HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_STATE_VAR != HandshakeProtocol.STATE_SERVERSIDE_VAR_NAME) {
+			statusIOS = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_STATE_VAR, ServerSide.STOPPED);
+		}
+		statusHS = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", HandshakeProtocol.STATE_SERVERSIDE_VAR_NAME, ServerSide.STOPPED); 
 	}
 
 	
@@ -182,13 +176,37 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 		rootNode.addOrganizes(folder);
 		return folder;
 	}
+		
+	private UaMethodNode createPartialMethodNode(String nodeIdPrefix, String id, String info) {
+		UaMethodNode methodNode = UaMethodNode.builder(this.getNodeContext())
+				.setNodeId(newNodeId(nodeIdPrefix + "/" + id))
+				.setBrowseName(newQualifiedName(id))
+				.setDisplayName(new LocalizedText(null, id))
+				.setDescription(LocalizedText.english(info)).build();
+		return methodNode;
+	}
 	
-	private void addMethodNode(UaFolderNode folderNode, String nodeIdPrefix, String id, Methods method) {
+	private void addMethodNode(UaFolderNode folderNode, UaMethodNode methodNode, AbstractMethodInvocationHandler method) {		        
+        methodNode.setProperty(UaMethodNode.InputArguments, method.getInputArguments());
+        methodNode.setProperty(UaMethodNode.OutputArguments, method.getOutputArguments());
+        methodNode.setInvocationHandler(method);
+
+        getNodeManager().addNode(methodNode);
+
+        methodNode.addReference(new Reference(
+            methodNode.getNodeId(),
+            Identifiers.HasComponent,
+            folderNode.getNodeId().expanded(),
+            false
+        ));
+    }
+	
+	private void addMethodNodeViaAnnotation(UaFolderNode folderNode, String nodeIdPrefix, String id, Methods method) {
 		addMethodNode(folderNode, nodeIdPrefix, id, id, method);
 //		for(int i = 0; i < 5; i++) {
 //			System.out.println();
 //		}
-		System.out.println("METHOD " + id + " HAS BEEN CREATED!");
+//		System.out.println("METHOD " + id + " HAS BEEN CREATED!");
 	}
 
 	private void addMethodNode(UaFolderNode folderNode, String nodeIdPrefix, String id, String name, Methods method) {
@@ -222,9 +240,12 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 
 	@Override
 	public void setStatusValue(String newStatus) {
-		log.info("New Status got called!:: " + newStatus);
-		if(status != null) {
-			status.setValue(new DataValue(new Variant(newStatus)));
+//		log.info("New Status got called!:: " + newStatus);
+		if(statusHS != null) {
+			statusHS.setValue(new DataValue(new Variant(newStatus)));
+		}
+		if(statusIOS != null) {
+			statusIOS.setValue(new DataValue(new Variant(newStatus)));
 		}
 	}
 
@@ -238,10 +259,6 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 				.setDataType(Identifiers.String).setTypeDefinition(Identifiers.BaseDataVariableType).build();
 
 		node.setValue(new DataValue(new Variant(value.toString())));
-		if (varName.equals("STATUS"))
-			status = node;
-
-		// node.setAttributeDelegate(new ValueLoggingDelegate());
 
 		getNodeManager().addNode(node);
 		rootFolder.addOrganizes(node);

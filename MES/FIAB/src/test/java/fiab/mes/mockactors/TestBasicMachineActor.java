@@ -26,6 +26,7 @@ import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.ComparableCapability;
 import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
+import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
@@ -72,7 +73,7 @@ public class TestBasicMachineActor {
 
 	@Test
 	void testStartMachine() {
-		final AbstractCapability cap = composeInOne(getPlottingCapability(), getColorCapability("Red"));
+		final AbstractCapability cap = composeInOne(WellknownPlotterCapability.getPlottingCapability(), getColorCapability("Red"));
 		final Actor modelActor = getDefaultMachineActor(1);
 		new TestKit(system) { 
 			{
@@ -105,7 +106,7 @@ public class TestBasicMachineActor {
 	
 	@Test
 	void testRegisterProcess() {
-		final AbstractCapability cap = composeInOne(getPlottingCapability(), getColorCapability("Red"));
+		final AbstractCapability cap = composeInOne(WellknownPlotterCapability.getPlottingCapability(), getColorCapability("Red"));
 		final Actor modelActor = getDefaultMachineActor(1);
 		new TestKit(system) { 
 			{
@@ -135,7 +136,7 @@ public class TestBasicMachineActor {
 	
 	@Test
 	void testLockForOrder() {
-		final AbstractCapability cap = composeInOne(getPlottingCapability(), getColorCapability("Red"));
+		final AbstractCapability cap = composeInOne(WellknownPlotterCapability.getPlottingCapability(), getColorCapability("Red"));
 		final Actor modelActor = getDefaultMachineActor(1);
 		new TestKit(system) { 
 			{
@@ -162,14 +163,6 @@ public class TestBasicMachineActor {
 		ac.setDisplayName(color);
 		ac.setID("Capability.Plotting.Color."+color);
 		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/colors/"+color);
-		return ac;
-	}
-	
-	public static AbstractCapability getPlottingCapability() {
-		ComparableCapability ac = new ComparableCapability();
-		ac.setDisplayName("Plot");
-		ac.setID("Capability.Plotting");
-		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/plotting");
 		return ac;
 	}
 	
@@ -213,9 +206,9 @@ public class TestBasicMachineActor {
 		s3.setDisplayName("Green plotting");
 		s4.setDisplayName("Yellow plotting");
 		s1.setInvokedCapability(getColorCapability("Red"));
-		s2.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Blue")));		
-		s3.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Green")));		
-		s4.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Yellow")));		
+		s2.setInvokedCapability(composeInOne(WellknownPlotterCapability.getPlottingCapability(), getColorCapability("Blue")));		
+		s3.setInvokedCapability(composeInOne(WellknownPlotterCapability.getPlottingCapability(), getColorCapability("Green")));		
+		s4.setInvokedCapability(composeInOne(WellknownPlotterCapability.getPlottingCapability(), getColorCapability("Yellow")));		
 		
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
 		p.getSteps().add(s1);
