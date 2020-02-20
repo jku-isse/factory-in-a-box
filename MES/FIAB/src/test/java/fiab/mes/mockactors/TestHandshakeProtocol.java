@@ -12,9 +12,10 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.CallingThreadDispatcher;
 import akka.testkit.javadsl.TestKit;
-import fiab.mes.mockactors.MockClientHandshakeActor.MessageTypes;
 import fiab.mes.order.OrderProcess;
+import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
+import fiab.mes.transport.handshake.HandshakeProtocol.ClientMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 public class TestHandshakeProtocol { 
@@ -50,21 +51,21 @@ public class TestHandshakeProtocol {
 				
 				boolean serverDone = false;
 				boolean clientDone = false;
-				clientSide.tell(MockClientHandshakeActor.MessageTypes.Reset, getRef());
-				serverSide.tell(MockServerHandshakeActor.MessageTypes.Reset, getRef());
+				clientSide.tell(HandshakeProtocol.ClientMessageTypes.Reset, getRef());
+				serverSide.tell(HandshakeProtocol.ServerMessageTypes.Reset, getRef());
 				while (!(serverDone && clientDone)) {
 					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), ClientSide.class, ServerSide.class);
 					logEvent(msg, getLastSender());
-					if (msg.equals(ClientSide.Idle)) {
-						clientSide.tell(MockClientHandshakeActor.MessageTypes.Start, getRef());
+					if (msg.equals(ClientSide.IDLE)) {
+						clientSide.tell(HandshakeProtocol.ClientMessageTypes.Start, getRef());
 					}
-					if (msg.equals(ServerSide.Execute)) {
-						serverSide.tell(MockServerHandshakeActor.MessageTypes.Complete, getRef());
+					if (msg.equals(ServerSide.EXECUTE)) {
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.Complete, getRef());
 					}
-					if (msg.equals(ServerSide.Completed)) {
+					if (msg.equals(ServerSide.COMPLETE)) {
 						serverDone = true;
 					}
-					if (msg.equals(ClientSide.Completed)) {
+					if (msg.equals(ClientSide.COMPLETED)) {
 						clientDone = true;
 					}
 				}				

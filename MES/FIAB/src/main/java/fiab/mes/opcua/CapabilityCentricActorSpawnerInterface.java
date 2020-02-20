@@ -40,6 +40,19 @@ public interface CapabilityCentricActorSpawnerInterface {
 			this.capabilitiesNode = capabilitiesNode;
 			this.capabilityURI = capabilityURI;
 		}
+		
+		public CapabilityImplInfo(String endpointUrl, NodeId actorNode,
+				NodeId capabilitiesNode, String capabilityURI) {
+			super();
+			this.endpointUrl = endpointUrl;
+			this.actorNode = actorNode;
+			this.capabilitiesNode = capabilitiesNode;
+			this.capabilityURI = capabilityURI;
+		}
+		
+		public void setClient(OpcUaClient client) {
+			this.client = client;
+		}
 
 		public OpcUaClient getClient() {
 			return client;

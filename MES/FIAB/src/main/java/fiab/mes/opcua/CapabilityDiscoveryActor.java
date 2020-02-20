@@ -192,7 +192,8 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 
 	private boolean isCapabilityFolder(Node n) throws InterruptedException, ExecutionException {
 		String bName = n.getBrowseName().get().getName();
-		if (bName.equalsIgnoreCase(CAPABILITY)) {
+		//if (bName.equalsIgnoreCase(CAPABILITY)) {
+		if (bName.startsWith(CAPABILITY)) { // currently FORTE/4DIAC cannot have two sibling nodes with the same browsename, thus there are numbers prepended which we ignore here
 			log.info("Found Capability Node with id: "+n.getNodeId().get().toParseableString());
 			return true;			
 		} else

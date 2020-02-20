@@ -1,7 +1,8 @@
 package fiab.opcua.hardwaremock.methods;
 
 import akka.actor.ActorRef;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
+import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 
 public class CompleteMethod extends Methods {
 private ActorRef actor;
@@ -13,7 +14,7 @@ private ActorRef actor;
 	@Override
 	public void invoke() {
 		System.out.println("COMPLETE GOT INVOKED");
-		actor.tell(MessageTypes.Complete, ActorRef.noSender());
+		actor.tell(HandshakeProtocol.ServerMessageTypes.Complete, ActorRef.noSender());
 	}
 	
 	@Override

@@ -38,6 +38,7 @@ import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.ComparableCapability;
 import fiab.mes.machine.MachineEntryActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
+import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
@@ -200,7 +201,7 @@ public class OrderEmittingTestServer {
 	}
 	
 	private static ActorRef getMachineMockActor(int id, String color) {
-		AbstractCapability cap = TestBasicMachineActor.composeInOne(TestBasicMachineActor.getPlottingCapability(), TestBasicMachineActor.getColorCapability(color));		
+		AbstractCapability cap = TestBasicMachineActor.composeInOne(WellknownPlotterCapability.getPlottingCapability(), TestBasicMachineActor.getColorCapability(color));		
 		Actor modelActor = TestBasicMachineActor.getDefaultMachineActor(id);
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();
 		ActorRef machineWrapper = system.actorOf(MockMachineWrapper.props(intraEventBus));

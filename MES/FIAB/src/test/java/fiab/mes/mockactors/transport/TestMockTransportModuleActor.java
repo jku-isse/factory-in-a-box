@@ -37,7 +37,6 @@ import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockClientHandshakeActor;
 import fiab.mes.mockactors.MockServerHandshakeActor;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.mockactors.iostation.MockIOStationFactory;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper.LocalEndpointStatus;
 import fiab.mes.order.OrderProcess;
@@ -51,6 +50,7 @@ import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapabili
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.mes.transport.msg.TransportModuleRequest;
@@ -105,13 +105,12 @@ public class TestMockTransportModuleActor {
 				ActorRef ttWrapper = system.actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1HWMockActor");
 				ActorRef westClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, inRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT); 
 				ActorRef eastClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, outRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
-				Map<String, LocalEndpointStatus> eps = new HashMap<>();
+				
 				boolean isProv = false;
-				eps.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT));
-				eps.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT));
-				ttWrapper.tell(new MockTransportModuleWrapper.HandshakeEndpointInfo(eps), getRef());
-				ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.SubscribeState, getRef());
-				ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getRef());
+				ttWrapper.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), getRef());
+				ttWrapper.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), getRef());
+				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());
+				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
 				// setup actual turntable actor:
 				
 				int ipid = 21;
