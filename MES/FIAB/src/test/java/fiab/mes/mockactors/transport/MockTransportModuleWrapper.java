@@ -117,7 +117,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 								handleCompletingStateUpdate(capId);
 						});
 					} else {
-						log.error(String.format("Received ServerSide Event %s from %s in non EXECUTE state: %s", state, getSender().path().name(), currentState));
+						log.warning(String.format("Received ServerSide Event %s from %s in non EXECUTE state: %s", state, getSender().path().name(), currentState));
 					}
 				})
 				.match(ClientSide.class, state -> {										
