@@ -5,6 +5,7 @@ import fiab.mes.general.ComparableCapability;
 
 public interface WellknownPlotterCapability {
 
+	//TODO: include the colors for plotting
 	public static String PLOTTING_CAPABILITY_URI = "http://factory-in-a-box.fiab/capabilities/plot";
 
 	public static String MACHINE_UPCUA_PLOT_REQUEST = "PLOT";

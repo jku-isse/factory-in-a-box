@@ -28,7 +28,14 @@ public class CapabilityImplementationMetadata {
 		return provOrReq;
 	}
 	
-	
+
+	@Override
+	public String toString() {
+		return "CapabilityImplementationMetadata [implId=" + implId + ", capabilityURI=" + capabilityURI
+				+ ", provOrReq=" + provOrReq + "]";
+	}
+
+
 	public class MetadataInsufficientException extends Exception {
 
 		/**

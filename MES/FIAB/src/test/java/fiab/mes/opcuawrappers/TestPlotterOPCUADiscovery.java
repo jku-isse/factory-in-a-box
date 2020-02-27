@@ -66,7 +66,7 @@ class TestPlotterOPCUADiscovery {
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://192.168.0.40:4840/";
+				String endpointURL = "opc.tcp://192.168.0.35:4840/";
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
@@ -87,6 +87,7 @@ class TestPlotterOPCUADiscovery {
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent) {
 						countConnEvents++; 
+						machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;

@@ -82,7 +82,8 @@ public class BasicMachineActor extends AbstractActor{
 		        .match(LockForOrder.class, lockReq -> {
 		        	log.info("received LockForOrder msg "+lockReq.getStepId()+", current state: "+currentState);
 		        	if (currentState == MachineStatus.IDLE) {
-		        		hal.plot("", lockReq.getRootOrderId()); // TODO pass on the correct values
+		        		// we need to extract from the reservedOrder the step, and from the step the input properties		        		
+		        		hal.plot("demo", lockReq.getRootOrderId()); // TODO pass on the correct values, here we just do a demo for now
 		        		//TODO: here we assume correct invocation: thus order overtaking etc, will be improved later
 		        	} else {
 		        		String msg = "Received lock for order in non-IDLE state: "+currentState;
@@ -159,6 +160,7 @@ public class BasicMachineActor extends AbstractActor{
 			switch(newState) {
 			case COMPLETE:
 				reservedForOrder = null;
+				hal.reset(); //auto reset to become available for next round
 				break;
 			case COMPLETING:
 				break;
