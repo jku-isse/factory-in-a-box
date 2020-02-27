@@ -1,5 +1,6 @@
 package hardware.actuators;
 
+
 import hardware.sensors.MockSensor;
 
 import java.util.concurrent.ScheduledFuture;
@@ -10,7 +11,6 @@ public class TurningMockMotor extends MockMotor {
 
     private MockSensor sensorHoming;
     private long delay;
-    private long timeSpentTurning;
     private boolean isTurningForward, isTurningBackward;
     private ScheduledThreadPoolExecutor executor;
     private ScheduledFuture timerTask;
@@ -18,10 +18,10 @@ public class TurningMockMotor extends MockMotor {
     public TurningMockMotor(MockSensor sensorHoming, int speed) {
         super(speed);
         this.sensorHoming = sensorHoming;
-        this.delay = delay;
-        timeSpentTurning = 0;
+        this.delay = speed * 10;     //simulate time for turning, assuming speed >= 100 (1s) and speed <= 500 (5s)
         isTurningForward = false;
         isTurningBackward = false;
+        sensorHoming.setDetectedInput(false);
         executor = new ScheduledThreadPoolExecutor(2);
     }
 
@@ -38,7 +38,7 @@ public class TurningMockMotor extends MockMotor {
         isTurningForward = false;
         isTurningBackward = true;
         timerTask = executor.schedule(() -> sensorHoming.setDetectedInput(true),
-                timeSpentTurning, TimeUnit.MILLISECONDS);
+                delay, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -54,10 +54,5 @@ public class TurningMockMotor extends MockMotor {
     @Override
     public void waitMs(long period) {
         super.waitMs(period);
-        if (isTurningForward) {
-            timeSpentTurning += period;
-        } else if (isTurningBackward) {
-            timeSpentTurning -= period;
-        }
     }
 }

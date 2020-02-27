@@ -7,4 +7,5 @@ brick.pref {
     sshUser = "robot"
     sshPassword = "maker"
     useSudo = true
+
 }
