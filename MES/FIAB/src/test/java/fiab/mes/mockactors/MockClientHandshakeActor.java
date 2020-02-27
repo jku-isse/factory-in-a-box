@@ -56,7 +56,8 @@ public class MockClientHandshakeActor extends AbstractActor{
 						start(); // engage in handshake: subscribe to state updates
 						break;
 					case Complete:
-						complete(); // handshake can be wrapped up
+						if (currentState.equals(ClientSide.EXECUTE)) // only if we are in state executing, otherwise complete makes no sense
+							complete(); // handshake can be wrapped up
 						break;
 					case Stop:
 						stop(); // error or external stop, otherwise autostopping upon completion

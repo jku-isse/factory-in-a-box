@@ -4,10 +4,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
-import org.eclipse.milo.opcua.sdk.client.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
-import org.eclipse.milo.opcua.sdk.client.nodes.UaObjectNode;
-import org.eclipse.milo.opcua.sdk.client.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 
 import ActorCoreModel.Actor;
@@ -15,24 +12,21 @@ import ProcessCore.AbstractCapability;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
+import akka.actor.Kill;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.WellknownMachinePropertyFields;
-import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface.CapabilityImplInfo;
-import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
-import fiab.mes.transport.handshake.HandshakeProtocol;
 
 public class LocalPlotterActorSpawner extends AbstractActor {
 
@@ -63,19 +57,22 @@ public class LocalPlotterActorSpawner extends AbstractActor {
 		try {
 			PlotterOPCUAnodes nodeIds = retrieveNodeIds(req.getInfo());
 			if (!nodeIds.isComplete()) {
-				log.error("Error obtaining methods and variables from OPCUA for spawning actor: "+nodeIds.toString());
+				log.error("Error obtaining methods and variables from OPCUA for spawning actor, shutting down: "+nodeIds.toString());
+				getSelf().tell(Kill.getInstance(), self());	
 				return;
 			}
 			Actor model = generateActor(req.getInfo());
 			spawnNewActor(req.getInfo(), model, nodeIds);
 		} catch(Exception e) {
-			log.error("Error obtaining info from OPCUA for spawning actor with error: "+e.getMessage());
+			log.error("Error obtaining info from OPCUA for spawning actor with error, shutting down: "+e.getMessage());
+			getSelf().tell(Kill.getInstance(), self());			
 		}
 	}
 	
 	private void spawnNewActor(CapabilityImplInfo info, Actor model, PlotterOPCUAnodes nodeIds) {
 		final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		AbstractCapability capability = WellknownTransportModuleCapability.getTurntableCapability();
+		//TODO: extract the color that printer is able to plot!!!
+		AbstractCapability capability = WellknownPlotterCapability.getPlottingCapability();
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();
 		Position selfPos = resolvePosition(info);
 		PlotterOPCUAWrapper hal = new PlotterOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.plotMethod);
@@ -101,10 +98,10 @@ public class LocalPlotterActorSpawner extends AbstractActor {
 		Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
 		actor.setDisplayName(actorNode.getDisplayName().get().getText());
 		actor.setActorName(actorNode.getBrowseName().get().getName());
-		String id = info.getActorNode().getIdentifier().toString();
-		actor.setID(id);
+		String id = info.getActorNode().getIdentifier().toString();		
 		String uri = info.getEndpointUrl().endsWith("/") ? info.getEndpointUrl()+id : info.getEndpointUrl()+"/"+id;
 		actor.setUri(uri);
+		actor.setID(uri); // reuse uri as Id as actornode identifier is not unique across machines
 		return actor;
 	}
 	
