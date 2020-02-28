@@ -28,7 +28,7 @@ import static stateMachines.turning.TurningTriggers.*;
 
 public class TurntableActor extends AbstractActor {
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");
     private final int timeForNinetyDeg = 1350;
     private boolean stopped;
 
@@ -62,6 +62,7 @@ public class TurntableActor extends AbstractActor {
             turningHardware = new TurningMockHardware(200);
         }else{
             turningHardware = new LegoTurningHardware(MotorPort.D, SensorPort.S4);
+            turningHardware.getTurningMotor().setSpeed(200);
         }
     }
 

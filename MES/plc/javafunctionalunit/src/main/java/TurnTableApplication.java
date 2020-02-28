@@ -1,9 +1,7 @@
 import actors.OPCUATurntableRootActor;
 import akka.actor.ActorSystem;
 
-import javax.swing.*;
-
-public class TurnTableApplication extends JFrame {
+public class TurnTableApplication /*extends JFrame*/ {
 
     public static void main(String[] args) {
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");

@@ -25,7 +25,7 @@ import static stateMachines.conveyor.ConveyorStates.STOPPED;
 
 public class ConveyorActor extends AbstractActor {
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");;
     private AtomicBoolean stopped;
 
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
