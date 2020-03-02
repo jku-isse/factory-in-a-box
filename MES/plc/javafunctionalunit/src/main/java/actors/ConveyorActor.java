@@ -54,6 +54,7 @@ public class ConveyorActor extends AbstractActor {
             conveyorHardware = new ConveyorMockHardware(200, 1000);
         }else{
             conveyorHardware = new LegoConveyorHardware(MotorPort.A, SensorPort.S2, SensorPort.S3);
+            conveyorHardware.getConveyorMotor().setSpeed(200);
         }
     }
 
