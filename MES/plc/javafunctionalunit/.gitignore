@@ -28,6 +28,9 @@ hs_err_pid*
 
 /src/.gradle/
 /src/build/
-/src/main/java/hardware/actuators/motorsEV3/
-/src/main/java/hardware/sensors/sensorsEV3/
 /src/test/
+
+#IntelliJ Files
+
+/.idea
+build/launcher.sh

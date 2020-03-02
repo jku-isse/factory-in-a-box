@@ -1,40 +1,31 @@
-package fiab.mes.mockactors.transport;
-
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import com.google.common.collect.Sets;
+package actors;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
-import fiab.mes.machine.msg.GenericMachineRequests;
-import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.MockServerHandshakeActor.StateOverrideRequests;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ClientMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
-import stateMachines.turning.TurnRequest;
-import stateMachines.turning.TurnTableOrientation;
-import stateMachines.turning.TurningStates;
-import stateMachines.turning.TurntableStatusUpdateEvent;
+import com.google.common.collect.Sets;
+import event.MachineStatusUpdateEvent;
+import event.TurntableStatusUpdateEvent;
+import event.bus.InterMachineEventBus;
+import event.bus.SubscriptionClassifier;
+import event.bus.WellknownMachinePropertyFields;
+import event.capability.WellknownTransportModuleCapability;
+import handshake.HandshakeProtocol;
+import msg.*;
+import stateMachines.MachineStatus;
 import stateMachines.conveyor.ConveyorStates;
 import stateMachines.conveyor.ConveyorStatusUpdateEvent;
 import stateMachines.conveyor.ConveyorTriggers;
+import stateMachines.turning.TurnTableOrientation;
+import stateMachines.turning.TurningStates;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class TransportModuleCoordinatorActor extends AbstractActor{
 
@@ -110,21 +101,21 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 					} else {
 		        		log.warning("Received TransportModuleRequest in incompatible state: "+currentState);
 						//respond with error message that we are not in the right state for request
-		        		sender().tell(new MachineInWrongStateResponse(getSelf().path().name(), 
-		        				WellknownMachinePropertyFields.STATE_VAR_NAME, 
+		        		sender().tell(new MachineInWrongStateResponse(getSelf().path().name(),
+		        				WellknownMachinePropertyFields.STATE_VAR_NAME,
 		        				"Machine is not in correct state",
 		        				currentState,
 		        				req,
 		        				MachineStatus.IDLE), self);
 		        	}
 				})
-				.match(ServerSide.class, state -> {
+				.match(HandshakeProtocol.ServerSide.class, state -> {
 					if (currentState.equals(MachineStatus.EXECUTE)) {
 						String capId = getSender().path().name();
 						log.info(String.format("ServerSide EP %s Status: %s", capId, state));
 						eps.getHandshakeEP(capId).ifPresent(leps -> {
 							((LocalServerEndpointStatus) leps).setState(state);
-							if (state.equals(ServerSide.EXECUTE)) {
+							if (state.equals(HandshakeProtocol.ServerSide.EXECUTE)) {
 								if (exeSubState.equals(InternalProcess.HANDSHAKE_DEST))
 									startLoadingOntoTurntable();
 								else
@@ -137,7 +128,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 						log.warning(String.format("Received ServerSide Event %s from %s in non EXECUTE state: %s", state, getSender().path().name(), currentState));
 					}
 				})
-				.match(ClientSide.class, state -> {										
+				.match(HandshakeProtocol.ClientSide.class, state -> {
 					if (currentState.equals(MachineStatus.EXECUTE)) {
 						String capId = getSender().path().name();
 						log.info(String.format("ClientSide EP %s local status: %s", capId, state));
@@ -331,7 +322,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 			exeSubState = InternalProcess.TURNING_DEST;
 		});
 	}
-	
+
 	private void continueWithDestHandshake() {		
 		log.info("Continuing with Destination Handshake via: "+currentRequest.getCapabilityInstanceIdTo());
 		// imitate turning towards second
@@ -433,9 +424,9 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 			handshakeEPs.values().stream()
 				.forEach(les -> {
 					if (les.isProvidedCapability) { 					// if server use server msg
-						les.getActor().tell(ServerMessageTypes.Stop, self);
+						les.getActor().tell(HandshakeProtocol.ServerMessageTypes.Stop, self);
 					} else {
-						les.getActor().tell(ClientMessageTypes.Stop, self);
+						les.getActor().tell(HandshakeProtocol.ClientMessageTypes.Stop, self);
 					}			
 				});
 		}
@@ -467,16 +458,16 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 	
 	public static class LocalServerEndpointStatus extends LocalEndpointStatus{
 		
-		private ServerSide state = ServerSide.STOPPED;
+		private HandshakeProtocol.ServerSide state = HandshakeProtocol.ServerSide.STOPPED;
 		
 		public LocalServerEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
 			super(actor, isProvidedCapability, capabilityId);			
 		}				
 		
-		public ServerSide getState() {
+		public HandshakeProtocol.ServerSide getState() {
 			return state;
 		}
-		public void setState(ServerSide state) {
+		public void setState(HandshakeProtocol.ServerSide state) {
 			this.state = state;
 		}
 
@@ -488,16 +479,16 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 	
 	public static class LocalClientEndpointStatus extends LocalEndpointStatus{
 		
-		private ClientSide state = ClientSide.STOPPED;
+		private HandshakeProtocol.ClientSide state = HandshakeProtocol.ClientSide.STOPPED;
 		
 		public LocalClientEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
 			super(actor, isProvidedCapability, capabilityId);			
 		}				
 		
-		public ClientSide getState() {
+		public HandshakeProtocol.ClientSide getState() {
 			return state;
 		}
-		public void setState(ClientSide state) {
+		public void setState(HandshakeProtocol.ClientSide state) {
 			this.state = state;
 		}
 		@Override

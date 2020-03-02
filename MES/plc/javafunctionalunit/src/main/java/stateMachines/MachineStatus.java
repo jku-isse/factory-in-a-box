@@ -1,0 +1,5 @@
+package stateMachines;
+
+public enum MachineStatus {
+IDLE, STARTING, EXECUTE, COMPLETING, COMPLETE, RESETTING, STOPPING, STOPPED, UNKNOWN;
+}

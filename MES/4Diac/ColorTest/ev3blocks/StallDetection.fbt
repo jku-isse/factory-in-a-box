@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE FBType SYSTEM "http://www.holobloc.com/xml/LibraryElement.dtd">
+<FBType Comment="Template for a simple Basic Function Block Type" Name="StallDetection">
+  <Identification Standard="61499-2"/>
+  <VersionInfo Author="Robert" Date="2019-06-06" Version="1.0"/>
+  <InterfaceList>
+    <EventInputs>
+      <Event Comment="Initialization Request" Name="INIT" Type="Event">
+        <With Var="Speed"/>
+        <With Var="CountSamples"/>
+        <With Var="Threshold"/>
+        <With Var="InitValue"/>
+      </Event>
+      <Event Comment="Normal Execution Request" Name="REQ" Type="Event">
+        <With Var="Speed"/>
+        <With Var="CountSamples"/>
+        <With Var="Threshold"/>
+      </Event>
+    </EventInputs>
+    <EventOutputs>
+      <Event Comment="Initialization Confirm" Name="INITO" Type="Event"/>
+      <Event Comment="" Name="StallDetected" Type="Event"/>
+    </EventOutputs>
+    <InputVars>
+      <VarDeclaration Comment="Input event qualifier" Name="Speed" Type="WORD"/>
+      <VarDeclaration Comment="" Name="CountSamples" Type="INT"/>
+      <VarDeclaration Comment="" Name="Threshold" Type="INT"/>
+      <VarDeclaration Comment="" Name="InitValue" Type="INT"/>
+    </InputVars>
+  </InterfaceList>
+  <BasicFB>
+    <InternalVars>
+      <VarDeclaration ArraySize="20" Comment="Internal Variable" InitialValue="" Name="SampleArray" Type="INT"/>
+      <VarDeclaration Comment="Internal Variable" InitialValue="" Name="currentSample" Type="USINT"/>
+      <VarDeclaration Comment="Internal Variable" InitialValue="" Name="stalled" Type="BOOL"/>
+      <VarDeclaration Comment="Internal Variable" InitialValue="" Name="sum" Type="INT"/>
+      <VarDeclaration Comment="Internal Variable" InitialValue="" Name="i" Type="USINT"/>
+    </InternalVars>
+    <ECC>
+      <ECState Comment="Initial State" Name="START" x="475.0" y="1125.0"/>
+      <ECState Comment="Initialization" Name="Init" x="1235.0" y="665.0">
+        <ECAction Algorithm="initialize" Output="INITO"/>
+      </ECState>
+      <ECState Comment="Normal execution" Name="stalled" x="3000.0" y="1100.0">
+        <ECAction Algorithm="reset" Output="StallDetected"/>
+        <ECAction Algorithm="initialize"/>
+      </ECState>
+      <ECState Comment="" Name="Sampling" x="1900.0" y="1140.0">
+        <ECAction Algorithm="Sampling"/>
+      </ECState>
+      <ECTransition Comment="" Condition="INIT" Destination="Init" Source="START" x="840.0" y="920.0"/>
+      <ECTransition Comment="" Condition="[stalled = TRUE]" Destination="stalled" Source="Sampling" x="2615.0" y="1000.0"/>
+      <ECTransition Comment="" Condition="REQ" Destination="Sampling" Source="START" x="1325.0" y="1230.0"/>
+      <ECTransition Comment="" Condition="[stalled = FALSE]" Destination="START" Source="Sampling" x="1455.0" y="1725.0"/>
+      <ECTransition Comment="" Condition="1" Destination="START" Source="stalled" x="1210.0" y="2275.0"/>
+      <ECTransition Comment="" Condition="1" Destination="START" Source="Init" x="1425.0" y="980.0"/>
+    </ECC>
+    <Algorithm Comment="Initialization algorithm" Name="initialize">
+      <ST Text="&#13;&#10;FOR i:=0 TO 19 DO&#13;&#10;&#9;SampleArray[i]:= InitValue;&#13;&#10;END_FOR;"/>
+    </Algorithm>
+    <Algorithm Comment="Normally executed algorithm" Name="Sampling">
+      <ST Text="&#10;IF currentSample &lt; CountSamples  THEN&#13;&#10; currentSample := currentSample +1;&#13;&#10;ELSE&#13;&#10; currentSample := 0;&#13;&#10;END_IF;&#13;&#10;&#13;&#10;SampleArray[currentSample] := Speed;&#13;&#10;&#13;&#10;FOR i:=0 TO CountSamples DO&#13;&#10;&#9;sum := sum + SampleArray[i];&#13;&#10;END_FOR;&#13;&#10;&#13;&#10;sum := sum /CountSamples;&#13;&#10;&#13;&#10;IF sum &lt; Threshold THEN&#13;&#10;&#9;stalled := true;&#13;&#10;&#9;ELSE&#13;&#10;&#9;stalled := false;&#13;&#10;END_IF;&#13;&#10;"/>
+    </Algorithm>
+    <Algorithm Comment="new algorithm" Name="reset">
+      <ST Text="stalled := false;"/>
+    </Algorithm>
+  </BasicFB>
+</FBType>

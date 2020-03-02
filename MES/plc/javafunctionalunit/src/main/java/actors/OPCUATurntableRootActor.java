@@ -1,42 +1,33 @@
-package fiab.opcua.hardwaremock.turntable;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
-import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
-import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
-import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
-import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+package actors;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.stream.impl.fusing.Log;
-import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
-import fiab.mes.machine.msg.MachineStatus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.iostation.MockIOStationWrapper;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapper.LocalEndpointStatus;
-import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability.SimpleMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
-import fiab.opcua.hardwaremock.BaseOpcUaServer;
-import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
-import fiab.opcua.hardwaremock.turntable.WiringUtils.WiringInfo;
-import fiab.opcua.hardwaremock.turntable.methods.Reset;
-import fiab.opcua.hardwaremock.turntable.methods.Stop;
-import fiab.opcua.hardwaremock.turntable.methods.TransportRequest;
+import event.MachineStatusUpdateEvent;
+import event.bus.InterMachineEventBus;
+import event.bus.SubscriptionClassifier;
+import event.bus.WellknownMachinePropertyFields;
+import event.capability.WellknownTransportModuleCapability;
+import handshake.WiringUtils;
+import handshake.methods.Reset;
+import handshake.methods.Stop;
+import handshake.methods.TransportRequest;
+import msg.InternalTransportModuleRequest;
+import opcua.HandshakeFU;
+import opcua.OPCUABase;
+import opcua.OPCUACapabilitiesWellknownBrowsenames;
+import opcua.server.BaseOpcUaServer;
+import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
+import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
+import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
+import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
+import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import stateMachines.MachineStatus;
+
+import java.util.HashMap;
+import java.util.Optional;
 
 public class OPCUATurntableRootActor extends AbstractActor {
 
@@ -91,9 +82,12 @@ public class OPCUATurntableRootActor extends AbstractActor {
 		UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "Turntable_FU");
 		String fuPrefix = machineName+"/"+"Turntable_FU";
 						
-		InterMachineEventBus intraEventBus = new InterMachineEventBus();	
-		intraEventBus.subscribe(getSelf(), new SubscriptionClassifier("Turntable Module", "*"));		
-		ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus, turntableFU, conveyorFU), "TT1");
+		InterMachineEventBus intraEventBus = new InterMachineEventBus();
+		intraEventBus.subscribe(getSelf(), new SubscriptionClassifier("Turntable Module", "*"));
+		//ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus, turntableFU, conveyorFU), "TT1");
+		ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
+				context().actorOf(TurntableActor.props(intraEventBus, System.out::println)),
+				context().actorOf(ConveyorActor.props(intraEventBus, System.out::println))), "TT1");
 		ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getSelf());
 		//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 		
@@ -131,7 +125,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
 	}
 	
 	private void loadWiringFromFile() {
-		Optional<HashMap<String, WiringInfo>> optInfo = WiringUtils.loadWiringInfoFromFileSystem(machineName);
+		Optional<HashMap<String, WiringUtils.WiringInfo>> optInfo = WiringUtils.loadWiringInfoFromFileSystem(machineName);
 		optInfo.ifPresent(info -> {
 			info.values().stream()
 				.filter(wi -> handshakeFUs.containsKey(wi.getLocalCapabilityId()))
@@ -149,18 +143,18 @@ public class OPCUATurntableRootActor extends AbstractActor {
 	private void setupOPCUANodeSet(OPCUABase opcuaBase, UaFolderNode ttNode, String path, ActorRef ttActor) {
 		
 		UaMethodNode n1 = opcuaBase.createPartialMethodNode(path, WellknownTransportModuleCapability.SimpleMessageTypes.Reset.toString(), "Requests reset");		
-		opcuaBase.addMethodNode(ttNode, n1, new Reset(n1, ttActor)); 		
+		opcuaBase.addMethodNode(ttNode, n1, new Reset(n1, ttActor));
 		UaMethodNode n2 = opcuaBase.createPartialMethodNode(path, WellknownTransportModuleCapability.SimpleMessageTypes.Stop.toString(), "Requests stop");		
 		opcuaBase.addMethodNode(ttNode, n2, new Stop(n2, ttActor));
 		UaMethodNode n3 = opcuaBase.createPartialMethodNode(path, WellknownTransportModuleCapability.TRANSPORT_MODULE_UPCUA_TRANSPORT_REQUEST, "Requests transport");		
 		opcuaBase.addMethodNode(ttNode, n3, new TransportRequest(n3, ttActor));
-		status = opcuaBase.generateStringVariableNode(ttNode, path, WellknownMachinePropertyFields.STATE_VAR_NAME, MachineStatus.UNKNOWN);	
+		status = opcuaBase.generateStringVariableNode(ttNode, path, WellknownMachinePropertyFields.STATE_VAR_NAME, MachineStatus.UNKNOWN);
 	}
 	
 	private void setupTurntableCapabilities(OPCUABase opcuaBase, UaFolderNode ttNode, String path) {
 		// add capabilities 
 		UaFolderNode capabilitiesFolder = opcuaBase.generateFolder(ttNode, path, new String( OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES));
-		path = path +"/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES;
+		path = path +"/"+ OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES;
 		UaFolderNode capability1 = opcuaBase.generateFolder(capabilitiesFolder, path,
 				"CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.CAPABILITY);
 		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.TYPE,

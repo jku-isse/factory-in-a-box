@@ -1,38 +1,72 @@
-import capabilities.HandshakeCapability;
-import capabilities.HandshakeFU;
-import functionalUnits.ConveyorTurnTable;
-import functionalUnits.ProcessTurnTable;
-import functionalUnits.TurningTurnTable;
-import hardware.actuators.motorsEV3.LargeMotorEV3;
-import hardware.actuators.motorsEV3.MediumMotorEV3;
-import hardware.sensors.sensorsEV3.ColorSensorEV3;
-import hardware.sensors.sensorsEV3.TouchSensorEV3;
-import helper.CapabilityId;
-import helper.CapabilityRole;
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.SensorPort;
-import robot.Robot;
+import actors.OPCUATurntableRootActor;
+import akka.actor.ActorSystem;
 
-/**
- * This is the main entrance point for the TurnTableRobot
- * In order to run it without the ev3 dependencies, run one of the examples without lego ports.
- * You might also need to get rid of all ev3/lejos dependencies when not running on lego hardware
- */
-public class TurnTableApplication {
+public class TurnTableApplication /*extends JFrame*/ {
 
     public static void main(String[] args) {
-        //Run this if you want to run it on a Lego Robot. Make sure the ports match your configuration
-        Robot robot = new Robot(new ConveyorTurnTable(new MediumMotorEV3(MotorPort.A),
-                new TouchSensorEV3(SensorPort.S2), new ColorSensorEV3(SensorPort.S3)),
-                new TurningTurnTable(new LargeMotorEV3(MotorPort.D), new TouchSensorEV3(SensorPort.S4)),
-                new ProcessTurnTable());
+        ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
+        system.actorOf(OPCUATurntableRootActor.props("Turntable1"));
+        /*
+        InterMachineEventBus interMachineEventBus = new InterMachineEventBus();
+        StatePublisher statePublisher = newStatus -> System.out.println("STATE_PUBLISHER - NEW STATUS: " + newStatus);
 
-        HandshakeFU hsFU = new HandshakeFU(robot.getCommunication(), robot.getServer(), robot.getClient(), robot.getRobotRoot());
-        HandshakeCapability handshakeCapability = hsFU.addHanshakeEndpoint(CapabilityId.NORTH_CLIENT, CapabilityRole.Provided);
-        HandshakeCapability handshakeCapabilityClient = hsFU.addHanshakeEndpoint(CapabilityId.NORTH_SERVER, CapabilityRole.Required);
-        hsFU.addWiringCapability(CapabilityId.NORTH_SERVER, handshakeCapability.getEndpoint_NodeId(), handshakeCapability.getCapabilities_NodeId());
-        hsFU.addWiringCapability(CapabilityId.NORTH_CLIENT, handshakeCapabilityClient.getEndpoint_NodeId(), handshakeCapabilityClient.getCapabilities_NodeId());
+        ActorSystem system = ActorSystem.create("tt_root");
+        ActorRef ttActor = system.actorOf(TurntableActor.props(interMachineEventBus, statePublisher));
+        ActorRef convActor = system.actorOf(ConveyorActor.props(interMachineEventBus, statePublisher));
 
-        robot.runServerAndClient();
+        JFrame frame = new JFrame("Robot Control");
+
+        //Turntable buttons with events
+        JButton resetTTButton = new JButton("RESET_TURNING");
+        resetTTButton.addActionListener(e -> {
+            ttActor.tell(new GenericMachineRequests.Reset("1"), ActorRef.noSender());
+        });
+
+        JButton turnTTButton = new JButton("TURN_TURNING");
+        turnTTButton.addActionListener(e -> {
+            ttActor.tell(new TurnRequest(TurnTableOrientation.EAST), ActorRef.noSender());
+        });
+
+        JButton stopTTButton = new JButton("STOP_TURNING");
+        stopTTButton.addActionListener(e -> {
+            ttActor.tell(new GenericMachineRequests.Stop("1"), ActorRef.noSender());
+        });
+
+        //Conveyor buttons and events
+        JButton resetCButton = new JButton("RESET_CONVEYOR");
+        resetCButton.addActionListener(e -> {
+            convActor.tell(ConveyorTriggers.RESET, ActorRef.noSender());
+        });
+
+        JButton loadCButton = new JButton("LOAD_CONVEYOR");
+        loadCButton.addActionListener(e -> {
+            convActor.tell(ConveyorTriggers.LOAD, ActorRef.noSender());
+        });
+
+        JButton unloadCButton = new JButton("UNLOAD_CONVEYOR");
+        unloadCButton.addActionListener(e -> {
+            convActor.tell(ConveyorTriggers.UNLOAD, ActorRef.noSender());
+        });
+
+        JButton stopCButton = new JButton("STOP_CONVEYOR");
+        stopCButton.addActionListener(e -> {
+            convActor.tell(ConveyorTriggers.STOP, ActorRef.noSender());
+        });
+
+        //Set layout and close op, add buttons, pack frame and show
+        frame.getContentPane().setLayout(new GridLayout(7, 1));
+        frame.getContentPane().add(resetTTButton);
+        frame.getContentPane().add(turnTTButton);
+        frame.getContentPane().add(stopTTButton);
+
+        frame.getContentPane().add(resetCButton);
+        frame.getContentPane().add(loadCButton);
+        frame.getContentPane().add(unloadCButton);
+        frame.getContentPane().add(stopCButton);
+
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);*/
+
     }
 }
