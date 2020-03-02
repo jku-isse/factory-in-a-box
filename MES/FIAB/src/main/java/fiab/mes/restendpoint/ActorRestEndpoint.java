@@ -22,6 +22,7 @@ import akka.actor.ActorSystem;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.marshalling.sse.EventStreamMarshalling;
 import akka.http.javadsl.model.HttpHeader;
+import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.model.headers.RawHeader;
 import akka.http.javadsl.model.sse.ServerSentEvent;
@@ -40,6 +41,7 @@ import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.machine.msg.MachineEventWrapper;
+import fiab.mes.order.OrderProcess;
 import fiab.mes.order.OrderProcessWrapper;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
@@ -50,6 +52,7 @@ import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
+import fiab.mes.restendpoint.xmltransformer.EcoreStringUnmarshaller;
 import scala.concurrent.duration.FiniteDuration;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.MachineEvent;
@@ -70,7 +73,7 @@ public class ActorRestEndpoint extends AllDirectives{
 		this.machineEventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		this.orderEntryActor = orderEntryActor;
 		this.machineEntryActor = machineEntryActor;
-		this.auth = new Authenticator();
+		this.auth = new Authenticator(true);
 	}
 
 	private static int bufferSize = 10;
@@ -209,13 +212,25 @@ public class ActorRestEndpoint extends AllDirectives{
 		return post(() ->	  
 			headerValueByName("Authorization", token -> {
 				if (auth.isLoggedIn(token)) {
-					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { //TODO this needs to be an XML unmarshaller, not JSON!! 
+					return entity(EcoreStringUnmarshaller.unmarshaller(), request -> {
 						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
-						// TODO: transform XML string into Ecore model: XML
-						RegisterProcessRequest order = transformToOrderProcessRequest(orderAsXML); // not sure how to do this yet
-						CompletionStage<String> returnId = ask(orderEntryActor, order, timeout).thenApply((String.class::cast));
+						logger.info(String.format("REST Endpoint received Process request with DisplayName %s ", request.getDisplayName() ));						
+						if (request.getID() == null) // if there was a problem in the XML
+							return complete(StatusCodes.BAD_REQUEST, "Could not extract Process from XML Document");
+						OrderProcess op = new OrderProcess(request);												
+						// Id will be set by OrderEntryActor
+						// Requestor will be set in OrderActor
+						RegisterProcessRequest rpr = new RegisterProcessRequest("overwritten", op, ActorRef.noSender());												
+						CompletionStage<String> returnId = ask(orderEntryActor, rpr, timeout).thenApply((String.class::cast));
 						return completeOKWithFuture(returnId, Jackson.marshaller());
 					});
+//					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { //TODO this needs to be an XML unmarshaller, not JSON!! 
+//						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
+//						// TODO: transform XML string into Ecore model: XML
+//						RegisterProcessRequest order = transformToOrderProcessRequest(orderAsXML); // not sure how to do this yet
+//						CompletionStage<String> returnId = ask(orderEntryActor, order, timeout).thenApply((String.class::cast));
+//						return completeOKWithFuture(returnId, Jackson.marshaller());
+//					});
 				}
 				return complete(StatusCodes.UNAUTHORIZED);
 			})

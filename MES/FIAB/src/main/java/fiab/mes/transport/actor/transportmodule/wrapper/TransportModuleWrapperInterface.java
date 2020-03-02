@@ -11,5 +11,7 @@ public interface TransportModuleWrapperInterface {
 	public void reset();
 	
 	public void subscribeToStatus();
+	
+	public void unsubscribeFromStatus();
 
 }

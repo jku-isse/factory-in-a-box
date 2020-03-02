@@ -32,13 +32,13 @@ import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.ReadyForProcessEvent;
@@ -80,7 +80,7 @@ public class TestBasicIOStationActorWithTransport {
 				while (doRun) {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
-					if (mue.getStatus().equals(ServerSide.IdleLoaded)) {
+					if (mue.getStatus().equals(ServerSide.IDLE_LOADED)) {
 						doRun = false;
 					}
 				}
@@ -102,7 +102,7 @@ public class TestBasicIOStationActorWithTransport {
 				while (doRun) {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
-					if (mue.getStatus().equals(ServerSide.IdleEmpty)) {
+					if (mue.getStatus().equals(ServerSide.IDLE_EMPTY)) {
 						doRun = false;
 					}
 				}

@@ -9,8 +9,9 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.mockactors.MockServerHandshakeActor.StateOverrideRequests;
+import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 public class MockIOStationWrapper extends AbstractActor {
@@ -18,7 +19,7 @@ public class MockIOStationWrapper extends AbstractActor {
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected InterMachineEventBus interEventBus;
 	protected boolean doPublishState = false;
-	protected ServerSide handshakeStatus = ServerSide.Stopped;
+	protected ServerSide handshakeStatus = ServerSide.STOPPED;
 	protected ActorRef serverSide;
 	protected ActorRef self;
 	protected boolean isInputStation = true;
@@ -43,7 +44,7 @@ public class MockIOStationWrapper extends AbstractActor {
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(MessageTypes.class, msg -> {
+				.match(HandshakeProtocol.ServerMessageTypes.class, msg -> {
 					switch(msg) {
 					case SubscribeToStateUpdates: 
 						doPublishState = true;
@@ -57,7 +58,7 @@ public class MockIOStationWrapper extends AbstractActor {
 					if (getSender().equals(serverSide)) {
 						handshakeStatus = msg;
 						setAndPublishState(msg);
-						if (msg.equals(ServerSide.Completed)) { //we auto reload here
+						if (msg.equals(ServerSide.COMPLETE)) { //we auto reload here
 							context().system()
 					    	.scheduler()
 					    	.scheduleOnce(Duration.ofMillis(1000), 

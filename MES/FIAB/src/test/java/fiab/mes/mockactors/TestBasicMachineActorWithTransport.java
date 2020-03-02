@@ -31,13 +31,14 @@ import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
+import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.ReadyForProcessEvent;
@@ -99,20 +100,20 @@ public class TestBasicMachineActorWithTransport {
 					}
 					if (newState.equals(MachineStatus.STARTING)) {
 						boolean handshakeDone = false;
-						serverSide.tell(MockServerHandshakeActor.MessageTypes.SubscribeToStateUpdates, getRef());
+						serverSide.tell(HandshakeProtocol.ServerMessageTypes.SubscribeToStateUpdates, getRef());
 						while (!handshakeDone) {
 							ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
 							switch(state) {
-							case IdleEmpty:
-								serverSide.tell(MockServerHandshakeActor.MessageTypes.RequestInitiateHandover, getRef());
-								expectMsg(Duration.ofSeconds(5), ServerSide.Starting);
-								expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseInitHandover);
+							case IDLE_EMPTY:
+								serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover, getRef());
+								expectMsg(Duration.ofSeconds(5), ServerSide.STARTING);
+								expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover);
 								break;
-							case ReadyEmpty:
-								serverSide.tell(MessageTypes.RequestStartHandover, getRef());
-								expectMsg(Duration.ofSeconds(5), ServerSide.Execute);
-								expectMsg(Duration.ofSeconds(5), MessageTypes.OkResponseStartHandover);
-								serverSide.tell(MockServerHandshakeActor.MessageTypes.UnsubscribeToStateUpdates, getRef()); //otherwise the handshake events interfere with other expected events
+							case READY_EMPTY:
+								serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestStartHandover, getRef());
+								expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE);
+								expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover);
+								serverSide.tell(HandshakeProtocol.ServerMessageTypes.UnsubscribeToStateUpdates, getRef()); //otherwise the handshake events interfere with other expected events
 								handshakeDone = true; // part until where we need to be involved, thanks to autocomplete
 								break;
 							default:

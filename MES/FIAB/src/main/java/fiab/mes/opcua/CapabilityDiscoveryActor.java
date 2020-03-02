@@ -21,6 +21,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.QualifiedName;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorKilledException;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
@@ -56,7 +57,10 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 	private DISCOVERY_STATUS status = DISCOVERY_STATUS.IDLE;
 	private ActorRef self;
 
-
+	private ActorRef spawner = null;
+	private BrowseRequest req;
+	private OpcUaClient client;
+	
 	static public Props props() {
 		return Props.create(CapabilityDiscoveryActor.class, () -> new CapabilityDiscoveryActor());
 	}
@@ -71,16 +75,20 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 				.match(BrowseRequest.class, req -> {
 					if (this.status.equals(DISCOVERY_STATUS.IDLE) ) {
 						this.status = DISCOVERY_STATUS.CONNECTING;
+						this.req = req;
 						connectToServer(req);
 					}
 				} )
+				.match(ActorKilledException.class, ex -> {
+					log.info("Received KillException from: "+ex.getMessage());
+				})
 				.build();
 	}
 
 
 	private void connectToServer(BrowseRequest req) {
 		try {
-			OpcUaClient client = new OPCUAUtils().createClient(req.endpointURL);
+			client = new OPCUAUtils().createClient(req.endpointURL);
 			client.connect().get();
 			this.status = DISCOVERY_STATUS.CONNECTED;
 			log.info("Connected to "+req.endpointURL);
@@ -88,6 +96,10 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 			if (this.status.equals(DISCOVERY_STATUS.IN_PROGRESS)) {
 				log.info("No Capabilities found for which an ActorSpawnerActor was registered");
 				this.status = DISCOVERY_STATUS.COMPLETED_WITHOUT_SPAWN;
+				// no need to check a spawner actor
+			} else if (this.status.equals(DISCOVERY_STATUS.COMPLETED_WITH_SPAWN)) {
+				// check if spawner is alive
+				//checkSpawnerAlive();
 			}
 		} catch (Exception e) {
 			log.warning("Error connecting to "+req.endpointURL+" with error: "+e.getMessage());
@@ -138,6 +150,19 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 		}
 	}
 
+//	private void checkSpawnerAlive() {
+//		context().system()
+//		.scheduler()
+//		.scheduleOnce(Duration.ofSeconds(60), 
+//				new Runnable() {
+//			@Override
+//			public void run() {
+//				status = DISCOVERY_STATUS.CONNECTING;
+//				connectToServer(req);
+//			}
+//		}, context().system().dispatcher());
+//	}
+	
 	private void tryRebrowseInXseconds(BrowseRequest req, OpcUaClient client) {
 		context().system()
 		.scheduler()
@@ -169,10 +194,12 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 				if (isCapabilityFolder(n)) {
 					try {
 						CapabilityImplementationMetadata capMeta = getCapabilityURI(client, n);
+						log.info("Found: "+capMeta.toString());
 						//if capability registered, spawn ActorSpawner and return
 						AbstractMap.SimpleEntry<String, ProvOrReq> foundEntry = new SimpleEntry<String, ProvOrReq>(capMeta.getCapabilityURI(), capMeta.getProvOrReq());
 						Optional.ofNullable(req.capURI2Spawning.get(foundEntry)).ifPresent(spawningEP -> {
-							ActorRef spawner = spawningEP.createActorSpawner(getContext());
+							spawner = spawningEP.createActorSpawner(getContext());
+							log.info("Creating ActorSpawner for Capability Type: "+capMeta.capabilityURI );							
 							spawner.tell(new CapabilityCentricActorSpawnerInterface.SpawnRequest(new CapabilityImplInfo(client, req.endpointURL, actorNode, browseRoot, capMeta.capabilityURI)), self);
 							this.status = DISCOVERY_STATUS.COMPLETED_WITH_SPAWN;
 						});						
@@ -186,13 +213,14 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 				// we spawn an actor for each registered capabilityImpl that we find
 			}
 		}
-		if (!this.status.equals(DISCOVERY_STATUS.COMPLETED_WITH_SPAWN))
-			this.status = DISCOVERY_STATUS.COMPLETED_WITHOUT_SPAWN;
+//		if (!this.status.equals(DISCOVERY_STATUS.COMPLETED_WITH_SPAWN))
+//			this.status = DISCOVERY_STATUS.COMPLETED_WITHOUT_SPAWN;
 	}
 
 	private boolean isCapabilityFolder(Node n) throws InterruptedException, ExecutionException {
 		String bName = n.getBrowseName().get().getName();
-		if (bName.equalsIgnoreCase(CAPABILITY)) {
+		//if (bName.equalsIgnoreCase(CAPABILITY)) {
+		if (bName.startsWith(CAPABILITY)) { // currently FORTE/4DIAC cannot have two sibling nodes with the same browsename, thus there are numbers prepended which we ignore here
 			log.info("Found Capability Node with id: "+n.getNodeId().get().toParseableString());
 			return true;			
 		} else

@@ -153,7 +153,7 @@ public class OrderEmittingTestServerWithTransport {
 				    while(count.getCount() > 0) {
 				    	String oid = "P"+String.valueOf(count.getCount()+"-");
 				    	OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleGreenStepProcess(oid));				
-						RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op1, getRef());
+						RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, getRef());
 				    	orderEntryActor.tell(req, getRef());
 				    	
 				    	count.countDown();

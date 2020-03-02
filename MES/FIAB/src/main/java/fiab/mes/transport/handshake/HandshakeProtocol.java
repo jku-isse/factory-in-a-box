@@ -6,16 +6,26 @@ import fiab.mes.general.ComparableCapability;
 public class HandshakeProtocol {
 
 	public enum ServerSide {
-		Unknown,Stopping, Stopped, Resetting, IdleLoaded, IdleEmpty, Starting, Preparing, ReadyLoaded, ReadyEmpty, Execute, Completing, Completed
+		UNKNOWN,STOPPING, STOPPED, RESETTING, IDLE_LOADED, IDLE_EMPTY, STARTING, PREPARING, READY_LOADED, READY_EMPTY, EXECUTE, COMPLETING, COMPLETE
 	}
 	
-	public static final String STATE_SERVERSIDE_VAR_NAME = "HANDSHAKE_SERVERSIDE_STATE";
+	public static final String STATE_SERVERSIDE_VAR_NAME = "STATE"; //"HANDSHAKE_SERVERSIDE_STATE";
 	
 	public enum ClientSide {
-		Stopping, Stopped, Resetting, Idle, Starting, Initiating, Initiated, Ready, Execute, Completing, Completed
+		STOPPING, STOPPED, RESETTING, IDLE, STARTING, INITIATING, INITIATED, READY, EXECUTE, COMPLETING, COMPLETED
 	}
 	
-	public static final String STATE_CLIENTSIDE_VAR_NAME = "HANDSHAKE_CLIENTSIDE_STATE";
+	public static enum ServerMessageTypes {
+		Reset, Stop, RequestInitiateHandover, OkResponseInitHandover, NotOkResponseInitHandover, 
+		RequestStartHandover, OkResponseStartHandover, NotOkResponseStartHandover, Complete, 
+		SubscribeToStateUpdates, UnsubscribeToStateUpdates 
+	}
+
+	public static enum ClientMessageTypes {
+		Reset, Stop, Start, Complete
+	}
+
+	public static final String STATE_CLIENTSIDE_VAR_NAME = "STATE"; //"HANDSHAKE_CLIENTSIDE_STATE";
 	
 	public static final String IOSTATION_PROVIDED_OPCUA_METHOD_RESET = "RESET";
 	public static final String IOSTATION_PROVIDED_OPCUA_METHOD_STOP = "STOP";

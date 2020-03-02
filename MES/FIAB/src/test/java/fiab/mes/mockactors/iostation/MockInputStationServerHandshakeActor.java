@@ -20,7 +20,7 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
 	}
 	
 	public MockInputStationServerHandshakeActor() {
-		super(null, true);
+		super(null, true, null);
 	}
 
 	// we accept the usual request but we implement an auto reset, except for an initial reset to become active
@@ -28,15 +28,15 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
 	
 	@Override
 	protected void reset() {
-		publishNewState(ServerSide.Resetting);
+		publishNewState(ServerSide.RESETTING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
     			 new Runnable() {
             @Override
             public void run() {
-            	if (isLoaded && !currentState.equals(ServerSide.IdleLoaded)) {
-            		publishNewState(ServerSide.IdleLoaded);
+            	if (isLoaded && !currentState.equals(ServerSide.IDLE_LOADED)) {
+            		publishNewState(ServerSide.IDLE_LOADED);
             	} else {
             		// stay in resetting
             	}
@@ -44,14 +44,14 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
           }, context().system().dispatcher());
 	}
 	
-	private Set<ServerSide> loadChangeableStates = Sets.newHashSet(ServerSide.Completed, ServerSide.Completing, ServerSide.Stopped, ServerSide.Stopping);
+	private Set<ServerSide> loadChangeableStates = Sets.newHashSet(ServerSide.COMPLETE, ServerSide.COMPLETING, ServerSide.STOPPED, ServerSide.STOPPING);
 	
 	@Override
 	protected void updateLoadState(boolean isLoaded) {
 		log.info("Updating Loading State");
 		if (this.isLoaded != isLoaded) {
 			this.isLoaded = isLoaded;
-			if (currentState.equals(ServerSide.Resetting)) {
+			if (currentState.equals(ServerSide.RESETTING)) {
 				reset(); // we reset again to reach IdleLoaded
 			} else if (!loadChangeableStates.contains(currentState)) {
 				stopAndAutoReset();
@@ -61,15 +61,15 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
 	
 	private void stopAndAutoReset() {
 		
-		publishNewState(ServerSide.Stopping);
-		clientSide = null;
+		publishNewState(ServerSide.STOPPING);
+		//clientSide = null;
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
     			 new Runnable() {
             @Override
             public void run() {
-            	publishNewState(ServerSide.Stopped);
+            	publishNewState(ServerSide.STOPPED);
             	reset();
             }
           }, context().system().dispatcher());

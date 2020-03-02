@@ -6,14 +6,14 @@ import fiab.mes.order.OrderProcess;
 public class RegisterProcessRequest {
 
 	protected String rootOrderId;
-	protected String processId;
+//	protected String processId;
 	protected OrderProcess process;
 	protected ActorRef orderActor;
 	
-	public  RegisterProcessRequest(String rootOrderId, String processId, OrderProcess process, ActorRef requestor) {
+	public  RegisterProcessRequest(String rootOrderId, OrderProcess process, ActorRef requestor) {
 		super();
 		this.rootOrderId = rootOrderId;
-		this.processId = processId;
+//		this.processId = processId;
 		this.process = process;
 		this.orderActor = requestor;
 	}
@@ -24,12 +24,12 @@ public class RegisterProcessRequest {
 	public void setRootOrderId(String rootOrderId) {
 		this.rootOrderId = rootOrderId;
 	}
-	public String getProcessId() {
-		return processId;
-	}
-	public void setProcessId(String processId) {
-		this.processId = processId;
-	}
+//	public String getProcessId() {
+//		return processId;
+//	}
+//	public void setProcessId(String processId) {
+//		this.processId = processId;
+//	}
 	public OrderProcess getProcess() {
 		return process;
 	}

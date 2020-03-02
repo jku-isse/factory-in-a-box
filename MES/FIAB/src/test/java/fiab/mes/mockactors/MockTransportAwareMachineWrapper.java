@@ -27,6 +27,7 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
+import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
@@ -87,14 +88,14 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 					if (getSender().equals(serverSide)) {
 						handshakeStatus = msg;
 						switch(msg) {
-						case Completed: // handshake complete, thus un/loading done
+						case COMPLETE: // handshake complete, thus un/loading done
 							if  (currentState.equals(MachineStatus.STARTING) ) { // pallet is now loaded
 								transitionStartingToExecute();
 							} else if (currentState.equals(MachineStatus.COMPLETING)) { // pallet is now unloaded
 								transitionCompletingToComplete();
 							}
 							break;
-						case Stopped: 
+						case STOPPED: 
 							if (currentState.equals(MachineStatus.STOPPING) ) //only if we wait for FU to stop
 								transitionToStop();
 							break;
@@ -134,7 +135,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 	
 	private void stop() {
 		setAndPublishState(MachineStatus.STOPPING);
-		serverSide.tell(MockServerHandshakeActor.MessageTypes.Stop, getSelf());
+		serverSide.tell(HandshakeProtocol.ServerMessageTypes.Stop, getSelf());
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -142,7 +143,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
             @Override
             public void run() {
             	// only when handshakeFU and other FUs have stopped
-            	if (handshakeStatus.equals(ServerSide.Stopped)) {
+            	if (handshakeStatus.equals(ServerSide.STOPPED)) {
             		transitionToStop();
             	}
             }
@@ -156,7 +157,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 	private void plot() {
 		setAndPublishState(MachineStatus.STARTING);
 		//now here we also enable pallet to be loaded onto machine
-		serverSide.tell(MockServerHandshakeActor.MessageTypes.Reset, self);
+		serverSide.tell(HandshakeProtocol.ServerMessageTypes.Reset, self);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(5000), 
@@ -165,7 +166,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
             public void run() {
             	// we only transition when the pallet is loaded, e.g., the server handshake is completing or completed,
             	//sending of the complete() command (by the here nonexisting converyerFU when loaded) --> not necessary if we set serverside protocol actor to auto-complete
-            	if (handshakeStatus.equals(ServerSide.Completed)) {
+            	if (handshakeStatus.equals(ServerSide.COMPLETE)) {
             		transitionStartingToExecute();
             	}
             }
@@ -187,14 +188,14 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 	
 	private void finishProduction() {
 		setAndPublishState(MachineStatus.COMPLETING); 
-		serverSide.tell(MockServerHandshakeActor.MessageTypes.Reset, self); //now again do a handshake and unload,
+		serverSide.tell(HandshakeProtocol.ServerMessageTypes.Reset, self); //now again do a handshake and unload,
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(3000), 
     			 new Runnable() {
             @Override
             public void run() {
-            	if (handshakeStatus.equals(ServerSide.Completed)) {
+            	if (handshakeStatus.equals(ServerSide.COMPLETE)) {
             		//only when the handshake is in completed are we good to continue, actually we only care about loadstate
             		transitionCompletingToComplete();
             	}

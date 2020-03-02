@@ -4,7 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapper.SimpleMessageTypes;
+import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
+import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability.SimpleMessageTypes;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
@@ -27,19 +28,25 @@ public class MockTransportModuleWrapperDelegate implements TransportModuleWrappe
 	@Override
 	public void stop() {
 		logger.info("stop called");
-		wrapper.tell(SimpleMessageTypes.Stop, ActorRef.noSender());
+		wrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Stop, ActorRef.noSender());
 	}
 
 	@Override
 	public void reset() {
 		logger.info("reset called");
-		wrapper.tell(SimpleMessageTypes.Reset, ActorRef.noSender());
+		wrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, ActorRef.noSender());
 	}
 
 	@Override
 	public void subscribeToStatus() {
 		logger.info("subscribeToStatus called");
-		wrapper.tell(SimpleMessageTypes.SubscribeState, ActorRef.noSender());
+		wrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
+	}
+
+	@Override
+	public void unsubscribeFromStatus() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

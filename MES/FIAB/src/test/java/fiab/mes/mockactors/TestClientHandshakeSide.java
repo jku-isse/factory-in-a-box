@@ -11,9 +11,10 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.mes.mockactors.MockClientHandshakeActor.MessageTypes;
 import fiab.mes.order.OrderProcess;
+import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
+import fiab.mes.transport.handshake.HandshakeProtocol.ClientMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 public class TestClientHandshakeSide { 
@@ -45,30 +46,30 @@ public class TestClientHandshakeSide {
 			{
 				ActorRef clientSide = system.actorOf(MockClientHandshakeActor.props(getRef(), getRef()), "ClientSide"); // we want to see events
 				boolean done = false;
-				clientSide.tell(MessageTypes.Reset, getRef());
+				clientSide.tell(HandshakeProtocol.ClientMessageTypes.Reset, getRef());
 				while (!done) {
 					ClientSide state = expectMsgClass(Duration.ofSeconds(5), ClientSide.class);
 					logEvent(state);
 					switch(state) {
-					case Idle:
-						clientSide.tell(MessageTypes.Start, getRef());
-						logEvent(expectMsg(Duration.ofSeconds(5), ClientSide.Starting));
-						logMsg(expectMsg(Duration.ofSeconds(5), MockServerHandshakeActor.MessageTypes.SubscribeToStateUpdates));
-						logEvent(expectMsg(Duration.ofSeconds(5), ClientSide.Initiating));
+					case IDLE:
+						clientSide.tell(HandshakeProtocol.ClientMessageTypes.Start, getRef());
+						logEvent(expectMsg(Duration.ofSeconds(5), ClientSide.STARTING));
+						logMsg(expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.SubscribeToStateUpdates));
+						logEvent(expectMsg(Duration.ofSeconds(5), ClientSide.INITIATING));
 						// now we send our update, lets assume first we are resetting, then idle
-						clientSide.tell(ServerSide.Resetting, getRef());
-						clientSide.tell(ServerSide.IdleEmpty, getRef());
-						logMsg(expectMsg(Duration.ofSeconds(5), MockServerHandshakeActor.MessageTypes.RequestInitiateHandover));
-						clientSide.tell(MockServerHandshakeActor.MessageTypes.OkResponseInitHandover, getRef());
+						clientSide.tell(ServerSide.RESETTING, getRef());
+						clientSide.tell(ServerSide.IDLE_EMPTY, getRef());
+						logMsg(expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover));
+						clientSide.tell(HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover, getRef());
 						break;
-					case Ready:
-						clientSide.tell(ServerSide.ReadyEmpty, getRef());
-						logMsg(expectMsg(Duration.ofSeconds(5), MockServerHandshakeActor.MessageTypes.RequestStartHandover));
-						clientSide.tell(MockServerHandshakeActor.MessageTypes.OkResponseStartHandover, getRef());
+					case READY:
+						clientSide.tell(ServerSide.READY_EMPTY, getRef());
+						logMsg(expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.RequestStartHandover));
+						clientSide.tell(HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover, getRef());
 						break;
-					case Execute: // now we tell to complete playing the local FU
-						clientSide.tell(MessageTypes.Complete, getRef());
-					case Completed:
+					case EXECUTE: // now we tell to complete playing the local FU
+						clientSide.tell(HandshakeProtocol.ClientMessageTypes.Complete, getRef());
+					case COMPLETED:
 						done = true; // end of the handshake cycle
 						break;
 					default:
@@ -85,7 +86,7 @@ public class TestClientHandshakeSide {
 		logger.info(event.toString());
 	}
 	
-	private void logMsg(MockServerHandshakeActor.MessageTypes event) {
+	private void logMsg(HandshakeProtocol.ServerMessageTypes event) {
 		logger.info(event.toString());
 	}
 	

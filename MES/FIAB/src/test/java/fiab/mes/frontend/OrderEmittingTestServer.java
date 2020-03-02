@@ -38,6 +38,7 @@ import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.ComparableCapability;
 import fiab.mes.machine.MachineEntryActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
+import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
@@ -135,7 +136,7 @@ public class OrderEmittingTestServer {
 				    	OrderProcess process = new OrderProcess(TestBasicMachineActor.getSequentialProcess());
 				    	String processId = "process"+String.valueOf(count.getCount());
 						process.getProcess().setID(processId);			
-				    	RegisterProcessRequest req = new RegisterProcessRequest("", processId, process, getRef());
+				    	RegisterProcessRequest req = new RegisterProcessRequest("", process, getRef());
 				    	orderEntryActor.tell(req, getRef());
 				    	
 				    	count.countDown();
@@ -183,7 +184,7 @@ public class OrderEmittingTestServer {
 				    	OrderProcess process = new OrderProcess(getParallelProcess("1-"));
 				    	String processId = "process"+String.valueOf(count.getCount());
 						process.getProcess().setID(processId);			
-				    	RegisterProcessRequest req = new RegisterProcessRequest("", processId, process, getRef());
+				    	RegisterProcessRequest req = new RegisterProcessRequest("", process, getRef());
 				    	orderEntryActor.tell(req, getRef());
 				    	
 				    	count.countDown();
@@ -200,7 +201,7 @@ public class OrderEmittingTestServer {
 	}
 	
 	private static ActorRef getMachineMockActor(int id, String color) {
-		AbstractCapability cap = TestBasicMachineActor.composeInOne(TestBasicMachineActor.getPlottingCapability(), TestBasicMachineActor.getColorCapability(color));		
+		AbstractCapability cap = TestBasicMachineActor.composeInOne(WellknownPlotterCapability.getPlottingCapability(), TestBasicMachineActor.getColorCapability(color));		
 		Actor modelActor = TestBasicMachineActor.getDefaultMachineActor(id);
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();
 		ActorRef machineWrapper = system.actorOf(MockMachineWrapper.props(intraEventBus));

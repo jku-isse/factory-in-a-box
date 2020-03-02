@@ -36,7 +36,6 @@ import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockClientHandshakeActor;
 import fiab.mes.mockactors.MockServerHandshakeActor;
-import fiab.mes.mockactors.MockServerHandshakeActor.MessageTypes;
 import fiab.mes.mockactors.iostation.MockIOStationFactory;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper.LocalEndpointStatus;
 import fiab.mes.order.OrderProcess;
@@ -46,6 +45,7 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
+import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
@@ -96,13 +96,13 @@ public class TestMockTransportModuleWrapper {
 				ActorRef ttWrapper = system.actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1");
 				ActorRef westClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, inRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT); 
 				ActorRef eastClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, outRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
-				Map<String, LocalEndpointStatus> eps = new HashMap<>();
-				boolean isProv = false;
-				eps.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT));
-				eps.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT));
-				ttWrapper.tell(new MockTransportModuleWrapper.HandshakeEndpointInfo(eps), getRef());
-				ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.SubscribeState, getRef());
-				ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getRef());
+				
+				boolean isProv = false;				
+				ttWrapper.tell(new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), getRef());
+				ttWrapper.tell(new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), getRef());
+				
+				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());				
+				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
 				
 				boolean doRun = true;
 				while (doRun) {
@@ -139,13 +139,12 @@ public class TestMockTransportModuleWrapper {
 				ActorRef ttWrapper = system.actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1");
 				ActorRef westClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, inRef), "WestClient"); 
 				ActorRef eastClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, outRef), "EastClient");
-				Map<String, LocalEndpointStatus> eps = new HashMap<>();
+				
 				boolean isProv = false;
-				eps.put("WestClient", new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient, isProv, "WestClient"));
-				eps.put("EastClient", new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient, isProv, "EastClient"));
-				ttWrapper.tell(new MockTransportModuleWrapper.HandshakeEndpointInfo(eps), getRef());
-				ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.SubscribeState, getRef());
-				ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getRef());
+				ttWrapper.tell(new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient, isProv, "WestClient"), getRef());
+				ttWrapper.tell(new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient, isProv, "EastClient"), getRef());
+				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());
+				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
 				
 				boolean doRun = true;
 				while (doRun) {
@@ -183,26 +182,22 @@ public class TestMockTransportModuleWrapper {
 				ActorRef westClient1 = system.actorOf(MockClientHandshakeActor.props(ttWrapper1, inRef), "WestClient1");
 				boolean autoComplete = true;
 				ActorRef eastServer1 = system.actorOf(MockServerHandshakeActor.props(ttWrapper1, autoComplete), "EastServer1");
-				Map<String, LocalEndpointStatus> eps1 = new HashMap<>();
 				boolean isReq = false;
 				boolean isProv = true;
-				eps1.put("WestClient1", new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient1, isReq, "WestClient1"));
-				eps1.put("EastServer1", new MockTransportModuleWrapper.LocalServerEndpointStatus(eastServer1, isProv, "EastServer1"));
-				ttWrapper1.tell(new MockTransportModuleWrapper.HandshakeEndpointInfo(eps1), getRef());
-				ttWrapper1.tell(MockTransportModuleWrapper.SimpleMessageTypes.SubscribeState, getRef());
-				ttWrapper1.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getRef());
+				ttWrapper1.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient1, isReq, "WestClient1"), getRef());
+				ttWrapper1.tell( new MockTransportModuleWrapper.LocalServerEndpointStatus(eastServer1, isProv, "EastServer1"), getRef());
+				ttWrapper1.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());
+				ttWrapper1.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
 				// setup turntable 2
 				InterMachineEventBus intraEventBus2 = new InterMachineEventBus();	
 				intraEventBus2.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
 				ActorRef ttWrapper2 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus2), "TT2");
 				ActorRef eastClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, outRef), "EastClient2");
 				ActorRef westClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, eastServer1), "WestClient2");
-				Map<String, LocalEndpointStatus> eps2 = new HashMap<>();
-				eps2.put("WestClient2", new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient2, isReq, "WestClient2"));
-				eps2.put("EastClient2", new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient2, isReq, "EastClient2"));
-				ttWrapper2.tell(new MockTransportModuleWrapper.HandshakeEndpointInfo(eps2), getRef());
-				ttWrapper2.tell(MockTransportModuleWrapper.SimpleMessageTypes.SubscribeState, getRef());
-				ttWrapper2.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getRef());
+				ttWrapper2.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient2, isReq, "WestClient2"), getRef());
+				ttWrapper2.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient2, isReq, "EastClient2"), getRef());
+				ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());
+				ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
 				
 
 				boolean tt1Done = false;

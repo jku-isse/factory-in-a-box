@@ -85,7 +85,7 @@ public class MachineOrderMappingManager {
 	}
 	
 	private void transitionOrder(String orderId, OrderEventType newState, String message) {
-		Optional.of(orders.get(orderId)).ifPresent(pair -> {
+		Optional.ofNullable(orders.get(orderId)).ifPresent(pair -> {
 			OrderEventType oldState = pair.getValue();
 			if (oldState != newState) { 
 				pair.setValue(newState);
@@ -357,8 +357,8 @@ public class MachineOrderMappingManager {
 				}
 				this.lastMachineState = lastMachineState;
 			} else if (lastMachineState instanceof IOStationStatusUpdateEvent) {
-				if (((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSide.IdleEmpty) ||
-						((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSide.IdleLoaded)) {
+				if (((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSide.IDLE_EMPTY) ||
+						((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSide.IDLE_LOADED)) {
 					this.allocationState = AssignmentState.NONE;
 					this.orderId = null;	
 				}
