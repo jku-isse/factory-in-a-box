@@ -93,7 +93,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
 						
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();	
 		intraEventBus.subscribe(getSelf(), new SubscriptionClassifier("Turntable Module", "*"));		
-		ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus, turntableFU, conveyorFU), "TT1");
+		ttWrapper = context().actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1");
 		ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getSelf());
 		//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 		
