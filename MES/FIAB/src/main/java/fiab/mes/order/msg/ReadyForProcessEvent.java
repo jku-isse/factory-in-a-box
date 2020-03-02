@@ -1,9 +1,12 @@
 package fiab.mes.order.msg;
 
+import java.util.Optional;
+
 public class ReadyForProcessEvent {
 	RegisterProcessStepRequest responseTo;
 	boolean isReady = true;
-		
+	ProcessRequestException pre;
+	
 	public ReadyForProcessEvent(RegisterProcessStepRequest responseTo) {
 		super();
 		this.responseTo = responseTo;
@@ -13,6 +16,13 @@ public class ReadyForProcessEvent {
 		this.responseTo = responseTo;
 		this.isReady = isReady;
 	}
+	public ReadyForProcessEvent(RegisterProcessStepRequest responseTo, ProcessRequestException pre ) {
+		super();
+		this.responseTo = responseTo;
+		this.isReady = false;
+		this.pre = pre;
+	}
+	
 	public RegisterProcessStepRequest getResponseTo() {
 		return responseTo;
 	}
@@ -25,6 +35,8 @@ public class ReadyForProcessEvent {
 	public void setReady(boolean isReady) {
 		this.isReady = isReady;
 	}
-	
+	public Optional<ProcessRequestException> getProcessRequestException() {
+		return Optional.ofNullable(pre);
+	}
 	
 }

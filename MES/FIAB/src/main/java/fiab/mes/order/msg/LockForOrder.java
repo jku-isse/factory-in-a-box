@@ -33,4 +33,11 @@ public class LockForOrder {
 		this.stepId = stepId;
 		this.rootOrderId = rootOrderId;
 	}
+
+	@Override
+	public String toString() {
+		return "LockForOrder [stepId=" + stepId + ", rootOrderId=" + rootOrderId + "]";
+	}
+	
+	
 }

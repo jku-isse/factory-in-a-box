@@ -4,10 +4,15 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.eclipse.emf.common.util.EList;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
+import ProcessCore.Parameter;
+import ProcessCore.ProcessStep;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -30,6 +35,7 @@ import fiab.mes.machine.msg.GenericMachineRequests.Reset;
 import fiab.mes.machine.msg.GenericMachineRequests.Stop;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.LockForOrder;
+import fiab.mes.order.msg.ProcessRequestException;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
@@ -75,21 +81,12 @@ public class BasicMachineActor extends AbstractActor{
 	public Receive createReceive() {
 		return receiveBuilder()
 		        .match(RegisterProcessStepRequest.class, registerReq -> {
-		        	orders.add(registerReq);
-		        	log.info(String.format("Job %s of Order %s registered.", registerReq.getProcessStepId(), registerReq.getRootOrderId()));
-		        	checkIfAvailableForNextOrder();
+		        	log.info(String.format("Received RegisterProcessStepRequest for order %s and step %s", registerReq.getRootOrderId(), registerReq.getProcessStepId()));
+		        	registerRequest(registerReq);
 		        } )
 		        .match(LockForOrder.class, lockReq -> {
 		        	log.info("received LockForOrder msg "+lockReq.getStepId()+", current state: "+currentState);
-		        	if (currentState == MachineStatus.IDLE) {
-		        		// we need to extract from the reservedOrder the step, and from the step the input properties		        		
-		        		hal.plot("demo", lockReq.getRootOrderId()); // TODO pass on the correct values, here we just do a demo for now
-		        		//TODO: here we assume correct invocation: thus order overtaking etc, will be improved later
-		        	} else {
-		        		String msg = "Received lock for order in non-IDLE state: "+currentState;
-		        		log.warning(msg);
-		        		sender().tell(new MachineInWrongStateResponse(this.machineId.getId(), WellknownMachinePropertyFields.STATE_VAR_NAME, msg, currentState, lockReq, MachineStatus.IDLE), self);
-		        	}
+		        	plotUponLockForOrder(lockReq);
 		        })
 		        .match(CancelOrTerminateOrder.class, cto -> {
 		        	handleOrderCancelRequest(cto);
@@ -192,6 +189,19 @@ public class BasicMachineActor extends AbstractActor{
 		tellEventBus(mue);
 	}
 	
+	private void registerRequest(RegisterProcessStepRequest registerReq) {
+		try {
+			String ignoredHere = extractInputFromProcessStep(registerReq.getProcessStep());
+			orders.add(registerReq);
+	    	log.info(String.format("Job %s of Order %s registered.", registerReq.getProcessStepId(), registerReq.getRootOrderId()));
+	    	checkIfAvailableForNextOrder();
+		} catch (ProcessRequestException e) {
+			log.warning("RegisterProcessStepRequest failed due to client error: "+e.getMessage());
+			sender().tell(new ReadyForProcessEvent(registerReq, e), self());
+		}
+		
+	}
+	
 	private void checkIfAvailableForNextOrder() {
 		log.debug(String.format("Checking if %s is IDLE: %s", this.machineId.getId(), this.currentState));
 		if (currentState == MachineStatus.IDLE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
@@ -202,6 +212,54 @@ public class BasicMachineActor extends AbstractActor{
     		ror.getRequestor().tell(new ReadyForProcessEvent(ror), getSelf());
     	}	
 	}	
+	
+	private void plotUponLockForOrder(LockForOrder lockReq) {
+		if (currentState == MachineStatus.IDLE) {
+    		// we need to extract from the reservedOrder the step, and from the step the input properties		        	
+			if (reservedForOrder != null || reservedForOrder.getProcessStepId().equals(lockReq.getStepId())) {
+				String imgName = "demo";
+				try {
+					imgName = extractInputFromProcessStep(reservedForOrder.getProcessStep());
+				} catch (ProcessRequestException e) {					
+					e.printStackTrace();
+					// this should not happen as we check before and only stored the request when there was no exception
+				}
+				hal.plot(imgName, lockReq.getRootOrderId()); 
+    		//TODO: here we assume correct invocation order: thus order overtaking will be improved later
+			} else {
+				log.warning(String.format("No reserved order stored for LockForOrder %s request from %s", lockReq.toString(), sender().path().name()));
+				sender().tell(new ReadyForProcessEvent(new RegisterProcessStepRequest(lockReq.getRootOrderId(), lockReq.getStepId(), null, sender()), false),  self); 
+				// TODO: this should be a separate message type
+			}			
+    	} else {
+    		String msg = "Received lock for order in non-IDLE state: "+currentState;
+    		log.warning(msg);
+    		sender().tell(new MachineInWrongStateResponse(this.machineId.getId(), WellknownMachinePropertyFields.STATE_VAR_NAME, msg, currentState, lockReq, MachineStatus.IDLE), self);
+    	}
+	}
+	
+	private String extractInputFromProcessStep(ProcessStep p) throws ProcessRequestException {
+		if (p == null) throw new ProcessRequestException(ProcessRequestException.Type.PROCESS_STEP_MISSING, "Provided Process Step is null");
+		if (p instanceof AbstractCapability) {
+			AbstractCapability ac = ((AbstractCapability) p);
+			if (!(ac.getUri().equals(cap.getUri()))) throw new ProcessRequestException(ProcessRequestException.Type.UNSUPPORTED_CAPABILITY, "Process Step Capability is not supported: "+ac.getUri());
+			EList<Parameter> inputs = ac.getInputs();			
+			if (inputs != null) {
+				Optional<Parameter> optP = inputs.stream().filter(in -> in.getName().equals(WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME) )
+				.findAny();
+				if (optP.isPresent()) {
+					if (optP.get().getValue() != null) {
+						try {
+							String param = (String)optP.get().getValue();
+							return param;
+						} catch (Exception e) {
+							throw new ProcessRequestException(ProcessRequestException.Type.INPUT_PARAMS_MISSING_VALUE, "Capability missing value for input with name: "+WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME);
+						}
+					} else throw new ProcessRequestException(ProcessRequestException.Type.INPUT_PARAM_WRONG_TYPE, "Capability input value cannot be cast to String");
+				} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Capability missing input with name: "+WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME);
+			} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Capability missing any defined inputs");
+		} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Process Step is not a capability");
+	}
 	
 	private void tellEventBus(MachineUpdateEvent mue) {
 		externalHistory.add(mue);
@@ -247,4 +305,5 @@ public class BasicMachineActor extends AbstractActor{
             }
           }, context().system().dispatcher());
 	}
+
 }

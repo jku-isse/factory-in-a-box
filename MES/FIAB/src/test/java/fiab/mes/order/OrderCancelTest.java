@@ -295,7 +295,7 @@ class OrderCancelTest {
 	public OrderProcess subscribeAndRegisterSinglePrintRedOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleRedStepProcess(oid));				
-		RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op1, testProbe);
+		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 		return op1;
 	}
@@ -303,14 +303,14 @@ class OrderCancelTest {
 	public void subscribeAndRegisterSinglePrintGreenOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleGreenStepProcess(oid));				
-		RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op1, testProbe);
+		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 	}
 	
 	public OrderProcess subscribeAndRegisterPrintGreenAndRedOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getGreenAndRedStepProcess(oid));				
-		RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op1, testProbe);
+		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 		return op1;
 	}
@@ -329,7 +329,7 @@ class OrderCancelTest {
 	public RegisterProcessRequest buildRequest(ActorRef senderRef, String oid, int orderCount) {
 		ProcessCore.Process p = TestMockMachineActor.getSequentialProcess(orderCount+"-");
 		OrderProcess op = new OrderProcess(p);
-		return new RegisterProcessRequest(oid, oid, op, senderRef);
+		return new RegisterProcessRequest(oid, op, senderRef);
 	}
 	
 	private boolean matches(OrderEvent e, String orderId, OrderEventType type) {

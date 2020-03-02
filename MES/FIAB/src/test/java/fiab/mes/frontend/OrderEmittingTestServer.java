@@ -136,7 +136,7 @@ public class OrderEmittingTestServer {
 				    	OrderProcess process = new OrderProcess(TestBasicMachineActor.getSequentialProcess());
 				    	String processId = "process"+String.valueOf(count.getCount());
 						process.getProcess().setID(processId);			
-				    	RegisterProcessRequest req = new RegisterProcessRequest("", processId, process, getRef());
+				    	RegisterProcessRequest req = new RegisterProcessRequest("", process, getRef());
 				    	orderEntryActor.tell(req, getRef());
 				    	
 				    	count.countDown();
@@ -184,7 +184,7 @@ public class OrderEmittingTestServer {
 				    	OrderProcess process = new OrderProcess(getParallelProcess("1-"));
 				    	String processId = "process"+String.valueOf(count.getCount());
 						process.getProcess().setID(processId);			
-				    	RegisterProcessRequest req = new RegisterProcessRequest("", processId, process, getRef());
+				    	RegisterProcessRequest req = new RegisterProcessRequest("", process, getRef());
 				    	orderEntryActor.tell(req, getRef());
 				    	
 				    	count.countDown();
