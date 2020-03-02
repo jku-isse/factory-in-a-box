@@ -45,6 +45,12 @@
       </Event>
       <Event Comment="" Name="ResetDone" Type="Event">
         <With Var="QO"/>
+        <With Var="SensorXInit"/>
+        <With Var="SensorYInit"/>
+        <With Var="MotorXInit"/>
+        <With Var="MotorYInit"/>
+        <With Var="PwmXInit"/>
+        <With Var="PwmYInit"/>
       </Event>
     </EventOutputs>
     <InputVars>
@@ -113,6 +119,9 @@
       <Parameter Name="IN" Value=".motor.enable"/>
     </FB>
     <FB Comment="" Name="F_INT_TO_WORD_2_1" Type="F_INT_TO_WORD" x="5200.0" y="666.6666666666667"/>
+    <FB Comment="" Name="E_DELAY" Type="E_DELAY" x="11333.333333333334" y="2533.3333333333335">
+      <Parameter Name="DT" Value="T#500ms"/>
+    </FB>
     <EventConnections>
       <Connection Comment="" Destination="INITO" Source="INIT"/>
       <Connection Comment="" Destination="E_RS.S" Source="pwmX.CNF" dx1="80.0"/>
@@ -143,7 +152,6 @@
       <Connection Comment="" Destination="APPEND_STRING_2_5.REQ" Source="STRING2STRING_2.CNF" dx1="360.0"/>
       <Connection Comment="" Destination="MotorX.INIT" Source="APPEND_STRING_2_4.CNF"/>
       <Connection Comment="" Destination="MotorY.INIT" Source="APPEND_STRING_2_5.CNF" dx1="313.33333333333337"/>
-      <Connection Comment="" Destination="ResetDone" Source="E_REND.EO" dx1="2986.666666666667"/>
       <Connection Comment="" Destination="E_CYCLE_2.START" Source="REQ" dx1="80.0" dx2="80.0" dy="1100.0"/>
       <Connection Comment="" Destination="E_CYCLE_3.START" Source="REQ" dx1="160.0" dx2="80.0" dy="2606.666666666667"/>
       <Connection Comment="" Destination="pwmX.REQ" Source="REQ" dx1="6066.666666666667"/>
@@ -153,6 +161,9 @@
       <Connection Comment="" Destination="F_INT_TO_WORD_2_1.REQ" Source="APPEND_STRING_2_2.CNF" dx1="80.0" dx2="80.0" dy="-173.33333333333334"/>
       <Connection Comment="" Destination="pwmX.INIT" Source="F_INT_TO_WORD_2_1.CNF" dx1="340.0"/>
       <Connection Comment="" Destination="MotorX.REQ" Source="E_RS.EO" dx1="1806.6666666666667"/>
+      <Connection Comment="" Destination="E_DELAY.START" Source="E_REND.EO" dx1="2980.0"/>
+      <Connection Comment="" Destination="E_DELAY.STOP" Source="E_DELAY.EO" dx1="80.0" dx2="80.0" dy="493.33333333333337"/>
+      <Connection Comment="" Destination="ResetDone" Source="E_DELAY.EO" dx1="500.0"/>
     </EventConnections>
     <DataConnections>
       <Connection Comment="" Destination="pwmY.OUT" Source="F_INT_TO_WORD_2.OUT" dx1="353.33333333333337"/>
@@ -182,12 +193,12 @@
       <Connection Comment="" Destination="F_INT_TO_WORD_2.IN" Source="PwmY" dx1="186.66666666666669"/>
       <Connection Comment="" Destination="F_INT_TO_WORD_2_1.IN" Source="PwmX" dx1="346.6666666666667"/>
       <Connection Comment="" Destination="pwmX.OUT" Source="F_INT_TO_WORD_2_1.OUT" dx1="340.0"/>
-      <Connection Comment="" Destination="MotorXInit" Source="MotorX.STATUS" dx1="233.33333333333334"/>
-      <Connection Comment="" Destination="MotorYInit" Source="MotorY.STATUS" dx1="580.0"/>
-      <Connection Comment="" Destination="PwmYInit" Source="pwmY.STATUS" dx1="4166.666666666667"/>
-      <Connection Comment="" Destination="PwmXInit" Source="pwmX.STATUS" dx1="3846.666666666667"/>
-      <Connection Comment="" Destination="SensorXInit" Source="SensorX.STATUS" dx1="4273.333333333334"/>
-      <Connection Comment="" Destination="SensorYInit" Source="SensorY.STATUS" dx1="8206.666666666668"/>
+      <Connection Comment="" Destination="MotorXInit" Source="MotorX.STATUS" dx1="166.66666666666669"/>
+      <Connection Comment="" Destination="MotorYInit" Source="MotorY.STATUS" dx1="253.33333333333334"/>
+      <Connection Comment="" Destination="PwmYInit" Source="pwmY.STATUS" dx1="3853.3333333333335"/>
+      <Connection Comment="" Destination="PwmXInit" Source="pwmX.STATUS" dx1="3906.666666666667"/>
+      <Connection Comment="" Destination="SensorXInit" Source="SensorX.STATUS" dx1="4366.666666666667"/>
+      <Connection Comment="" Destination="SensorYInit" Source="SensorY.STATUS" dx1="5260.0"/>
     </DataConnections>
   </FBNetwork>
 </FBType>

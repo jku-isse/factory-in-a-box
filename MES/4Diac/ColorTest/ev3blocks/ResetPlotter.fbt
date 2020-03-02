@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE FBType SYSTEM "http://www.holobloc.com/xml/LibraryElement.dtd">
+<FBType Comment="Composite Function Block Type" Name="ResetPlotter">
+  <Identification Standard="61499-2"/>
+  <VersionInfo Author="Mario" Date="2020-03-02" Version="1.0"/>
+  <InterfaceList>
+    <EventInputs>
+      <Event Comment="Initialization Request" Name="INIT" Type="Event">
+        <With Var="QI"/>
+        <With Var="SensorX"/>
+        <With Var="SensorY"/>
+        <With Var="MotorX"/>
+        <With Var="MotorY"/>
+        <With Var="PwmX"/>
+        <With Var="PwmY"/>
+      </Event>
+      <Event Comment="Normal Execution Request" Name="REQ" Type="Event">
+        <With Var="QI"/>
+        <With Var="SensorX"/>
+        <With Var="SensorY"/>
+        <With Var="MotorX"/>
+        <With Var="MotorY"/>
+        <With Var="PwmX"/>
+        <With Var="PwmY"/>
+      </Event>
+    </EventInputs>
+    <EventOutputs>
+      <Event Comment="Initialization Confirm" Name="INITO" Type="Event">
+        <With Var="QO"/>
+      </Event>
+      <Event Comment="Execution Confirmation" Name="CNF" Type="Event">
+        <With Var="QO"/>
+      </Event>
+      <Event Comment="" Name="ResetDone" Type="Event">
+        <With Var="QO"/>
+      </Event>
+    </EventOutputs>
+    <InputVars>
+      <VarDeclaration Comment="Input event qualifier" Name="QI" Type="BOOL"/>
+      <VarDeclaration Comment="" Name="SensorX" Type="STRING"/>
+      <VarDeclaration Comment="" Name="SensorY" Type="STRING"/>
+      <VarDeclaration Comment="" Name="MotorX" Type="STRING"/>
+      <VarDeclaration Comment="" Name="MotorY" Type="STRING"/>
+      <VarDeclaration Comment="" Name="PwmX" Type="INT"/>
+      <VarDeclaration Comment="" Name="PwmY" Type="INT"/>
+    </InputVars>
+    <OutputVars>
+      <VarDeclaration Comment="Output event qualifier" Name="QO" Type="BOOL"/>
+    </OutputVars>
+  </InterfaceList>
+  <FBNetwork>
+    <FB Comment="" Name="ResetXYPos" Type="ResetXYPos" x="8800.0" y="133.33333333333334"/>
+    <FB Comment="" Name="IX" Type="IX" x="3066.666666666667" y="4800.0"/>
+    <FB Comment="" Name="STRING2STRING" Type="STRING2STRING" x="666.6666666666667" y="4133.333333333334">
+      <Parameter Name="IN" Value=".sensor.0"/>
+    </FB>
+    <FB Comment="" Name="APPEND_STRING_2" Type="APPEND_STRING_2" x="1866.6666666666667" y="4933.333333333334"/>
+    <FB Comment="" Name="IX_1" Type="IX" x="3066.666666666667" y="3466.666666666667"/>
+    <FB Comment="" Name="APPEND_STRING_2_1" Type="APPEND_STRING_2" x="1866.6666666666667" y="3600.0"/>
+    <FB Comment="" Name="E_SWITCH" Type="E_SWITCH" x="4800.0" y="3733.3333333333335"/>
+    <FB Comment="" Name="E_SWITCH_1" Type="E_SWITCH" x="4800.0" y="4933.333333333334"/>
+    <FB Comment="" Name="E_REND" Type="E_REND" x="8133.333333333334" y="1600.0"/>
+    <FB Comment="" Name="QX" Type="QX" x="10000.0" y="5333.333333333334"/>
+    <FB Comment="" Name="E_RS" Type="E_RS" x="5600.0" y="4000.0"/>
+    <FB Comment="" Name="E_DELAY" Type="E_DELAY" x="10133.333333333334" y="3333.3333333333335">
+      <Parameter Name="DT" Value="T#500ms"/>
+    </FB>
+    <FB Comment="" Name="PwmX" Type="QW" x="6400.0" y="1466.6666666666667"/>
+    <FB Comment="" Name="PwmY" Type="QW" x="6400.0" y="2400.0"/>
+    <FB Comment="" Name="STRING2STRING_1" Type="STRING2STRING" x="1733.3333333333335" y="2266.666666666667">
+      <Parameter Name="IN" Value=".motor.pwm"/>
+    </FB>
+    <FB Comment="" Name="APPEND_STRING_2_2" Type="APPEND_STRING_2" x="3200.0" y="1600.0"/>
+    <FB Comment="" Name="APPEND_STRING_2_3" Type="APPEND_STRING_2" x="3200.0" y="2400.0"/>
+    <FB Comment="" Name="QX_1" Type="QX" x="10000.0" y="4133.333333333334"/>
+    <FB Comment="" Name="APPEND_STRING_2_5" Type="APPEND_STRING_2" x="8666.666666666668" y="4933.333333333334">
+      <Parameter Name="IN_2" Value="STRING#.motor.enable"/>
+    </FB>
+    <FB Comment="" Name="APPEND_STRING_2_6" Type="APPEND_STRING_2" x="8666.666666666668" y="3733.3333333333335">
+      <Parameter Name="IN_2" Value="STRING#.motor.enable"/>
+    </FB>
+    <FB Comment="" Name="E_RS_1" Type="E_RS" x="5600.0" y="5333.333333333334"/>
+    <FB Comment="" Name="F_INT_TO_WORD_1" Type="F_INT_TO_WORD" x="4933.333333333334" y="1466.6666666666667">
+      <Parameter Name="IN" Value="-50"/>
+    </FB>
+    <FB Comment="" Name="F_INT_TO_WORD_2" Type="F_INT_TO_WORD" x="4933.333333333334" y="2400.0">
+      <Parameter Name="IN" Value="50"/>
+    </FB>
+    <EventConnections>
+      <Connection Comment="" Destination="ResetXYPos.INIT" Source="INIT" dx1="6266.666666666667"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_1.REQ" Source="STRING2STRING.CNF" dx1="220.0"/>
+      <Connection Comment="" Destination="APPEND_STRING_2.REQ" Source="STRING2STRING.CNF" dx1="220.0"/>
+      <Connection Comment="" Destination="E_SWITCH.EI" Source="IX_1.CNF" dx1="586.6666666666667"/>
+      <Connection Comment="" Destination="E_SWITCH_1.EI" Source="IX.CNF" dx1="520.0"/>
+      <Connection Comment="" Destination="E_REND.EI1" Source="E_SWITCH.EO0" dx1="2093.3333333333335"/>
+      <Connection Comment="" Destination="E_REND.EI2" Source="E_SWITCH_1.EO0" dx1="2160.0"/>
+      <Connection Comment="" Destination="E_REND.R" Source="E_REND.EO" dx1="80.0" dx2="80.0" dy="513.3333333333334"/>
+      <Connection Comment="" Destination="E_RS.S" Source="E_SWITCH.EO1" dx1="80.0"/>
+      <Connection Comment="" Destination="E_DELAY.START" Source="E_RS.EO" dx1="153.33333333333334"/>
+      <Connection Comment="" Destination="E_DELAY.STOP" Source="E_DELAY.EO" dx1="80.0" dx2="80.0" dy="480.0"/>
+      <Connection Comment="" Destination="E_RS.R" Source="E_DELAY.EO" dx1="80.0" dx2="80.0" dy="-153.33333333333334"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_2.REQ" Source="STRING2STRING_1.CNF" dx1="300.0"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_3.REQ" Source="STRING2STRING_1.CNF" dx1="300.0"/>
+      <Connection Comment="" Destination="STRING2STRING_1.REQ" Source="INIT" dx1="673.3333333333334"/>
+      <Connection Comment="" Destination="ResetXYPos.REQ" Source="E_REND.EO" dx1="120.0"/>
+      <Connection Comment="" Destination="ResetDone" Source="ResetXYPos.ResetDone" dx1="506.6666666666667"/>
+      <Connection Comment="" Destination="CNF" Source="ResetXYPos.CNF" dx1="506.6666666666667"/>
+      <Connection Comment="" Destination="INITO" Source="ResetXYPos.INITO" dx1="506.6666666666667"/>
+      <Connection Comment="" Destination="STRING2STRING.REQ" Source="INIT" dx1="140.0"/>
+      <Connection Comment="" Destination="IX_1.INIT" Source="APPEND_STRING_2_1.CNF" dx1="173.33333333333334"/>
+      <Connection Comment="" Destination="IX.INIT" Source="APPEND_STRING_2.CNF" dx1="173.33333333333334"/>
+      <Connection Comment="" Destination="IX_1.REQ" Source="REQ" dx1="2600.0"/>
+      <Connection Comment="" Destination="IX.REQ" Source="REQ" dx1="2546.666666666667"/>
+      <Connection Comment="" Destination="PwmY.REQ" Source="REQ" dx1="5826.666666666667"/>
+      <Connection Comment="" Destination="QX_1.REQ" Source="E_RS.EO" dx1="153.33333333333334"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_6.REQ" Source="INIT" dx1="7340.0"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_5.REQ" Source="INIT" dx1="7246.666666666667"/>
+      <Connection Comment="" Destination="QX_1.INIT" Source="APPEND_STRING_2_6.CNF" dx1="240.0"/>
+      <Connection Comment="" Destination="QX.INIT" Source="APPEND_STRING_2_5.CNF" dx1="240.0"/>
+      <Connection Comment="" Destination="E_RS_1.S" Source="E_SWITCH_1.EO1" dx1="140.0"/>
+      <Connection Comment="" Destination="QX.REQ" Source="E_RS_1.EO" dx1="360.0"/>
+      <Connection Comment="" Destination="E_RS_1.R" Source="E_DELAY.EO" dx1="133.33333333333334" dx2="120.0" dy="-213.33333333333334"/>
+      <Connection Comment="" Destination="STRING2STRING_1.REQ" Source="REQ" dx1="606.6666666666667"/>
+      <Connection Comment="" Destination="ResetXYPos.REQ" Source="E_DELAY.EO" dx1="80.0" dx2="80.0" dy="-1546.6666666666667"/>
+      <Connection Comment="" Destination="F_INT_TO_WORD_1.REQ" Source="APPEND_STRING_2_2.CNF" dx1="506.6666666666667"/>
+      <Connection Comment="" Destination="PwmX.INIT" Source="F_INT_TO_WORD_1.CNF"/>
+      <Connection Comment="" Destination="F_INT_TO_WORD_2.REQ" Source="APPEND_STRING_2_3.CNF"/>
+      <Connection Comment="" Destination="PwmY.INIT" Source="F_INT_TO_WORD_2.CNF"/>
+      <Connection Comment="" Destination="PwmX.REQ" Source="REQ" dx1="5893.333333333334"/>
+      <Connection Comment="" Destination="E_DELAY.START" Source="E_RS_1.EO" dx1="120.0"/>
+    </EventConnections>
+    <DataConnections>
+      <Connection Comment="" Destination="ResetXYPos.QI" Source="QI" dx1="1540.0"/>
+      <Connection Comment="" Destination="ResetXYPos.SensorX" Source="SensorX" dx1="1540.0"/>
+      <Connection Comment="" Destination="ResetXYPos.SensorY" Source="SensorY" dx1="1540.0"/>
+      <Connection Comment="" Destination="ResetXYPos.MotorX" Source="MotorX" dx1="1540.0"/>
+      <Connection Comment="" Destination="ResetXYPos.MotorY" Source="MotorY" dx1="1540.0"/>
+      <Connection Comment="" Destination="ResetXYPos.PwmX" Source="PwmX" dx1="1540.0"/>
+      <Connection Comment="" Destination="ResetXYPos.PwmY" Source="PwmY" dx1="1540.0"/>
+      <Connection Comment="" Destination="APPEND_STRING_2.IN_2" Source="STRING2STRING.OUT" dx1="153.33333333333334"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_1.IN_1" Source="SensorX" dx1="1100.0"/>
+      <Connection Comment="" Destination="APPEND_STRING_2.IN_1" Source="SensorY" dx1="1040.0"/>
+      <Connection Comment="" Destination="IX.PARAMS" Source="APPEND_STRING_2.OUT" dx1="80.0"/>
+      <Connection Comment="" Destination="IX_1.PARAMS" Source="APPEND_STRING_2_1.OUT" dx1="80.0"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_1.IN_2" Source="STRING2STRING.OUT" dx1="153.33333333333334"/>
+      <Connection Comment="" Destination="E_SWITCH.G" Source="IX_1.IN" dx1="586.6666666666667"/>
+      <Connection Comment="" Destination="E_SWITCH_1.G" Source="IX.IN" dx1="520.0"/>
+      <Connection Comment="" Destination="IX_1.QI" Source="QI" dx1="2486.666666666667"/>
+      <Connection Comment="" Destination="IX.QI" Source="QI" dx1="2446.666666666667"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_3.IN_2" Source="STRING2STRING_1.OUT" dx1="546.6666666666667"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_2.IN_2" Source="STRING2STRING_1.OUT" dx1="553.3333333333334"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_2.IN_1" Source="MotorX" dx1="1406.6666666666667"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_3.IN_1" Source="MotorY" dx1="2346.666666666667"/>
+      <Connection Comment="" Destination="PwmX.PARAMS" Source="APPEND_STRING_2_2.OUT" dx1="440.0"/>
+      <Connection Comment="" Destination="PwmY.PARAMS" Source="APPEND_STRING_2_3.OUT" dx1="293.33333333333337"/>
+      <Connection Comment="" Destination="QO" Source="ResetXYPos.QO" dx1="506.6666666666667"/>
+      <Connection Comment="" Destination="QX.QI" Source="QI" dx1="7146.666666666667"/>
+      <Connection Comment="" Destination="PwmX.QI" Source="QI" dx1="4093.3333333333335"/>
+      <Connection Comment="" Destination="PwmY.QI" Source="QI" dx1="4026.666666666667"/>
+      <Connection Comment="" Destination="QX_1.OUT" Source="E_RS.Q" dx1="360.0"/>
+      <Connection Comment="" Destination="QX_1.QI" Source="QI" dx1="7186.666666666667"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_6.IN_1" Source="MotorX" dx1="5766.666666666667"/>
+      <Connection Comment="" Destination="APPEND_STRING_2_5.IN_1" Source="MotorY" dx1="5620.0"/>
+      <Connection Comment="" Destination="QX_1.PARAMS" Source="APPEND_STRING_2_6.OUT" dx1="180.0"/>
+      <Connection Comment="" Destination="QX.PARAMS" Source="APPEND_STRING_2_5.OUT" dx1="193.33333333333334"/>
+      <Connection Comment="" Destination="QX.OUT" Source="E_RS_1.Q" dx1="433.33333333333337"/>
+      <Connection Comment="" Destination="PwmX.OUT" Source="F_INT_TO_WORD_1.OUT" dx1="280.0"/>
+      <Connection Comment="" Destination="PwmY.OUT" Source="F_INT_TO_WORD_2.OUT" dx1="360.0"/>
+    </DataConnections>
+  </FBNetwork>
+</FBType>

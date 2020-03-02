@@ -161,7 +161,7 @@
       <ST Text="STATE := &quot;IDLE_LOADED&quot;;&#13;&#10;IS_LOADED_OUT := TRUE;"/>
     </Algorithm>
     <Algorithm Comment="new algorithm" Name="setStateIdleEmpty">
-      <ST Text="STATE := &quot;IDLE_EMTPY&quot;;&#13;&#10;IS_LOADED_OUT := FALSE;"/>
+      <ST Text="STATE := &quot;IDLE_EMPTY&quot;;&#13;&#10;IS_LOADED_OUT := FALSE;"/>
     </Algorithm>
     <Algorithm Comment="new algorithm" Name="setStateStarting">
       <ST Text="STATE := &quot;STARTING&quot;;"/>

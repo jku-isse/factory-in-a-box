@@ -49,11 +49,19 @@
         <With Var="QO"/>
         <With Var="STATE"/>
       </Event>
+      <Event Comment="Start plotting" Name="PLOT" Type="Event">
+        <With Var="STATE"/>
+        <With Var="QO"/>
+      </Event>
       <Event Comment="Event to go into calibration mode" Name="CALIBRATE_CALLED" Type="Event">
         <With Var="QO"/>
         <With Var="STATE"/>
       </Event>
       <Event Comment="Prepare to go into stop state" Name="STOP_CALLED" Type="Event">
+        <With Var="QO"/>
+        <With Var="STATE"/>
+      </Event>
+      <Event Comment="Reset Plotter position to origin" Name="HOMING" Type="Event">
         <With Var="QO"/>
         <With Var="STATE"/>
       </Event>
@@ -79,7 +87,7 @@
         <ECAction Algorithm="setStateStarting" Output="PLOT_CALLED"/>
       </ECState>
       <ECState Comment="" Name="Executing" x="2666.666666666667" y="1600.0">
-        <ECAction Algorithm="setStateExecuting" Output="CNF"/>
+        <ECAction Algorithm="setStateExecuting" Output="PLOT"/>
       </ECState>
       <ECState Comment="" Name="Completing" x="2666.666666666667" y="2400.0">
         <ECAction Algorithm="setStateCompleting" Output="CNF"/>
@@ -88,7 +96,7 @@
         <ECAction Algorithm="setStateComplete" Output="CNF"/>
       </ECState>
       <ECState Comment="" Name="Resetting" x="800.0" y="3066.666666666667">
-        <ECAction Algorithm="setStateResetting" Output="CNF"/>
+        <ECAction Algorithm="setStateResetting" Output="HOMING"/>
       </ECState>
       <ECState Comment="" Name="Stopping" x="4133.333333333334" y="2000.0">
         <ECAction Algorithm="setStateStopping" Output="STOP_CALLED"/>
