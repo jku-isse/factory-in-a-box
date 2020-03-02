@@ -1,6 +1,5 @@
 package hardware.actuators;
 
-
 import hardware.sensors.MockSensor;
 
 import java.util.concurrent.ScheduledFuture;

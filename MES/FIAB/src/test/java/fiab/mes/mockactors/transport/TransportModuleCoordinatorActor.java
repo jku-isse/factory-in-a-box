@@ -308,6 +308,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 		log.info("Starting to load turntable");
 		exeSubState = InternalProcess.CONVEYING_SOURCE;
 		conveyorFU.tell(ConveyorTriggers.LOAD, self);
+		
 	}
 	
 //	private void handleCompletingStateUpdate(String capId) {
