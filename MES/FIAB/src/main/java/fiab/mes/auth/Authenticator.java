@@ -29,6 +29,7 @@ public class Authenticator {
 	boolean authOff = false;
 	
 	public Authenticator(boolean authOff) {
+		this();
 		this.authOff = true;
 	}
 	
