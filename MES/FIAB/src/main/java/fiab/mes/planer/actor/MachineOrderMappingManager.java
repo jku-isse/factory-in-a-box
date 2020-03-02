@@ -85,7 +85,7 @@ public class MachineOrderMappingManager {
 	}
 	
 	private void transitionOrder(String orderId, OrderEventType newState, String message) {
-		Optional.of(orders.get(orderId)).ifPresent(pair -> {
+		Optional.ofNullable(orders.get(orderId)).ifPresent(pair -> {
 			OrderEventType oldState = pair.getValue();
 			if (oldState != newState) { 
 				pair.setValue(newState);

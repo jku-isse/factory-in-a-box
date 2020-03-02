@@ -288,14 +288,14 @@ class OrderPlanningActorTest {
 	public void subscribeAndRegisterSinglePrintRedOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleRedStepProcess(oid));				
-		RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op1, testProbe);
+		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 	}
 	
 	public void subscribeAndRegisterSinglePrintGreenOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleGreenStepProcess(oid));				
-		RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op1, testProbe);
+		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 	}
 	
@@ -455,6 +455,6 @@ class OrderPlanningActorTest {
 	public RegisterProcessRequest buildRequest(ActorRef senderRef, String oid, int orderCount) {
 		ProcessCore.Process p = TestMockMachineActor.getSequentialProcess(orderCount+"-");
 		OrderProcess op = new OrderProcess(p);
-		return new RegisterProcessRequest(oid, oid, op, senderRef);
+		return new RegisterProcessRequest(oid, op, senderRef);
 	}
 }

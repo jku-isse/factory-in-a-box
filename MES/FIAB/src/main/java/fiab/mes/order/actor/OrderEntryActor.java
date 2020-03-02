@@ -50,7 +50,7 @@ public class OrderEntryActor extends AbstractActor{
 			        	// need to figure out how to collect order information from all order actors, perhaps a separate actors is needed for that
 			        	})
 			        .match(RegisterProcessRequest.class, doc -> {			        	
-			        	String orderId = getNextOrderId();
+			        	String orderId = getNextOrderId()+"#"+doc.getProcess().getProcess().getDisplayName() ;
 			        	log.info("Processing Order with Id: "+orderId);
 			        	sender().tell(orderId, getSelf());
 			        	doc.setRootOrderId(orderId);

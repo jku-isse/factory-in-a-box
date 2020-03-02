@@ -26,6 +26,12 @@ public class Authenticator {
 	private static final Type USER_TYPE = new TypeToken<List<User>>() { }.getType();
 
 
+	boolean authOff = false;
+	
+	public Authenticator(boolean authOff) {
+		this.authOff = true;
+	}
+	
 	
 	public Authenticator() {
 		jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
@@ -47,6 +53,9 @@ public class Authenticator {
 	}
 	
 	public boolean isLoggedIn(String token) {
+		if (authOff)
+			return true;
+		else
 		try {
 			token = token.split(" ")[1];
 			String t = Jwts.parser().setSigningKey(jwtKey).parseClaimsJws(token).getBody().getSubject();
