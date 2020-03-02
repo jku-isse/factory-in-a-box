@@ -13,10 +13,10 @@
     <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-4" DisplayName="yellow plotting" InvokedCapability="Capability.Plotting.Color.Yellow">
       <InputMappings lhs="//@Capabilities.3/@Inputs.0" rhs="//@Processes.0/@Variables.3"/>
     </Steps>
-    <Variables Type="String" Name="Image1" Value="ACED0005740006496D61676531"/>
-    <Variables Type="String" Name="Image2" Value="ACED0005740006496D61676532"/>
-    <Variables Type="String" Name="Image3" Value="ACED0005740006496D61676533"/>
-    <Variables Type="String" Name="Image4" Value="ACED0005740006496D61676534"/>
+    <Variables xsi:type="at.pro2future.shopfloors.processcore:LocalVariable" Type="String" Name="Image1" Value="ACED0005740006496D61676531"/>
+    <Variables xsi:type="at.pro2future.shopfloors.processcore:LocalVariable" Type="String" Name="Image2" Value="ACED0005740006496D61676532"/>
+    <Variables xsi:type="at.pro2future.shopfloors.processcore:LocalVariable" Type="String" Name="Image3" Value="ACED0005740006496D61676533"/>
+    <Variables xsi:type="at.pro2future.shopfloors.processcore:LocalVariable" Type="String" Name="Image4" Value="ACED0005740006496D61676534"/>
   </Processes>
   <Capabilities DisplayName="Plot: Red" uri="http://factory-in-a-box.fiab/capabilities/plotter/colors/Red" ID="Capability.Plotting.Color.Red">
     <Inputs Type="String" Name="RD_1"/>
