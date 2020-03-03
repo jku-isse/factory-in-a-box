@@ -28,9 +28,9 @@ import static stateMachines.turning.TurningTriggers.*;
 
 public class TurntableActor extends AbstractActor {
 
-    public static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");
-    private final int timeForNinetyDeg = 1350;
-    private boolean stopped;
+    //In case the operating system is windows, we do not want to use EV3 libraries
+    private static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");
+    private final int timeForNinetyDeg = 1325;
 
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
@@ -51,16 +51,15 @@ public class TurntableActor extends AbstractActor {
         this.publishEP = publishEP;
         this.tsm = new StateMachine<>(STOPPED, new TurningStateMachineConfig());
         this.orientation = TurnTableOrientation.NORTH;
-        this.stopped = true;
         Runtime.getRuntime().addShutdownHook(new Thread(this::motorStop));
         initHardware();
         publishNewState();
     }
 
     private void initHardware() {
-        if(DEBUG) {
+        if (DEBUG) {
             turningHardware = new TurningMockHardware(200);
-        }else{
+        } else {
             turningHardware = new LegoTurningHardware(MotorPort.D, SensorPort.S4);
             turningHardware.getTurningMotor().setSpeed(200);
         }
@@ -116,32 +115,15 @@ public class TurntableActor extends AbstractActor {
     private void reset() {
         motorBackward();
         checkHomingPositionReached();
-        /*while (!turningMockHardware.getMockSensorHoming().hasDetectedInput()) {
-            if (stopped) {
-                return;
-            }
-        }
-        context().system()
-                .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                stopped = false;
-                                tsm.fire(NEXT);
-                                publishNewState();
-                            }
-                        }, context().system().dispatcher());*/
     }
 
     /**
      * Checks periodically whether homing position is reached. If reached, machine goes idle
      */
     private void checkHomingPositionReached() {
-        //if (stopped) return;
         if (sensorHomingHasDetectedInput()) {
             motorStop();
-            stopped = false;
+            orientation = TurnTableOrientation.NORTH;
             tsm.fire(NEXT);
             publishNewState();
         } else {
@@ -152,97 +134,85 @@ public class TurntableActor extends AbstractActor {
     }
 
     private void turn(TurnRequest treq) {
-        context().system()
-                .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
-                        () -> {
-                            tsm.fire(EXECUTE);
-                            // Do actual turning here
-                            turnTo(treq.getTto());
-                            publishNewState();
-                            completing();
-                        }, context().system().dispatcher());
+        tsm.fire(EXECUTE);
+        publishNewState();
+        // Do actual turning here
+        TurnTableOrientation target = treq.getTto();
+        context().system().scheduler().scheduleOnce(Duration.ofMillis(100), () -> turnTo(target), context().system().dispatcher());
+        checkTurningPositionReached(target);
     }
 
     private void completing() {
-        context().system()
-                .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
-                        () -> {
-                            tsm.fire(NEXT);
-                            publishNewState();       //we are now in COMPLETING
-                            complete();
-                        }, context().system().dispatcher());
+        tsm.fire(NEXT);
+        publishNewState();       //we are now in COMPLETING
+        complete();
     }
 
     private void complete() {
-        context().system()
-                .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
-                        () -> {
-                            tsm.fire(NEXT);
-                            publishNewState();       //we are now in COMPLETE
-                            autoResetToIdle();
-                        }, context().system().dispatcher());
+        tsm.fire(NEXT);
+        publishNewState();       //we are now in COMPLETE
+        autoResetToIdle();
     }
 
     private void autoResetToIdle() {
-        context().system()
-                .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
-                        () -> {
-                            tsm.fire(NEXT);
-                            publishNewState();       //we are now in IDLE
-                        }, context().system().dispatcher());
+        tsm.fire(NEXT);
+        publishNewState();       //we are now in IDLE
     }
 
     private void turnTo(TurnTableOrientation target) {
         if (target.getNumericValue() > this.orientation.getNumericValue()) {
-            while (!(target.getNumericValue() == this.orientation.getNumericValue())) {
-                if (stopped) {
-                    return;
-                }
-                turnRight();
-            }
-        } else {
-            while (!(target.getNumericValue() == this.orientation.getNumericValue())) {
-                if (stopped) {
-                    return;
-                }
-                turnLeft();
-            }
+            turnRight(target);
+        } else if (target.getNumericValue() < this.orientation.getNumericValue()) {
+            turnLeft(target);
         }
+        checkTurningPositionReached(target);
     }
 
-    private void turnLeft() {
+    private void turnLeft(TurnTableOrientation target) {
         if (this.orientation == TurnTableOrientation.NORTH) {
-            System.out.println("Cannot turn left from North");
+            log.debug("Cannot turn left from North");
         }
-        System.out.println("Executing from turning: turnLeft");
+        log.debug("Executing from turning: turnLeft");
         motorBackward();
         context().system().scheduler().scheduleOnce(Duration.ofMillis(timeForNinetyDeg),
-                this::motorStop,
+                () -> {
+                    motorStop();
+                    orientation = orientation.getNextCounterClockwise(orientation);
+                    log.debug("Orientation is now: " + orientation);
+                    turnTo(target);
+                },
                 context().system().dispatcher());
         //this.turnMotor.rotate(-rotationToNext);
-        orientation = orientation.getNextCounterClockwise(orientation);
-        System.out.println("Orientation is now: " + orientation);
     }
 
     /**
      * Turns right by the amount of degrees specified in rotationToNext
      */
-    private void turnRight() {
+    private void turnRight(TurnTableOrientation target) {
         if (this.orientation == TurnTableOrientation.WEST) {
-            System.out.println("Cannot turn right from West");
+            log.debug("Cannot turn right from West");
             return;
         }
-        System.out.println("Executing from turning: turnRight");
+        log.debug("Executing from turning: turnRight");
         motorForward();
         context().system().scheduler().scheduleOnce(Duration.ofMillis(timeForNinetyDeg),
-                this::motorStop,
+                () -> {
+                    motorStop();
+                    orientation = orientation.getNextClockwise(orientation);
+                    log.debug("Orientation is now: " + orientation);
+                    turnTo(target);
+                },
                 context().system().dispatcher());
-        orientation = orientation.getNextClockwise(orientation);
-        System.out.println("Orientation is now: " + orientation);
+    }
+
+    private void checkTurningPositionReached(TurnTableOrientation orientation) {
+        if (this.orientation == orientation) {
+            completing();
+        } else {
+            context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
+                    () -> checkTurningPositionReached(orientation)
+                    , context().system().dispatcher());
+        }
     }
 
     private boolean sensorHomingHasDetectedInput() {

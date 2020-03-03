@@ -19,15 +19,13 @@ import stateMachines.conveyor.ConveyorStatusUpdateEvent;
 import stateMachines.conveyor.ConveyorTriggers;
 
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static stateMachines.conveyor.ConveyorStates.STOPPED;
 
 public class ConveyorActor extends AbstractActor {
 
-    public static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");;
-    private AtomicBoolean stopped;
-
+    //In case the operating system is windows, we do not want to use EV3 libraries
+    private static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     private InterMachineEventBus intraEventBus;
@@ -46,15 +44,14 @@ public class ConveyorActor extends AbstractActor {
         this.intraEventBus = intraEventBus;
         this.tsm = new StateMachine<>(STOPPED, new ConveyorStateMachineConfig());
         initHardware();
-        stopped = new AtomicBoolean(true);
     }
 
     private void initHardware() {
-        if(DEBUG) {
+        if (DEBUG) {
             conveyorHardware = new ConveyorMockHardware(200, 1000);
-        }else{
+        } else {
             conveyorHardware = new LegoConveyorHardware(MotorPort.A, SensorPort.S2, SensorPort.S3);
-            conveyorHardware.getConveyorMotor().setSpeed(200);
+            conveyorHardware.getConveyorMotor().setSpeed(500);
         }
     }
 
@@ -108,44 +105,24 @@ public class ConveyorActor extends AbstractActor {
 
     private void stop() {
         motorStop();
-        context().system()
-                .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
-                        () -> {
-                            stopped.set(true);
-                            tsm.fire(ConveyorTriggers.NEXT);
-                            publishNewState();
-                        }, context().system().dispatcher());
+        tsm.fire(ConveyorTriggers.NEXT);
+        publishNewState();
     }
 
     private void reset() {
         motorStop();
-        context().system()
-                .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
-                        () -> {
-                            stopped.set(false);
-                            tsm.fire(ConveyorTriggers.NEXT);
-                            publishNewState();
-                        }, context().system().dispatcher());
+        tsm.fire(ConveyorTriggers.NEXT);
+        publishNewState();
     }
 
     private void loadingToFullyOccupied() {
         motorBackward();
         checkForFullyLoaded();
-        /*context().system()
-                .scheduler()
-                .scheduleOnce(Duration.ofMillis(2000),
-                        () -> {
-                            tsm.fire(ConveyorTriggers.NEXT);
-                            publishNewState();                // now in fully occupied
-                        }, context().system().dispatcher());*/
     }
 
     private void checkForFullyLoaded() {
-        //if (isStopped()) return;
         if (sensorLoadingHasDetectedInput()) {
-        	motorStop();
+            motorStop();
             tsm.fire(ConveyorTriggers.NEXT);
             publishNewState();                // now in fully occupied
         } else {
@@ -158,21 +135,13 @@ public class ConveyorActor extends AbstractActor {
     }
 
     private void unloadingToIdle() {
-    	motorForward();
-    	checkForFullyUnloaded();
-        /*context().system()
-                .scheduler()
-                .scheduleOnce(Duration.ofMillis(2000),
-                        () -> {
-                            tsm.fire(ConveyorTriggers.NEXT);
-                            publishNewState();                // now in idle/empty
-                        }, context().system().dispatcher());         */
+        motorForward();
+        checkForFullyUnloaded();
     }
 
     private void checkForFullyUnloaded() {
-        //if (isStopped()) return;
         if (!sensorUnloadingHasDetectedInput()) {
-        	motorStop();
+            motorStop();
             tsm.fire(ConveyorTriggers.NEXT);
             publishNewState();                // now in fully occupied
         } else {
@@ -202,9 +171,5 @@ public class ConveyorActor extends AbstractActor {
 
     private void motorStop() {
         conveyorHardware.getConveyorMotor().stop();
-    }
-
-    private boolean isStopped() {
-        return stopped.get();
     }
 }

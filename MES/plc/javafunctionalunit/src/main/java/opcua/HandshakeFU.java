@@ -2,12 +2,12 @@ package opcua;
 
 import actors.ClientHandshakeActor;
 import actors.ServerHandshakeActor;
-import actors.TransportModuleWrapper;
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import event.bus.StatePublisher;
 import event.capability.CapabilityCentricActorSpawnerInterface;
 import handshake.HandshakeProtocol;
+import handshake.LocalEndpointStatus;
 import handshake.WiringUtils;
 import handshake.methods.InitHandover;
 import handshake.methods.StartHandover;
@@ -71,13 +71,13 @@ public class HandshakeFU implements StatePublisher {
 			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, "START_HANDOVER", "Requests start");		
 			base.addMethodNode(handshakeNode, n2, new StartHandover(n2, localClient));
 			// let parent Actor know, that there is a new endpoint
-			ttBaseActor.tell(new TransportModuleWrapper.LocalServerEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender());
+			ttBaseActor.tell(new LocalEndpointStatus.LocalServerEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender());
 		} else {
 			status = base.generateStringVariableNode(handshakeNode, path, HandshakeProtocol.STATE_CLIENTSIDE_VAR_NAME, HandshakeProtocol.ClientSide.STOPPED);
 			opcuaWrapper = context.actorOf(OPCUAClientHandshakeActorWrapper.props(), capInstId+"_OPCUAWrapper");
 			localClient = context.actorOf(ClientHandshakeActor.props(ttBaseActor, opcuaWrapper, this), capInstId);
 			opcuaWrapper.tell(localClient, ActorRef.noSender());
-			ttBaseActor.tell(new TransportModuleWrapper.LocalClientEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender());
+			ttBaseActor.tell(new LocalEndpointStatus.LocalClientEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender());
 		}
 		
 		// add capabilities 

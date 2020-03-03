@@ -13,6 +13,7 @@ import event.bus.SubscriptionClassifier;
 import event.bus.WellknownMachinePropertyFields;
 import event.capability.WellknownTransportModuleCapability;
 import handshake.HandshakeProtocol;
+import handshake.LocalEndpointStatus;
 import msg.*;
 import stateMachines.MachineStatus;
 import stateMachines.conveyor.ConveyorStates;
@@ -80,14 +81,14 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 						break;
 					}
 				})
-				.match(LocalClientEndpointStatus.class, les -> {
+				.match(handshake.LocalEndpointStatus.LocalClientEndpointStatus.class, les -> {
 					if (!epNonUpdateableStates.contains(currentState)) {
 						this.eps.addOrReplace(les);						
 					} else {
 						log.warning("Trying to update Handshake Endpoints in nonupdateable state: "+currentState);
 					}
 				})
-				.match(LocalServerEndpointStatus.class, les -> {
+				.match(handshake.LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {
 					if (!epNonUpdateableStates.contains(currentState)) {
 						this.eps.addOrReplace(les);						
 					} else {
@@ -114,7 +115,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 						String capId = getSender().path().name();
 						log.info(String.format("ServerSide EP %s Status: %s", capId, state));
 						eps.getHandshakeEP(capId).ifPresent(leps -> {
-							((LocalServerEndpointStatus) leps).setState(state);
+							((handshake.LocalEndpointStatus.LocalServerEndpointStatus) leps).setState(state);
 							if (state.equals(HandshakeProtocol.ServerSide.EXECUTE)) {
 								if (exeSubState.equals(InternalProcess.HANDSHAKE_DEST))
 									startLoadingOntoTurntable();
@@ -135,7 +136,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 						String localCapId = capId.lastIndexOf("~") > 0 ? capId.substring(0, capId.lastIndexOf("~")) : capId;
 
 						eps.getHandshakeEP(localCapId).ifPresent(leps -> {
-							((LocalClientEndpointStatus) leps).setState(state);
+							((LocalEndpointStatus.LocalClientEndpointStatus) leps).setState(state);
 							switch(state) {
 							case EXECUTE:
 								if (exeSubState.equals(InternalProcess.HANDSHAKE_SOURCE))
@@ -398,7 +399,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 	}
 	
 	private static class HandshakeEndpointInfo {
-		protected Map<String,LocalEndpointStatus> handshakeEPs = new HashMap<>();
+		protected Map<String, LocalEndpointStatus> handshakeEPs = new HashMap<>();
 		
 		ActorRef self;
 		protected HandshakeEndpointInfo(ActorRef self) {
@@ -423,7 +424,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 		public void tellAllEPsToStop() {
 			handshakeEPs.values().stream()
 				.forEach(les -> {
-					if (les.isProvidedCapability) { 					// if server use server msg
+					if (les.isProvidedCapability()) { 					// if server use server msg
 						les.getActor().tell(HandshakeProtocol.ServerMessageTypes.Stop, self);
 					} else {
 						les.getActor().tell(HandshakeProtocol.ClientMessageTypes.Stop, self);
@@ -433,67 +434,5 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 		
 	}
 	
-	public abstract static class LocalEndpointStatus {
-		private ActorRef actor;		
-		private boolean isProvidedCapability;
-		private String capabilityId;
-		
-		public ActorRef getActor() {
-			return actor;
-		}
-		public boolean isProvidedCapability() {
-			return isProvidedCapability;
-		}
-		public String getCapabilityId() {
-			return capabilityId;
-		}
-		public LocalEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
-			super();
-			this.actor = actor;
-			this.isProvidedCapability = isProvidedCapability;
-			this.capabilityId = capabilityId;
-		}		
-		public abstract String getRawState();
-	}
-	
-	public static class LocalServerEndpointStatus extends LocalEndpointStatus{
-		
-		private HandshakeProtocol.ServerSide state = HandshakeProtocol.ServerSide.STOPPED;
-		
-		public LocalServerEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
-			super(actor, isProvidedCapability, capabilityId);			
-		}				
-		
-		public HandshakeProtocol.ServerSide getState() {
-			return state;
-		}
-		public void setState(HandshakeProtocol.ServerSide state) {
-			this.state = state;
-		}
 
-		@Override
-		public String getRawState() {
-			return state.toString();
-		}
-	}
-	
-	public static class LocalClientEndpointStatus extends LocalEndpointStatus{
-		
-		private HandshakeProtocol.ClientSide state = HandshakeProtocol.ClientSide.STOPPED;
-		
-		public LocalClientEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
-			super(actor, isProvidedCapability, capabilityId);			
-		}				
-		
-		public HandshakeProtocol.ClientSide getState() {
-			return state;
-		}
-		public void setState(HandshakeProtocol.ClientSide state) {
-			this.state = state;
-		}
-		@Override
-		public String getRawState() {
-			return state.toString();
-		}
-	}
 }
