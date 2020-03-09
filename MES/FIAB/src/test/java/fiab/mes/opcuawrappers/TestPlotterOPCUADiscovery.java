@@ -15,13 +15,14 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import fiab.mes.ShopfloorConfigurations;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
-import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.machine.actor.plotter.wrapper.LocalPlotterActorSpawner;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
@@ -69,12 +70,13 @@ class TestPlotterOPCUADiscovery {
 				String endpointURL = "opc.tcp://192.168.0.35:4840/";
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
-					@Override
-					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalPlotterActorSpawner.props());
-					}
-				});
+				ShopfloorConfigurations.addColorPlotterStationSpawner(capURI2Spawning);			
+//				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+//					@Override
+//					public ActorRef createActorSpawner(ActorContext context) {
+//						return context.actorOf(LocalPlotterActorSpawner.props());
+//					}
+//				});
 				ActorRef discovAct = system.actorOf(CapabilityDiscoveryActor.props());
 				discovAct.tell(new CapabilityDiscoveryActor.BrowseRequest(endpointURL, capURI2Spawning), getRef());
 				

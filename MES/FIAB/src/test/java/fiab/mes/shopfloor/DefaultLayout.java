@@ -10,16 +10,18 @@ import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.mockactors.MockClientHandshakeActor;
-import fiab.mes.mockactors.MockPlottingMachineWrapperDelegate;
 import fiab.mes.mockactors.MockServerHandshakeActor;
-import fiab.mes.mockactors.MockTransportAwareMachineWrapper;
-import fiab.mes.mockactors.TestBasicMachineActorWithTransport;
 import fiab.mes.mockactors.iostation.MockIOStationFactory;
+import fiab.mes.mockactors.plotter.MockPlottingMachineWrapperDelegate;
+import fiab.mes.mockactors.plotter.MockTransportAwareMachineWrapper;
+import fiab.mes.mockactors.plotter.TestBasicMachineActorWithTransport;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
 import fiab.mes.mockactors.transport.TestMockTransportModuleActor;
@@ -57,8 +59,8 @@ public class DefaultLayout {
 		ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 	
 		// Machines for first turnable
-		ActorRef handShakeServer31 = setupMachineActor(eventBusByRef, 31, TestBasicMachineActorWithTransport.getColorCapability("Red"), system);
-		ActorRef handShakeServer37 = setupMachineActor(eventBusByRef, 37, TestBasicMachineActorWithTransport.getColorCapability("Blue"), system);				
+		ActorRef handShakeServer31 = setupMachineActor(eventBusByRef, 31, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.RED), system);
+		ActorRef handShakeServer37 = setupMachineActor(eventBusByRef, 37, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.BLUE), system);				
 		// setup turntable1
 		InterMachineEventBus intraEventBus1 = new InterMachineEventBus();	
 		ActorRef ttWrapper1 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus1), "TT1");
@@ -77,8 +79,8 @@ public class DefaultLayout {
 		ttWrapper1.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, ActorRef.noSender());
 		
 		// Machines for second turntable
-		ActorRef handShakeServer32 = setupMachineActor(eventBusByRef, 32, TestBasicMachineActorWithTransport.getColorCapability("Yellow"), system);
-		ActorRef handShakeServer38 = setupMachineActor(eventBusByRef, 38, TestBasicMachineActorWithTransport.getColorCapability("Green"), system);
+		ActorRef handShakeServer32 = setupMachineActor(eventBusByRef, 32, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.BLACK), system);
+		ActorRef handShakeServer38 = setupMachineActor(eventBusByRef, 38, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.GREEN), system);
 		// setup turntable 2
 		InterMachineEventBus intraEventBus2 = new InterMachineEventBus();	
 		ActorRef ttWrapper2 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus2), "TT2");
@@ -111,7 +113,7 @@ public class DefaultLayout {
 	
 	public static ActorRef setupMachineActor(ActorSelection eventBusByRef, int ipid, AbstractCapability colorCap, ActorSystem system) throws InterruptedException, ExecutionException {
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();
-		final AbstractCapability cap = TestBasicMachineActorWithTransport.composeInOne(TestBasicMachineActorWithTransport.getPlottingCapability(), colorCap);
+		final AbstractCapability cap = colorCap;
 		final Actor modelActor = TestBasicMachineActorWithTransport.getDefaultMachineActor(ipid);
 		ActorRef machineWrapper = system.actorOf(MockTransportAwareMachineWrapper.props(intraEventBus), "MachineWrapper"+ipid);
 		ActorSelection serverSide = system.actorSelection("/user/MachineWrapper"+ipid+"/ServerSideHandshakeMock");

@@ -36,8 +36,14 @@ public class ShopfloorStartup extends AllDirectives {
     DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system);
     ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props());
     ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props());
+    
+    String jsonDiscoveryFile = System.getProperty("jsondiscoveryfile");
+    if (jsonDiscoveryFile != null)
+    	new ShopfloorConfigurations.JsonFilePersistedDiscovery(jsonDiscoveryFile).triggerDiscoveryMechanism(system);
+    else {
     //new ShopfloorConfigurations.VirtualInputOutputTurntableOnly().triggerDiscoveryMechanism(system);
-    new ShopfloorConfigurations.NoDiscovery().triggerDiscoveryMechanism(system);
+    	new ShopfloorConfigurations.NoDiscovery().triggerDiscoveryMechanism(system);
+    }
     ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
 
     final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);

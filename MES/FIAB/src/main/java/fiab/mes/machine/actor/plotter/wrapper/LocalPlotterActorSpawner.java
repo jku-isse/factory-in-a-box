@@ -1,6 +1,8 @@
 package fiab.mes.machine.actor.plotter.wrapper;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
@@ -16,11 +18,12 @@ import akka.actor.Kill;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
-import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface.CapabilityImplInfo;
 import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
@@ -50,7 +53,7 @@ public class LocalPlotterActorSpawner extends AbstractActor {
 	private void retrieveMethodAndVariableNodeIds(CapabilityCentricActorSpawnerInterface.SpawnRequest req) {		
 		// check if input or output station:		
 		String uri = req.getInfo().getCapabilityURI();		
-		if (!uri.equalsIgnoreCase(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI))	{
+		if (!uri.startsWith(WellknownPlotterCapability.PLOTTING_CAPABILITY_BASE_URI))	{
 			log.error("Called with nonsupported Capability: "+uri);
 			return;
 		}
@@ -70,15 +73,33 @@ public class LocalPlotterActorSpawner extends AbstractActor {
 	}
 	
 	private void spawnNewActor(CapabilityImplInfo info, Actor model, PlotterOPCUAnodes nodeIds) {
-		final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		//TODO: extract the color that printer is able to plot!!!
-		AbstractCapability capability = WellknownPlotterCapability.getPlottingCapability();
-		InterMachineEventBus intraEventBus = new InterMachineEventBus();
-		Position selfPos = resolvePosition(info);
-		PlotterOPCUAWrapper hal = new PlotterOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.plotMethod);
-		machine = this.context().actorOf(BasicMachineActor.props(eventBusByRef, capability, model, hal, intraEventBus), model.getActorName()+selfPos.getPos());
-		log.info("Spawned Actor: "+machine.path());
+		Optional<SupportedColors> color = extractColor(info.getCapabilityURI());
+		if (color.isPresent()) {
+			AbstractCapability capability = WellknownPlotterCapability.getColorPlottingCapability(color.get());
+			InterMachineEventBus intraEventBus = new InterMachineEventBus();
+			Position selfPos = resolvePosition(info);
+			final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+			PlotterOPCUAWrapper hal = new PlotterOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.plotMethod);
+			machine = this.context().actorOf(BasicMachineActor.props(eventBusByRef, capability, model, hal, intraEventBus), model.getActorName()+selfPos.getPos());
+			log.info("Spawned Actor: "+machine.path());
+		} else {
+			log.error("Cannot instantiate actor with unsupported color for plotting capability");
+			getSelf().tell(Kill.getInstance(), self());
+		}
 	}	
+	
+	private Optional<SupportedColors> extractColor(String uri) {
+		int posLastSlash = uri.lastIndexOf("/");
+		if (posLastSlash == -1) return Optional.empty();
+		String colorStr = "";
+		try {
+			colorStr = uri.substring(posLastSlash+1);
+			return Optional.of(SupportedColors.valueOf(colorStr.toUpperCase(Locale.ROOT)));			
+		} catch (Exception e) {
+			log.warning("Unable to parse supported color "+colorStr);
+			return Optional.empty();
+		}		
+	}
 	
 	private Position resolvePosition(CapabilityImplInfo info) {
 		Position pos = TransportPositionLookup.parseLastIPPos(info.getEndpointUrl());

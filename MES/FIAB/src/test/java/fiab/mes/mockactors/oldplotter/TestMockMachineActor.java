@@ -1,4 +1,4 @@
-package fiab.mes.mockactors;
+package fiab.mes.mockactors.oldplotter;
 
 import java.time.Duration;
 
@@ -16,11 +16,11 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import fiab.mes.capabilities.ComparableCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.general.ComparableCapability;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.OrderProcess;

@@ -1,16 +1,23 @@
 package fiab.mes;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
-import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.machine.actor.plotter.wrapper.LocalPlotterActorSpawner;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
@@ -28,6 +35,34 @@ public class ShopfloorConfigurations {
 		@Override
 		public void triggerDiscoveryMechanism(ActorSystem system) {							
 		}		
+	}
+	
+	public static class JsonFilePersistedDiscovery implements ShopfloorDiscovery {
+
+		public List<String> endpoints = new ArrayList<String>();
+		
+		public JsonFilePersistedDiscovery(String jsonFileName) {
+			loadEndpointsFromFile(jsonFileName);
+		}
+		
+		private void loadEndpointsFromFile(String jsonFileName) {
+			ObjectMapper objectMapper = new ObjectMapper();
+			
+			try {
+				File file = new File(jsonFileName+".json");
+				endpoints = objectMapper.readValue(file, new TypeReference<List<String>>(){});
+			} catch (IOException e) {			
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public void triggerDiscoveryMechanism(ActorSystem system) {
+			Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+			addDefaultSpawners(capURI2Spawning);
+			endpoints.stream().forEach(ep -> createDiscoveryActor(ep, capURI2Spawning, system));
+		}
+		
 	}
 	
 	public static class VirtualInputOutputTurntableOnly implements ShopfloorDiscovery{
@@ -93,7 +128,7 @@ public class ShopfloorConfigurations {
 		addInputStationSpawner(capURI2Spawning);
 		addOutputStationSpawner(capURI2Spawning);
 		addTurntableSpawner(capURI2Spawning);
-		addPlotterStationSpawner(capURI2Spawning);
+		addColorPlotterStationSpawner(capURI2Spawning);
 	}
 
 	public static void addInputStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
@@ -114,14 +149,26 @@ public class ShopfloorConfigurations {
 		});		
 	}
 	
-	public static void addPlotterStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
-		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+//	public static void addPlotterStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
+//		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_BASE_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+//			@Override
+//			public ActorRef createActorSpawner(ActorContext context) {
+//				return context.actorOf(LocalPlotterActorSpawner.props());
+//			}
+//		});
+//	}
+
+	public static void addColorPlotterStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
+		CapabilityCentricActorSpawnerInterface allColorSpawner = new CapabilityCentricActorSpawnerInterface() {					
 			@Override
 			public ActorRef createActorSpawner(ActorContext context) {
 				return context.actorOf(LocalPlotterActorSpawner.props());
 			}
-		});
-	}
+		};
+		for (SupportedColors color : SupportedColors.values()) {
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.generatePlottingCapabilityURI(color), CapabilityImplementationMetadata.ProvOrReq.PROVIDED), allColorSpawner);	
+		}		
+}
 	
 	public static void addTurntableSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
 		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownTransportModuleCapability.TURNTABLE_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					

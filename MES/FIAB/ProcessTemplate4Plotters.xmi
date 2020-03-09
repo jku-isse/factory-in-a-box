@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="ASCII"?>
 <at.pro2future.shopfloors.processcore:XmlRoot xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:at.pro2future.shopfloors.processcore="at.pro2future.shopfloors.processcore" DisplayName="ProcessTemplate4Plotters">
   <Processes ID="ProcessTemplate4Plotters" DisplayName="ProcessTemplate4Plotters">
-    <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-1" DisplayName="red plotting" InvokedCapability="Capability.Plotting.Color.Red">
+    <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-1" DisplayName="Plot BLACK" InvokedCapability="http://factory-in-a-box.fiab/capabilities/plot/color/BLACK">
       <InputMappings lhs="//@Capabilities.0/@Inputs.0" rhs="//@Processes.0/@Variables.0"/>
     </Steps>
-    <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-2" DisplayName="blue plotting" InvokedCapability="Capability.Plotting.Color.Blue">
+    <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-2" DisplayName="Plot BLUE" InvokedCapability="http://factory-in-a-box.fiab/capabilities/plot/color/BLUE">
       <InputMappings lhs="//@Capabilities.1/@Inputs.0" rhs="//@Processes.0/@Variables.1"/>
     </Steps>
-    <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-3" DisplayName="green plotting" InvokedCapability="Capability.Plotting.Color.Green">
+    <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-3" DisplayName="Plot GREEN" InvokedCapability="http://factory-in-a-box.fiab/capabilities/plot/color/GREEN">
       <InputMappings lhs="//@Capabilities.2/@Inputs.0" rhs="//@Processes.0/@Variables.2"/>
     </Steps>
-    <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-4" DisplayName="yellow plotting" InvokedCapability="Capability.Plotting.Color.Yellow">
+    <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-4" DisplayName="Plot RED" InvokedCapability="http://factory-in-a-box.fiab/capabilities/plot/color/RED">
       <InputMappings lhs="//@Capabilities.3/@Inputs.0" rhs="//@Processes.0/@Variables.3"/>
     </Steps>
     <Variables xsi:type="at.pro2future.shopfloors.processcore:LocalVariable" Type="String" Name="Image1" Value="ACED0005740006496D61676531"/>
@@ -18,16 +18,43 @@
     <Variables xsi:type="at.pro2future.shopfloors.processcore:LocalVariable" Type="String" Name="Image3" Value="ACED0005740006496D61676533"/>
     <Variables xsi:type="at.pro2future.shopfloors.processcore:LocalVariable" Type="String" Name="Image4" Value="ACED0005740006496D61676534"/>
   </Processes>
-  <Capabilities DisplayName="Plot: Red" uri="http://factory-in-a-box.fiab/capabilities/plotter/colors/Red" ID="Capability.Plotting.Color.Red">
+  <Capabilities DisplayName="Plot BLACK" ID="http://factory-in-a-box.fiab/capabilities/plot/color/BLACK">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot: Blue" uri="http://factory-in-a-box.fiab/capabilities/plotter/colors/Blue" ID="Capability.Plotting.Color.Blue">
+  <Capabilities DisplayName="Plot BLUE" ID="http://factory-in-a-box.fiab/capabilities/plot/color/BLUE">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot: Green" uri="http://factory-in-a-box.fiab/capabilities/plotter/colors/Green" ID="Capability.Plotting.Color.Green">
+  <Capabilities DisplayName="Plot GREEN" ID="http://factory-in-a-box.fiab/capabilities/plot/color/GREEN">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot: Yellow" uri="http://factory-in-a-box.fiab/capabilities/plotter/colors/Yellow" ID="Capability.Plotting.Color.Yellow">
+  <Capabilities DisplayName="Plot RED" ID="http://factory-in-a-box.fiab/capabilities/plot/color/RED">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot CYAN" ID="http://factory-in-a-box.fiab/capabilities/plot/color/CYAN">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot GRAY" ID="http://factory-in-a-box.fiab/capabilities/plot/color/GRAY">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot DARK_GRAY" ID="http://factory-in-a-box.fiab/capabilities/plot/color/DARK_GRAY">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot LIGHT_GRAY" ID="http://factory-in-a-box.fiab/capabilities/plot/color/LIGHT_GRAY">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot MAGENTA" ID="http://factory-in-a-box.fiab/capabilities/plot/color/MAGENTA">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot ORANGE" ID="http://factory-in-a-box.fiab/capabilities/plot/color/ORANGE">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot PINK" ID="http://factory-in-a-box.fiab/capabilities/plot/color/PINK">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot WHITE" ID="http://factory-in-a-box.fiab/capabilities/plot/color/WHITE">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot YELLOW" ID="http://factory-in-a-box.fiab/capabilities/plot/color/YELLOW">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
 </at.pro2future.shopfloors.processcore:XmlRoot>

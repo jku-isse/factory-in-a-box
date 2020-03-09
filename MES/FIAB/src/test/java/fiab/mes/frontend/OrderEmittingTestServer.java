@@ -2,6 +2,7 @@ package fiab.mes.frontend;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 
@@ -30,25 +31,27 @@ import akka.stream.javadsl.Flow;
 import akka.testkit.javadsl.TestKit;
 import fiab.mes.DefaultShopfloorInfrastructure;
 import fiab.mes.auth.HttpsConfigurator;
+import fiab.mes.capabilities.ComparableCapability;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.general.ComparableCapability;
 import fiab.mes.machine.MachineEntryActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
-import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.mockactors.MockMachineActor;
-import fiab.mes.mockactors.MockMachineWrapper;
-import fiab.mes.mockactors.MockPlottingMachineWrapperDelegate;
-import fiab.mes.mockactors.TestBasicMachineActor;
+import fiab.mes.mockactors.oldplotter.MockMachineActor;
+import fiab.mes.mockactors.plotter.MockMachineWrapper;
+import fiab.mes.mockactors.plotter.MockPlottingMachineWrapperDelegate;
+import fiab.mes.mockactors.plotter.TestBasicMachineActor;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.actor.OrderEntryActor;
+import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.restendpoint.ActorRestEndpoint;
@@ -133,7 +136,7 @@ public class OrderEmittingTestServer {
 
 				    CountDownLatch count = new CountDownLatch(5);
 				    while(count.getCount() > 0) {
-				    	OrderProcess process = new OrderProcess(TestBasicMachineActor.getSequentialProcess());
+				    	OrderProcess process = new OrderProcess(ProduceProcess.getSequential4ColorProcess("P1-"));
 				    	String processId = "process"+String.valueOf(count.getCount());
 						process.getProcess().setID(processId);			
 				    	RegisterProcessRequest req = new RegisterProcessRequest("", process, getRef());
@@ -201,7 +204,8 @@ public class OrderEmittingTestServer {
 	}
 	
 	private static ActorRef getMachineMockActor(int id, String color) {
-		AbstractCapability cap = TestBasicMachineActor.composeInOne(WellknownPlotterCapability.getPlottingCapability(), TestBasicMachineActor.getColorCapability(color));		
+		//AbstractCapability cap = TestBasicMachineActor.composeInOne(WellknownPlotterCapability.getPlottingCapability(), TestBasicMachineActor.getColorCapability(color));		
+		AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.valueOf(color.toUpperCase(Locale.ROOT)));		
 		Actor modelActor = TestBasicMachineActor.getDefaultMachineActor(id);
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();
 		ActorRef machineWrapper = system.actorOf(MockMachineWrapper.props(intraEventBus));
@@ -222,10 +226,13 @@ public class OrderEmittingTestServer {
 		s2.setDisplayName("Blue plotting");
 		s3.setDisplayName("Green plotting");
 		s4.setDisplayName("Yellow plotting");
-		s1.setInvokedCapability(getColorCapability("Red"));
-		s2.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Blue")));		
-		s3.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Green")));		
-		s4.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Yellow")));
+		s1.setInvokedCapability(WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.RED));
+		s2.setInvokedCapability(WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.BLUE));
+		s3.setInvokedCapability(WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.GREEN));
+		s4.setInvokedCapability(WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.YELLOW));
+		//s2.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Blue")));		
+		//s3.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Green")));		
+		//s4.setInvokedCapability(composeInOne(getPlottingCapability(), getColorCapability("Yellow")));
 		
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
 		ParallelBranches paraB = ProcessCoreFactory.eINSTANCE.createParallelBranches();
@@ -254,28 +261,28 @@ public class OrderEmittingTestServer {
 		return p;
 	}
 	
-	private AbstractCapability getColorCapability(String color) {
-		ComparableCapability ac = new ComparableCapability();
-		ac.setDisplayName(color);
-		ac.setID("Capability.Plotting.Color."+color);
-		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/colors/"+color);
-		return ac;
-	}
+//	private AbstractCapability getColorCapability(String color) {
+//		ComparableCapability ac = new ComparableCapability();
+//		ac.setDisplayName(color);
+//		ac.setID("Capability.Plotting.Color."+color);
+//		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/colors/"+color);
+//		return ac;
+//	}
+//	
+//	private AbstractCapability getPlottingCapability() {
+//		ComparableCapability ac = new ComparableCapability();
+//		ac.setDisplayName("Plot");
+//		ac.setID("Capability.Plotting");
+//		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/plotting");
+//		return ac;
+//	}
 	
-	private AbstractCapability getPlottingCapability() {
-		ComparableCapability ac = new ComparableCapability();
-		ac.setDisplayName("Plot");
-		ac.setID("Capability.Plotting");
-		ac.setID("http://factory-in-a-box.fiab/capabilities/plotter/plotting");
-		return ac;
-	}
-	
-	private AbstractCapability composeInOne(AbstractCapability ...caps) {
-		ComparableCapability ac = new ComparableCapability();		
-		for (AbstractCapability cap : caps) {
-			ac.getCapabilities().add(cap);
-		}
-		return ac;
-	}
+//	private AbstractCapability composeInOne(AbstractCapability ...caps) {
+//		ComparableCapability ac = new ComparableCapability();		
+//		for (AbstractCapability cap : caps) {
+//			ac.getCapabilities().add(cap);
+//		}
+//		return ac;
+//	}
 
 }

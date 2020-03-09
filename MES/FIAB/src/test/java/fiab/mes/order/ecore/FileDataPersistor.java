@@ -20,9 +20,9 @@ import ActorCoreModel.ActorCoreModelPackage;
 import ExtensionsCoreModel.ExtensionsCoreModelPackage;
 import ProcessCore.XmlRoot;
 import actorprocess.ActorprocessPackage;
-import opcuaextension.OpcuaextensionPackage;
-import ProcessCore.AbstractCapability;
-import ProcessCore.Process;
+//import opcuaextension.OpcuaextensionPackage;
+//import ProcessCore.AbstractCapability;
+//import ProcessCore.Process;
 import ProcessCore.ProcessCorePackage;
 
 public class FileDataPersistor implements DataPersistor{

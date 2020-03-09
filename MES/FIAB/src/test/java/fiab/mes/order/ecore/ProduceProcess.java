@@ -9,8 +9,11 @@ import ProcessCore.AbstractCapability;
 import ProcessCore.CapabilityInvocation;
 import ProcessCore.ProcessCoreFactory;
 import ProcessCore.XmlRoot;
+import fiab.mes.capabilities.plotting.EcoreProcessUtils;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 
-class ProduceProcess {
+public class ProduceProcess {
 
 	@Test
 	void produceSimpleProcess() throws IOException {
@@ -18,15 +21,40 @@ class ProduceProcess {
 		
 		XmlRoot root = ProcessCoreFactory.eINSTANCE.createXmlRoot();
 		root.setDisplayName("ProcessTemplate4Plotters");
+		root.getProcesses().add(getSequential4ColorProcess(prefix, root));		
+		FileDataPersistor fdp = new FileDataPersistor("ProcessTemplate4Plotters");
+		fdp.persistShopfloorData(Arrays.asList(root));
 		
-		AbstractCapability red = EcoreProcessUtils.getColorPlotCapability("Red");
-		AbstractCapability blue = EcoreProcessUtils.getColorPlotCapability("Blue");
-		AbstractCapability green = EcoreProcessUtils.getColorPlotCapability("Green");
-		AbstractCapability yellow = EcoreProcessUtils.getColorPlotCapability("Yellow");
-		root.getCapabilities().add(red);
-		root.getCapabilities().add(blue);
-		root.getCapabilities().add(green);
-		root.getCapabilities().add(yellow);
+	}
+
+	@Test
+	void produceCapabilitiesOnly() throws IOException {
+	
+		XmlRoot root = ProcessCoreFactory.eINSTANCE.createXmlRoot();
+		root.setDisplayName("Capabilities");
+		
+		// first four supported colors: BLACK, BLUE, GREEN, RED,
+		for (SupportedColors color : WellknownPlotterCapability.SupportedColors.values()) {
+			AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(color);
+			root.getCapabilities().add(cap);
+		}
+		
+		FileDataPersistor fdp = new FileDataPersistor("Capabilities");
+		fdp.persistShopfloorData(Arrays.asList(root));
+		
+	}
+	
+	public static ProcessCore.Process getSequential4ColorProcess(String prefix) {
+		return getSequential4ColorProcess(prefix, ProcessCoreFactory.eINSTANCE.createXmlRoot());
+	}
+	
+	public static ProcessCore.Process getSequential4ColorProcess(String prefix, XmlRoot root) {
+		// first four supported colors: BLACK, BLUE, GREEN, RED,
+		for (SupportedColors color : WellknownPlotterCapability.SupportedColors.values()) {
+			AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(color);
+			if (root != null)
+				root.getCapabilities().add(cap);
+		}
 		
 		CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
 		CapabilityInvocation s2 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
@@ -36,18 +64,18 @@ class ProduceProcess {
 		s2.setID(prefix+"2");
 		s3.setID(prefix+"3");
 		s4.setID(prefix+"4");
-		s1.setDisplayName("red plotting");
-		s2.setDisplayName("blue plotting");
-		s3.setDisplayName("green plotting");
-		s4.setDisplayName("yellow plotting");
-		s1.setInvokedCapability(red);
-		s2.setInvokedCapability(blue);		
-		s3.setInvokedCapability(green);		
-		s4.setInvokedCapability(yellow);		
-		s1.getInputMappings().add(EcoreProcessUtils.getVariableMapping(red.getInputs().get(0)));
-		s2.getInputMappings().add(EcoreProcessUtils.getVariableMapping(blue.getInputs().get(0)));
-		s3.getInputMappings().add(EcoreProcessUtils.getVariableMapping(green.getInputs().get(0)));
-		s4.getInputMappings().add(EcoreProcessUtils.getVariableMapping(yellow.getInputs().get(0)));
+		s1.setDisplayName(root.getCapabilities().get(0).getDisplayName());
+		s2.setDisplayName(root.getCapabilities().get(1).getDisplayName());
+		s3.setDisplayName(root.getCapabilities().get(2).getDisplayName());
+		s4.setDisplayName(root.getCapabilities().get(3).getDisplayName());
+		s1.setInvokedCapability(root.getCapabilities().get(0));
+		s2.setInvokedCapability(root.getCapabilities().get(1));		
+		s3.setInvokedCapability(root.getCapabilities().get(2));		
+		s4.setInvokedCapability(root.getCapabilities().get(3));		
+		s1.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(0).getInputs().get(0)));
+		s2.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(1).getInputs().get(0)));
+		s3.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(2).getInputs().get(0)));
+		s4.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(3).getInputs().get(0)));
 		
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
 		p.setDisplayName("ProcessTemplate4Plotters");
@@ -59,11 +87,7 @@ class ProduceProcess {
 		p.getSteps().add(s2);
 		p.getSteps().add(s3);
 		p.getSteps().add(s4);
-		root.getProcesses().add(p);		
-		
-		FileDataPersistor fdp = new FileDataPersistor("ProcessTemplate4Plotters");
-		fdp.persistShopfloorData(Arrays.asList(root));
-		
+		return p;
 	}
-
+	
 }

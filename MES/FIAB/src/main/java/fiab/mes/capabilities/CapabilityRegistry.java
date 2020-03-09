@@ -1,7 +1,6 @@
 package fiab.mes.capabilities;
 
 import ProcessCore.AbstractCapability;
-import fiab.mes.general.ComparableCapability;
 
 public interface CapabilityRegistry {
 /** 

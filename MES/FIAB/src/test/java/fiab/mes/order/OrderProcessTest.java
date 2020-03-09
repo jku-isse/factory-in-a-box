@@ -14,7 +14,7 @@ import ProcessCore.CapabilityInvocation;
 import ProcessCore.ParallelBranches;
 import ProcessCore.ProcessCoreFactory;
 import ProcessCore.ProcessStep;
-import fiab.mes.general.ComparableCapability;
+import fiab.mes.capabilities.ComparableCapability;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 
