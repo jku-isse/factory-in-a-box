@@ -1,10 +1,16 @@
 package fiab.mes;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
@@ -29,6 +35,34 @@ public class ShopfloorConfigurations {
 		@Override
 		public void triggerDiscoveryMechanism(ActorSystem system) {							
 		}		
+	}
+	
+	public static class JsonFilePersistedDiscovery implements ShopfloorDiscovery {
+
+		public List<String> endpoints = new ArrayList<String>();
+		
+		public JsonFilePersistedDiscovery(String jsonFileName) {
+			loadEndpointsFromFile(jsonFileName);
+		}
+		
+		private void loadEndpointsFromFile(String jsonFileName) {
+			ObjectMapper objectMapper = new ObjectMapper();
+			
+			try {
+				File file = new File(jsonFileName+".json");
+				endpoints = objectMapper.readValue(file, new TypeReference<List<String>>(){});
+			} catch (IOException e) {			
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public void triggerDiscoveryMechanism(ActorSystem system) {
+			Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+			addDefaultSpawners(capURI2Spawning);
+			endpoints.stream().forEach(ep -> createDiscoveryActor(ep, capURI2Spawning, system));
+		}
+		
 	}
 	
 	public static class VirtualInputOutputTurntableOnly implements ShopfloorDiscovery{
