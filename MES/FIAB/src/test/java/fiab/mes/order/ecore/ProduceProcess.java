@@ -17,6 +17,7 @@ class ProduceProcess {
 		String prefix="step-";
 		
 		XmlRoot root = ProcessCoreFactory.eINSTANCE.createXmlRoot();
+		root.setDisplayName("ProcessTemplate4Plotters");
 		
 		AbstractCapability red = EcoreProcessUtils.getColorPlotCapability("Red");
 		AbstractCapability blue = EcoreProcessUtils.getColorPlotCapability("Blue");
@@ -49,8 +50,8 @@ class ProduceProcess {
 		s4.getInputMappings().add(EcoreProcessUtils.getVariableMapping(yellow.getInputs().get(0)));
 		
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
-		p.setDisplayName("TestProc1");
-		p.setID("TestProc1");
+		p.setDisplayName("ProcessTemplate4Plotters");
+		p.setID("ProcessTemplate4Plotters");
 		EcoreProcessUtils.addProcessvariables(p, "Image1", "Image2", "Image3", "Image4");
 		EcoreProcessUtils.mapCapInputToProcessVar(p.getVariables(), s1,s2,s3,s4);
 		
@@ -60,7 +61,7 @@ class ProduceProcess {
 		p.getSteps().add(s4);
 		root.getProcesses().add(p);		
 		
-		FileDataPersistor fdp = new FileDataPersistor("proc1");
+		FileDataPersistor fdp = new FileDataPersistor("ProcessTemplate4Plotters");
 		fdp.persistShopfloorData(Arrays.asList(root));
 		
 	}

@@ -4,6 +4,7 @@ import org.eclipse.emf.common.util.EList;
 
 import ProcessCore.AbstractCapability;
 import ProcessCore.CapabilityInvocation;
+import ProcessCore.LocalVariable;
 import ProcessCore.Parameter;
 import ProcessCore.Process;
 import ProcessCore.ProcessCoreFactory;
@@ -64,8 +65,16 @@ public class EcoreProcessUtils {
 
 	public static void addProcessvariables(Process p, String... args) {
 		for (String value : args) {
-			p.getVariables().add(getParameter("String", value, value));
+			p.getVariables().add(createLocalStringVariable(value, value));
 		}
+	}
+	
+	public static LocalVariable createLocalStringVariable(String name, String value) {
+		LocalVariable lv = ProcessCoreFactory.eINSTANCE.createLocalVariable();
+		lv.setName(name);
+		lv.setType("String");
+		lv.setValue(value);
+		return lv;
 	}
 
 	public static VariableMapping getVariableMapping(Parameter lhs) {

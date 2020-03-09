@@ -11,8 +11,10 @@ import org.eclipse.emf.common.util.EList;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
+import ProcessCore.CapabilityInvocation;
 import ProcessCore.Parameter;
 import ProcessCore.ProcessStep;
+import ProcessCore.VariableMapping;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -240,13 +242,15 @@ public class BasicMachineActor extends AbstractActor{
 	
 	private String extractInputFromProcessStep(ProcessStep p) throws ProcessRequestException {
 		if (p == null) throw new ProcessRequestException(ProcessRequestException.Type.PROCESS_STEP_MISSING, "Provided Process Step is null");
-		if (p instanceof AbstractCapability) {
-			AbstractCapability ac = ((AbstractCapability) p);
-			if (!(ac.getUri().equals(cap.getUri()))) throw new ProcessRequestException(ProcessRequestException.Type.UNSUPPORTED_CAPABILITY, "Process Step Capability is not supported: "+ac.getUri());
-			EList<Parameter> inputs = ac.getInputs();			
+		if (p instanceof CapabilityInvocation) {
+			CapabilityInvocation ac = ((CapabilityInvocation) p);
+			if (!(ac.getInvokedCapability().getUri().equals(cap.getUri()))) throw new ProcessRequestException(ProcessRequestException.Type.UNSUPPORTED_CAPABILITY, "Process Step Capability is not supported: "+ac.getInvokedCapability().getUri());
+			EList<VariableMapping> inputs = ac.getInputMappings();			
 			if (inputs != null) {
-				Optional<Parameter> optP = inputs.stream().filter(in -> in.getName().equals(WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME) )
-				.findAny();
+				Optional<Parameter> optP = inputs.stream()
+						.map(in -> in.getRhs())
+						.filter(in -> in.getName().equals(WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME) )
+						.findAny();
 				if (optP.isPresent()) {
 					if (optP.get().getValue() != null) {
 						try {
@@ -258,7 +262,7 @@ public class BasicMachineActor extends AbstractActor{
 					} else throw new ProcessRequestException(ProcessRequestException.Type.INPUT_PARAM_WRONG_TYPE, "Capability input value cannot be cast to String");
 				} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Capability missing input with name: "+WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME);
 			} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Capability missing any defined inputs");
-		} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Process Step is not a capability");
+		} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Process Step is not a capability invocation");
 	}
 	
 	private void tellEventBus(MachineUpdateEvent mue) {

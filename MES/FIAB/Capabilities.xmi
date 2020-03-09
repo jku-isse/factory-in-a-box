@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ASCII"?>
+<at.pro2future.shopfloors.processcore:XmlRoot xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:at.pro2future.shopfloors.processcore="at.pro2future.shopfloors.processcore" DisplayName="CapabilityDefinitions">
+  <Capabilities DisplayName="Plot: Red" uri="http://factory-in-a-box.fiab/capabilities/plotter/colors/Red" ID="Capability.Plotting.Color.Red">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot: Blue" uri="http://factory-in-a-box.fiab/capabilities/plotter/colors/Blue" ID="Capability.Plotting.Color.Blue">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot: Green" uri="http://factory-in-a-box.fiab/capabilities/plotter/colors/Green" ID="Capability.Plotting.Color.Green">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot: Yellow" uri="http://factory-in-a-box.fiab/capabilities/plotter/colors/Yellow" ID="Capability.Plotting.Color.Yellow">
+    <Inputs Type="String" Name="RD_1"/>
+  </Capabilities>
+</at.pro2future.shopfloors.processcore:XmlRoot>
