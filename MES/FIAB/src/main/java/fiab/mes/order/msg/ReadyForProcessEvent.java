@@ -2,7 +2,9 @@ package fiab.mes.order.msg;
 
 import java.util.Optional;
 
-public class ReadyForProcessEvent {
+import fiab.mes.general.TimedEvent;
+
+public class ReadyForProcessEvent extends TimedEvent {
 	RegisterProcessStepRequest responseTo;
 	boolean isReady = true;
 	ProcessRequestException pre;

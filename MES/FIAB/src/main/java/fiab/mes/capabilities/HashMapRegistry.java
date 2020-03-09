@@ -20,7 +20,6 @@ import ProcessCore.ProcessCoreFactory;
 import ProcessCore.ProcessCorePackage;
 import ProcessCore.XmlRoot;
 import actorprocess.ActorprocessPackage;
-import fiab.mes.general.ComparableCapability;
 
 public class HashMapRegistry implements CapabilityRegistry {
 	private static final String CAPABILITY_FILE_URL = "files\\Capabilities.xmi";

@@ -9,8 +9,9 @@ import java.util.Map;
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
-import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.machine.actor.plotter.wrapper.LocalPlotterActorSpawner;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
@@ -93,7 +94,7 @@ public class ShopfloorConfigurations {
 		addInputStationSpawner(capURI2Spawning);
 		addOutputStationSpawner(capURI2Spawning);
 		addTurntableSpawner(capURI2Spawning);
-		addPlotterStationSpawner(capURI2Spawning);
+		addColorPlotterStationSpawner(capURI2Spawning);
 	}
 
 	public static void addInputStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
@@ -114,14 +115,26 @@ public class ShopfloorConfigurations {
 		});		
 	}
 	
-	public static void addPlotterStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
-		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+//	public static void addPlotterStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
+//		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_BASE_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+//			@Override
+//			public ActorRef createActorSpawner(ActorContext context) {
+//				return context.actorOf(LocalPlotterActorSpawner.props());
+//			}
+//		});
+//	}
+
+	public static void addColorPlotterStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
+		CapabilityCentricActorSpawnerInterface allColorSpawner = new CapabilityCentricActorSpawnerInterface() {					
 			@Override
 			public ActorRef createActorSpawner(ActorContext context) {
 				return context.actorOf(LocalPlotterActorSpawner.props());
 			}
-		});
-	}
+		};
+		for (SupportedColors color : SupportedColors.values()) {
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.generatePlottingCapabilityURI(color), CapabilityImplementationMetadata.ProvOrReq.PROVIDED), allColorSpawner);	
+		}		
+}
 	
 	public static void addTurntableSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
 		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownTransportModuleCapability.TURNTABLE_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					

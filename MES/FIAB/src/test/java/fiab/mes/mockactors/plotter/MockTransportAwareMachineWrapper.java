@@ -1,4 +1,4 @@
-package fiab.mes.mockactors;
+package fiab.mes.mockactors.plotter;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -22,7 +22,8 @@ import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.mockactors.MockMachineWrapper.MessageTypes;
+import fiab.mes.mockactors.MockServerHandshakeActor;
+import fiab.mes.mockactors.plotter.MockMachineWrapper.MessageTypes;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;

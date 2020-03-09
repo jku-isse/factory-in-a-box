@@ -9,7 +9,7 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
-import fiab.mes.mockactors.MockMachineWrapper;
+import fiab.mes.mockactors.plotter.MockMachineWrapper;
 import fiab.mes.transport.handshake.HandshakeProtocol;
 
 public class MockIOStationFactory {

@@ -15,13 +15,14 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import fiab.mes.ShopfloorConfigurations;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
-import fiab.mes.machine.actor.plotter.WellknownPlotterCapability;
 import fiab.mes.machine.actor.plotter.wrapper.LocalPlotterActorSpawner;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
@@ -203,30 +204,7 @@ class TestIOandTurntableOPCUAIntegration {
 				// setup discoveryactor
 							
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
-					@Override
-					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
-					}
-				});
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
-					@Override
-					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
-					}
-				});																	
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownTransportModuleCapability.TURNTABLE_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
-					@Override
-					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalTransportModuleActorSpawner.props());
-					}
-				});
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
-					@Override
-					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalPlotterActorSpawner.props());
-					}
-				});
+				ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
 				
 				String endpointURL1 = "opc.tcp://localhost:4840/milo"; //Pos34
 				// we provided wiring info to TT1 for outputstation at SOUTH_CLIENT for testing purpose, for two turntable setup needs changing

@@ -21,6 +21,7 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.HistoryTracker;
@@ -242,14 +243,14 @@ public class BasicMachineActor extends AbstractActor{
 	
 	private String extractInputFromProcessStep(ProcessStep p) throws ProcessRequestException {
 		if (p == null) throw new ProcessRequestException(ProcessRequestException.Type.PROCESS_STEP_MISSING, "Provided Process Step is null");
-		if (p instanceof CapabilityInvocation) {
+		if (p instanceof CapabilityInvocation && ((CapabilityInvocation) p).getInvokedCapability() != null) {
 			CapabilityInvocation ac = ((CapabilityInvocation) p);
 			if (!(ac.getInvokedCapability().getUri().equals(cap.getUri()))) throw new ProcessRequestException(ProcessRequestException.Type.UNSUPPORTED_CAPABILITY, "Process Step Capability is not supported: "+ac.getInvokedCapability().getUri());
 			EList<VariableMapping> inputs = ac.getInputMappings();			
 			if (inputs != null) {
 				Optional<Parameter> optP = inputs.stream()
+						.filter(in -> in.getLhs().getName().equals(WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME) )
 						.map(in -> in.getRhs())
-						.filter(in -> in.getName().equals(WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME) )
 						.findAny();
 				if (optP.isPresent()) {
 					if (optP.get().getValue() != null) {
