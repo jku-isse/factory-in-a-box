@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ASCII"?>
-<at.pro2future.shopfloors.processcore:XmlRoot xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:at.pro2future.shopfloors.processcore="at.pro2future.shopfloors.processcore">
-  <Processes ID="TestProc1" DisplayName="TestProc1">
+<at.pro2future.shopfloors.processcore:XmlRoot xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:at.pro2future.shopfloors.processcore="at.pro2future.shopfloors.processcore" DisplayName="ProcessTemplate4Plotters">
+  <Processes ID="ProcessTemplate4Plotters" DisplayName="ProcessTemplate4Plotters">
     <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-1" DisplayName="red plotting" InvokedCapability="Capability.Plotting.Color.Red">
       <InputMappings lhs="//@Capabilities.0/@Inputs.0" rhs="//@Processes.0/@Variables.0"/>
     </Steps>
