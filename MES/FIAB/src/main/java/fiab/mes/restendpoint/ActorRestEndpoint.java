@@ -65,15 +65,16 @@ public class ActorRestEndpoint extends AllDirectives{
 	ActorSelection machineEventBusByRef;
 	ActorRef orderEntryActor;
 	ActorRef machineEntryActor;
-	
+	static boolean turnOffAuthenticate = true;
+	static boolean turnOnAuthenticate = false;
 	Authenticator auth;
 
 	public ActorRestEndpoint(ActorSystem system, ActorRef orderEntryActor, ActorRef machineEntryActor) {
 		this.eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
 		this.machineEventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		this.orderEntryActor = orderEntryActor;
-		this.machineEntryActor = machineEntryActor;
-		this.auth = new Authenticator(true);
+		this.machineEntryActor = machineEntryActor;		
+		this.auth = new Authenticator(turnOnAuthenticate);
 	}
 
 	private static int bufferSize = 10;
@@ -100,7 +101,7 @@ public class ActorRestEndpoint extends AllDirectives{
 					get(() -> parameterOptional("machineId", machineId -> getSSESourceForMachineEvents(machineId)))
 				),
 				path("machines", () -> 
-					concat( postMachines(), getMachines(), options(() -> complete("This is a OPTIONS request.")) )
+					concat( /*postMachines(),*/ getMachines(), options(() -> complete("This is a OPTIONS request.")) )
 				),
 				path("orders", () -> 
 					concat( postOrders(), getOrders(), options(() -> complete("This is a OPTIONS request.")) )
@@ -171,9 +172,9 @@ public class ActorRestEndpoint extends AllDirectives{
           }));
 	}
 
-	private RegisterProcessRequest transformToOrderProcessRequest(String xmlPayload) {
-		throw new RuntimeException("Not implemented");
-	}
+//	private RegisterProcessRequest transformToOrderProcessRequest(String xmlPayload) {
+//		throw new RuntimeException("Not implemented");
+//	}
 	
 	private RouteAdapter getSSESourceForOrderEvents(Optional<String> orderId) {
 		//final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
@@ -296,19 +297,19 @@ public class ActorRestEndpoint extends AllDirectives{
 		});	
 	}
 	
-	private Route postMachines() {
-		return post(() ->
-			headerValueByName("Authorization", token -> {
-				if (auth.isLoggedIn(token)) {
-					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { 
-						// TODO 
-						throw new RuntimeException("not implemented");
-					});
-				}
-				return complete(StatusCodes.UNAUTHORIZED);
-			})
-		);
-	}
+//	private Route postMachines() {
+//		return post(() ->
+//			headerValueByName("Authorization", token -> {
+//				if (auth.isLoggedIn(token)) {
+//					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { 
+//						// TODO 
+//						throw new RuntimeException("not implemented");
+//					});
+//				}
+//				return complete(StatusCodes.UNAUTHORIZED);
+//			})
+//		);
+//	}
 	
 	private Route getMachines() {
 		return get(() -> {

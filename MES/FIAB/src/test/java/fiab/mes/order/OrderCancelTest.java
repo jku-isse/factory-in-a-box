@@ -21,6 +21,8 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -37,6 +39,7 @@ import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.oldplotter.MockMachineActor;
 import fiab.mes.mockactors.oldplotter.TestMockMachineActor;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
+import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
@@ -294,7 +297,7 @@ class OrderCancelTest {
 	
 	public OrderProcess subscribeAndRegisterSinglePrintRedOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
-		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleRedStepProcess(oid));				
+		OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleRedStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 		return op1;
@@ -302,14 +305,14 @@ class OrderCancelTest {
 	
 	public void subscribeAndRegisterSinglePrintGreenOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
-		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleGreenStepProcess(oid));				
+		OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleGreenStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 	}
 	
 	public OrderProcess subscribeAndRegisterPrintGreenAndRedOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
-		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getGreenAndRedStepProcess(oid));				
+		OrderProcess op1 = new OrderProcess(ProduceProcess.getRedAndGreenStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 		return op1;
@@ -319,18 +322,18 @@ class OrderCancelTest {
 		logger.info(event.toString());
 	}
 
-	public static ActorRef getMachineMockActor(int id, String color) {
+	public static ActorRef getMachineMockActor(int id, SupportedColors color) {
 		ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		Actor modelActor = TestMockMachineActor.getDefaultMachineActor(id);
-		AbstractCapability cap = TestMockMachineActor.composeInOne(TestMockMachineActor.getPlottingCapability(), TestMockMachineActor.getColorCapability(color));
+		AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(color);
 		return system.actorOf(MockMachineActor.props(eventBusByRef, cap, modelActor));
 	}
 	
-	public RegisterProcessRequest buildRequest(ActorRef senderRef, String oid, int orderCount) {
-		ProcessCore.Process p = TestMockMachineActor.getSequentialProcess(orderCount+"-");
-		OrderProcess op = new OrderProcess(p);
-		return new RegisterProcessRequest(oid, op, senderRef);
-	}
+//	public RegisterProcessRequest buildRequest(ActorRef senderRef, String oid, int orderCount) {
+//		ProcessCore.Process p = TestMockMachineActor.getSequentialProcess(orderCount+"-");
+//		OrderProcess op = new OrderProcess(p);
+//		return new RegisterProcessRequest(oid, op, senderRef);
+//	}
 	
 	private boolean matches(OrderEvent e, String orderId, OrderEventType type) {
 		return (e.getEventType().equals(type) && e.getOrderId().equals(orderId));

@@ -21,6 +21,8 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -37,6 +39,7 @@ import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.oldplotter.MockMachineActor;
 import fiab.mes.mockactors.oldplotter.TestMockMachineActor;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
+import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
@@ -287,174 +290,22 @@ class OrderPlanningActorTest {
 	
 	public void subscribeAndRegisterSinglePrintRedOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
-		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleRedStepProcess(oid));				
+		OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleRedStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 	}
 	
 	public void subscribeAndRegisterSinglePrintGreenOrder(String oid, ActorRef testProbe) {		
 		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
-		OrderProcess op1 = new OrderProcess(TestMockMachineActor.getSingleGreenStepProcess(oid));				
+		OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleGreenStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 	}
 	
-//	@Test
-//	void testOrderRegisterWithoutAvailableMachines() {
-//		new TestKit(system) { 
-//			{ 
-//				String oid = "Order1";
-//				orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", oid)), getRef() );
-//				ProcessCore.Process p = TestMockMachineActor.getSequentialProcess();
-//				OrderProcess op = new OrderProcess(p);
-//				RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op, getRef());
-//				orderPlanningActor.tell(req, getRef());
-//				Boolean regOk = expectMsgPF(Duration.ofSeconds(1), "Register Order Event expected", event -> { 
-//					if (event instanceof OrderEvent) {
-//						return ((OrderEvent) event).getEventType().equals(OrderEventType.REGISTERED); 
-//					} else return false; });
-//				assert(regOk);
-//				expectMsgClass(OrderProcessUpdateEvent.class);
-//				Boolean pauseOk = expectMsgPF(Duration.ofSeconds(1), "Pause Order Event expected", event -> { 
-//					if (event instanceof OrderEvent) {
-//						return ((OrderEvent) event).getEventType().equals(OrderEventType.PAUSED); 
-//					} else return false; });
-//				assert(pauseOk);
-//			}	
-//		};
-//	}
-//	
-//	@Test
-//	void testOrderPlanningActorReceivingMachineActorCapabilities() {
-//		new TestKit(system) { 
-//			{ 
-//				String mid = "OrderMockMachine";
-//				machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", mid)), getRef() );
-//				ActorRef red1 = getMachineMockActor(1, "Red");
-//				ActorRef blue2 = getMachineMockActor(2, "Blue");
-//				ActorRef green3 = getMachineMockActor(3, "Green");
-//				ActorRef yellow4 = getMachineMockActor(4, "Yellow");
-//				//expectMsgClass(MachineUpdateEvent.class);
-//				//TODO: figure out how to inspect that capabilities are stored
-//			}	
-//		};
-//	}
-//
-//	
-//	@Test
-//	void testOrderRegisterWithAlreadyAvailableMachines() {
-//		new TestKit(system) { 
-//			{ 
-//				String oid = "Order1";
-//				String mid = "OrderMockMachine";
-//				orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", oid)), getRef() );
-//				machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
-//				//machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", mid)), getRef() );
-//				// if we subscribe to machinebus then we need to capture all the machine events by those actors
-//				ActorRef red1 = getMachineMockActor(1, "Red");
-//				expectMsgAnyClassOf(Duration.ofSeconds(3), MachineConnectedEvent.class);
-//				expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class); //idle
-//				ActorRef blue2 = getMachineMockActor(2, "Blue");
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
-//				ActorRef green3 = getMachineMockActor(3, "Green");
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
-//				ActorRef yellow4 = getMachineMockActor(4, "Yellow");
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-//				expectMsgClass(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
-//				
-//				ProcessCore.Process p = TestMockMachineActor.getSequentialProcess();
-//				OrderProcess op = new OrderProcess(p);
-//				RegisterProcessRequest req = new RegisterProcessRequest(oid, oid, op, getRef());
-//				orderPlanningActor.tell(req, getRef());
-//				Boolean regOk = expectMsgPF(Duration.ofSeconds(3600), "Register Order Event expected", event -> { 
-//					if (event instanceof OrderEvent) {
-//						return ((OrderEvent) event).getEventType().equals(OrderEventType.REGISTERED); 
-//					} else return false; });
-//				assert(regOk);
-//				expectMsgClass(OrderProcessUpdateEvent.class); // First SubStep activated
-//				// then order requested at machine 
-//				Boolean pauseOk = expectMsgPF(Duration.ofSeconds(3600), "Pause Order Event expected", event -> { 
-//					if (event instanceof OrderEvent) {
-//						return ((OrderEvent) event).getEventType().equals(OrderEventType.SCHEDULED); 
-//					} else return false; });
-//				assert( pauseOk);
-//				for (int i=0; i < 27; i++) {
-//					System.out.println("i:"+i);
-//					TimedEvent te = expectMsgClass(Duration.ofSeconds(3600), TimedEvent.class);
-//					//logEvent(te);
-//				}
-//			}	
-//		};
-//	}
-//	
-//	
-//	@Test
-//	void testTwoOrderRegisterWithAlreadyAvailableMachines() {
-//		new TestKit(system) { 
-//			{ 
-//				
-//				String mid = "OrderMockMachine";
-//				orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
-//				machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
-//				//machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", mid)), getRef() );
-//				// if we subscribe to machinebus then we need to capture all the machine events by those actors
-//				ActorRef red1 = getMachineMockActor(1, "Red");
-//				expectMsgAnyClassOf(Duration.ofSeconds(3), MachineConnectedEvent.class);
-//				expectMsgAnyClassOf(Duration.ofSeconds(3), MachineUpdateEvent.class); //idle
-//				ActorRef blue2 = getMachineMockActor(2, "Blue");
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
-//				ActorRef green3 = getMachineMockActor(3, "Green");
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
-//				ActorRef yellow4 = getMachineMockActor(4, "Yellow");
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-//				expectMsgClass(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
-//				
-//				RegisterProcessRequest req = buildRequest(getRef(), "Order1", 1);
-//				orderPlanningActor.tell(req, getRef());
-//				RegisterProcessRequest req2 = buildRequest(getRef(), "Order2", 2);
-//				orderPlanningActor.tell(req2, getRef());
-//				boolean p1done = false;
-//				boolean p2done = false;
-//				while (!(p1done && p2done) ) {
-//					TimedEvent te = expectMsgClass(Duration.ofSeconds(3600), TimedEvent.class);
-//					logEvent(te);
-//					if (req.getProcess().areAllTasksCancelledOrCompleted()) { p1done = true; }
-//					if (req2.getProcess().areAllTasksCancelledOrCompleted()) { p2done = true; }
-//					
-////					if (te instanceof OrderProcessUpdateEvent) {
-////						if (((OrderProcessUpdateEvent) te).getStepsWithNewStatusAsReadOnlyMap().entrySet().stream()
-////							.allMatch(entry -> entry.getValue().equals(StepStatusEnum.COMPLETED))) {
-////							// all steps are completed,
-////							if (((OrderProcessUpdateEvent) te).getOrderId().contentEquals("Order1"))
-////								p1done = true;
-////							if (((OrderProcessUpdateEvent) te).getOrderId().contentEquals("Order2"))
-////								p2done = true;
-////						}
-////						
-////					}
-//				}
-//			}	
-//		};
-//	}
 	
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());
 	}
 
-	public static ActorRef getMachineMockActor(int id, String color) {
-		ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		Actor modelActor = TestMockMachineActor.getDefaultMachineActor(id);
-		AbstractCapability cap = TestMockMachineActor.composeInOne(TestMockMachineActor.getPlottingCapability(), TestMockMachineActor.getColorCapability(color));
-		return system.actorOf(MockMachineActor.props(eventBusByRef, cap, modelActor));
-	}
-	
-	public RegisterProcessRequest buildRequest(ActorRef senderRef, String oid, int orderCount) {
-		ProcessCore.Process p = TestMockMachineActor.getSequentialProcess(orderCount+"-");
-		OrderProcess op = new OrderProcess(p);
-		return new RegisterProcessRequest(oid, op, senderRef);
-	}
+
 }

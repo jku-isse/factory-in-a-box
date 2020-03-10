@@ -24,6 +24,8 @@ public class MachineEntryActor extends AbstractActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	
+	public static final String WELLKNOWN_LOOKUP_NAME = "MachineEntryActor";
+	
 	private ActorSelection machineEventBusByRef;
 	private Map<String, MachineEvent> latestChange = new HashMap<>();
 	private Map<String, ActorRef> machineActors = new HashMap<>();
