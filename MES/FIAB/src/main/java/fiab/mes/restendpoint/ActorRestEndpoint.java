@@ -271,8 +271,12 @@ public class ActorRestEndpoint extends AllDirectives{
 				.thenApply(r -> (OrderHistoryRequest.Response) r); 
 		return onSuccess(futureMaybeStatus, item -> {
 			if (item != null) {
-				List<OrderEventWrapper> wrapper = item.getUpdates().stream().map(o -> new OrderEventWrapper(o)).collect(Collectors.toList());
-				return completeOK(wrapper, Jackson.marshaller());
+				if (item.getOrderId() == null) {
+					return complete(StatusCodes.NOT_FOUND, "Order history Not Found");
+				} else {
+					List<OrderEventWrapper> wrapper = item.getUpdates().stream().map(o -> new OrderEventWrapper(o)).collect(Collectors.toList());
+					return completeOK(wrapper, Jackson.marshaller());
+				}
 			} else {
 				return complete(StatusCodes.NOT_FOUND, "Order history Not Found");
 			}
@@ -288,9 +292,13 @@ public class ActorRestEndpoint extends AllDirectives{
 		final CompletionStage<MachineHistoryRequest.Response> futureMaybeStatus = ask(machineEntryActor, new MachineHistoryRequest(req, true), timeout)
 				.thenApply(r -> (MachineHistoryRequest.Response) r); 
 		return onSuccess(futureMaybeStatus, item -> {
-			if (item != null) {
-				List<MachineEventWrapper> wrapper = item.getUpdates().stream().map(o -> new MachineEventWrapper(o)).collect(Collectors.toList());
-				return completeOK(wrapper, Jackson.marshaller());
+			if (item != null ) {
+				if (item.getMachineId() == null)
+					return complete(StatusCodes.NOT_FOUND, "Machine history Not Found");
+				else {
+					List<MachineEventWrapper> wrapper = item.getUpdates().stream().map(o -> new MachineEventWrapper(o)).collect(Collectors.toList());				
+					return completeOK(wrapper, Jackson.marshaller());
+				}
 			} else {
 				return complete(StatusCodes.NOT_FOUND, "Machine history Not Found");
 			}

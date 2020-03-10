@@ -16,7 +16,7 @@ import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors
 public class ProduceProcess {
 
 	@Test
-	void produceSimpleProcess() throws IOException {
+	void produce4StepProcess() throws IOException {
 		String prefix="step-";
 		
 		XmlRoot root = ProcessCoreFactory.eINSTANCE.createXmlRoot();
@@ -40,6 +40,18 @@ public class ProduceProcess {
 		}
 		
 		FileDataPersistor fdp = new FileDataPersistor("Capabilities");
+		fdp.persistShopfloorData(Arrays.asList(root));
+		
+	}
+	
+	@Test
+	void produceSingleStepProcess() throws IOException {
+		String prefix="step-";
+		
+		XmlRoot root = ProcessCoreFactory.eINSTANCE.createXmlRoot();
+		root.setDisplayName("ProcessTemplateSinglePlotter");
+		root.getProcesses().add(getSequentialStepProcess(prefix, root, SupportedColors.BLACK));		
+		FileDataPersistor fdp = new FileDataPersistor("ProcessTemplateSinglePlotter");
 		fdp.persistShopfloorData(Arrays.asList(root));
 		
 	}
