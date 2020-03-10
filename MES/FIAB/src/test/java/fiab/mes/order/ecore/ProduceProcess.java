@@ -133,6 +133,7 @@ public class ProduceProcess {
 			EcoreProcessUtils.addProcessvariables(p, "Image"+count);
 			EcoreProcessUtils.mapCapInputToProcessVar(p.getVariables(), s1);
 			p.getSteps().add(s1);
+			count++;
 		}
 		return p;
 	}

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import fiab.mes.ShopfloorConfigurations.JsonFilePersistedDiscovery;
 
-class ShopfloorDiscoveryFromFile {
+class TestShopfloorDiscoveryFromFile {
 
 	@Test
 	void test() {

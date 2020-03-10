@@ -115,6 +115,7 @@ class TestMachineAndTransportSystem {
 						//System.out.println("Connected Event: "+countConnEvents);
 					}
 					if (te instanceof MachineStatusUpdateEvent && !machineReady) {
+			fail("LockForRequest requires ResisterRequest first"); //FIXME:
 						machineReady = lockMachineforRequest((MachineStatusUpdateEvent) te, "MockMachineActor31", getRef());
 					}
 				}
@@ -124,6 +125,7 @@ class TestMachineAndTransportSystem {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class, IOStationStatusUpdateEvent.class);
 					logEvent(te);
 					if (te instanceof MachineStatusUpdateEvent) {
+			fail("LockForRequest requires ResisterRequest first"); //FIXME:
 						machineReady = lockMachineforRequest((MachineStatusUpdateEvent) te, "MockMachineActor31", getRef());
 					}
 				}
