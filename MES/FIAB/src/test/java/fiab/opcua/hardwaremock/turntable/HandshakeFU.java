@@ -41,6 +41,7 @@ import fiab.opcua.hardwaremock.serverhandshake.methods.SetEmpty;
 import fiab.opcua.hardwaremock.serverhandshake.methods.SetLoaded;
 import fiab.opcua.hardwaremock.serverhandshake.methods.Stop;
 import fiab.opcua.hardwaremock.turntable.WiringUtils.WiringInfo;
+import fiab.opcua.hardwaremock.turntable.methods.WiringRequest;
 
 public class HandshakeFU implements StatePublisher{
 
@@ -88,6 +89,9 @@ public class HandshakeFU implements StatePublisher{
 			base.addMethodNode(handshakeNode, n1, new InitHandover(n1, localClient)); 		
 			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, "START_HANDOVER", "Requests start");		
 			base.addMethodNode(handshakeNode, n2, new StartHandover(n2, localClient));
+			//add set wiring method
+			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode wiringMethod = base.createPartialMethodNode(path, "SET_WIRING", "Sets the wiring Info");
+			base.addMethodNode(handshakeNode, wiringMethod, new WiringRequest(wiringMethod,this));
 			
 			if (!enableCoordinatorActor) {
 				// add reset and stop and complete methods, set loaded 
@@ -111,6 +115,10 @@ public class HandshakeFU implements StatePublisher{
 			localClient = context.actorOf(MockClientHandshakeActor.props(ttBaseActor, opcuaWrapper, this), capInstId);
 			opcuaWrapper.tell(localClient, ActorRef.noSender());
 			ttBaseActor.tell(new LocalEndpointStatus.LocalClientEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender()); 
+			
+			//add set wiring method
+			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode wiringMethod = base.createPartialMethodNode(path, "SET_WIRING", "Sets the wiring Info");
+			base.addMethodNode(handshakeNode, wiringMethod, new WiringRequest(wiringMethod,this));
 			
 			if (!enableCoordinatorActor) {
 				// add reset, start, and stop and complete method
