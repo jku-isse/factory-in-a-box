@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { MachineEvent } from '../_models/events';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -13,19 +13,21 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmComponent } from '../dialog-confirm/dialog-confirm.component';
 import { DialogData, ActionRequest } from '../_models/dialog-data';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-machine-list',
   templateUrl: './machine-list.component.html',
   styleUrls: ['./machine-list.component.css']
 })
-export class MachineListComponent implements OnInit {
+export class MachineListComponent implements OnInit, OnDestroy {
 
   columnNames: string[] = ['machineId', 'eventType', 'state', 'message', 'history'];
   machines: Map<string, MachineEvent> = new Map<string, MachineEvent>();
   dataSource: MatTableDataSource<MachineEvent>;
   count: Map<string, number>;
   currentUser: User;
+  subscriptions: Subscription[] = [];
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
@@ -45,11 +47,16 @@ export class MachineListComponent implements OnInit {
   ngOnInit() {
     this.subscribe();
     this.reloadData();
-    this.data.currentMachineCount.subscribe(count => this.count = count);
+    const sub = this.data.currentMachineCount.subscribe(count => this.count = count);
+    this.subscriptions.push(sub);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
   private subscribe() {
-    this.machineService.getMachineUpdates().subscribe(
+    const sub = this.machineService.getMachineUpdates().subscribe(
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
         this.machines.set(json.machineId, json);
@@ -62,10 +69,11 @@ export class MachineListComponent implements OnInit {
       err => { console.log('Error receiving SSE', err); },
       () => console.log('SSE stream completed')
     );
+    this.subscriptions.push(sub);
   }
 
   private reloadData() {
-    this.machineService.getMachineList().subscribe(data => {
+    const sub = this.machineService.getMachineList().subscribe(data => {
       data.forEach(element => {
         this.machines.set(element.machineId, element);
         this.dataSource = new MatTableDataSource(Array.from(this.machines.values()));
@@ -75,6 +83,7 @@ export class MachineListComponent implements OnInit {
         this.dataSource.sort = this.sort;
       }
     }, error => console.log(error));
+    this.subscriptions.push(sub);
   }
 
   machineHistory(id: string) {
@@ -105,7 +114,7 @@ export class MachineListComponent implements OnInit {
 
   adminAction(machineId: string, action: string) {
     const msg: DialogData = new ActionRequest(action, machineId);
-    this.userService.action(msg)
+    const sub = this.userService.action(msg)
       .subscribe(
         resp => {
           if (resp.status < 400) {
@@ -118,6 +127,7 @@ export class MachineListComponent implements OnInit {
           this.openSnackBar('Error: ' + error);
         }
       );
+    this.subscriptions.push(sub);
   }
 
   openDialog(machineId: string, action: string): void {
@@ -126,11 +136,13 @@ export class MachineListComponent implements OnInit {
       data: {action, id: machineId}
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    const sub = dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.adminAction(machineId, action);
       }
     });
+
+    this.subscriptions.push(sub);
   }
 
   openSnackBar(message: string) {

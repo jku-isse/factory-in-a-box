@@ -1,6 +1,6 @@
 import { OrderService } from '../_services/order.service';
 import { OrderEvent } from '../_models/events';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmComponent } from '../dialog-confirm/dialog-confirm.component';
 import { ActionRequest, DialogData } from '../_models/dialog-data';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -20,13 +21,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   templateUrl: './order-list.component.html',
   styleUrls: ['./order-list.component.css']
 })
-export class OrderListComponent implements OnInit {
+export class OrderListComponent implements OnInit, OnDestroy {
 
   columnNames: string[] = ['orderId', 'eventType', 'machineId', 'message', 'process-button', 'history-button'];
   orders: Map<string, OrderEvent> = new Map<string, OrderEvent>();
   dataSource: MatTableDataSource<OrderEvent>;
   count: Map<string, number>;
   currentUser: User;
+  subscriptions: Subscription[] = [];
 
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
@@ -44,7 +46,7 @@ export class OrderListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.orderService.getOrderUpdates().subscribe(
+    const sseSubscription = this.orderService.getOrderUpdates().subscribe(
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
         this.orders.set(json.orderId, json);
@@ -58,11 +60,17 @@ export class OrderListComponent implements OnInit {
       () => console.log('SSE stream completed')
     );
     this.reloadData();
-    this.data.currentCount.subscribe(count => this.count = count);
+    const countSubscription = this.data.currentCount.subscribe(count => this.count = count);
+    this.subscriptions.push(sseSubscription);
+    this.subscriptions.push(countSubscription);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
   reloadData() {
-    this.orderService.getOrderList()
+    const orderSubscription = this.orderService.getOrderList()
       .subscribe(data => {
         data.forEach(element => {
           this.orders.set(element.orderId, element);
@@ -73,6 +81,7 @@ export class OrderListComponent implements OnInit {
           this.dataSource.sort = this.sort;
         }
       }, error => console.log(error));
+    this.subscriptions.push(orderSubscription);
   }
 
   orderDetails(id: string) {
@@ -106,7 +115,7 @@ export class OrderListComponent implements OnInit {
 
   deleteOrder(orderId: string) {
     const msg: DialogData = new ActionRequest('delete', orderId);
-    this.userService.action(msg)
+    const userSubscription = this.userService.action(msg)
       .subscribe(
         resp => {
           if (resp.status < 400) {
@@ -119,6 +128,7 @@ export class OrderListComponent implements OnInit {
           this.openSnackBar('Error: ' + error);
         }
       );
+    this.subscriptions.push(userSubscription);
   }
 
   openDialog(orderId: string): void {
@@ -127,11 +137,13 @@ export class OrderListComponent implements OnInit {
       data: {action: 'delete', id: orderId}
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    const dialogSubscription = dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.deleteOrder(orderId);
       }
     });
+
+    this.subscriptions.push(dialogSubscription);
   }
 
   openSnackBar(message: string) {

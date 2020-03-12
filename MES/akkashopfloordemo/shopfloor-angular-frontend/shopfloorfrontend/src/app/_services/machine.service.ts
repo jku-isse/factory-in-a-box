@@ -19,19 +19,24 @@ export class MachineService {
   }
 
   getMachineUpdates(): Observable<any> {
-    return Observable.create(observer =>  {
+    return new Observable(observer =>  {
       const eventSource = this.getMachineEventStream();
       eventSource.onmessage = event => {
         this._zone.run(() => {
           observer.next(event);
         });
       };
+
       eventSource.onerror = error => {
         this._zone.run(() => {
           console.log('SSE error ', eventSource);
           observer.error(error);
           eventSource.close();
         });
+      };
+
+      return () => {
+        eventSource.close();
       };
 
     });

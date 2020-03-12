@@ -244,7 +244,7 @@ public class ActorRestEndpoint extends AllDirectives{
 	
 	private Route getOrders() {
 		return get(() -> {
-			final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));		        
+			final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));	
 			@SuppressWarnings({ "unchecked", "deprecation" })
 			CompletionStage<Set<OrderEventWrapper>> resp = ask(orderEntryActor, "GetAllOrders", timeout).thenApply( list -> {
 				Set<OrderEventWrapper> wrap = ((Collection<OrderEvent>)list)
