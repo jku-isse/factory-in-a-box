@@ -1,23 +1,25 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { MachineEvent } from '../_models/events';
 import { MachineService } from '../_services/machine.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { DataService } from '../_services/data.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-machine-history',
   templateUrl: './machine-history.component.html',
   styleUrls: ['./machine-history.component.css']
 })
-export class MachineHistoryComponent implements OnInit {
+export class MachineHistoryComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['eventType', 'state', 'message', 'time'];
   machines: Map<string, MachineEvent> = new Map<string, MachineEvent>();
   machineId: string;
   latest = '';
   dataSource: MatTableDataSource<MachineEvent>;
   count: Map<string, number>;
+  subscriptions: Subscription[] = [];
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
 
@@ -28,16 +30,22 @@ export class MachineHistoryComponent implements OnInit {
     private data: DataService) { }
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
+    const sub1 = this.route.paramMap.subscribe(params => {
       this.machineId = params.get('id');
     });
     this.subscribe();
     this.reloadData();
-    this.data.currentMachineCount.subscribe(count => this.count = count);
+    const sub2 = this.data.currentMachineCount.subscribe(count => this.count = count);
+    this.subscriptions.push(sub1);
+    this.subscriptions.push(sub2);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
   private subscribe() {
-    this.machineService.getMachineUpdates().subscribe(
+    const sub = this.machineService.getMachineUpdates().subscribe(
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
         // console.log('sse', json);
@@ -55,10 +63,11 @@ export class MachineHistoryComponent implements OnInit {
       err => { console.log('Error receiving SSE in History', err); },
       () => console.log('SSE stream completed')
     );
+    this.subscriptions.push(sub);
   }
 
   private reloadData() {
-    this.machineService.getMachineHistory(this.machineId)
+    const sub = this.machineService.getMachineHistory(this.machineId)
       .subscribe(data => {
         data.forEach(element => {
           element.prettyTimestamp = this.parseTimestamp(element.timestamp);
@@ -72,6 +81,7 @@ export class MachineHistoryComponent implements OnInit {
         }
         this.newCount();
       }, error => console.log(error));
+    this.subscriptions.push(sub);
   }
   list() {
     this.router.navigate(['machines']);
@@ -104,6 +114,10 @@ export class MachineHistoryComponent implements OnInit {
 
   newCount() {
     this.data.changeMachineCount(new Map<string, number>(this.count), this.machineId, this.machines.size);
+  }
+
+  decode(s: string): string {
+    return decodeURIComponent(s);
   }
 
 }

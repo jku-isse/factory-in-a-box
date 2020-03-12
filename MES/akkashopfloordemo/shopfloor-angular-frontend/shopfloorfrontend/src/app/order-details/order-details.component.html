@@ -2,7 +2,7 @@
   <div class="panel-heading">
     <h2>Order Status</h2>
     <hr>
-    <h3>{{order.orderId}}</h3>
+    <h3>{{decode(id)}}</h3>
     <br>
   </div>
   <div class="panel-body">
@@ -48,7 +48,7 @@
     <br>
     <div class="my-button-row">
       <button mat-raised-button color="primary" (click)="list()">Back to Order List</button>
-      <button mat-raised-button color="primary" (click)="history(this.order.orderId)">Order History</button>
+      <button mat-raised-button color="primary" (click)="history(id)">Order History</button>
     </div>
     <br>
   </div>

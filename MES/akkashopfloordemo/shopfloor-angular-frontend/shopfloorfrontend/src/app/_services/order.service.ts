@@ -23,13 +23,14 @@ export class OrderService {
   }
 
   getOrderUpdates(): Observable<any> {
-    return Observable.create(observer =>  {
+    return new Observable(observer =>  {
       const eventSource = this.getOrderEventStream();
       eventSource.onmessage = event => {
         this._zone.run(() => {
           observer.next(event);
         });
       };
+
       eventSource.onerror = error => {
         this._zone.run(() => {
           console.log('SSE error ', eventSource);
@@ -38,11 +39,15 @@ export class OrderService {
         });
       };
 
+      return () => {
+        eventSource.close();
+      };
+
     });
   }
 
   getProcessUpdates(orderId: string): Observable<any> {
-    return Observable.create(observer =>  {
+    return new Observable(observer =>  {
       const eventSource = this.getProcessEventStream(orderId);
       eventSource.onmessage = event => {
         this._zone.run(() => {
@@ -54,6 +59,10 @@ export class OrderService {
           observer.error(error);
           eventSource.close();
         });
+      };
+
+      return () => {
+        eventSource.close();
       };
 
     });

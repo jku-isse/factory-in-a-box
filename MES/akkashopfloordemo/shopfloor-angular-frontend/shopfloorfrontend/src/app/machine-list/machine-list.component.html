@@ -15,7 +15,7 @@
       <ng-container matColumnDef="machineId">
         <th mat-header-cell *matHeaderCellDef mat-sort-header> Machine </th>
         <td mat-cell *matCellDef="let element">
-          {{element.machineId}}
+          {{decode(element.machineId)}}
         </td>
       </ng-container>
 
