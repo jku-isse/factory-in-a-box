@@ -104,4 +104,8 @@ export class OrderHistoryComponent implements OnInit {
     this.data.changeCount(new Map<string, number>(this.count), this.orderId, this.orders.size);
   }
 
+  decode(s: string): string {
+    return decodeURIComponent(s);
+  }
+  
 }

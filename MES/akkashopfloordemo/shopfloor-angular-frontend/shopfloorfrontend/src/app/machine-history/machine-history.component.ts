@@ -106,4 +106,8 @@ export class MachineHistoryComponent implements OnInit {
     this.data.changeMachineCount(new Map<string, number>(this.count), this.machineId, this.machines.size);
   }
 
+  decode(s: string): string {
+    return decodeURIComponent(s);
+  }
+  
 }

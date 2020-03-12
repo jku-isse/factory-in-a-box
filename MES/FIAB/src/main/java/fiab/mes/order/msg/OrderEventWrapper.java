@@ -1,5 +1,10 @@
 package fiab.mes.order.msg;
 
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 
 public class OrderEventWrapper {
@@ -12,8 +17,18 @@ public class OrderEventWrapper {
 	
 	public OrderEventWrapper(OrderEvent e) {
 		this.eventType = e.getEventType();
-		this.orderId = e.getOrderId();
-		this.machineId = e.getMachineId();
+		try {
+			this.orderId = URLEncoder.encode(e.getOrderId(), "UTF-8");
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+			this.orderId = e.getOrderId();
+		}
+		try {
+			this.machineId = URLEncoder.encode(e.getMachineId(), "UTF-8");
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+			this.machineId = e.getMachineId();
+		}
 		this.timestamp = e.getTimestamp().toString();
 		this.message = e.getMessage();
 	}

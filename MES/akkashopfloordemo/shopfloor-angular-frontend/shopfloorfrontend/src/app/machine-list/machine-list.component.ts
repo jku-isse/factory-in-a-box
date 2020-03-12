@@ -52,7 +52,6 @@ export class MachineListComponent implements OnInit {
     this.machineService.getMachineUpdates().subscribe(
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
-        // console.log('sse', json);
         this.machines.set(json.machineId, json);
         this.dataSource = new MatTableDataSource(Array.from(this.machines.values()));
         if (this.dataSource) {
@@ -68,9 +67,7 @@ export class MachineListComponent implements OnInit {
   private reloadData() {
     this.machineService.getMachineList().subscribe(data => {
       data.forEach(element => {
-        // console.log('element', element);
         this.machines.set(element.machineId, element);
-        // console.log('element', this.machines);
         this.dataSource = new MatTableDataSource(Array.from(this.machines.values()));
       });
       if (this.dataSource) {
@@ -140,6 +137,10 @@ export class MachineListComponent implements OnInit {
     this._snackBar.open(message, 'OK', {
       duration: 5000,
     });
+  }
+
+  decode(s: string): string {
+    return decodeURIComponent(s);
   }
 
 }

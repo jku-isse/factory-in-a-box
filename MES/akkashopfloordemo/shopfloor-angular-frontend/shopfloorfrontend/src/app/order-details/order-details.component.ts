@@ -22,12 +22,12 @@ export class OrderDetailsComponent implements OnInit {
   ngOnInit() {
     this.order = new Order();
     this.route.paramMap.subscribe(params => {
+      console.log(params.get('id'));
       this.id = params.get('id');
     });
     this.orderService.getProcessUpdates(this.id).subscribe(
       sseEvent => {
         const json = JSON.parse(sseEvent.data);
-        // console.log('SSE', json);
         if (typeof this.order.jobStatus === 'undefined') {
           this.order.jobStatus = json.stepStatus;
         } else {
@@ -98,6 +98,10 @@ export class OrderDetailsComponent implements OnInit {
       }
       return c;
     }
+  }
+
+  decode(s: string): string {
+    return decodeURIComponent(s);
   }
 
 }

@@ -2,6 +2,11 @@ package fiab.mes.restendpoint;
 
 import static akka.pattern.PatternsCS.ask;
 
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -253,11 +258,17 @@ public class ActorRestEndpoint extends AllDirectives{
 	}
 	
 	private RouteAdapter makeOrderStatusRequest(String req) {
+		try {
+			req = URLDecoder.decode(req, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		final String decodedId = req;
 		final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
-		final CompletionStage<Optional<OrderStatusRequest.Response>> futureMaybeStatus = ask(orderEntryActor, new OrderStatusRequest(req), timeout).thenApply((Optional.class::cast)); 
+		final CompletionStage<Optional<OrderStatusRequest.Response>> futureMaybeStatus = ask(orderEntryActor, new OrderStatusRequest(decodedId), timeout).thenApply((Optional.class::cast)); 
 		return onSuccess(futureMaybeStatus, maybeStatus ->
 			maybeStatus.map( item -> {
-				OrderProcessWrapper wrapper = new OrderProcessWrapper(req, item);
+				OrderProcessWrapper wrapper = new OrderProcessWrapper(decodedId, item);
 				return completeOK(wrapper, Jackson.marshaller());
 			})
 			.orElseGet(()-> complete(StatusCodes.NOT_FOUND, "Order Not Found"))
@@ -265,6 +276,11 @@ public class ActorRestEndpoint extends AllDirectives{
 	}
 	
 	private RouteAdapter makeOrderHistoryRequest(String req) {
+		try {
+			req = URLDecoder.decode(req, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
 		final CompletionStage<OrderHistoryRequest.Response> futureMaybeStatus = ask(orderEntryActor, new OrderHistoryRequest(req), timeout)
 				.thenApply(r -> (OrderHistoryRequest.Response) r); 
@@ -283,6 +299,11 @@ public class ActorRestEndpoint extends AllDirectives{
 	
 	
 	private RouteAdapter makeMachineHistoryRequest(String req) {
+		try {
+			req = URLDecoder.decode(req, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
 		final CompletionStage<MachineHistoryRequest.Response> futureMaybeStatus = ask(machineEntryActor, new MachineHistoryRequest(req, true), timeout)
 				.thenApply(r -> (MachineHistoryRequest.Response) r); 

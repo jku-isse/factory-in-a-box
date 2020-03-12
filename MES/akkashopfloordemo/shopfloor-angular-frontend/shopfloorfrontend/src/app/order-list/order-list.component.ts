@@ -66,7 +66,6 @@ export class OrderListComponent implements OnInit {
       .subscribe(data => {
         data.forEach(element => {
           this.orders.set(element.orderId, element);
-          // console.log('element', this.orders);
           this.dataSource = new MatTableDataSource(Array.from(this.orders.values()));
         });
         if (this.dataSource) {
@@ -139,6 +138,10 @@ export class OrderListComponent implements OnInit {
     this._snackBar.open(message, 'OK', {
       duration: 5000,
     });
+  }
+
+  decode(s: string): string {
+    return decodeURIComponent(s);
   }
 
 }
