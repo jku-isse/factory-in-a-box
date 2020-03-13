@@ -48,7 +48,8 @@ public class OrderActor extends AbstractActor{
 		history.add(createEvent);
 		log.info("Forwarding order request to Planning Actor for OrderId: "+orderId);
 		orderReq.setRequestor(getSelf());
-		orderPlannerByRef.tell(orderReq, getSelf());
+		this.orderPlannerByRef = orderPlannerByRef;
+		this.orderPlannerByRef.tell(orderReq, getSelf());
 	}
 	
 	@Override

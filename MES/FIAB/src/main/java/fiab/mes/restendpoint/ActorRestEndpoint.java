@@ -136,15 +136,22 @@ public class ActorRestEndpoint extends AllDirectives{
 		return post(() -> entity(Jackson.unmarshaller(ActionRequest.class), req ->		
 			headerValueByName("Authorization", token -> {
 				if (auth.isLoggedIn(token)) {
-						switch (req.getAction()) {
+					String id="";
+					try {
+						id = URLDecoder.decode(req.getId(), "UTF-8");
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}	
+					
+					switch (req.getAction()) {
 							case "stop":
-								machineEntryActor.tell(new GenericMachineRequests.Stop(req.getId()), null);
+								machineEntryActor.tell(new GenericMachineRequests.Stop(id), null);
 								break;
 							case "reset":
-								machineEntryActor.tell(new GenericMachineRequests.Reset(req.getId()), null);
+								machineEntryActor.tell(new GenericMachineRequests.Reset(id), null);
 								break;
 							case "delete":
-								orderEntryActor.tell(new CancelOrTerminateOrder(null, req.getId()), null);
+								orderEntryActor.tell(new CancelOrTerminateOrder(null, id), null);
 								break;
 							default:
 								logger.warn("Received invalid action request with action: \""+req.getAction()+"\"");
