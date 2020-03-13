@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 
-import { environment } from '../../environment';
+import { environment } from '../../environments/environment';
 import { User } from '../_models';
 import { DialogData } from '../_models/dialog-data';
 import { map } from 'rxjs/operators';
