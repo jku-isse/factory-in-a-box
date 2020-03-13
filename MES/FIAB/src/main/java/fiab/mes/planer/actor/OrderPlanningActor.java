@@ -538,30 +538,34 @@ public class OrderPlanningActor extends AbstractActor{
 			case UNKNOWN: //fallthrough						
 			case NONE:
 				break;					
-			case REQUESTED: //we asked machine but it has not responded, thus order still in previous location
-				ordMapper.freeUpMachine(machine, true);			
+			case REQUESTED: //we asked machine but it has not responded, thus order still in previous location				
+				log.info(String.format("Freeing up STOPPING/STOPPED Machine %s originally REQUESTED for order %s ", machine.getId(), moms.getOrderId()));
 				ordMapper.pauseOrder(moms.getOrderId());
+				ordMapper.freeUpMachine(machine, true);							
 				break;
 			case RESERVED: // we got a positive response to work and perhaps asked for transport
-				ordMapper.freeUpMachine(machine, true);
+				log.info(String.format("Freeing up STOPPING/STOPPED Machine %s originally RESERVED for order %s ", machine.getId(), moms.getOrderId()));				
 				// now we need to check if order is (about to be) in transit
-				ordMapper.getLastOrderState(moms.getOrderId()).ifPresent(state -> {
-					if (state.equals(OrderEventType.TRANSPORT_REQUESTED) || state.equals(OrderEventType.TRANSPORT_IN_PROGRESS)) {
+				ordMapper.getLastOrderState(moms.getOrderId()).ifPresent(state2 -> {
+					log.info(String.format("Checking potential Transport Progress state %s for RESERVED order %s ", state2, moms.getOrderId()));
+					if (state2.equals(OrderEventType.TRANSPORT_REQUESTED) || state2.equals(OrderEventType.TRANSPORT_IN_PROGRESS)) {
 						// cancel transport, we might be in state requested, then we may continue, but transport might just have started
 						transportCoordinator.tell(new CancelTransportRequest(moms.getOrderId()), self);
 						// transport will tell us whether it started already, we then react to these transport update events
 						// so we don't mark it at all, if not started then we can continue it elsewhere					
 					}
-				});						
+				});
+				ordMapper.freeUpMachine(machine, true);
 				break;
 			case OCCUPIED: // the machine is working on this order, cancel Order, then manual removal needed
-				//order might completed and about to be in transit
+				//order might completed and about to be in transit				
 				ordMapper.getLastOrderState(moms.getOrderId()).ifPresent(state -> {
+					log.info(String.format("Checking potential Transport Progress state %s for OCCUPIED order %s ", state, moms.getOrderId()));
 					if (state.equals(OrderEventType.TRANSPORT_REQUESTED) || state.equals(OrderEventType.TRANSPORT_IN_PROGRESS)) {
 						// ensure, the transport is canceled, transportmodules are freed up
 						transportCoordinator.tell(new CancelTransportRequest(moms.getOrderId()), self);			
 					}
-				});
+				});				
 				ordMapper.removeOrderAllocationIfMachineStillOccupied(machine);						
 				ordMapper.markOrderPrematureRemovalFromShopfloor(moms.getOrderId(), "Machine stopped unexpectedly, please manally remove order from machine: "+machine.getId());						
 				break;

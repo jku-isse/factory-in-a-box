@@ -30,7 +30,7 @@ public class Authenticator {
 	
 	public Authenticator(boolean authOff) {
 		this();
-		this.authOff = true;
+		this.authOff = authOff;
 	}
 	
 	

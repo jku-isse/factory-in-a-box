@@ -16,7 +16,7 @@ import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors
 public class ProduceProcess {
 
 	@Test
-	void produceSimpleProcess() throws IOException {
+	void produce4StepProcess() throws IOException {
 		String prefix="step-";
 		
 		XmlRoot root = ProcessCoreFactory.eINSTANCE.createXmlRoot();
@@ -40,6 +40,18 @@ public class ProduceProcess {
 		}
 		
 		FileDataPersistor fdp = new FileDataPersistor("Capabilities");
+		fdp.persistShopfloorData(Arrays.asList(root));
+		
+	}
+	
+	@Test
+	void produceSingleStepProcess() throws IOException {
+		String prefix="step-";
+		
+		XmlRoot root = ProcessCoreFactory.eINSTANCE.createXmlRoot();
+		root.setDisplayName("ProcessTemplateSinglePlotter");
+		root.getProcesses().add(getSequentialStepProcess(prefix, root, SupportedColors.BLACK));		
+		FileDataPersistor fdp = new FileDataPersistor("ProcessTemplateSinglePlotter");
 		fdp.persistShopfloorData(Arrays.asList(root));
 		
 	}
@@ -90,4 +102,39 @@ public class ProduceProcess {
 		return p;
 	}
 	
+	public static ProcessCore.Process getSingleGreenStepProcess(String prefix) {
+		return getSequentialStepProcess(prefix, ProcessCoreFactory.eINSTANCE.createXmlRoot(), SupportedColors.GREEN);
+	}
+	
+	public static ProcessCore.Process getSingleRedStepProcess(String prefix) {
+		return getSequentialStepProcess(prefix, ProcessCoreFactory.eINSTANCE.createXmlRoot(), SupportedColors.RED);
+	}
+	
+	public static ProcessCore.Process getRedAndGreenStepProcess(String prefix) {
+		return getSequentialStepProcess(prefix, ProcessCoreFactory.eINSTANCE.createXmlRoot(), SupportedColors.RED, SupportedColors.GREEN);
+	}
+	
+	public static ProcessCore.Process getSequentialStepProcess(String prefix, XmlRoot root, SupportedColors... colors) {
+		// first four supported colors: BLACK, BLUE, GREEN, RED,
+		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
+		p.setDisplayName(prefix+"SequentialProcess");
+		p.setID(prefix+"SequentialProcess");
+		
+		int count = 0;
+		for (SupportedColors color : colors) {
+			AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(color);
+			root.getCapabilities().add(cap);		
+
+			CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();		
+			s1.setID(prefix+count);		
+			s1.setDisplayName(root.getCapabilities().get(count).getDisplayName());		
+			s1.setInvokedCapability(root.getCapabilities().get(count));				
+			s1.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(count).getInputs().get(0)));
+			EcoreProcessUtils.addProcessvariables(p, "Image"+count);
+			EcoreProcessUtils.mapCapInputToProcessVar(p.getVariables(), s1);
+			p.getSteps().add(s1);
+			count++;
+		}
+		return p;
+	}
 }

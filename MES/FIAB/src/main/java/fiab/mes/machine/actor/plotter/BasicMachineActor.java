@@ -227,6 +227,7 @@ public class BasicMachineActor extends AbstractActor{
 					e.printStackTrace();
 					// this should not happen as we check before and only stored the request when there was no exception
 				}
+				log.info("Requesting to plot: "+imgName);
 				hal.plot(imgName, lockReq.getRootOrderId()); 
     		//TODO: here we assume correct invocation order: thus order overtaking will be improved later
 			} else {

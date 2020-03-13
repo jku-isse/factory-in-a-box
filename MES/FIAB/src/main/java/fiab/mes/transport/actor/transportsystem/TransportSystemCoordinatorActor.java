@@ -18,11 +18,13 @@ import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
+import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.actor.transportsystem.TransportModuleUsageTracker.TransportModuleOrderMappingStatus;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.RoutingException;
@@ -44,7 +46,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	// Externally provided:
 	protected TransportRoutingInterface routing;
 	protected TransportPositionLookupInterface dns;
-	
+	protected HistoryTracker externalHistory=null;
 
 	protected ActorSelection machineEventBus;
 	// tracks which transport module is in which state and how used by this actor
@@ -59,6 +61,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 		this.routing = routing;
 		this.dns = dns;
 		this.self = getSelf();
+		this.externalHistory = new HistoryTracker(WELLKNOWN_LOOKUP_NAME);
 		getEventBusAndSubscribe();
 	}
 	
@@ -89,6 +92,10 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 				.match(CancelTransportRequest.class, req -> {
 					handleCancelTransportRequest(req);
 				})
+				.match(MachineHistoryRequest.class, req -> {
+		        	log.info(String.format("Machine %s received MachineHistoryRequest", WELLKNOWN_LOOKUP_NAME));
+		        	externalHistory.sendHistoryResponseTo(req, getSender(), self);
+		        })
 				// TODO: include transportModuleErrorEvent/Message
 				.build();
 	}

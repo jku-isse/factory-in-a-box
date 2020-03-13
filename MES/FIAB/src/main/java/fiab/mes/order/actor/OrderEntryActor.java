@@ -26,6 +26,8 @@ public class OrderEntryActor extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	
+	public static final String WELLKNOWN_LOOKUP_NAME = "OrderEntryActor";
+	
 	private final AtomicInteger orderId = new AtomicInteger(0);
 	private HashMap<String, ActorRef> orderActors = new HashMap<>();
 	private HashMap<String, OrderEvent> latestChange = new HashMap<>();	
@@ -73,7 +75,7 @@ public class OrderEntryActor extends AbstractActor{
 			 				oa.forward(req, getContext());
 			        	} else {
 			        		log.info("OrderHistoryRequest received for nonexisting order: "+req.getOrderId());
-			        		sender().tell(Optional.empty(), getSelf());
+			        		sender().tell(new OrderHistoryRequest.Response(null, null, false), getSelf());
 			        	}
 			        })
 			        .match(OrderEvent.class, e -> {

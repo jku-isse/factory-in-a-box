@@ -50,6 +50,7 @@ import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
+import fiab.mes.shopfloor.DefaultLayout;
 
 public class TestBasicMachineActorWithTransport { 
 
@@ -83,7 +84,7 @@ public class TestBasicMachineActorWithTransport {
 	@Test
 	void testPlotAtMachineWithServerSideAutoComplete() {
 		final AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.BLACK);
-		final Actor modelActor = getDefaultMachineActor(1);
+		final Actor modelActor = DefaultLayout.getDefaultMachineActor(1);
 		new TestKit(system) { 
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
@@ -242,14 +243,7 @@ public class TestBasicMachineActorWithTransport {
 //	}
 
 	
-	public static Actor getDefaultMachineActor(int id) {
-		Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
-		actor.setID("MockMachineActor"+id);
-		actor.setActorName("MockMachineActor"+id);
-		actor.setDisplayName("MockMachineActor"+id);
-		actor.setUri("http://192.168.0."+id+"/MockMachineActor"+id);
-		return actor;
-	}
+
 	
 
 	

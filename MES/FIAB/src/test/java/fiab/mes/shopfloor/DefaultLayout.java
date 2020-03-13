@@ -114,7 +114,7 @@ public class DefaultLayout {
 	public static ActorRef setupMachineActor(ActorSelection eventBusByRef, int ipid, AbstractCapability colorCap, ActorSystem system) throws InterruptedException, ExecutionException {
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();
 		final AbstractCapability cap = colorCap;
-		final Actor modelActor = TestBasicMachineActorWithTransport.getDefaultMachineActor(ipid);
+		final Actor modelActor = getDefaultMachineActor(ipid);
 		ActorRef machineWrapper = system.actorOf(MockTransportAwareMachineWrapper.props(intraEventBus), "MachineWrapper"+ipid);
 		ActorSelection serverSide = system.actorSelection("/user/MachineWrapper"+ipid+"/ServerSideHandshakeMock");
 		Thread.sleep(1000);
@@ -124,4 +124,12 @@ public class DefaultLayout {
 		return serverSideRef;
 	}
 	
+	public static Actor getDefaultMachineActor(int id) {
+		Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
+		actor.setID("MockMachineActor"+id);
+		actor.setActorName("MockMachineActor"+id);
+		actor.setDisplayName("MockMachineActor"+id);
+		actor.setUri("http://192.168.0."+id+"/MockMachineActor"+id);
+		return actor;
+	}
 }

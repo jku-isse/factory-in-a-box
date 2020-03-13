@@ -23,42 +23,46 @@ public class ShopfloorStartup extends AllDirectives {
 
   
   public static void main(String[] args) throws Exception {
-    // boot up server using the route as defined below
-    ActorSystem system = ActorSystem.create("routes");
-      
-    final Http http = Http.get(system);
-    
-    HttpsConnectionContext https = HttpsConfigurator.useHttps(system);
-    http.setDefaultServerHttpContext(https);
-    
-    final ActorMaterializer materializer = ActorMaterializer.create(system);
 
-    DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system);
-    ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props());
-    ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props());
-    
-    String jsonDiscoveryFile = System.getProperty("jsondiscoveryfile");
-    if (jsonDiscoveryFile != null)
-    	new ShopfloorConfigurations.JsonFilePersistedDiscovery(jsonDiscoveryFile).triggerDiscoveryMechanism(system);
-    else {
-    //new ShopfloorConfigurations.VirtualInputOutputTurntableOnly().triggerDiscoveryMechanism(system);
-    	new ShopfloorConfigurations.NoDiscovery().triggerDiscoveryMechanism(system);
-    }
-    ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
+	  String jsonDiscoveryFile = System.getProperty("jsondiscoveryfile");
+	  ActorSystem system = ActorSystem.create("routes");
 
-    final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
-    final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
-        ConnectHttp.toHost("0.0.0.0", 8080), materializer);
+	  CompletionStage<ServerBinding> binding = startup(jsonDiscoveryFile, system);
 
-    System.out.println("Server online at https://localhost:8080/\nPress RETURN to stop...");
-    System.in.read(); // let it run until user presses return
+	  System.out.println("Server online at https://localhost:8080/\nPress RETURN to stop...");
+	  System.in.read(); // let it run until user presses return
 
-    binding
-        .thenCompose(ServerBinding::unbind) // trigger unbinding from the port
-        .thenAccept(unbound -> system.terminate()); // and shutdown when done
+	  binding
+	  .thenCompose(ServerBinding::unbind) // trigger unbinding from the port
+	  .thenAccept(unbound -> system.terminate()); // and shutdown when done
   }
   
-  
+  public static CompletionStage<ServerBinding> startup(String jsonDiscoveryFile, ActorSystem system) {
+	    // boot up server using the route as defined below	    	      
+	    final Http http = Http.get(system);
+	    
+	    HttpsConnectionContext https = HttpsConfigurator.useHttps(system);
+	    http.setDefaultServerHttpContext(https);
+	    
+	    final ActorMaterializer materializer = ActorMaterializer.create(system);
+
+	    DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system);
+	    ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
+	    ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
+	    	    
+	    if (jsonDiscoveryFile != null)
+	    	new ShopfloorConfigurations.JsonFilePersistedDiscovery(jsonDiscoveryFile).triggerDiscoveryMechanism(system);
+	    else {
+	    //new ShopfloorConfigurations.VirtualInputOutputTurntableOnly().triggerDiscoveryMechanism(system);
+	    	new ShopfloorConfigurations.NoDiscovery().triggerDiscoveryMechanism(system);
+	    }
+	    ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
+
+	    final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
+	    final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
+	        ConnectHttp.toHost("0.0.0.0", 8080), materializer);	    
+	    return binding;
+  }
   
   
 }

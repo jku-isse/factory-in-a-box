@@ -70,15 +70,16 @@ public class ActorRestEndpoint extends AllDirectives{
 	ActorSelection machineEventBusByRef;
 	ActorRef orderEntryActor;
 	ActorRef machineEntryActor;
-	
+	static boolean turnOffAuthenticate = true;
+	static boolean turnOnAuthenticate = false;
 	Authenticator auth;
 
 	public ActorRestEndpoint(ActorSystem system, ActorRef orderEntryActor, ActorRef machineEntryActor) {
 		this.eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
 		this.machineEventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		this.orderEntryActor = orderEntryActor;
-		this.machineEntryActor = machineEntryActor;
-		this.auth = new Authenticator(true);
+		this.machineEntryActor = machineEntryActor;		
+		this.auth = new Authenticator(turnOnAuthenticate);
 	}
 
 	private static int bufferSize = 10;
@@ -105,7 +106,7 @@ public class ActorRestEndpoint extends AllDirectives{
 					get(() -> parameterOptional("machineId", machineId -> getSSESourceForMachineEvents(machineId)))
 				),
 				path("machines", () -> 
-					concat( postMachines(), getMachines(), options(() -> complete("This is a OPTIONS request.")) )
+					concat( /*postMachines(),*/ getMachines(), options(() -> complete("This is a OPTIONS request.")) )
 				),
 				path("orders", () -> 
 					concat( postOrders(), getOrders(), options(() -> complete("This is a OPTIONS request.")) )
@@ -176,9 +177,9 @@ public class ActorRestEndpoint extends AllDirectives{
           }));
 	}
 
-	private RegisterProcessRequest transformToOrderProcessRequest(String xmlPayload) {
-		throw new RuntimeException("Not implemented");
-	}
+//	private RegisterProcessRequest transformToOrderProcessRequest(String xmlPayload) {
+//		throw new RuntimeException("Not implemented");
+//	}
 	
 	private RouteAdapter getSSESourceForOrderEvents(Optional<String> orderId) {
 		//final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));			
@@ -286,8 +287,12 @@ public class ActorRestEndpoint extends AllDirectives{
 				.thenApply(r -> (OrderHistoryRequest.Response) r); 
 		return onSuccess(futureMaybeStatus, item -> {
 			if (item != null) {
-				List<OrderEventWrapper> wrapper = item.getUpdates().stream().map(o -> new OrderEventWrapper(o)).collect(Collectors.toList());
-				return completeOK(wrapper, Jackson.marshaller());
+				if (item.getOrderId() == null) {
+					return complete(StatusCodes.NOT_FOUND, "Order history Not Found");
+				} else {
+					List<OrderEventWrapper> wrapper = item.getUpdates().stream().map(o -> new OrderEventWrapper(o)).collect(Collectors.toList());
+					return completeOK(wrapper, Jackson.marshaller());
+				}
 			} else {
 				return complete(StatusCodes.NOT_FOUND, "Order history Not Found");
 			}
@@ -308,28 +313,32 @@ public class ActorRestEndpoint extends AllDirectives{
 		final CompletionStage<MachineHistoryRequest.Response> futureMaybeStatus = ask(machineEntryActor, new MachineHistoryRequest(req, true), timeout)
 				.thenApply(r -> (MachineHistoryRequest.Response) r); 
 		return onSuccess(futureMaybeStatus, item -> {
-			if (item != null) {
-				List<MachineEventWrapper> wrapper = item.getUpdates().stream().map(o -> new MachineEventWrapper(o)).collect(Collectors.toList());
-				return completeOK(wrapper, Jackson.marshaller());
+			if (item != null ) {
+				if (item.getMachineId() == null)
+					return complete(StatusCodes.NOT_FOUND, "Machine history Not Found");
+				else {
+					List<MachineEventWrapper> wrapper = item.getUpdates().stream().map(o -> new MachineEventWrapper(o)).collect(Collectors.toList());				
+					return completeOK(wrapper, Jackson.marshaller());
+				}
 			} else {
 				return complete(StatusCodes.NOT_FOUND, "Machine history Not Found");
 			}
 		});	
 	}
 	
-	private Route postMachines() {
-		return post(() ->
-			headerValueByName("Authorization", token -> {
-				if (auth.isLoggedIn(token)) {
-					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { 
-						// TODO 
-						throw new RuntimeException("not implemented");
-					});
-				}
-				return complete(StatusCodes.UNAUTHORIZED);
-			})
-		);
-	}
+//	private Route postMachines() {
+//		return post(() ->
+//			headerValueByName("Authorization", token -> {
+//				if (auth.isLoggedIn(token)) {
+//					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { 
+//						// TODO 
+//						throw new RuntimeException("not implemented");
+//					});
+//				}
+//				return complete(StatusCodes.UNAUTHORIZED);
+//			})
+//		);
+//	}
 	
 	private Route getMachines() {
 		return get(() -> {

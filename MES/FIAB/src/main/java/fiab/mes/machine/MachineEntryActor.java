@@ -1,5 +1,6 @@
 package fiab.mes.machine;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +24,8 @@ import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 public class MachineEntryActor extends AbstractActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+	
+	public static final String WELLKNOWN_LOOKUP_NAME = "MachineEntryActor";
 	
 	private ActorSelection machineEventBusByRef;
 	private Map<String, MachineEvent> latestChange = new HashMap<>();
@@ -69,7 +72,7 @@ public class MachineEntryActor extends AbstractActor {
 			oa.forward(req, getContext());
 		} else {
 			log.warning(String.format("Received MachineHistoryRequest for non-existing machine: %s", req.getMachineId()));
-			sender().tell(Optional.empty(), getSelf());
+			sender().tell(new MachineHistoryRequest.Response(null, null, false), getSelf());
 		}
 	}
 	
