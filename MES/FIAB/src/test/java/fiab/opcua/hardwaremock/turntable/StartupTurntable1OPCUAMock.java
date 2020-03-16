@@ -1,17 +1,13 @@
 package fiab.opcua.hardwaremock.turntable;
 
-import java.util.HashMap;
-
 import akka.actor.ActorSystem;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.opcua.hardwaremock.BaseOpcUaServer;
-import fiab.opcua.hardwaremock.turntable.WiringUtils.WiringInfo;
 
 public class StartupTurntable1OPCUAMock {	
 
 	public static void main(String[] args) throws Exception {
 		ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
-		system.actorOf(OPCUATurntableRootActor.props("Turntable1"));
+		//system.actorOf(OPCUATurntableRootActor.props("Turntable1", true));
+		system.actorOf(OPCUATurntableRootActor.props("Turntable1", false));
 	}
 	
 //	public static void main(String[] args) throws Exception {

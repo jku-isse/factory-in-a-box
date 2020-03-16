@@ -1,4 +1,4 @@
-package fiab.opcua.hardwaremock.turntable;
+package fiab.opcua.hardwaremock;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -30,8 +30,6 @@ import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
 import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.opcua.hardwaremock.MockMethod;
-import fiab.opcua.hardwaremock.StatePublisher;
 import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
 import fiab.opcua.hardwaremock.methods.CompleteMethod;
 import fiab.opcua.hardwaremock.methods.InitHandoverMethod;

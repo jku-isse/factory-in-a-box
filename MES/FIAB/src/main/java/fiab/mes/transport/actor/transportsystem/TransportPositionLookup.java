@@ -66,7 +66,7 @@ public class TransportPositionLookup implements TransportPositionLookupInterface
 			int port = uri.getPort();			
 			if (port == 4840) return new Position("34");
 			if (port == 4841) return new Position("35");
-			if (port == 4843) return new Position("20");
+			if (port == 4842) return new Position("20");
 			if (port == 4843) return new Position("21");
 			if (port == 4845) return new Position("31");
 			if (port == 4846) return new Position("32");
