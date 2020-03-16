@@ -37,7 +37,7 @@ import fiab.mes.mockactors.oldplotter.TestMockMachineActor;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
 import fiab.mes.mockactors.transport.TestMockTransportModuleActor;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapper.LocalEndpointStatus;
+import fiab.mes.mockactors.transport.LocalEndpointStatus;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
@@ -145,8 +145,8 @@ class TestTransportSystemCoordinatorActor {
 		ActorRef westClient1 = system.actorOf(MockClientHandshakeActor.props(ttWrapper1, inRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT);
 		boolean autoComplete = true;
 		ActorRef eastServer1 = system.actorOf(MockServerHandshakeActor.props(ttWrapper1, autoComplete), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER);
-		ttWrapper1.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient1, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
-		ttWrapper1.tell( new MockTransportModuleWrapper.LocalServerEndpointStatus(eastServer1, true, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER), ActorRef.noSender());
+		ttWrapper1.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient1, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
+		ttWrapper1.tell( new LocalEndpointStatus.LocalServerEndpointStatus(eastServer1, true, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER), ActorRef.noSender());
 		ttWrapper1.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
 		ttWrapper1.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, ActorRef.noSender());
 		
@@ -156,8 +156,8 @@ class TestTransportSystemCoordinatorActor {
 		ActorRef ttWrapper2 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus2), "TT2");
 		ActorRef eastClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, outRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
 		ActorRef westClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, eastServer1), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT+"~2");		
-		ttWrapper2.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
-		ttWrapper2.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
+		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
+		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(eastClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
 		ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
 		ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, ActorRef.noSender());
 		
@@ -205,8 +205,8 @@ class TestTransportSystemCoordinatorActor {
 		ActorRef ttWrapper2 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus2), "TT2");
 		ActorRef eastClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, outRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
 		ActorRef westClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, inRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT+"~2");
-		ttWrapper2.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(westClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
-		ttWrapper2.tell( new MockTransportModuleWrapper.LocalClientEndpointStatus(eastClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
+		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
+		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(eastClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
 		ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
 		ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, ActorRef.noSender());
 		

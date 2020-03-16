@@ -19,6 +19,8 @@ import fiab.mes.machine.msg.MachineInWrongStateResponse;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.mockactors.MockServerHandshakeActor.StateOverrideRequests;
+import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalClientEndpointStatus;
+import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalServerEndpointStatus;
 import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ClientMessageTypes;
@@ -310,7 +312,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 		public void tellAllEPsToStop() {
 			handshakeEPs.values().stream()
 				.forEach(les -> {
-					if (les.isProvidedCapability) { 					// if server use server msg
+					if (les.isProvidedCapability()) { 					// if server use server msg
 						les.getActor().tell(ServerMessageTypes.Stop, self);
 					} else {
 						les.getActor().tell(ClientMessageTypes.Stop, self);
@@ -318,69 +320,5 @@ public class MockTransportModuleWrapper extends AbstractActor{
 				});
 		}
 		
-	}
-	
-	public abstract static class LocalEndpointStatus {
-		private ActorRef actor;		
-		private boolean isProvidedCapability;
-		private String capabilityId;
-		
-		public ActorRef getActor() {
-			return actor;
-		}
-		public boolean isProvidedCapability() {
-			return isProvidedCapability;
-		}
-		public String getCapabilityId() {
-			return capabilityId;
-		}
-		public LocalEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
-			super();
-			this.actor = actor;
-			this.isProvidedCapability = isProvidedCapability;
-			this.capabilityId = capabilityId;
-		}		
-		public abstract String getRawState();
-	}
-	
-	public static class LocalServerEndpointStatus extends LocalEndpointStatus{
-		
-		private ServerSide state = ServerSide.STOPPED;
-		
-		public LocalServerEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
-			super(actor, isProvidedCapability, capabilityId);			
-		}				
-		
-		public ServerSide getState() {
-			return state;
-		}
-		public void setState(ServerSide state) {
-			this.state = state;
-		}
-
-		@Override
-		public String getRawState() {
-			return state.toString();
-		}
-	}
-	
-	public static class LocalClientEndpointStatus extends LocalEndpointStatus{
-		
-		private ClientSide state = ClientSide.STOPPED;
-		
-		public LocalClientEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
-			super(actor, isProvidedCapability, capabilityId);			
-		}				
-		
-		public ClientSide getState() {
-			return state;
-		}
-		public void setState(ClientSide state) {
-			this.state = state;
-		}
-		@Override
-		public String getRawState() {
-			return state.toString();
-		}
 	}
 }

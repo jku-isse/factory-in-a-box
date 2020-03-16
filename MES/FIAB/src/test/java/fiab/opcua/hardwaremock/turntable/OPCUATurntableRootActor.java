@@ -1,14 +1,12 @@
 package fiab.opcua.hardwaremock.turntable;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
-import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
 import akka.actor.AbstractActor;
@@ -16,24 +14,20 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.stream.impl.fusing.Log;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.iostation.MockIOStationWrapper;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapper.LocalEndpointStatus;
+import fiab.mes.mockactors.transport.NoOpTransportModuleWrapper;
+import fiab.mes.mockactors.transport.FUs.MockConveyorActor;
+import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
 import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
 import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability.SimpleMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.opcua.hardwaremock.BaseOpcUaServer;
 import fiab.opcua.hardwaremock.OPCUABase;
-import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
 import fiab.opcua.hardwaremock.turntable.WiringUtils.WiringInfo;
 import fiab.opcua.hardwaremock.turntable.methods.Reset;
 import fiab.opcua.hardwaremock.turntable.methods.Stop;
@@ -46,16 +40,22 @@ public class OPCUATurntableRootActor extends AbstractActor {
 	private HashMap<String, HandshakeFU> handshakeFUs = new HashMap<>();
 	private UaVariableNode status = null;
 	private ActorRef ttWrapper;
+	private boolean enableCoordinatorActor = true;
 	
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	
-	static public Props props(String machineName) {	    
-		return Props.create(OPCUATurntableRootActor.class, () -> new OPCUATurntableRootActor(machineName));
+	static public Props props(String machineName, boolean enableCoordinatorActor) {	    
+		return Props.create(OPCUATurntableRootActor.class, () -> new OPCUATurntableRootActor(machineName, enableCoordinatorActor));
 	}
 	
-	public OPCUATurntableRootActor(String machineName) {
+	static public Props props(String machineName) {	    
+		return Props.create(OPCUATurntableRootActor.class, () -> new OPCUATurntableRootActor(machineName, true));
+	}
+	
+	public OPCUATurntableRootActor(String machineName, boolean enableCoordinatorActor) {
 		try {
 			this.machineName = machineName;
+			this.enableCoordinatorActor = enableCoordinatorActor;
 			init();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -94,30 +94,38 @@ public class OPCUATurntableRootActor extends AbstractActor {
 						
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();	
 		intraEventBus.subscribe(getSelf(), new SubscriptionClassifier("Turntable Module", "*"));		
-		ttWrapper = context().actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1");
-		ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getSelf());
-		//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
+		if (enableCoordinatorActor) {
+			ttWrapper = context().actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1");
+			ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getSelf());
+			//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
+		} else {
+			ttWrapper = context().actorOf(NoOpTransportModuleWrapper.props(), "NoOpTT1");
+			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext());
+			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext());
+		}
 		
-		setupTurntableCapabilities(opcuaBase, ttNode, fuPrefix);
-		setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, ttWrapper);
+		if (enableCoordinatorActor) {
+			setupTurntableCapabilities(opcuaBase, ttNode, fuPrefix);
+			setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, ttWrapper);
+		} // if not, then finegrained control of all FUs from the outside
 		
 		// there is always a west, south, north, client
-		HandshakeFU westFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, false);
+		HandshakeFU westFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, false, enableCoordinatorActor);
 		handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, 
 				westFU);
-		HandshakeFU southFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT, false);
+		HandshakeFU southFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT, false, enableCoordinatorActor);
 		handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT, 
 				southFU);
-		HandshakeFU northFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT, false);
+		HandshakeFU northFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT, false, enableCoordinatorActor);
 		handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT, 
 				northFU);
 		
 		if (machineName.equalsIgnoreCase("Turntable1")) { // we have a server here
-			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER, true);
+			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER, true, enableCoordinatorActor);
 			handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER, 
 					eastFU);
 		} else { // we have a client here
-			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, false);
+			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, false, enableCoordinatorActor);
 			handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, 
 					eastFU);
 		}

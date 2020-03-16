@@ -21,6 +21,8 @@ import akka.actor.ActorRef;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface.CapabilityImplInfo;
 import fiab.mes.mockactors.MockClientHandshakeActor;
 import fiab.mes.mockactors.MockServerHandshakeActor;
+import fiab.mes.mockactors.MockServerHandshakeActor.StateOverrideRequests;
+import fiab.mes.mockactors.transport.LocalEndpointStatus;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
 import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
 import fiab.mes.opcua.OPCUAUtils;
@@ -33,6 +35,11 @@ import fiab.opcua.hardwaremock.clienthandshake.OPCUAClientHandshakeActorWrapper;
 import fiab.opcua.hardwaremock.clienthandshake.OPCUAClientHandshakeActorWrapper.ServerHandshakeNodeIds;
 import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
 import fiab.opcua.hardwaremock.iostation.methods.StartHandover;
+import fiab.opcua.hardwaremock.serverhandshake.methods.Complete;
+import fiab.opcua.hardwaremock.serverhandshake.methods.Reset;
+import fiab.opcua.hardwaremock.serverhandshake.methods.SetEmpty;
+import fiab.opcua.hardwaremock.serverhandshake.methods.SetLoaded;
+import fiab.opcua.hardwaremock.serverhandshake.methods.Stop;
 import fiab.opcua.hardwaremock.turntable.WiringUtils.WiringInfo;
 
 public class HandshakeFU implements StatePublisher{
@@ -54,8 +61,9 @@ public class HandshakeFU implements StatePublisher{
 	private org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode status = null;
 	private ActorRef opcuaWrapper;
 	private ActorRef localClient;
+	private boolean enableCoordinatorActor = true;
 	
-	public HandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef ttBaseActor, ActorContext context, String capInstId, boolean isProvided) {
+	public HandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef ttBaseActor, ActorContext context, String capInstId, boolean isProvided, boolean enableCoordinatorActor) {
 		this.base = base;
 		this.rootNode = root;
 		this.ttBaseActor = ttBaseActor;
@@ -63,6 +71,7 @@ public class HandshakeFU implements StatePublisher{
 		this.capInstId = capInstId;
 		this.fuPrefix = fuPrefix;
 		this.isProvided = isProvided;
+		this.enableCoordinatorActor = enableCoordinatorActor;
 		setupOPCUANodeSet();
 	}
 	
@@ -79,14 +88,41 @@ public class HandshakeFU implements StatePublisher{
 			base.addMethodNode(handshakeNode, n1, new InitHandover(n1, localClient)); 		
 			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, "START_HANDOVER", "Requests start");		
 			base.addMethodNode(handshakeNode, n2, new StartHandover(n2, localClient));
+			
+			if (!enableCoordinatorActor) {
+				// add reset and stop and complete methods, set loaded 
+				org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n3 = base.createPartialMethodNode(path, HandshakeProtocol.ServerMessageTypes.Stop.toString(), "Request stop");		
+				base.addMethodNode(handshakeNode, n3, new Stop(n3, localClient)); 
+				org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n4 = base.createPartialMethodNode(path, HandshakeProtocol.ServerMessageTypes.Reset.toString(), "Request reset");		
+				base.addMethodNode(handshakeNode, n4, new Reset(n4, localClient)); 
+				org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n5 = base.createPartialMethodNode(path, HandshakeProtocol.ServerMessageTypes.Complete.toString(), "Request complete");		
+				base.addMethodNode(handshakeNode, n5, new Complete(n5, localClient)); 
+				org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n6 = base.createPartialMethodNode(path, StateOverrideRequests.SetLoaded.toString(), "Request SetLoaded");		
+				base.addMethodNode(handshakeNode, n6, new SetLoaded(n6, localClient)); 
+				org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n7 = base.createPartialMethodNode(path, StateOverrideRequests.SetEmpty.toString(), "Request SetEmpty");		
+				base.addMethodNode(handshakeNode, n7, new SetEmpty(n7, localClient)); 
+			}
+			
 			// let parent Actor know, that there is a new endpoint
-			ttBaseActor.tell(new MockTransportModuleWrapper.LocalServerEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender()); 			 
+			ttBaseActor.tell(new LocalEndpointStatus.LocalServerEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender()); 			 
 		} else {
 			status = base.generateStringVariableNode(handshakeNode, path, HandshakeProtocol.STATE_CLIENTSIDE_VAR_NAME, ClientSide.STOPPED); 
 			opcuaWrapper = context.actorOf(OPCUAClientHandshakeActorWrapper.props(), capInstId+"_OPCUAWrapper");
 			localClient = context.actorOf(MockClientHandshakeActor.props(ttBaseActor, opcuaWrapper, this), capInstId);
 			opcuaWrapper.tell(localClient, ActorRef.noSender());
-			ttBaseActor.tell(new MockTransportModuleWrapper.LocalClientEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender()); 
+			ttBaseActor.tell(new LocalEndpointStatus.LocalClientEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender()); 
+			
+			if (!enableCoordinatorActor) {
+				// add reset, start, and stop and complete method
+				org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n3 = base.createPartialMethodNode(path, HandshakeProtocol.ClientMessageTypes.Stop.toString(), "Request stop");		
+				base.addMethodNode(handshakeNode, n3, new fiab.opcua.hardwaremock.clienthandshake.methods.Stop(n3, localClient)); 
+				org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n4 = base.createPartialMethodNode(path, HandshakeProtocol.ClientMessageTypes.Reset.toString(), "Request reset");		
+				base.addMethodNode(handshakeNode, n4, new fiab.opcua.hardwaremock.clienthandshake.methods.Reset(n4, localClient)); 
+				org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n5 = base.createPartialMethodNode(path, HandshakeProtocol.ClientMessageTypes.Complete.toString(), "Request complete");		
+				base.addMethodNode(handshakeNode, n5, new fiab.opcua.hardwaremock.clienthandshake.methods.Complete(n5, localClient)); 
+				org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n6 = base.createPartialMethodNode(path, HandshakeProtocol.ClientMessageTypes.Start.toString(), "Start complete");		
+				base.addMethodNode(handshakeNode, n6, new fiab.opcua.hardwaremock.clienthandshake.methods.Start(n6, localClient)); 
+			}
 		}
 		
 		// add capabilities 

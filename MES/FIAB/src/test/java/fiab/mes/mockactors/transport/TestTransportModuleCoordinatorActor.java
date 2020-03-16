@@ -1,58 +1,33 @@
 package fiab.mes.mockactors.transport;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.AfterClass;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ActorCoreModel.Actor;
-import ProcessCore.AbstractCapability;
-import ProcessCore.CapabilityInvocation;
-import ProcessCore.ProcessCoreFactory;
-import ProcessCore.ProcessStep;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.mes.capabilities.ComparableCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.eventbus.OrderEventBusWrapperActor;
-import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.TimedEvent;
-import fiab.mes.machine.actor.plotter.BasicMachineActor;
-import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
-import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockClientHandshakeActor;
-import fiab.mes.mockactors.MockServerHandshakeActor;
 import fiab.mes.mockactors.iostation.MockIOStationFactory;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapper.LocalEndpointStatus;
+import fiab.mes.mockactors.transport.LocalEndpointStatus;
 import fiab.mes.mockactors.transport.FUs.MockConveyorActor;
 import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
 import fiab.mes.order.OrderProcess;
-import fiab.mes.order.OrderProcess.ProcessChangeImpact;
-import fiab.mes.order.OrderProcess.StepStatusEnum;
-import fiab.mes.order.msg.LockForOrder;
-import fiab.mes.order.msg.OrderEvent;
-import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
-import fiab.mes.order.msg.OrderProcessUpdateEvent;
-import fiab.mes.order.msg.ReadyForProcessEvent;
-import fiab.mes.order.msg.RegisterProcessStepRequest;
 
 public class TestTransportModuleCoordinatorActor { 
 
@@ -102,8 +77,8 @@ public class TestTransportModuleCoordinatorActor {
 				ActorRef eastClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, outRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
 				
 				boolean isProv = false;				
-				ttWrapper.tell(new TransportModuleCoordinatorActor.LocalClientEndpointStatus(westClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), getRef());
-				ttWrapper.tell(new TransportModuleCoordinatorActor.LocalClientEndpointStatus(eastClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), getRef());
+				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(westClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), getRef());
+				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(eastClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), getRef());
 				
 				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());				
 				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
