@@ -19,6 +19,7 @@ import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
+import fiab.mes.machine.msg.MachineInWrongStateResponse;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
@@ -38,24 +39,33 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected InterMachineEventBus interEventBus;
-	protected MachineStatus currentState = MachineStatus.STOPPED;
+	protected MachineStatus currentState = MachineStatus.STOPPING;
 	protected boolean doPublishState = false;
 	protected ServerSide handshakeStatus;
 	protected ActorRef serverSide;
 	protected ActorRef self;
 	
-	static public Props props(InterMachineEventBus internalMachineEventBus) {	    
-		return Props.create(MockTransportAwareMachineWrapper.class, () -> new MockTransportAwareMachineWrapper(internalMachineEventBus));
+	static public Props propsForLateHandshakeBinding(InterMachineEventBus internalMachineEventBus) {	    
+		return Props.create(MockTransportAwareMachineWrapper.class, () -> new MockTransportAwareMachineWrapper(internalMachineEventBus, true));
 	}
 	
-	public MockTransportAwareMachineWrapper(InterMachineEventBus machineEventBus) {
+	static public Props props(InterMachineEventBus internalMachineEventBus) {	    
+		return Props.create(MockTransportAwareMachineWrapper.class, () -> new MockTransportAwareMachineWrapper(internalMachineEventBus, false));
+	}
+	
+	public MockTransportAwareMachineWrapper(InterMachineEventBus machineEventBus, boolean doLateBinding) {
 		this.interEventBus = machineEventBus;
 		// setup serverhandshake actor with autocomplete
-		boolean doAutoComplete = true;
+		
 		self = getSelf();
 		//serverSide = getContext().actorOf(MockServerHandshakeActor.props(getSelf(), doAutoComplete).withDispatcher(CallingThreadDispatcher.Id()), "ServerSideHandshakeMock");
-		serverSide = getContext().actorOf(MockServerHandshakeActor.props(getSelf(), doAutoComplete), "ServerSideHandshakeMock");		
-	}
+		if (!doLateBinding) {
+			boolean doAutoComplete = true;
+			serverSide = getContext().actorOf(MockServerHandshakeActor.props(getSelf(), doAutoComplete), "ServerSideHandshakeMock");
+			this.setAndPublishState(MachineStatus.STOPPED);
+		}
+	}	
+	
 	
 	public Receive createReceive() {
 		return receiveBuilder()
@@ -70,6 +80,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 							plot();
 						else 
 							log.warning("Wrapper told to plot in wrong state "+currentState);
+							sender().tell(new MachineInWrongStateResponse("", WellknownMachinePropertyFields.STATE_VAR_NAME, "Machine not in state to plot", currentState, MessageTypes.Plot, MachineStatus.IDLE), self);
 						break;
 					case Reset:
 						if (currentState.equals(MachineStatus.STOPPED))
@@ -106,6 +117,10 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 					} else {
 						log.warning(String.format("Received %s to unexpected sender %s", msg, getSender()));
 					}
+				})
+				.match(ActorRef.class, lateBoundHandshake -> {
+					this.serverSide = lateBoundHandshake;
+					setAndPublishState(MachineStatus.STOPPED);
 				})
 				.matchAny(msg -> { 
 					log.warning("Unexpected Message received: "+msg.toString()); })
@@ -157,6 +172,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 	
 	private void plot() {
 		setAndPublishState(MachineStatus.STARTING);
+		sender().tell(new MachineStatusUpdateEvent("", null, WellknownMachinePropertyFields.STATE_VAR_NAME, "", currentState), self);
 		//now here we also enable pallet to be loaded onto machine
 		serverSide.tell(HandshakeProtocol.ServerMessageTypes.Reset, self);
 		context().system()

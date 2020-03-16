@@ -32,6 +32,7 @@ import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.opcua.hardwaremock.BaseOpcUaServer;
+import fiab.opcua.hardwaremock.OPCUABase;
 import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
 import fiab.opcua.hardwaremock.turntable.WiringUtils.WiringInfo;
 import fiab.opcua.hardwaremock.turntable.methods.Reset;
@@ -83,9 +84,9 @@ public class OPCUATurntableRootActor extends AbstractActor {
 	private void init() throws Exception {
 		BaseOpcUaServer server1;
 		if (machineName.equalsIgnoreCase("Turntable1"))
-			 server1 = new BaseOpcUaServer(3, machineName);
+			 server1 = new BaseOpcUaServer(2, machineName);
 		else 
-			server1 = new BaseOpcUaServer(4, machineName);
+			server1 = new BaseOpcUaServer(3, machineName);
 		OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
 		UaFolderNode root = opcuaBase.prepareRootNode();
 		UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "Turntable_FU");

@@ -27,6 +27,7 @@ import fiab.mes.opcua.OPCUAUtils;
 import fiab.mes.transport.handshake.HandshakeProtocol;
 import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
 import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.opcua.hardwaremock.OPCUABase;
 import fiab.opcua.hardwaremock.StatePublisher;
 import fiab.opcua.hardwaremock.clienthandshake.OPCUAClientHandshakeActorWrapper;
 import fiab.opcua.hardwaremock.clienthandshake.OPCUAClientHandshakeActorWrapper.ServerHandshakeNodeIds;
