@@ -1,5 +1,7 @@
 package fiab.opcua.hardwaremock.turntable.methods;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
@@ -80,15 +82,13 @@ public class WiringRequest extends AbstractMethodInvocationHandler {
 			String remoteNodeId = (String) params[3].getValue();
 			String remoteRole = (String) params[4].getValue();
 
-			if (!remoteEndpointURL.matches(IP_REGEX)) {
-				response = "Wront Endpoint URL format: " + remoteEndpointURL;
-				var = new Variant(response);
-				return new Variant[] { var };
-			}
+			URI uri = new URI(remoteEndpointURL);
 
-			WiringInfo wiringInfo = new WiringInfo(localCapID, remoteCapabilityId, remoteEndpointURL, remoteNodeId,
+			WiringInfo wiringInfo = new WiringInfo(localCapID, remoteCapabilityId, uri.toString(), remoteNodeId,
 					remoteRole);
 			fu.provideWiringInfo(wiringInfo);
+
+		} catch (URISyntaxException e) {
 
 		} catch (Exception e) {
 			e.printStackTrace();

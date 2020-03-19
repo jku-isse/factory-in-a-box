@@ -150,37 +150,79 @@ public class HandshakeFU implements StatePublisher{
 		
 	}
 	
+		private void createWiringInfoFolder(UaFolderNode handshakeNode, String path) {
+		UaFolderNode wiringInfoFolder = base.generateFolder(handshakeNode, path,
+				new String(OPCUACapabilitiesWellknownBrowsenames.WIRING_INFO));
+		String wiringPath = path + "/WiringInformation";
+
+		wiringNodes.put(OPCUACapabilitiesWellknownBrowsenames.REMOTE_CAPABILITYID, base.generateStringVariableNode(
+				wiringInfoFolder, wiringPath, OPCUACapabilitiesWellknownBrowsenames.REMOTE_CAPABILITYID, ""));
+		wiringNodes.put(OPCUACapabilitiesWellknownBrowsenames.REMOTE_ENDPOINT, base.generateStringVariableNode(
+				wiringInfoFolder, wiringPath, OPCUACapabilitiesWellknownBrowsenames.REMOTE_ENDPOINT, ""));
+		wiringNodes.put(OPCUACapabilitiesWellknownBrowsenames.REMOTE_NODEID, base.generateStringVariableNode(
+				wiringInfoFolder, wiringPath, OPCUACapabilitiesWellknownBrowsenames.REMOTE_NODEID, ""));
+		wiringNodes.put(OPCUACapabilitiesWellknownBrowsenames.REMOTE_ROLE, base.generateStringVariableNode(
+				wiringInfoFolder, wiringPath, OPCUACapabilitiesWellknownBrowsenames.REMOTE_ROLE, ""));
+
+	}
+	
+	
 	public void provideWiringInfo(WiringInfo info) throws Exception {
-		
+
 		// process wiring info --> create new opcua client, and recreate wrapper actor
 		if (!isProvided) { // only if required endpoint, i.e., this is a client
-			logger.info("Applying Wiring Info for required Capability: "+capInstId);	
-			OpcUaClient client = new OPCUAUtils().createClient(info.getRemoteEndpointURL());
-			client.connect().get();
-			logger.info("OPCUA Client connected for FU: "+this.capInstId);
+			logger.info("Applying Wiring Info for required Capability: " + capInstId);
+
+			if (remoteClient != null) {
+				logger.info("Trying to disconnect remote client: " + remoteClient.toString());
+				remoteClient.disconnect().get();
+				//Clearing the wiring Information
+				setWiringInformation("", "", "", "");
+				logger.info("Disconnected remote Client.  " + remoteClient.toString());
+
+			}
+			remoteClient = new OPCUAUtils().createClient(info.getRemoteEndpointURL());
+			remoteClient.connect().get();
+			logger.info("OPCUA Client connected for FU: " + this.capInstId);
 			Optional<NodeId> optRemoteNodeId = NodeId.parseSafe(info.getRemoteNodeId());
-			if (optRemoteNodeId.isPresent()) {					
-				logger.info("Searching for Grandparent Node for Capability: "+optRemoteNodeId.get().toParseableString());
-				Optional<NodeId> optActorCapImplNodeId = getGrandParentForNodeIdViaBrowse(client, optRemoteNodeId.get(), Identifiers.RootFolder, null);
+			if (optRemoteNodeId.isPresent()) {
+				logger.info(
+						"Searching for Grandparent Node for Capability: " + optRemoteNodeId.get().toParseableString());
+				Optional<NodeId> optActorCapImplNodeId = getGrandParentForNodeIdViaBrowse(remoteClient,
+						optRemoteNodeId.get(), Identifiers.RootFolder, null);
 				if (optActorCapImplNodeId.isPresent()) {
-					CapabilityImplInfo cii = new CapabilityImplInfo(info.getRemoteEndpointURL(), optActorCapImplNodeId.get(), optRemoteNodeId.get(), HandshakeProtocol.HANDSHAKE_CAPABILITY_URI);
-					cii.setClient(client);
+					CapabilityImplInfo cii = new CapabilityImplInfo(info.getRemoteEndpointURL(),
+							optActorCapImplNodeId.get(), optRemoteNodeId.get(),
+							HandshakeProtocol.HANDSHAKE_CAPABILITY_URI);
+					cii.setClient(remoteClient);
 					ServerHandshakeNodeIds nodeIds = retrieveNodeIds(cii);
-					if (!nodeIds.isComplete()) { 
-						logger.error("OPCUA Client Endpoints incompletely resolved for FU: "+this.capInstId + " at "+optActorCapImplNodeId.get().toParseableString());
+					if (!nodeIds.isComplete()) {
+						logger.error("OPCUA Client Endpoints incompletely resolved for FU: " + this.capInstId + " at "
+								+ optActorCapImplNodeId.get().toParseableString());
 					} else {
-						nodeIds.setClient(client);
-						logger.info("OPCUA Client Endpoints resolved for FU: "+this.capInstId + " at "+optActorCapImplNodeId.get().toParseableString());
+						nodeIds.setClient(remoteClient);
+						logger.info("OPCUA Client Endpoints resolved for FU: " + this.capInstId + " at "
+								+ optActorCapImplNodeId.get().toParseableString());
 						opcuaWrapper.tell(nodeIds, ActorRef.noSender());
+						setWiringInformation(info.getRemoteCapabilityId(), info.getRemoteEndpointURL(), info.getRemoteNodeId(), info.getRemoteRole());
 					}
-					//TODO: update wiring info in opcua nodeset
 				} else {
-					logger.warn("Could not resolve actor cap impl for nodeId:" +info.getRemoteNodeId());
+					logger.warn("Could not resolve actor cap impl for nodeId:" + info.getRemoteNodeId());
 				}
 			} else {
-				logger.warn("Could not resolve nodeId:" +info.getRemoteNodeId());
+				logger.warn("Could not resolve nodeId:" + info.getRemoteNodeId());
 			}
-		} 
+		}
+	}
+	
+	private void setWiringInformation(String capId, String endpoint, String nodeid, String role) {
+		wiringNodes.get(OPCUACapabilitiesWellknownBrowsenames.REMOTE_CAPABILITYID)
+				.setValue(new DataValue(new Variant(capId)));
+		wiringNodes.get(OPCUACapabilitiesWellknownBrowsenames.REMOTE_ENDPOINT)
+				.setValue(new DataValue(new Variant(endpoint)));
+		wiringNodes.get(OPCUACapabilitiesWellknownBrowsenames.REMOTE_NODEID)
+				.setValue(new DataValue(new Variant(nodeid)));
+		wiringNodes.get(OPCUACapabilitiesWellknownBrowsenames.REMOTE_ROLE).setValue(new DataValue(new Variant(role)));
 	}
 	
 	private ServerHandshakeNodeIds retrieveNodeIds(CapabilityImplInfo info) throws InterruptedException, ExecutionException {
