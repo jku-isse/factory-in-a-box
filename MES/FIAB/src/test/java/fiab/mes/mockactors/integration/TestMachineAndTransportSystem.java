@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.AfterClass;
@@ -14,53 +13,28 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ActorCoreModel.Actor;
-import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.plotter.BasicMachineActor;
-import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.MockClientHandshakeActor;
-import fiab.mes.mockactors.MockServerHandshakeActor;
-import fiab.mes.mockactors.iostation.MockIOStationFactory;
-import fiab.mes.mockactors.oldplotter.TestMockMachineActor;
-import fiab.mes.mockactors.plotter.MockPlottingMachineWrapperDelegate;
-import fiab.mes.mockactors.plotter.MockTransportAwareMachineWrapper;
-import fiab.mes.mockactors.plotter.TestBasicMachineActorWithTransport;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
-import fiab.mes.mockactors.transport.TestMockTransportModuleActor;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapper.LocalEndpointStatus;
-import fiab.mes.order.OrderProcess;
 import fiab.mes.order.msg.LockForOrder;
-import fiab.mes.order.msg.OrderEvent;
-import fiab.mes.order.msg.OrderProcessUpdateEvent;
-import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.shopfloor.DefaultLayout;
-import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.mes.order.msg.OrderEvent.OrderEventType;
 
 class TestMachineAndTransportSystem {
 
