@@ -1,7 +1,7 @@
 package fiab.mes.transport.handshake;
 
 import ProcessCore.AbstractCapability;
-import fiab.mes.capabilities.ComparableCapability;
+import fiab.core.capabilities.ComparableCapability;
 
 public class HandshakeProtocol {
 

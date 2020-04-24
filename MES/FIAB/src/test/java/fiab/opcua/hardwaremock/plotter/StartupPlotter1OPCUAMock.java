@@ -1,7 +1,7 @@
 package fiab.opcua.hardwaremock.plotter;
 
 import akka.actor.ActorSystem;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 
 public class StartupPlotter1OPCUAMock {	
 

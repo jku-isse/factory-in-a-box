@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.mes.machine.msg.MachineInWrongStateResponse;
 import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;

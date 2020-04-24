@@ -1,6 +1,6 @@
 /**
  */
-package fiab.mes.capabilities;
+package fiab.core.capabilities;
 
 import ProcessCore.AbstractCapability;
 import ProcessCore.Parameter;

@@ -1,7 +1,7 @@
 package fiab.mes.transport.actor.transportmodule;
 
 import ProcessCore.AbstractCapability;
-import fiab.mes.capabilities.ComparableCapability;
+import fiab.core.capabilities.ComparableCapability;
 
 public interface WellknownTransportModuleCapability {
 

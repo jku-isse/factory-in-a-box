@@ -9,9 +9,9 @@ import ProcessCore.AbstractCapability;
 import ProcessCore.CapabilityInvocation;
 import ProcessCore.ProcessCoreFactory;
 import ProcessCore.XmlRoot;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.capabilities.plotting.EcoreProcessUtils;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 
 public class ProduceProcess {
 

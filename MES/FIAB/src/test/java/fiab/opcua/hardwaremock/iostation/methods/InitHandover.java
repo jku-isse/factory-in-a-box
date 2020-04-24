@@ -53,6 +53,7 @@ public class InitHandover extends AbstractMethodInvocationHandler {
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {
         
+
     	logger.debug("Invoking InitHandover() method of objectId={}", invocationContext.getObjectId());    	
     	Object resp;
 		try {

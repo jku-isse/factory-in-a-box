@@ -1,4 +1,4 @@
-package fiab.mes.capabilities;
+package fiab.core.capabilities;
 
 import ProcessCore.impl.AbstractCapabilityImpl;
 

@@ -9,7 +9,7 @@ import ProcessCore.Parameter;
 import ProcessCore.Process;
 import ProcessCore.ProcessCoreFactory;
 import ProcessCore.VariableMapping;
-import fiab.mes.capabilities.ComparableCapability;
+import fiab.core.capabilities.ComparableCapability;
 import fiab.mes.capabilities.HashMapRegistry;
 import scala.collection.mutable.HashTable;
 

@@ -1,9 +1,9 @@
-package fiab.mes.capabilities.plotting;
+package fiab.core.capabilities.plotting;
 
 import ProcessCore.AbstractCapability;
 import ProcessCore.Parameter;
 import ProcessCore.ProcessCoreFactory;
-import fiab.mes.capabilities.ComparableCapability;
+import fiab.core.capabilities.ComparableCapability;
 
 public interface WellknownPlotterCapability {
 
