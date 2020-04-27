@@ -9,8 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.mockactors.plotter.MockMachineWrapper;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
+
 import java.time.Duration;
 
 public class Reset extends AbstractMethodInvocationHandler {

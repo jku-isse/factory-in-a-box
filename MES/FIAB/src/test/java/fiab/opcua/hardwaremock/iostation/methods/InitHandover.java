@@ -12,8 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
+import fiab.core.capabilities.handshake.IOStationCapability;
 
 import static akka.pattern.Patterns.ask;
 
@@ -57,10 +56,10 @@ public class InitHandover extends AbstractMethodInvocationHandler {
     	logger.debug("Invoking InitHandover() method of objectId={}", invocationContext.getObjectId());    	
     	Object resp;
 		try {
-			resp = ask(actor, HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover, timeout).toCompletableFuture().get();
+			resp = ask(actor, IOStationCapability.ServerMessageTypes.RequestInitiateHandover, timeout).toCompletableFuture().get();
 		} catch (InterruptedException | ExecutionException e) {
 			logger.error(e.getMessage());
-			resp = HandshakeProtocol.ServerMessageTypes.NotOkResponseInitHandover;
+			resp = IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover;
 		}    	        
         return new Variant[]{new Variant(resp.toString())};    	    	
     }

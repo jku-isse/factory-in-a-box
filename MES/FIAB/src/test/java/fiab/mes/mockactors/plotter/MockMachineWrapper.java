@@ -13,12 +13,12 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.LockForOrder;
@@ -31,7 +31,7 @@ public class MockMachineWrapper extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected InterMachineEventBus interEventBus;
-	protected MachineStatus currentState = MachineStatus.STOPPED;
+	protected BasicMachineStates currentState = BasicMachineStates.STOPPED;
 	protected boolean doPublishState = false;
 	
 	
@@ -53,13 +53,13 @@ public class MockMachineWrapper extends AbstractActor{
 						setAndPublishState(currentState); //we publish the current state
 						break;
 					case Plot:
-						if (currentState.equals(MachineStatus.IDLE))
+						if (currentState.equals(BasicMachineStates.IDLE))
 							plot();
 						else 
 							log.warning("Wrapper told to plot in wrong state "+currentState);
 						break;
 					case Reset:
-						if (currentState.equals(MachineStatus.STOPPED))
+						if (currentState.equals(BasicMachineStates.STOPPED))
 							reset();
 						else 
 							log.warning("Wrapper told to reset in wrong state "+currentState);
@@ -77,7 +77,7 @@ public class MockMachineWrapper extends AbstractActor{
 	}
 
 	private void reset() {
-		setAndPublishState(MachineStatus.RESETTING);
+		setAndPublishState(BasicMachineStates.RESETTING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -90,7 +90,7 @@ public class MockMachineWrapper extends AbstractActor{
 	}
 	
 	private void stop() {
-		setAndPublishState(MachineStatus.STOPPING);
+		setAndPublishState(BasicMachineStates.STOPPING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -103,7 +103,7 @@ public class MockMachineWrapper extends AbstractActor{
 	}
 	
 	private void plot() {
-		setAndPublishState(MachineStatus.STARTING);
+		setAndPublishState(BasicMachineStates.STARTING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -115,11 +115,11 @@ public class MockMachineWrapper extends AbstractActor{
           }, context().system().dispatcher());
 	} 
 	
-	protected void setAndPublishState(MachineStatus newState) {
+	protected void setAndPublishState(BasicMachineStates newState) {
 		//log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
 		this.currentState = newState;
 		if (doPublishState) {
-			interEventBus.publish(new MachineStatusUpdateEvent("", null, WellknownMachinePropertyFields.STATE_VAR_NAME, "", newState));
+			interEventBus.publish(new MachineStatusUpdateEvent("", null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState));
 		}
 	}
 	
@@ -131,7 +131,7 @@ public class MockMachineWrapper extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	setAndPublishState(MachineStatus.COMPLETING); 
+            	setAndPublishState(BasicMachineStates.COMPLETING); 
             	transitionCompletingToComplete();
             }
           }, context().system().dispatcher());
@@ -144,7 +144,7 @@ public class MockMachineWrapper extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	setAndPublishState(MachineStatus.IDLE); 
+            	setAndPublishState(BasicMachineStates.IDLE); 
             }
           }, context().system().dispatcher());
 	}
@@ -156,7 +156,7 @@ public class MockMachineWrapper extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	setAndPublishState(MachineStatus.STOPPED); 
+            	setAndPublishState(BasicMachineStates.STOPPED); 
             }
           }, context().system().dispatcher());
 	}
@@ -168,7 +168,7 @@ public class MockMachineWrapper extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	setAndPublishState(MachineStatus.EXECUTE);
+            	setAndPublishState(BasicMachineStates.EXECUTE);
             	finishProduction();
             }
           }, context().system().dispatcher());
@@ -181,7 +181,7 @@ public class MockMachineWrapper extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	setAndPublishState(MachineStatus.COMPLETE); 
+            	setAndPublishState(BasicMachineStates.COMPLETE); 
             	reset(); // we automatically reset
             }
           }, context().system().dispatcher());

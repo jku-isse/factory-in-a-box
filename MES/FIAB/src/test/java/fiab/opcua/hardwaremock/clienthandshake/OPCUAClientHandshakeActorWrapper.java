@@ -34,9 +34,9 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.opcua.hardwaremock.iostation.OPCUAMockIOStationWrapper;
 
 public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
@@ -66,7 +66,7 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 				.match(ServerHandshakeNodeIds.class, nodeIds -> {
 					setNewNodeIds(nodeIds);
 				})
-				.match(HandshakeProtocol.ServerMessageTypes.class, req -> {
+				.match(IOStationCapability.ServerMessageTypes.class, req -> {
 					if (!hasValidNodeIds) {
 						logger.warning("Client Wrapper has no valid nodeids");
 						return;
@@ -158,16 +158,16 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 		callMethod(nodeIds.initMethod).exceptionally(ex -> {
 			logger.warning("Exception Calling Init Method on OPCUA Node: "+nodeIds.initMethod.toParseableString() + ex.getMessage());
 			ex.printStackTrace();
-			localActor.tell(HandshakeProtocol.ServerMessageTypes.NotOkResponseInitHandover, self);
-			return HandshakeProtocol.ServerMessageTypes.NotOkResponseInitHandover.toString();
+			localActor.tell(IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover, self);
+			return IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover.toString();
 		}).thenAccept(resp -> {
 			logger.info("Called Init Method successfully on OPCUA Node: "+nodeIds.initMethod.toParseableString()+" with result "+resp);
-			HandshakeProtocol.ServerMessageTypes respMsg = HandshakeProtocol.ServerMessageTypes.NotOkResponseInitHandover;
+			IOStationCapability.ServerMessageTypes respMsg = IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover;
 			try {
 				if (resp.equals("OK")) {
-					respMsg = HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover;
+					respMsg = IOStationCapability.ServerMessageTypes.OkResponseInitHandover;
 				} else {
-					respMsg = HandshakeProtocol.ServerMessageTypes.valueOf(resp);
+					respMsg = IOStationCapability.ServerMessageTypes.valueOf(resp);
 				}
 			} catch (java.lang.IllegalArgumentException e) {
 				logger.error("Received Unknown State: "+e.getMessage());
@@ -180,16 +180,16 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 	public void start() {
 		callMethod(nodeIds.startMethod).exceptionally(ex -> {
 			logger.warning("Exception Calling Start Method on OPCUA Node: "+nodeIds.startMethod.toParseableString(), ex);
-			localActor.tell(HandshakeProtocol.ServerMessageTypes.NotOkResponseStartHandover, self);
-			return HandshakeProtocol.ServerMessageTypes.NotOkResponseStartHandover.toString();
+			localActor.tell(IOStationCapability.ServerMessageTypes.NotOkResponseStartHandover, self);
+			return IOStationCapability.ServerMessageTypes.NotOkResponseStartHandover.toString();
 		}).thenAccept(resp -> {
 			logger.info("Called Start Method successfully on OPCUA Node: "+nodeIds.startMethod.toParseableString()+" with result "+resp);
-			HandshakeProtocol.ServerMessageTypes respMsg = HandshakeProtocol.ServerMessageTypes.NotOkResponseStartHandover;
+			IOStationCapability.ServerMessageTypes respMsg = IOStationCapability.ServerMessageTypes.NotOkResponseStartHandover;
 			try {
 				if (resp.equals("OK")) {
-					respMsg = HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover;
+					respMsg = IOStationCapability.ServerMessageTypes.OkResponseStartHandover;
 				} else {
-					respMsg = HandshakeProtocol.ServerMessageTypes.valueOf(resp);
+					respMsg = IOStationCapability.ServerMessageTypes.valueOf(resp);
 				}		
 			} catch (java.lang.IllegalArgumentException e) {
 				logger.error("Received Unknown State: "+e.getMessage());

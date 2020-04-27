@@ -30,7 +30,7 @@ import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface.CapabilityImplInfo;
 import fiab.mes.opcua.CapabilityImplementationMetadata.MetadataInsufficientException;
 import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
-import static fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames.*;
+import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.*;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class CapabilityDiscoveryActor extends AbstractActor {

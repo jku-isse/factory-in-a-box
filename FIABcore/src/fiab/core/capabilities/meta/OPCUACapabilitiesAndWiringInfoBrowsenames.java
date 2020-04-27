@@ -1,6 +1,6 @@
-package fiab.mes.opcua;
+package fiab.core.capabilities.meta;
 
-public interface OPCUACapabilitiesWellknownBrowsenames {
+public interface OPCUACapabilitiesAndWiringInfoBrowsenames {
 	public static final String CAPABILITIES = "CAPABILITIES", 
 			CAPABILITY = "CAPABILITY", 
 			ID = "ID", 

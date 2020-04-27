@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.core.capabilities.handshake.IOStationCapability;
 
 import java.time.Duration;
 
@@ -38,7 +38,7 @@ public class Start extends AbstractMethodInvocationHandler {
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
     	logger.debug("Invoking Start() method of objectId={}", invocationContext.getObjectId());    	
-    	actor.tell(HandshakeProtocol.ClientMessageTypes.Start, ActorRef.noSender());
+    	actor.tell(IOStationCapability.ClientMessageTypes.Start, ActorRef.noSender());
     	return new Variant[0]; 	    	
     }	
     

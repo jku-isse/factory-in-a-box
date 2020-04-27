@@ -23,18 +23,20 @@ import akka.actor.Props;
 import akka.actor.RootActorPath;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBus;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.machine.msg.MachineEvent.MachineEventType;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.MappedOrderProcess;
@@ -54,8 +56,6 @@ import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatu
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.CancelTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
@@ -593,8 +593,8 @@ public class OrderPlanningActor extends AbstractActor{
 		// now wait for machine available event to make use of it (currently we dont know its state)	
 	}
 	
-	protected AbstractCapability inputStationCap = HandshakeProtocol.getInputStationCapability();
-	protected AbstractCapability outputStationCap = HandshakeProtocol.getOutputStationCapability();
+	protected AbstractCapability inputStationCap = IOStationCapability.getInputStationCapability();
+	protected AbstractCapability outputStationCap = IOStationCapability.getOutputStationCapability();
 	
 	private void checkIOStations() {
 		PlannerState currState = state;

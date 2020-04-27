@@ -12,10 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.machine.msg.MachineStatus;
+import fiab.core.capabilities.BasicMachineStates;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 import static akka.pattern.Patterns.ask;
@@ -103,7 +101,7 @@ public class TransportRequest extends AbstractMethodInvocationHandler {
 			}
 		} catch (InterruptedException | ExecutionException e) {
 			logger.error(e.getMessage());
-			resp = MachineStatus.UNKNOWN;
+			resp = BasicMachineStates.UNKNOWN;
 		}    	        
         return new Variant[]{new Variant(resp.toString())};    	    	
     }	

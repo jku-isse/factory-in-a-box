@@ -8,10 +8,10 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.mes.mockactors.MockServerHandshakeActor;
-import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.opcua.hardwaremock.OPCUABase;
 import fiab.opcua.hardwaremock.StatePublisher;
 import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
@@ -40,7 +40,7 @@ public class HandshakeFU implements StatePublisher{
 	public ActorRef setupOPCUANodeSet(ActorRef ttBaseActor, OPCUABase base, UaFolderNode rootNode, String fuPrefix, ActorContext context) {
 		String path = fuPrefix + "/HANDSHAKE_FU";
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "HANDSHAKE_FU");					
-		status = base.generateStringVariableNode(handshakeNode, path, HandshakeProtocol.STATE_SERVERSIDE_VAR_NAME, ServerSide.STOPPED);
+		status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.STATE_SERVERSIDE_VAR_NAME, ServerSide.STOPPED);
 		ActorRef localServer = context.actorOf(MockServerHandshakeActor.props(ttBaseActor, true, this));
 		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, "INIT_HANDOVER", "Requests init");		
 		base.addMethodNode(handshakeNode, n1, new InitHandover(n1, localServer)); 		
@@ -49,17 +49,17 @@ public class HandshakeFU implements StatePublisher{
 		// let parent Actor know, that there is a new endpoint		 			
 
 		// add capabilities 
-		UaFolderNode capabilitiesFolder = base.generateFolder(handshakeNode, path, new String( OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES));
-		path = path +"/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES;
+		UaFolderNode capabilitiesFolder = base.generateFolder(handshakeNode, path, new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
+		path = path +"/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
 		UaFolderNode capability1 = base.generateFolder(capabilitiesFolder, path,
-				"CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.CAPABILITY);
+				"CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
 
-		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.TYPE,
-				new String(HandshakeProtocol.HANDSHAKE_CAPABILITY_URI));
-		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.ID,
+		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
+				new String(IOStationCapability.HANDSHAKE_CAPABILITY_URI));
+		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
 				"DefaultHandshakeFU");
-		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.ROLE,
-				OPCUACapabilitiesWellknownBrowsenames.ROLE_VALUE_PROVIDED);
+		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
+				OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED);
 
 		return localServer;
 	}

@@ -18,19 +18,20 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.transport.TransportModuleCapability;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface.CapabilityImplInfo;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
-import fiab.mes.transport.handshake.HandshakeProtocol;
 
 public class LocalTransportModuleActorSpawner extends AbstractActor {
 
@@ -54,7 +55,7 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
 	private void retrieveMethodAndVariableNodeIds(CapabilityCentricActorSpawnerInterface.SpawnRequest req) {		
 		// check if input or output station:		
 		String uri = req.getInfo().getCapabilityURI();		
-		if (!uri.equalsIgnoreCase(WellknownTransportModuleCapability.TURNTABLE_CAPABILITY_URI))	{
+		if (!uri.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI))	{
 			log.error("Called with nonsupported Capability: "+uri);
 			return;
 		}
@@ -73,7 +74,7 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
 	
 	private void spawnNewIOStationActor(CapabilityImplInfo info, Actor model, TransportModuleOPCUAnodes nodeIds) {
 		final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		AbstractCapability capability = WellknownTransportModuleCapability.getTurntableCapability();
+		AbstractCapability capability = TransportModuleCapability.getTransportCapability();
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();
 		Position selfPos = resolvePosition(info);
 		TransportModuleOPCUAWrapper hal = new TransportModuleOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.transportMethod);
@@ -114,13 +115,13 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
 		for (Node n : nodes) {
 			log.info("Checking node: "+n.getBrowseName().get().toParseableString());						
 			String bName = n.getBrowseName().get().getName();
-			if (bName.equalsIgnoreCase(WellknownTransportModuleCapability.SimpleMessageTypes.Reset.toString()))
+			if (bName.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset.toString()))
 				nodeIds.setResetMethod(n.getNodeId().get());
-			else if (bName.equalsIgnoreCase(WellknownTransportModuleCapability.SimpleMessageTypes.Stop.toString()))
+			else if (bName.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Stop.toString()))
 				nodeIds.setStopMethod(n.getNodeId().get());
-			else if (bName.equalsIgnoreCase(WellknownTransportModuleCapability.TRANSPORT_MODULE_UPCUA_TRANSPORT_REQUEST))
+			else if (bName.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.OPCUA_TRANSPORT_REQUEST))
 				nodeIds.setTransportMethod(n.getNodeId().get());
-			else if (bName.equalsIgnoreCase(WellknownMachinePropertyFields.STATE_VAR_NAME))
+			else if (bName.equalsIgnoreCase(OPCUABasicMachineBrowsenames.STATE_VAR_NAME))
 				nodeIds.setStateVar(n.getNodeId().get());											
 		}
 		return nodeIds;

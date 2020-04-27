@@ -4,10 +4,9 @@ import java.time.Duration;
 
 import com.google.common.collect.ImmutableSet;
 
-import akka.actor.ActorRef;
 import akka.actor.Props;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
 import fiab.mes.mockactors.MockServerHandshakeActor;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 public class MockOutputStationServerHandshakeActor extends MockServerHandshakeActor{
 

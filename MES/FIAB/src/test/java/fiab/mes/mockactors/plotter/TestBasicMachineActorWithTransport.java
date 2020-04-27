@@ -20,6 +20,9 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.ComparableCapability;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.eventbus.InterMachineEventBus;
@@ -33,7 +36,6 @@ import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.oldplotter.MockMachineActor;
@@ -44,9 +46,6 @@ import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
@@ -105,27 +104,27 @@ public class TestBasicMachineActorWithTransport {
 					logEvent(te);
 					if (te instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-						if (msue.getStatus().equals(MachineStatus.STOPPED)) { 							
+						if (msue.getStatus().equals(BasicMachineStates.STOPPED)) { 							
 							machine.tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());							
-						} else if (msue.getStatus().equals(MachineStatus.IDLE) && !sentReq) { 							
+						} else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !sentReq) { 							
 							machine.tell(new RegisterProcessStepRequest("Order1", step.getID(), step, getRef()), getRef());
 							sentReq = true;
-						} else if (msue.getStatus().equals(MachineStatus.STARTING)) {
+						} else if (msue.getStatus().equals(BasicMachineStates.STARTING)) {
 							boolean handshakeDone = false;
-							serverSide.tell(HandshakeProtocol.ServerMessageTypes.SubscribeToStateUpdates, getRef());
+							serverSide.tell(IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates, getRef());
 							while (!handshakeDone) {
 								ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
 								switch(state) {
 								case IDLE_EMPTY:
-									serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover, getRef());
+									serverSide.tell(IOStationCapability.ServerMessageTypes.RequestInitiateHandover, getRef());
 									expectMsg(Duration.ofSeconds(5), ServerSide.STARTING);
-									expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover);
+									expectMsg(Duration.ofSeconds(5), IOStationCapability.ServerMessageTypes.OkResponseInitHandover);
 									break;
 								case READY_EMPTY:
-									serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestStartHandover, getRef());
+									serverSide.tell(IOStationCapability.ServerMessageTypes.RequestStartHandover, getRef());
 									expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE);
-									expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover);
-									serverSide.tell(HandshakeProtocol.ServerMessageTypes.UnsubscribeToStateUpdates, getRef()); //otherwise the handshake events interfere with other expected events
+									expectMsg(Duration.ofSeconds(5), IOStationCapability.ServerMessageTypes.OkResponseStartHandover);
+									serverSide.tell(IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates, getRef()); //otherwise the handshake events interfere with other expected events
 									handshakeDone = true; // part until where we need to be involved, thanks to autocomplete
 									break;
 								default:
@@ -133,7 +132,7 @@ public class TestBasicMachineActorWithTransport {
 								}
 							}
 						} 
-						if (msue.getStatus().equals(MachineStatus.COMPLETING)) {
+						if (msue.getStatus().equals(BasicMachineStates.COMPLETING)) {
 							doRun = false;
 						}
 					}

@@ -1,56 +1,31 @@
 package fiab.mes.mockactors.transport;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.AfterClass;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ActorCoreModel.Actor;
-import ProcessCore.AbstractCapability;
-import ProcessCore.CapabilityInvocation;
-import ProcessCore.ProcessCoreFactory;
-import ProcessCore.ProcessStep;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.ComparableCapability;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.eventbus.OrderEventBusWrapperActor;
-import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.TimedEvent;
-import fiab.mes.machine.actor.plotter.BasicMachineActor;
-import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
-import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockClientHandshakeActor;
 import fiab.mes.mockactors.MockServerHandshakeActor;
 import fiab.mes.mockactors.iostation.MockIOStationFactory;
 import fiab.mes.mockactors.transport.LocalEndpointStatus;
 import fiab.mes.order.OrderProcess;
-import fiab.mes.order.OrderProcess.ProcessChangeImpact;
-import fiab.mes.order.OrderProcess.StepStatusEnum;
-import fiab.mes.order.msg.LockForOrder;
-import fiab.mes.order.msg.OrderEvent;
-import fiab.mes.order.msg.OrderEvent.OrderEventType;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
-import fiab.mes.order.msg.OrderProcessUpdateEvent;
-import fiab.mes.order.msg.ReadyForProcessEvent;
-import fiab.mes.order.msg.RegisterProcessStepRequest;
 
 public class TestMockTransportModuleWrapper { 
 
@@ -94,25 +69,25 @@ public class TestMockTransportModuleWrapper {
 				InterMachineEventBus intraEventBus = new InterMachineEventBus();	
 				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
 				ActorRef ttWrapper = system.actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1");
-				ActorRef westClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, inRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT); 
-				ActorRef eastClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, outRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
+				ActorRef westClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT); 
+				ActorRef eastClient = system.actorOf(MockClientHandshakeActor.props(ttWrapper, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
 				
 				boolean isProv = false;				
-				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(westClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), getRef());
-				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(eastClient, isProv, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), getRef());
+				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(westClient, isProv, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), getRef());
+				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(eastClient, isProv, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT), getRef());
 				
-				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());				
-				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
+				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());				
+				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
 				
 				boolean doRun = true;
 				while (doRun) {
 					MachineStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class);
 					logEvent(mue);
-					MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
-					if (newState.equals(MachineStatus.IDLE)) {
-						ttWrapper.tell(new InternalTransportModuleRequest(WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder1", "Req1"), getRef());
+					BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
+					if (newState.equals(BasicMachineStates.IDLE)) {
+						ttWrapper.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder1", "Req1"), getRef());
 					}
-					if (newState.equals(MachineStatus.COMPLETE)) {
+					if (newState.equals(BasicMachineStates.COMPLETE)) {
 						doRun = false;
 					}
 				}
@@ -143,18 +118,18 @@ public class TestMockTransportModuleWrapper {
 				boolean isProv = false;
 				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(westClient, isProv, "WestClient"), getRef());
 				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(eastClient, isProv, "EastClient"), getRef());
-				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());
-				ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
+				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());
+				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
 				
 				boolean doRun = true;
 				while (doRun) {
 					MachineStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class);
 					logEvent(mue);
-					MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
-					if (newState.equals(MachineStatus.IDLE)) {
+					BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
+					if (newState.equals(BasicMachineStates.IDLE)) {
 						ttWrapper.tell(new InternalTransportModuleRequest("WestClient", "BeastClient", "TestOrder1", "Req1"), getRef());
 					}
-					if (newState.equals(MachineStatus.STOPPED)) {
+					if (newState.equals(BasicMachineStates.STOPPED)) {
 						doRun = false;
 					}
 				}
@@ -186,8 +161,8 @@ public class TestMockTransportModuleWrapper {
 				boolean isProv = true;
 				ttWrapper1.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient1, isReq, "WestClient1"), getRef());
 				ttWrapper1.tell( new LocalEndpointStatus.LocalServerEndpointStatus(eastServer1, isProv, "EastServer1"), getRef());
-				ttWrapper1.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());
-				ttWrapper1.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
+				ttWrapper1.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());
+				ttWrapper1.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
 				// setup turntable 2
 				InterMachineEventBus intraEventBus2 = new InterMachineEventBus();	
 				intraEventBus2.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
@@ -196,8 +171,8 @@ public class TestMockTransportModuleWrapper {
 				ActorRef westClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, eastServer1), "WestClient2");
 				ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, isReq, "WestClient2"), getRef());
 				ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(eastClient2, isReq, "EastClient2"), getRef());
-				ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getRef());
-				ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, getRef());
+				ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());
+				ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
 				
 
 				boolean tt1Done = false;
@@ -205,14 +180,14 @@ public class TestMockTransportModuleWrapper {
 				while (!(tt1Done && tt2Done)) {
 					MachineStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class);
 					logEvent(mue);
-					MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
-					if (newState.equals(MachineStatus.IDLE)) {
+					BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
+					if (newState.equals(BasicMachineStates.IDLE)) {
 						if (mue.getMachineId().equals("TT1") && !tt1Done)
 							ttWrapper1.tell(new InternalTransportModuleRequest("WestClient1", "EastServer1", "TestOrder1", "Req1"), getRef());
 						else if (!tt2Done)
 							ttWrapper2.tell(new InternalTransportModuleRequest("WestClient2", "EastClient2", "TestOrder1", "Req2"), getRef());
 					}
-					if (newState.equals(MachineStatus.COMPLETE)) {
+					if (newState.equals(BasicMachineStates.COMPLETE)) {
 						if (mue.getMachineId().equals("TT1"))
 							tt1Done = true;
 						else 

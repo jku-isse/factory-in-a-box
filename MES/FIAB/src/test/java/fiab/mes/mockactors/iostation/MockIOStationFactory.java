@@ -7,10 +7,10 @@ import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.mockactors.plotter.MockMachineWrapper;
-import fiab.mes.transport.handshake.HandshakeProtocol;
 
 public class MockIOStationFactory {
 
@@ -37,7 +37,7 @@ public class MockIOStationFactory {
 		intraEventBus = new InterMachineEventBus();
 		wrapper = system.actorOf(MockIOStationWrapper.props(intraEventBus, isInputStation, doAutoReload), model.getActorName()+WRAPPER_POSTFIX);
 		MockIOStationWrapperDelegate delegate = new MockIOStationWrapperDelegate(wrapper);
-		capability = isInputStation ? HandshakeProtocol.getInputStationCapability() : HandshakeProtocol.getOutputStationCapability();
+		capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
 		machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, delegate, intraEventBus), model.getActorName());
 	}
 	

@@ -11,15 +11,16 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.transport.TransportModuleCapability;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.planer.actor.MachineCapabilityManager;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.actor.transportsystem.TransportModuleUsageTracker.TransportModuleOrderMappingStatus.AllocationState;
 
 public class TransportModuleUsageTracker {
@@ -93,7 +94,7 @@ public class TransportModuleUsageTracker {
 			if (event.getProvidedMachineCapabilities().stream()
 				.flatMap(cap -> MachineCapabilityManager.flatHierarchyToCapsWithNonNullId(cap).stream())
 				.filter(cap -> cap.getUri() != null)
-				.anyMatch(cap -> cap.getUri().equals(WellknownTransportModuleCapability.getTurntableCapability().getUri()))) {
+				.anyMatch(cap -> cap.getUri().equals(TransportModuleCapability.getTransportCapability().getUri()))) {
 				moms.put(event.getMachine(), new TransportModuleOrderMappingStatus(event.getMachine(), AllocationState.NONE));
 				logger.info("Registering new TransportModule: "+event.getMachineId());	
 			}
@@ -138,12 +139,12 @@ public class TransportModuleUsageTracker {
 			return lastMachineState;
 		}
 		public Optional<AbstractMap.SimpleEntry<String,String>> setLastMachineState(MachineStatusUpdateEvent lastMachineState) {
-			if (lastMachineState.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) { // only update the state of the machine
+			if (lastMachineState.getParameterName().equals(OPCUABasicMachineBrowsenames.STATE_VAR_NAME)) { // only update the state of the machine
 				if (!isDifferentState(lastMachineState)) // no update on same state
 					return Optional.empty(); 
 				else {
 					this.lastMachineState = lastMachineState;		
-					if (lastMachineState.getStatus().equals(MachineStatus.IDLE) //||  only when idle, can we asked for new request
+					if (lastMachineState.getStatus().equals(BasicMachineStates.IDLE) //||  only when idle, can we asked for new request
 							//lastMachineState.getStatus().equals(MachineStatus.COMPLETE) ||
 							//lastMachineState.getStatus().equals(MachineStatus.STOPPED)
 							){

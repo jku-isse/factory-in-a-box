@@ -20,6 +20,8 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import fiab.core.capabilities.transport.TransportModuleCapability;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
@@ -43,7 +45,6 @@ import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
@@ -142,24 +143,24 @@ class TestTransportSystemCoordinatorActor {
 		// setup turntable1
 		InterMachineEventBus intraEventBus1 = new InterMachineEventBus();	
 		ActorRef ttWrapper1 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus1), "TT1");
-		ActorRef westClient1 = system.actorOf(MockClientHandshakeActor.props(ttWrapper1, inRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT);
+		ActorRef westClient1 = system.actorOf(MockClientHandshakeActor.props(ttWrapper1, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
 		boolean autoComplete = true;
-		ActorRef eastServer1 = system.actorOf(MockServerHandshakeActor.props(ttWrapper1, autoComplete), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER);
-		ttWrapper1.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient1, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
-		ttWrapper1.tell( new LocalEndpointStatus.LocalServerEndpointStatus(eastServer1, true, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER), ActorRef.noSender());
-		ttWrapper1.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
-		ttWrapper1.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, ActorRef.noSender());
+		ActorRef eastServer1 = system.actorOf(MockServerHandshakeActor.props(ttWrapper1, autoComplete), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
+		ttWrapper1.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient1, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
+		ttWrapper1.tell( new LocalEndpointStatus.LocalServerEndpointStatus(eastServer1, true, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER), ActorRef.noSender());
+		ttWrapper1.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
+		ttWrapper1.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, ActorRef.noSender());
 		
 		
 		// setup turntable 2
 		InterMachineEventBus intraEventBus2 = new InterMachineEventBus();	
 		ActorRef ttWrapper2 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus2), "TT2");
-		ActorRef eastClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, outRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
-		ActorRef westClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, eastServer1), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT+"~2");		
-		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
-		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(eastClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
-		ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
-		ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, ActorRef.noSender());
+		ActorRef eastClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
+		ActorRef westClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, eastServer1), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT+"~2");		
+		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
+		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(eastClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
+		ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
+		ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, ActorRef.noSender());
 		
 		// setup actual turntable actors:
 		setupTurntableActor(ttWrapper1, intraEventBus1, eventBusByRef, 20);
@@ -203,12 +204,12 @@ class TestTransportSystemCoordinatorActor {
 		// setup turntable 2
 		InterMachineEventBus intraEventBus2 = new InterMachineEventBus();	
 		ActorRef ttWrapper2 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus2), "TT2");
-		ActorRef eastClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, outRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
-		ActorRef westClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, inRef), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT+"~2");
-		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
-		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(eastClient2, false, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
-		ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
-		ttWrapper2.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, ActorRef.noSender());
+		ActorRef eastClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
+		ActorRef westClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT+"~2");
+		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
+		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(eastClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
+		ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
+		ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, ActorRef.noSender());
 		
 		// setup actual turntable actors:
 		setupTurntableActor(ttWrapper2, intraEventBus2, eventBusByRef, 21);
@@ -224,7 +225,7 @@ class TestTransportSystemCoordinatorActor {
 	}
 	
 	private ActorRef setupTurntableActor(ActorRef ttWrapper, InterMachineEventBus intraEventBus, ActorSelection eventBusByRef, int ipid ) {
-		AbstractCapability cap = WellknownTransportModuleCapability.getTurntableCapability();
+		AbstractCapability cap = TransportModuleCapability.getTransportCapability();
 		Actor modelActor = TestMockTransportModuleActor.getDefaultTransportModuleModelActor(ipid);
 		MockTransportModuleWrapperDelegate hal = new MockTransportModuleWrapperDelegate(ttWrapper);
 		Position selfPos = new Position(ipid+"");

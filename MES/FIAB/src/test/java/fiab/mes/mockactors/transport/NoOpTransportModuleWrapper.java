@@ -8,22 +8,22 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientMessageTypes;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalClientEndpointStatus;
 import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalServerEndpointStatus;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.handshake.HandshakeProtocol.ClientMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 public class NoOpTransportModuleWrapper extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected ActorRef self;
-	protected MachineStatus currentState = MachineStatus.UNKNOWN;
+	protected BasicMachineStates currentState = BasicMachineStates.UNKNOWN;
 	protected HandshakeEndpointInfo eps;
 	
 	static public Props props() {	    
@@ -38,7 +38,7 @@ public class NoOpTransportModuleWrapper extends AbstractActor{
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(WellknownTransportModuleCapability.SimpleMessageTypes.class, msg -> {
+				.match(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.class, msg -> {
 					log.warning("Not supposed to get message of type: "+ msg.toString());
 				})
 				.match(LocalClientEndpointStatus.class, les -> {

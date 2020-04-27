@@ -13,11 +13,11 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
@@ -32,7 +32,7 @@ public class MockMachineActor extends AbstractActor{
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machine;
 	protected AbstractCapability cap;
-	protected MachineStatus currentState;
+	protected BasicMachineStates currentState;
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	protected RegisterProcessStepRequest reservedForOrder = null;
 	private List<MachineEvent> history = new ArrayList<MachineEvent>();
@@ -46,7 +46,7 @@ public class MockMachineActor extends AbstractActor{
 		this.machine = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;
 		init();
-		setAndPublishNewState(MachineStatus.IDLE);
+		setAndPublishNewState(BasicMachineStates.IDLE);
 	}
 	
 	@Override
@@ -59,9 +59,9 @@ public class MockMachineActor extends AbstractActor{
 		        } )
 		        .match(LockForOrder.class, lockReq -> {
 		        	log.info("received LockForOrder msg "+lockReq.getStepId()+", current state: "+currentState);
-		        	if (currentState == MachineStatus.IDLE) {
+		        	if (currentState == BasicMachineStates.IDLE) {
 		        		//TODO: here we assume correct invocation: thus on overtaking etc, will be improved later
-		        		setAndPublishNewState(MachineStatus.EXECUTE); // we skip starting state here  
+		        		setAndPublishNewState(BasicMachineStates.EXECUTE); // we skip starting state here  
 		        		finishProduction();
 		        	} else {
 		        		log.warning("Received lock for order in state: "+currentState);
@@ -82,15 +82,15 @@ public class MockMachineActor extends AbstractActor{
 		eventBusByRef.tell(new MachineConnectedEvent(machine, Collections.singleton(cap), Collections.emptySet(), ""), self());
 	}
 	
-	private void setAndPublishNewState(MachineStatus newState) {
+	private void setAndPublishNewState(BasicMachineStates newState) {
 		log.debug(String.format("%s sets state from %s to %s", this.machine.getId(), this.currentState, newState));
 		this.currentState = newState;
-		eventBusByRef.tell(new MachineStatusUpdateEvent(machine.getId(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, "", newState), self());
+		eventBusByRef.tell(new MachineStatusUpdateEvent(machine.getId(), null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState), self());
 	}
 	
 	private void checkIfAvailableForNextOrder() {
 		log.debug(String.format("Checking if %s is IDLE: %s", this.machine.getId(), this.currentState));
-		if (currentState == MachineStatus.IDLE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
+		if (currentState == BasicMachineStates.IDLE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
 			RegisterProcessStepRequest ror = orders.remove(0);
 			log.info("Ready for next Order: "+ror.getRootOrderId());
 			reservedForOrder = ror; 
@@ -107,7 +107,7 @@ public class MockMachineActor extends AbstractActor{
             @Override
             public void run() {
             	log.debug("*****   make STOPPING "+machine.getId());
-            	setAndPublishNewState(MachineStatus.COMPLETING); 
+            	setAndPublishNewState(BasicMachineStates.COMPLETING); 
             	resetToIdle();
             }
           }, context().system().dispatcher());
@@ -121,7 +121,7 @@ public class MockMachineActor extends AbstractActor{
             @Override
             public void run() {
             	reservedForOrder = null;
-            	setAndPublishNewState(MachineStatus.IDLE); // we then skip completed state
+            	setAndPublishNewState(BasicMachineStates.IDLE); // we then skip completed state
             	checkIfAvailableForNextOrder();
             }
           }, context().system().dispatcher());

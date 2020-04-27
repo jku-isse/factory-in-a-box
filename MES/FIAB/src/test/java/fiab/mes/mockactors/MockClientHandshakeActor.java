@@ -6,9 +6,9 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
 import fiab.opcua.hardwaremock.StatePublisher;
 
 
@@ -47,7 +47,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(HandshakeProtocol.ClientMessageTypes.class, msg -> { // commands from parent FU
+				.match(IOStationCapability.ClientMessageTypes.class, msg -> { // commands from parent FU
 					switch(msg) {					
 					case Reset:
 						reset(); // prepare for next round
@@ -66,7 +66,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 						break;
 					}
 				})
-				.match(HandshakeProtocol.ServerMessageTypes.class , resp -> { // responses to requests
+				.match(IOStationCapability.ServerMessageTypes.class , resp -> { // responses to requests
 					switch(resp) {				
 					case NotOkResponseInitHandover:
 						stop();
@@ -166,7 +166,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private void start() {
 		if (currentState.equals(ClientSide.IDLE)) {
 			publishNewState(ClientSide.STARTING);
-			serverSide.tell(HandshakeProtocol.ServerMessageTypes.SubscribeToStateUpdates, getSelf()); //subscribe for updates
+			serverSide.tell(IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates, getSelf()); //subscribe for updates
 			publishNewState(ClientSide.INITIATING);
 		} else {
 			log.warning("was requested invalid command 'Start' in state: "+currentState); 
@@ -174,7 +174,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	} 		
 	
 	private void requestInitiateHandover() {
-		getSender().tell(HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover, self);
+		getSender().tell(IOStationCapability.ServerMessageTypes.RequestInitiateHandover, self);
 		retryInit();
 	}
 	
@@ -218,7 +218,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private void  requestStartHandover() {
 		if (currentState.equals(ClientSide.READY) ) {	
 			log.info(String.format("Requesting StartHandover from remote %s", serverSide));
-			serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestStartHandover, self);
+			serverSide.tell(IOStationCapability.ServerMessageTypes.RequestStartHandover, self);
 			retryStartHandover();
 		} else {
 			log.warning("was requested invalid command 'StartHandover' in state: "+currentState); 
@@ -250,7 +250,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private void complete() {
 		publishNewState(ClientSide.COMPLETING);
 		if (serverSide != null) {
-			serverSide.tell(HandshakeProtocol.ServerMessageTypes.UnsubscribeToStateUpdates, self);
+			serverSide.tell(IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates, self);
 		}
 		context().system()
     	.scheduler()
@@ -266,7 +266,7 @@ public class MockClientHandshakeActor extends AbstractActor{
 	private void stop() {
 		publishNewState(ClientSide.STOPPING);
 		if (serverSide != null) {
-			serverSide.tell(HandshakeProtocol.ServerMessageTypes.UnsubscribeToStateUpdates, self);
+			serverSide.tell(IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates, self);
 		}
 		context().system()
     	.scheduler()

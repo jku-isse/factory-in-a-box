@@ -7,14 +7,11 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.mockactors.MockServerHandshakeActor.StateOverrideRequests;
 import fiab.mes.mockactors.iostation.MockInputStationServerHandshakeActor;
 import fiab.mes.mockactors.iostation.MockOutputStationServerHandshakeActor;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.opcua.hardwaremock.StatePublisher;
 
 public class OPCUAMockIOStationWrapper extends AbstractActor {
@@ -46,7 +43,7 @@ public class OPCUAMockIOStationWrapper extends AbstractActor {
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(HandshakeProtocol.ServerMessageTypes.class, msg -> {
+				.match(IOStationCapability.ServerMessageTypes.class, msg -> {
 					switch(msg) {
 					case SubscribeToStateUpdates: 
 						doPublishState = true;

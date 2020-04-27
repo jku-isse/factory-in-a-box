@@ -14,17 +14,17 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
 import fiab.mes.mockactors.transport.NoOpTransportModuleWrapper;
 import fiab.mes.mockactors.transport.FUs.MockConveyorActor;
 import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
-import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.opcua.hardwaremock.BaseOpcUaServer;
 import fiab.opcua.hardwaremock.OPCUABase;
@@ -67,7 +67,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
 	public Receive createReceive() {
 		
 		return receiveBuilder()
-				.match(WellknownTransportModuleCapability.SimpleMessageTypes.class, req -> {
+				.match(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.class, req -> {
 					if (ttWrapper != null) ttWrapper.tell(req, getSelf());
 					} )
 				.match(MachineStatusUpdateEvent.class, req -> {
@@ -96,7 +96,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
 		intraEventBus.subscribe(getSelf(), new SubscriptionClassifier("Turntable Module", "*"));		
 		if (enableCoordinatorActor) {
 			ttWrapper = context().actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1");
-			ttWrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, getSelf());
+			ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
 			//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 		} else {
 			ttWrapper = context().actorOf(NoOpTransportModuleWrapper.props(), "NoOpTT1");
@@ -110,23 +110,23 @@ public class OPCUATurntableRootActor extends AbstractActor {
 		} // if not, then finegrained control of all FUs from the outside
 		
 		// there is always a west, south, north, client
-		HandshakeFU westFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, false, enableCoordinatorActor);
-		handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, 
+		HandshakeFU westFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, false, enableCoordinatorActor);
+		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, 
 				westFU);
-		HandshakeFU southFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT, false, enableCoordinatorActor);
-		handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT, 
+		HandshakeFU southFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, false, enableCoordinatorActor);
+		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, 
 				southFU);
-		HandshakeFU northFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT, false, enableCoordinatorActor);
-		handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT, 
+		HandshakeFU northFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, false, enableCoordinatorActor);
+		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, 
 				northFU);
 		
 		if (machineName.equalsIgnoreCase("Turntable1")) { // we have a server here
-			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER, true, enableCoordinatorActor);
-			handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER, 
+			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, true, enableCoordinatorActor);
+			handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, 
 					eastFU);
 		} else { // we have a client here
-			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, false, enableCoordinatorActor);
-			handshakeFUs.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, 
+			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, false, enableCoordinatorActor);
+			handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, 
 					eastFU);
 		}
 		
@@ -157,27 +157,27 @@ public class OPCUATurntableRootActor extends AbstractActor {
 	
 	private void setupOPCUANodeSet(OPCUABase opcuaBase, UaFolderNode ttNode, String path, ActorRef ttActor) {
 		
-		UaMethodNode n1 = opcuaBase.createPartialMethodNode(path, WellknownTransportModuleCapability.SimpleMessageTypes.Reset.toString(), "Requests reset");		
+		UaMethodNode n1 = opcuaBase.createPartialMethodNode(path, TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset.toString(), "Requests reset");		
 		opcuaBase.addMethodNode(ttNode, n1, new Reset(n1, ttActor)); 		
-		UaMethodNode n2 = opcuaBase.createPartialMethodNode(path, WellknownTransportModuleCapability.SimpleMessageTypes.Stop.toString(), "Requests stop");		
+		UaMethodNode n2 = opcuaBase.createPartialMethodNode(path, TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Stop.toString(), "Requests stop");		
 		opcuaBase.addMethodNode(ttNode, n2, new Stop(n2, ttActor));
-		UaMethodNode n3 = opcuaBase.createPartialMethodNode(path, WellknownTransportModuleCapability.TRANSPORT_MODULE_UPCUA_TRANSPORT_REQUEST, "Requests transport");		
+		UaMethodNode n3 = opcuaBase.createPartialMethodNode(path, TurntableModuleWellknownCapabilityIdentifiers.OPCUA_TRANSPORT_REQUEST, "Requests transport");		
 		opcuaBase.addMethodNode(ttNode, n3, new TransportRequest(n3, ttActor));
-		status = opcuaBase.generateStringVariableNode(ttNode, path, WellknownMachinePropertyFields.STATE_VAR_NAME, MachineStatus.UNKNOWN);	
+		status = opcuaBase.generateStringVariableNode(ttNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, BasicMachineStates.UNKNOWN);	
 	}
 	
 	private void setupTurntableCapabilities(OPCUABase opcuaBase, UaFolderNode ttNode, String path) {
 		// add capabilities 
-		UaFolderNode capabilitiesFolder = opcuaBase.generateFolder(ttNode, path, new String( OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES));
-		path = path +"/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES;
+		UaFolderNode capabilitiesFolder = opcuaBase.generateFolder(ttNode, path, new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
+		path = path +"/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
 		UaFolderNode capability1 = opcuaBase.generateFolder(capabilitiesFolder, path,
-				"CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.CAPABILITY);
-		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.TYPE,
-				new String(WellknownTransportModuleCapability.TURNTABLE_CAPABILITY_URI));
-		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.ID,
+				"CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
+		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
+				new String(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI));
+		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
 				new String("DefaultTurntableCapabilityInstance"));
-		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.ROLE,
-				new String(OPCUACapabilitiesWellknownBrowsenames.ROLE_VALUE_PROVIDED));
+		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
+				new String(OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED));
 	}
 	
 	private void setStatusValue(String newStatus) {		

@@ -2,10 +2,7 @@ package fiab.opcua.hardwaremock.iostation;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import fiab.mes.mockactors.iostation.MockInputStationServerHandshakeActor;
-import fiab.mes.mockactors.iostation.MockOutputStationServerHandshakeActor;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.opcua.hardwaremock.BaseOpcUaServer;
 
 public class StartupOPCUAIOStationMocks {
@@ -21,9 +18,9 @@ public class StartupOPCUAIOStationMocks {
 		ActorRef actor2 = system.actorOf(OPCUAMockIOStationWrapper.props( false, true));
 		//ActorRef actor2 = system.actorOf(MockOutputStationServerHandshakeActor.props());
 		BaseOpcUaServer server1 = new BaseOpcUaServer(0, "InputStation");
-		OPCUAInputStationMock ism1 = new OPCUAInputStationMock(server1.getServer(), NAMESPACE_URI, "InputStation", actor1, HandshakeProtocol.INPUTSTATION_CAPABILITY_URI);
+		OPCUAInputStationMock ism1 = new OPCUAInputStationMock(server1.getServer(), NAMESPACE_URI, "InputStation", actor1, IOStationCapability.INPUTSTATION_CAPABILITY_URI);
 		BaseOpcUaServer server2 = new BaseOpcUaServer(7, "OutputStation");
-		OPCUAInputStationMock ism2 = new OPCUAInputStationMock(server2.getServer(), NAMESPACE_URI, "OutputStation", actor2, HandshakeProtocol.OUTPUTSTATION_CAPABILITY_URI);
+		OPCUAInputStationMock ism2 = new OPCUAInputStationMock(server2.getServer(), NAMESPACE_URI, "OutputStation", actor2, IOStationCapability.OUTPUTSTATION_CAPABILITY_URI);
 		// differentiate in/out
 		Thread s1 = new Thread(ism1);
 		Thread s2 = new Thread(ism2);
@@ -37,9 +34,9 @@ public class StartupOPCUAIOStationMocks {
 		ActorRef actor2 = system.actorOf(OPCUAMockIOStationWrapper.props( false, true));
 		//ActorRef actor2 = system.actorOf(MockOutputStationServerHandshakeActor.props());
 		BaseOpcUaServer server1 = new BaseOpcUaServer(0, "InputStation");
-		OPCUAInputStationMock ism1 = new OPCUAInputStationMock(server1.getServer(), NAMESPACE_URI, "InputStation", actor1, HandshakeProtocol.INPUTSTATION_CAPABILITY_URI);
+		OPCUAInputStationMock ism1 = new OPCUAInputStationMock(server1.getServer(), NAMESPACE_URI, "InputStation", actor1, IOStationCapability.INPUTSTATION_CAPABILITY_URI);
 		BaseOpcUaServer server2 = new BaseOpcUaServer(1, "OutputStation");
-		OPCUAInputStationMock ism2 = new OPCUAInputStationMock(server2.getServer(), NAMESPACE_URI, "OutputStation", actor2, HandshakeProtocol.OUTPUTSTATION_CAPABILITY_URI);
+		OPCUAInputStationMock ism2 = new OPCUAInputStationMock(server2.getServer(), NAMESPACE_URI, "OutputStation", actor2, IOStationCapability.OUTPUTSTATION_CAPABILITY_URI);
 		// differentiate in/out
 		Thread s1 = new Thread(ism1);
 		Thread s2 = new Thread(ism2);

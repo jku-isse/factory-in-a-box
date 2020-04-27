@@ -18,11 +18,12 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.GenericMachineRequests.BaseRequest;
 import fiab.mes.machine.msg.GenericMachineRequests.Reset;
@@ -30,7 +31,6 @@ import fiab.mes.machine.msg.GenericMachineRequests.Stop;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.LockForOrder;
@@ -51,7 +51,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machineId;
 	protected AbstractCapability cap;
-	protected MachineStatus currentState = MachineStatus.UNKNOWN;
+	protected BasicMachineStates currentState = BasicMachineStates.UNKNOWN;
 	protected TransportModuleWrapperInterface hal;
 	protected InterMachineEventBus intraBus;
 	protected TransportPositionLookup tpl;
@@ -88,12 +88,12 @@ public class BasicTransportModuleActor extends AbstractActor{
 				// map from positions to capabilityInstances local to the transport module 
 		        .match(TransportModuleRequest.class, req -> {
 		        	log.info(String.format("Received TransportModuleRequest from %s to %s for order %s", req.getPosFrom(), req.getPosTo(), req.getOrderId()));
-		        	if (currentState.equals(MachineStatus.IDLE)) {
+		        	if (currentState.equals(BasicMachineStates.IDLE)) {
 		        		processTransportModuleRequest(req);
 		        	} else {
 		        		String msg = String.format("Received TransportModuleRequest %s in incompatible local state %s", req.getOrderId(), this.currentState);
 		        		log.warning(msg);
-		        		getSender().tell(new MachineInWrongStateResponse(machineId.getId(), WellknownMachinePropertyFields.STATE_VAR_NAME, msg, this.currentState, req, MachineStatus.IDLE), self());
+		        		getSender().tell(new MachineInWrongStateResponse(machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, this.currentState, req, BasicMachineStates.IDLE), self());
 		        	}
 		        })
 		        .match(MachineStatusUpdateEvent.class, mue -> {
@@ -105,14 +105,14 @@ public class BasicTransportModuleActor extends AbstractActor{
 		        })
 		        .match(Stop.class, req -> {
 		        	log.info(String.format("TransportModule %s received StopRequest", machineId.getId()));
-		        	setAndPublishSensedState(MachineStatus.STOPPING);
+		        	setAndPublishSensedState(BasicMachineStates.STOPPING);
 		        	hal.stop();
 		        })
 		        .match(Reset.class, req -> {
-		        	if (currentState.equals(MachineStatus.COMPLETE) 
-		        			|| currentState.equals(MachineStatus.STOPPED) ) {
+		        	if (currentState.equals(BasicMachineStates.COMPLETE) 
+		        			|| currentState.equals(BasicMachineStates.STOPPED) ) {
 		        		log.info(String.format("TransportModule %s received ResetRequest in suitable state", machineId.getId()));
-		        		setAndPublishSensedState(MachineStatus.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
+		        		setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
 		        		hal.reset();
 		        	} else {
 		        		log.warning(String.format("TransportModule %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
@@ -132,7 +132,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 		Optional<String> capFrom = icpm.getCapabilityIdForPosition(req.getPosFrom(), selfPos);
 		Optional<String> capTo = icpm.getCapabilityIdForPosition(req.getPosTo(), selfPos);
 		if (capFrom.isPresent() && capTo.isPresent()) {
-			setAndPublishSensedState(MachineStatus.STARTING);
+			setAndPublishSensedState(BasicMachineStates.STARTING);
 			reservedForTReq = new InternalTransportModuleRequest(capFrom.get(), capTo.get(), req.getOrderId(), req.getRequestId());
 			hal.transport(reservedForTReq);
 		} else {
@@ -142,8 +142,8 @@ public class BasicTransportModuleActor extends AbstractActor{
 	}
 	
 	private void processMachineUpdateEvent(MachineStatusUpdateEvent mue) {
-		if (mue.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) {
-			MachineStatus newState = mue.getStatus();
+		if (mue.getParameterName().equals(OPCUABasicMachineBrowsenames.STATE_VAR_NAME)) {
+			BasicMachineStates newState = mue.getStatus();
 			setAndPublishSensedState(newState);
 			switch(newState) {
 			case COMPLETE:
@@ -170,13 +170,13 @@ public class BasicTransportModuleActor extends AbstractActor{
 			
 	}
 	
-	private void setAndPublishSensedState(MachineStatus newState) {
+	private void setAndPublishSensedState(BasicMachineStates newState) {
 		String order = reservedForTReq != null ? reservedForTReq.getOrderId() : "none";
 		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, order);
 		log.debug(msg);
 		if (currentState != newState) {
 			this.currentState = newState;
-			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, msg, newState);
+			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
 			tellEventBus(mue);
 		}
 	}

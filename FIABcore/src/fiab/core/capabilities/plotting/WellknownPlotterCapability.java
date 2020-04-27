@@ -4,12 +4,13 @@ import ProcessCore.AbstractCapability;
 import ProcessCore.Parameter;
 import ProcessCore.ProcessCoreFactory;
 import fiab.core.capabilities.ComparableCapability;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 
-public interface WellknownPlotterCapability {
+public interface WellknownPlotterCapability extends OPCUABasicMachineBrowsenames {
 
 	public static String PLOTTING_CAPABILITY_BASE_URI = "http://factory-in-a-box.fiab/capabilities/plot/color/";
 
-	public static String MACHINE_UPCUA_PLOT_REQUEST = "PLOT";
+	public static String OPCUA_PLOT_REQUEST = "PLOT";
 	
 	public static enum SupportedColors { //default static java.awt.Color
 		BLACK, BLUE, GREEN, RED, CYAN, GRAY, DARK_GRAY, LIGHT_GRAY, MAGENTA, ORANGE, PINK, WHITE, YELLOW

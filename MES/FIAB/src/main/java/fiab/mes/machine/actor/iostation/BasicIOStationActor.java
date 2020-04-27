@@ -13,16 +13,15 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.iostation.wrapper.IOStationWrapperInterface;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.machine.msg.GenericMachineRequests.Reset;
 import fiab.mes.machine.msg.GenericMachineRequests.Stop;
@@ -31,8 +30,6 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 public class BasicIOStationActor extends AbstractActor {
 
@@ -40,7 +37,7 @@ public class BasicIOStationActor extends AbstractActor {
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machineId;
 	protected AbstractCapability cap;
-	protected HandshakeProtocol.ServerSide currentState = ServerSide.UNKNOWN;
+	protected IOStationCapability.ServerSide currentState = ServerSide.UNKNOWN;
 	protected IOStationWrapperInterface hal;
 	protected InterMachineEventBus intraBus;
 	protected boolean doAutoReset = true;
@@ -121,10 +118,10 @@ public class BasicIOStationActor extends AbstractActor {
 
 
 	private void init() {
-		if (this.cap.equals(HandshakeProtocol.getInputStationCapability())) {
+		if (this.cap.equals(IOStationCapability.getInputStationCapability())) {
 			isInputStation = true;
 		}
-		if (this.cap.equals(HandshakeProtocol.getOutputStationCapability())) {
+		if (this.cap.equals(IOStationCapability.getOutputStationCapability())) {
 			isOutputStation = true;
 		}
 		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self());
@@ -148,7 +145,7 @@ public class BasicIOStationActor extends AbstractActor {
 	}
 	
 	private void processIOStationStatusUpdateEvent(IOStationStatusUpdateEvent mue) {
-		if (mue.getParameterName().equals(HandshakeProtocol.STATE_SERVERSIDE_VAR_NAME)) {
+		if (mue.getParameterName().equals(IOStationCapability.STATE_SERVERSIDE_VAR_NAME)) {
 			ServerSide newState = mue.getStatus();
 			setAndPublishSensedState(newState);
 			switch(newState) {

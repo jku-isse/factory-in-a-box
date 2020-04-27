@@ -17,16 +17,15 @@ import org.slf4j.LoggerFactory;
 import ProcessCore.ProcessStep;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
-
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus.AssignmentState;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
@@ -216,14 +215,14 @@ public class MachineOrderMappingManager {
 	}
 
 	public List<AkkaActorBackedCoreModelAbstractActor> getIdleMachines() {
-		return getMachinesInState(MachineStatus.IDLE);
+		return getMachinesInState(BasicMachineStates.IDLE);
 	}
 	
 	public List<AkkaActorBackedCoreModelAbstractActor> getMachinesReadyForUnloading() {
-		return getMachinesInState(MachineStatus.COMPLETING);
+		return getMachinesInState(BasicMachineStates.COMPLETING);
 	}
 	
-	private List<AkkaActorBackedCoreModelAbstractActor> getMachinesInState(MachineStatus state) {
+	private List<AkkaActorBackedCoreModelAbstractActor> getMachinesInState(BasicMachineStates state) {
 		return moms.values().stream()
 				.filter(mapping -> {
 					return mapping.getLastMachineState().getValue().toString().equals(state.toString()); // we match only Machines with MachineStatus but not IOStations
@@ -289,14 +288,14 @@ public class MachineOrderMappingManager {
 		});
 	}
 	
-	public MachineStatus getMachineStatus(AkkaActorBackedCoreModelAbstractActor machine) {
+	public BasicMachineStates getMachineStatus(AkkaActorBackedCoreModelAbstractActor machine) {
 		if (moms.containsKey(machine)) {
 			MachineOrderMappingStatus mom  = moms.get(machine);
 			if (mom.getLastMachineState() != null && mom.getLastMachineState() instanceof MachineStatusUpdateEvent) {
 				return ((MachineStatusUpdateEvent) mom.getLastMachineState()).getStatus();
 			}
 		} 
-		return MachineStatus.UNKNOWN;		
+		return BasicMachineStates.UNKNOWN;		
 	}
 	
 	public void updateMachineStatus(AkkaActorBackedCoreModelAbstractActor machine, MachineUpdateEvent event) {				
@@ -350,7 +349,7 @@ public class MachineOrderMappingManager {
 		public void setLastMachineState(MachineUpdateEvent lastMachineState) {
 			if (!isDifferentState(lastMachineState)) return;
 			if (lastMachineState instanceof MachineStatusUpdateEvent) {
-				if (((MachineStatusUpdateEvent) lastMachineState).getStatus().equals(MachineStatus.IDLE)) {
+				if (((MachineStatusUpdateEvent) lastMachineState).getStatus().equals(BasicMachineStates.IDLE)) {
 
 					this.allocationState = AssignmentState.NONE;
 					this.orderId = null;	

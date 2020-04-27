@@ -8,8 +8,8 @@ import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.opcua.hardwaremock.StatePublisher;
 import stateMachines.conveyor.ConveyorStateMachineConfig;
 import stateMachines.conveyor.ConveyorStates;
@@ -80,7 +80,7 @@ public class MockConveyorActor extends AbstractActor{
 		if (publishEP != null)
 			publishEP.setStatusValue(tsm.getState().toString());
 		if (intraEventBus != null) {
-			intraEventBus.publish(new ConveyorStatusUpdateEvent("", null, WellknownMachinePropertyFields.STATE_VAR_NAME, "", tsm.getState()));
+			intraEventBus.publish(new ConveyorStatusUpdateEvent("", null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", tsm.getState()));
 		}
 	}
 	

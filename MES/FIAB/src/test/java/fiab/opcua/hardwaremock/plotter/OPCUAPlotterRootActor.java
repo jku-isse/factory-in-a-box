@@ -9,17 +9,17 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.mockactors.plotter.MockMachineWrapper;
 import fiab.mes.mockactors.plotter.MockTransportAwareMachineWrapper;
-import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.opcua.hardwaremock.BaseOpcUaServer;
 import fiab.opcua.hardwaremock.NonEncryptionBaseOpcUaServer;
@@ -106,21 +106,21 @@ public class OPCUAPlotterRootActor extends AbstractActor {
 		opcuaBase.addMethodNode(ttNode, n2, new Stop(n2, plotterActor));
 		UaMethodNode n3 = opcuaBase.createPartialMethodNode(path, MockMachineWrapper.MessageTypes.Plot.toString(), "Requests plot");		
 		opcuaBase.addMethodNode(ttNode, n3, new PlotRequest(n3, plotterActor));
-		status = opcuaBase.generateStringVariableNode(ttNode, path, WellknownMachinePropertyFields.STATE_VAR_NAME, MachineStatus.UNKNOWN);	
+		status = opcuaBase.generateStringVariableNode(ttNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, BasicMachineStates.UNKNOWN);	
 	}
 	
 	private void setupPlotterCapabilities(OPCUABase opcuaBase, UaFolderNode ttNode, String path, SupportedColors color) {
 		// add capabilities 
-		UaFolderNode capabilitiesFolder = opcuaBase.generateFolder(ttNode, path, new String( OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES));
-		path = path +"/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES;
+		UaFolderNode capabilitiesFolder = opcuaBase.generateFolder(ttNode, path, new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
+		path = path +"/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
 		UaFolderNode capability1 = opcuaBase.generateFolder(capabilitiesFolder, path,
-				"CAPABILITY", OPCUACapabilitiesWellknownBrowsenames.CAPABILITY);
-		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.TYPE,
+				"CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
+		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
 				WellknownPlotterCapability.generatePlottingCapabilityURI(color));
-		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.ID,
+		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
 				"DefaultPlotterCapabilityInstance");
-		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.ROLE,
-				OPCUACapabilitiesWellknownBrowsenames.ROLE_VALUE_PROVIDED);
+		opcuaBase.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
+				OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED);
 	}
 	
 	private void setStatusValue(String newStatus) {		

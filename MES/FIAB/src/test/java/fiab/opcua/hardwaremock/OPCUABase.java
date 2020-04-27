@@ -14,7 +14,6 @@ import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHan
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
-import org.eclipse.milo.opcua.sdk.server.util.AnnotationBasedInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.util.SubscriptionModel;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
@@ -23,20 +22,6 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import akka.actor.ActorRef;
-import fiab.mes.mockactors.iostation.MockIOStationWrapperDelegate;
-import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
-import fiab.opcua.hardwaremock.methods.CompleteMethod;
-import fiab.opcua.hardwaremock.methods.InitHandoverMethod;
-import fiab.opcua.hardwaremock.methods.Methods;
-import fiab.opcua.hardwaremock.methods.ResetMethod;
-import fiab.opcua.hardwaremock.methods.StartHandoverMethod;
-import fiab.opcua.hardwaremock.methods.StopMethod;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 

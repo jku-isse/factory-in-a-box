@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import stateMachines.turning.TurningTriggers;
 
 import java.time.Duration;

@@ -10,35 +10,24 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.BasicMachineStates;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
-import fiab.mes.machine.actor.plotter.wrapper.LocalPlotterActorSpawner;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
-import fiab.mes.opcua.CapabilityImplementationMetadata;
 import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
-import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.mes.transport.msg.TransportModuleRequest;
 
 class TestPlotterOPCUADiscovery {
 
@@ -93,10 +82,10 @@ class TestPlotterOPCUADiscovery {
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-						if (msue.getStatus().equals(MachineStatus.STOPPED)) { 							
+						if (msue.getStatus().equals(BasicMachineStates.STOPPED)) { 							
 							machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());							
 						}
-						else if (msue.getStatus().equals(MachineStatus.IDLE)) {							
+						else if (msue.getStatus().equals(BasicMachineStates.IDLE)) {							
 							logger.info("Completing test upon receiving IDLE from: "+msue.getMachineId());
 							doRun = false;
 						}

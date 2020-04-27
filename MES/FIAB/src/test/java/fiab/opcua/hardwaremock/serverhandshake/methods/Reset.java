@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.core.capabilities.handshake.IOStationCapability;
 
 import java.time.Duration;
 
@@ -38,7 +38,7 @@ public class Reset extends AbstractMethodInvocationHandler {
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
     	logger.debug("Invoking Reset() method of objectId={}", invocationContext.getObjectId());    	
-    	actor.tell(HandshakeProtocol.ServerMessageTypes.Reset, ActorRef.noSender());
+    	actor.tell(IOStationCapability.ServerMessageTypes.Reset, ActorRef.noSender());
     	return new Variant[0]; 	    	
     }	
     

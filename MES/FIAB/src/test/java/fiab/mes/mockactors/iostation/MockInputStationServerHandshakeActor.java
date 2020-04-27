@@ -8,8 +8,8 @@ import com.google.common.collect.Sets;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
 import fiab.mes.mockactors.MockServerHandshakeActor;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 public class MockInputStationServerHandshakeActor extends MockServerHandshakeActor{
 

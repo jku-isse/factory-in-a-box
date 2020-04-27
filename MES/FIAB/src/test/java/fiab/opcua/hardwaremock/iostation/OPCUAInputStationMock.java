@@ -25,11 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.mes.mockactors.iostation.MockIOStationWrapperDelegate;
-import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.opcua.hardwaremock.MockMethod;
 import fiab.opcua.hardwaremock.StatePublisher;
 import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
@@ -82,7 +81,7 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 		try {
 			server.startup().get();
 			actor.tell(this, ActorRef.noSender());
-			actor.tell(HandshakeProtocol.ServerMessageTypes.SubscribeToStateUpdates, ActorRef.noSender());
+			actor.tell(IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates, ActorRef.noSender());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (ExecutionException e) {
@@ -106,37 +105,37 @@ public class OPCUAInputStationMock extends ManagedNamespace implements Runnable,
 	public void setUpServerStructure() {
 		UaFolderNode handshakeNode = generateFolder(rootNode, machineName, "HANDSHAKE_FU");
 		addMethodNodeViaAnnotation(handshakeNode, machineName + "/HANDSHAKE_FU", "COMPLETE", cmplt);
-		addMethodNodeViaAnnotation(handshakeNode, machineName + "/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_METHOD_STOP, stp);
-		addMethodNodeViaAnnotation(handshakeNode, machineName + "/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_METHOD_RESET, rst);
+		addMethodNodeViaAnnotation(handshakeNode, machineName + "/HANDSHAKE_FU", IOStationCapability.STOP_REQUEST, stp);
+		addMethodNodeViaAnnotation(handshakeNode, machineName + "/HANDSHAKE_FU", IOStationCapability.RESET_REQUEST, rst);
 		//addMethodNode(handshakeNode, machineName + "/HANDSHAKE_FU", "READY", rdyEmpty);
 		
-		UaMethodNode n1 = createPartialMethodNode(machineName + "/HANDSHAKE_FU", HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover.toString(), "Requests init");		
+		UaMethodNode n1 = createPartialMethodNode(machineName + "/HANDSHAKE_FU", IOStationCapability.ServerMessageTypes.RequestInitiateHandover.toString(), "Requests init");		
 		addMethodNode(handshakeNode, n1, new InitHandover(n1, actor)); 		
-		UaMethodNode n2 = createPartialMethodNode(machineName + "/HANDSHAKE_FU", HandshakeProtocol.ServerMessageTypes.RequestStartHandover.toString(), "Requests start");		
+		UaMethodNode n2 = createPartialMethodNode(machineName + "/HANDSHAKE_FU", IOStationCapability.ServerMessageTypes.RequestStartHandover.toString(), "Requests start");		
 		addMethodNode(handshakeNode, n2, new StartHandover(n2, actor));
 		
 		UaFolderNode capabilitiesFolder = generateFolder(handshakeNode, machineName + "/HANDSHAKE_FU",
-				new String( OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES));
-		UaFolderNode capability1 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/"+ OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES,
-				"CAPABILITY1",  OPCUACapabilitiesWellknownBrowsenames.CAPABILITY);
-		UaFolderNode capability2 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/"+ OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES,
-				"CAPABILITY2",  OPCUACapabilitiesWellknownBrowsenames.CAPABILITY);		
-		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY1",  OPCUACapabilitiesWellknownBrowsenames.ID,
+				new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
+		UaFolderNode capability1 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/"+ OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES,
+				"CAPABILITY1",  OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
+		UaFolderNode capability2 = generateFolder(capabilitiesFolder, machineName +"/HANDSHAKE_FU/"+ OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES,
+				"CAPABILITY2",  OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);		
+		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES+"/CAPABILITY1",  OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
 				new String("DefaultHandshakeServerSide"));
-		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY1",  OPCUACapabilitiesWellknownBrowsenames.TYPE,
-				new String(HandshakeProtocol.HANDSHAKE_CAPABILITY_URI));
-		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY1", OPCUACapabilitiesWellknownBrowsenames.ROLE,
-				new String( OPCUACapabilitiesWellknownBrowsenames.ROLE_VALUE_PROVIDED));
-		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesWellknownBrowsenames.TYPE,
+		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES+"/CAPABILITY1",  OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
+				new String(IOStationCapability.HANDSHAKE_CAPABILITY_URI));
+		generateStateVariableNode(capability1, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES+"/CAPABILITY1", OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
+				new String( OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED));
+		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
 				new String(machineCap));
-		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesWellknownBrowsenames.ID,
+		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
 				new String("DefaultIOStationCapability"));
-		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesWellknownBrowsenames.ROLE,
-				new String(OPCUACapabilitiesWellknownBrowsenames.ROLE_VALUE_PROVIDED));
-		if (HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_STATE_VAR != HandshakeProtocol.STATE_SERVERSIDE_VAR_NAME) {
-			statusIOS = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_STATE_VAR, ServerSide.STOPPED);
+		generateStateVariableNode(capability2, machineName +"/HANDSHAKE_FU/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES+"/CAPABILITY2",  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
+				new String(OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED));
+		if (IOStationCapability.STATE_VAR_NAME != IOStationCapability.STATE_SERVERSIDE_VAR_NAME) {
+			statusIOS = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", IOStationCapability.STATE_VAR_NAME, ServerSide.STOPPED);
 		}
-		statusHS = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", HandshakeProtocol.STATE_SERVERSIDE_VAR_NAME, ServerSide.STOPPED); 
+		statusHS = generateStateVariableNode(handshakeNode, machineName +"/HANDSHAKE_FU", IOStationCapability.STATE_SERVERSIDE_VAR_NAME, ServerSide.STOPPED); 
 	}
 
 	

@@ -21,6 +21,7 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.ComparableCapability;
+import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.capabilities.plotting.EcoreProcessUtils;
@@ -36,7 +37,6 @@ import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.oldplotter.MockMachineActor;
@@ -99,8 +99,8 @@ public class TestBasicMachineActor {
 				while (!isIdle) {
 					MachineStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class);
 					logEvent(mue);
-					MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
-					if (newState.equals(MachineStatus.IDLE))
+					BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
+					if (newState.equals(BasicMachineStates.IDLE))
 						isIdle = true;
 				}
 				//expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
@@ -171,12 +171,12 @@ public class TestBasicMachineActor {
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-						if (msue.getStatus().equals(MachineStatus.STOPPED)) { 							
+						if (msue.getStatus().equals(BasicMachineStates.STOPPED)) { 							
 							machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());							
-						} else if (msue.getStatus().equals(MachineStatus.IDLE) && !sentReq) { 							
+						} else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !sentReq) { 							
 							machines.get(msue.getMachineId()).getAkkaActor().tell(new RegisterProcessStepRequest("Order1", step.getID(), step, getRef()), getRef());
 							sentReq = true;
-						} else if (msue.getStatus().equals(MachineStatus.STARTING)) {
+						} else if (msue.getStatus().equals(BasicMachineStates.STARTING)) {
 							doRun = false;
 						}
 					}

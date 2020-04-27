@@ -11,8 +11,8 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
 import fiab.opcua.hardwaremock.StatePublisher;
 
 
@@ -46,7 +46,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(HandshakeProtocol.ServerMessageTypes.class, msg -> {
+				.match(IOStationCapability.ServerMessageTypes.class, msg -> {
 					log.info(String.format("Received %s from %s", msg, getSender()));
 					switch(msg) {					
 					case Complete:
@@ -137,7 +137,7 @@ public class MockServerHandshakeActor extends AbstractActor{
 		if (currentState.equals(ServerSide.IDLE_EMPTY) || currentState.equals(ServerSide.IDLE_LOADED)) {
 			publishNewState(ServerSide.STARTING);			
 			log.info(String.format("Responding with OkResponseInitHandover to %s", getSender()));
-			getSender().tell(HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover, self);
+			getSender().tell(IOStationCapability.ServerMessageTypes.OkResponseInitHandover, self);
 			context().system()
 	    	.scheduler()
 	    	.scheduleOnce(Duration.ofMillis(200), 
@@ -153,10 +153,10 @@ public class MockServerHandshakeActor extends AbstractActor{
 	            }
 	          }, context().system().dispatcher());
 		} else if (currentState.equals(ServerSide.READY_EMPTY) || currentState.equals(ServerSide.READY_LOADED)){
-			getSender().tell(HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover, self); // resending
+			getSender().tell(IOStationCapability.ServerMessageTypes.OkResponseInitHandover, self); // resending
 		} else {
 			log.warning(String.format("Responding with NotOkResponseInitHandover to %s in state %s", getSender(), currentState));
-			getSender().tell(HandshakeProtocol.ServerMessageTypes.NotOkResponseInitHandover, self);
+			getSender().tell(IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover, self);
 		}
 		
 	} 		
@@ -165,12 +165,12 @@ public class MockServerHandshakeActor extends AbstractActor{
 		if ((currentState.equals(ServerSide.READY_EMPTY) || currentState.equals(ServerSide.READY_LOADED))) {
 			publishNewState(ServerSide.EXECUTE);
 			log.info(String.format("Responding with OkResponseStartHandover to %s", getSender()));
-			getSender().tell(HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover, self);
+			getSender().tell(IOStationCapability.ServerMessageTypes.OkResponseStartHandover, self);
 		} else if ( currentState.equals(ServerSide.EXECUTE) ){ //resending
-			getSender().tell(HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover, self);
+			getSender().tell(IOStationCapability.ServerMessageTypes.OkResponseStartHandover, self);
 		} else {
 			log.warning(String.format("Responding with NotOkResponseStartHandover to %s in state %s", getSender(), currentState));
-			getSender().tell(HandshakeProtocol.ServerMessageTypes.NotOkResponseStartHandover, self);
+			getSender().tell(IOStationCapability.ServerMessageTypes.NotOkResponseStartHandover, self);
 		}	
 		if (doAutoComplete) {
 			context().system()

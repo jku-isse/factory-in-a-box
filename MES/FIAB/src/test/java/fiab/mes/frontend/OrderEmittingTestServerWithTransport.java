@@ -35,6 +35,7 @@ import akka.stream.javadsl.Flow;
 import akka.testkit.javadsl.TestKit;
 import akka.util.Timeout;
 import fiab.core.capabilities.ComparableCapability;
+import fiab.core.capabilities.BasicMachineStates;
 import fiab.mes.DefaultShopfloorInfrastructure;
 import fiab.mes.ShopfloorStartup;
 import fiab.mes.auth.HttpsConfigurator;
@@ -51,7 +52,6 @@ import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.oldplotter.MockMachineActor;
@@ -149,7 +149,7 @@ public class OrderEmittingTestServerWithTransport {
 							knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
 						}
 						if (te instanceof MachineStatusUpdateEvent) {
-							if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+							if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 								Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 										actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 								);	
@@ -197,7 +197,7 @@ public class OrderEmittingTestServerWithTransport {
 							knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
 						}
 						if (te instanceof MachineStatusUpdateEvent) {
-							if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+							if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 								Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 										actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 								);	

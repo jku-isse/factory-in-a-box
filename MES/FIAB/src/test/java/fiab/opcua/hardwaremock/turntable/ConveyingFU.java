@@ -8,10 +8,10 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.mes.mockactors.transport.FUs.MockConveyorActor;
 import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
-import fiab.mes.opcua.OPCUACapabilitiesWellknownBrowsenames;
 import fiab.opcua.hardwaremock.OPCUABase;
 import fiab.opcua.hardwaremock.StatePublisher;
 import fiab.opcua.hardwaremock.turntable.methods.ConveyingLoad;
@@ -55,7 +55,7 @@ public class ConveyingFU implements StatePublisher{
 
 		ActorRef turningActor = context.actorOf(MockConveyorActor.props(null, this), "TT1-ConveyingFU");
 
-		status = base.generateStringVariableNode(handshakeNode, path, WellknownMachinePropertyFields.STATE_VAR_NAME, ConveyorStates.STOPPED);
+		status = base.generateStringVariableNode(handshakeNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, ConveyorStates.STOPPED);
 
 		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, ConveyorTriggers.RESET.toString(), "Requests reset");		
 		base.addMethodNode(handshakeNode, n1, new ConveyingReset(n1, turningActor)); 		
@@ -67,17 +67,17 @@ public class ConveyingFU implements StatePublisher{
 		base.addMethodNode(handshakeNode, n4, new ConveyingUnload(n4, turningActor));
 
 		// add capabilities 
-		UaFolderNode capabilitiesFolder = base.generateFolder(handshakeNode, path, new String( OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES));
-		path = path +"/"+OPCUACapabilitiesWellknownBrowsenames.CAPABILITIES;
+		UaFolderNode capabilitiesFolder = base.generateFolder(handshakeNode, path, new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
+		path = path +"/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
 		UaFolderNode capability1 = base.generateFolder(capabilitiesFolder, path,
-				"CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.CAPABILITY);
+				"CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
 
-		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.TYPE,
+		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
 				new String("http://factory-in-a-box.fiab/capabilities/transport/conveying"));
-		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.ID,
+		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
 				new String("DefaultConveyingCapability"));
-		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesWellknownBrowsenames.ROLE,
-				new String(OPCUACapabilitiesWellknownBrowsenames.ROLE_VALUE_PROVIDED));
+		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
+				new String(OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED));
 	}
 
 	@Override

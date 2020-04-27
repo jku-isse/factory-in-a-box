@@ -1,9 +1,7 @@
 package fiab.opcua.hardwaremock.methods;
 
 import akka.actor.ActorRef;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.core.capabilities.handshake.IOStationCapability;
 
 public class ResetMethod extends Methods{
 	private ActorRef actor;
@@ -14,7 +12,7 @@ public class ResetMethod extends Methods{
 	@Override
 	public void invoke() {
 		System.out.println("RESET GOT INVOKED");
-		actor.tell(HandshakeProtocol.ServerMessageTypes.Reset, ActorRef.noSender());
+		actor.tell(IOStationCapability.ServerMessageTypes.Reset, ActorRef.noSender());
 	}
 	@Override
 	public String getInfo() {

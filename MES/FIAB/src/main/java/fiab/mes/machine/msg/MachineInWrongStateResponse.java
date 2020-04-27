@@ -4,19 +4,21 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import fiab.core.capabilities.BasicMachineStates;
+
 public class MachineInWrongStateResponse extends MachineStatusUpdateEvent {
 
-	Set<MachineStatus> states = new HashSet<>();
+	Set<BasicMachineStates> states = new HashSet<>();
 	Object request;
 	
 	public MachineInWrongStateResponse(String machineId, String parameterName, String message,
-			MachineStatus status, Object request, MachineStatus... prerequisiteStates) {
+			BasicMachineStates status, Object request, BasicMachineStates... prerequisiteStates) {
 		super(machineId, null, parameterName, message, status);
 		states.addAll(Arrays.asList(prerequisiteStates));
 		this.request = request;
 	}
 	
-	public Set<MachineStatus> getPrerequisitStatesForRequest() {
+	public Set<BasicMachineStates> getPrerequisitStatesForRequest() {
 		return states;
 	}
 	

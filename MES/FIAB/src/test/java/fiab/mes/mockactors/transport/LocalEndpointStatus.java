@@ -1,8 +1,9 @@
 package fiab.mes.mockactors.transport;
 
 import akka.actor.ActorRef;
-import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+
 
 public abstract class LocalEndpointStatus {
 	private ActorRef actor;		

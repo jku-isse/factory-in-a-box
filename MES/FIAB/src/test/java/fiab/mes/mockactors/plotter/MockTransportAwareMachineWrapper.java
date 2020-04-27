@@ -1,45 +1,27 @@
 package fiab.mes.mockactors.plotter;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import ActorCoreModel.Actor;
-import ProcessCore.AbstractCapability;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.testkit.CallingThreadDispatcher;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
-import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.mockactors.MockServerHandshakeActor;
 import fiab.mes.mockactors.plotter.MockMachineWrapper.MessageTypes;
-import fiab.mes.order.msg.LockForOrder;
-import fiab.mes.order.msg.ReadyForProcessEvent;
-import fiab.mes.order.msg.RegisterProcessStepRequest;
-import fiab.mes.planer.actor.MachineOrderMappingManager;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-
 import static fiab.mes.shopfloor.GlobalTransitionDelaySingelton.*;
 
 public class MockTransportAwareMachineWrapper extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected InterMachineEventBus interEventBus;
-	protected MachineStatus currentState = MachineStatus.STOPPING;
+	protected BasicMachineStates currentState = BasicMachineStates.STOPPING;
 	protected boolean doPublishState = false;
 	protected ServerSide handshakeStatus;
 	protected ActorRef serverSide;
@@ -62,7 +44,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 		if (!doLateBinding) {
 			boolean doAutoComplete = true;
 			serverSide = getContext().actorOf(MockServerHandshakeActor.props(getSelf(), doAutoComplete), "ServerSideHandshakeMock");
-			this.setAndPublishState(MachineStatus.STOPPED);
+			this.setAndPublishState(BasicMachineStates.STOPPED);
 		}
 	}	
 	
@@ -76,14 +58,14 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 						setAndPublishState(currentState); //we publish the current state
 						break;
 					case Plot:
-						if (currentState.equals(MachineStatus.IDLE))
+						if (currentState.equals(BasicMachineStates.IDLE))
 							plot();
 						else 
 							log.warning("Wrapper told to plot in wrong state "+currentState);
-							sender().tell(new MachineInWrongStateResponse("", WellknownMachinePropertyFields.STATE_VAR_NAME, "Machine not in state to plot", currentState, MessageTypes.Plot, MachineStatus.IDLE), self);
+							sender().tell(new MachineInWrongStateResponse("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Machine not in state to plot", currentState, MessageTypes.Plot, BasicMachineStates.IDLE), self);
 						break;
 					case Reset:
-						if (currentState.equals(MachineStatus.STOPPED))
+						if (currentState.equals(BasicMachineStates.STOPPED))
 							reset();
 						else 
 							log.warning("Wrapper told to reset in wrong state "+currentState);
@@ -101,14 +83,14 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 						handshakeStatus = msg;
 						switch(msg) {
 						case COMPLETE: // handshake complete, thus un/loading done
-							if  (currentState.equals(MachineStatus.STARTING) ) { // pallet is now loaded
+							if  (currentState.equals(BasicMachineStates.STARTING) ) { // pallet is now loaded
 								transitionStartingToExecute();
-							} else if (currentState.equals(MachineStatus.COMPLETING)) { // pallet is now unloaded
+							} else if (currentState.equals(BasicMachineStates.COMPLETING)) { // pallet is now unloaded
 								transitionCompletingToComplete();
 							}
 							break;
 						case STOPPED: 
-							if (currentState.equals(MachineStatus.STOPPING) ) //only if we wait for FU to stop
+							if (currentState.equals(BasicMachineStates.STOPPING) ) //only if we wait for FU to stop
 								transitionToStop();
 							break;
 						default: // irrelevant states
@@ -120,23 +102,23 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 				})
 				.match(ActorRef.class, lateBoundHandshake -> {
 					this.serverSide = lateBoundHandshake;
-					setAndPublishState(MachineStatus.STOPPED);
+					setAndPublishState(BasicMachineStates.STOPPED);
 				})
 				.matchAny(msg -> { 
 					log.warning("Unexpected Message received: "+msg.toString()); })
 		        .build();
 	}
 	
-	private void setAndPublishState(MachineStatus newState) {
+	private void setAndPublishState(BasicMachineStates newState) {
 		//log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
 		this.currentState = newState;
 		if (doPublishState) {
-			interEventBus.publish(new MachineStatusUpdateEvent("", null, WellknownMachinePropertyFields.STATE_VAR_NAME, "", newState));
+			interEventBus.publish(new MachineStatusUpdateEvent("", null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState));
 		}
 	}
 
 	private void reset() {
-		setAndPublishState(MachineStatus.RESETTING);
+		setAndPublishState(BasicMachineStates.RESETTING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -144,14 +126,14 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
             @Override
             public void run() {
             	// only when plottingFU is in idle, but we dont care about transport/handshake FU, which stays in stopped as the order for which we load is not clear yet
-            	setAndPublishState(MachineStatus.IDLE); 
+            	setAndPublishState(BasicMachineStates.IDLE); 
             }
           }, context().system().dispatcher());
 	}
 	
 	private void stop() {
-		setAndPublishState(MachineStatus.STOPPING);
-		serverSide.tell(HandshakeProtocol.ServerMessageTypes.Stop, getSelf());
+		setAndPublishState(BasicMachineStates.STOPPING);
+		serverSide.tell(IOStationCapability.ServerMessageTypes.Stop, getSelf());
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
@@ -167,14 +149,14 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 	}
 	
 	private void transitionToStop() {
-		setAndPublishState(MachineStatus.STOPPED); 
+		setAndPublishState(BasicMachineStates.STOPPED); 
 	}
 	
 	private void plot() {
-		setAndPublishState(MachineStatus.STARTING);
-		sender().tell(new MachineStatusUpdateEvent("", null, WellknownMachinePropertyFields.STATE_VAR_NAME, "", currentState), self);
+		setAndPublishState(BasicMachineStates.STARTING);
+		sender().tell(new MachineStatusUpdateEvent("", null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", currentState), self);
 		//now here we also enable pallet to be loaded onto machine
-		serverSide.tell(HandshakeProtocol.ServerMessageTypes.Reset, self);
+		serverSide.tell(IOStationCapability.ServerMessageTypes.Reset, self);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(5000), 
@@ -191,7 +173,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 	} 
 	
 	private void transitionStartingToExecute() {
-		setAndPublishState(MachineStatus.EXECUTE);
+		setAndPublishState(BasicMachineStates.EXECUTE);
 		context().system()
     	.scheduler()
     	.scheduleOnce(get_PLOTTER_EXECUTE2COMPLETING(), 
@@ -204,8 +186,8 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 	}
 	
 	private void finishProduction() {
-		setAndPublishState(MachineStatus.COMPLETING); 
-		serverSide.tell(HandshakeProtocol.ServerMessageTypes.Reset, self); //now again do a handshake and unload,
+		setAndPublishState(BasicMachineStates.COMPLETING); 
+		serverSide.tell(IOStationCapability.ServerMessageTypes.Reset, self); //now again do a handshake and unload,
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(3000), 
@@ -221,7 +203,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 	}
 	
 	private void transitionCompletingToComplete() {
-    	setAndPublishState(MachineStatus.COMPLETE); 
+    	setAndPublishState(BasicMachineStates.COMPLETE); 
     	reset(); // we automatically reset
 	}
 	

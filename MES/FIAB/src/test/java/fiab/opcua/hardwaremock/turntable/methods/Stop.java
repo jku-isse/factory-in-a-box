@@ -9,7 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+
 import java.time.Duration;
 
 public class Stop extends AbstractMethodInvocationHandler {
@@ -37,7 +38,7 @@ public class Stop extends AbstractMethodInvocationHandler {
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
     	logger.debug("Invoking Stop() method of objectId={}", invocationContext.getObjectId());    	
-    	actor.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Stop, ActorRef.noSender());
+    	actor.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Stop, ActorRef.noSender());
     	return new Variant[0]; 	    	
     }	
     

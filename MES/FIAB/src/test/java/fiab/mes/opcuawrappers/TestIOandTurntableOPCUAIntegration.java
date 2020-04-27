@@ -15,7 +15,10 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -23,22 +26,16 @@ import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
-import fiab.mes.machine.actor.plotter.wrapper.LocalPlotterActorSpawner;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.opcua.CapabilityImplementationMetadata;
 import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.mes.order.msg.LockForOrder;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.mes.transport.msg.TransportModuleRequest;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 
@@ -66,20 +63,20 @@ class TestIOandTurntableOPCUAIntegration {
 				// setup discoveryactor
 							
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
 						return context.actorOf(LocalIOStationActorSpawner.props());
 					}
 				});
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
 						return context.actorOf(LocalIOStationActorSpawner.props());
 					}
 				});								
 										
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownTransportModuleCapability.TURNTABLE_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
 						return context.actorOf(LocalTransportModuleActorSpawner.props());
@@ -109,15 +106,15 @@ class TestIOandTurntableOPCUAIntegration {
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-						if (msue.getStatus().equals(MachineStatus.STOPPED)) { 							
+						if (msue.getStatus().equals(BasicMachineStates.STOPPED)) { 							
 							machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());							
 						}
-						else if (msue.getStatus().equals(MachineStatus.IDLE) && !didReactOnIdle) {
+						else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !didReactOnIdle) {
 							logger.info("Sending TEST transport request to: "+msue.getMachineId());
 							TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), new Position("34"), new Position("37"), "Order1", "TReq1");
 							machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
 							didReactOnIdle = true;
-						} else if (msue.getStatus().equals(MachineStatus.COMPLETE) || msue.getStatus().equals(MachineStatus.COMPLETING)) {
+						} else if (msue.getStatus().equals(BasicMachineStates.COMPLETE) || msue.getStatus().equals(BasicMachineStates.COMPLETING)) {
 							logger.info("Completing test upon receiving COMPLETE/ING from: "+msue.getMachineId());
 							doRun = false;
 						}
@@ -135,19 +132,19 @@ class TestIOandTurntableOPCUAIntegration {
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
 						return context.actorOf(LocalIOStationActorSpawner.props());
 					}
 				});
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
 						return context.actorOf(LocalIOStationActorSpawner.props());
 					}
 				});									
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownTransportModuleCapability.TURNTABLE_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
 						return context.actorOf(LocalTransportModuleActorSpawner.props());
@@ -177,15 +174,15 @@ class TestIOandTurntableOPCUAIntegration {
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-						if (msue.getStatus().equals(MachineStatus.STOPPED)) { 							
+						if (msue.getStatus().equals(BasicMachineStates.STOPPED)) { 							
 							machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());							
 						}
-						else if (msue.getStatus().equals(MachineStatus.IDLE) && !didReactOnIdle) {
+						else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !didReactOnIdle) {
 							logger.info("Sending TEST transport request to: "+msue.getMachineId());
 							TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), new Position("34"), new Position("37"), "Order1", "TReq1");
 							machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
 							didReactOnIdle = true;
-						} else if (msue.getStatus().equals(MachineStatus.COMPLETE) || msue.getStatus().equals(MachineStatus.COMPLETING)) {
+						} else if (msue.getStatus().equals(BasicMachineStates.COMPLETE) || msue.getStatus().equals(BasicMachineStates.COMPLETING)) {
 							logger.info("Completing test upon receiving COMPLETE/ING from: "+msue.getMachineId());
 							doRun = false;
 						}
@@ -234,14 +231,14 @@ class TestIOandTurntableOPCUAIntegration {
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-						if (msue.getStatus().equals(MachineStatus.STOPPED)) { 							
+						if (msue.getStatus().equals(BasicMachineStates.STOPPED)) { 							
 							machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());							
-						} else if (msue.getStatus().equals(MachineStatus.IDLE) && msue.getMachineId().equals("opc.tcp://192.168.0.31/119") ) {							
+						} else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals("opc.tcp://192.168.0.31/119") ) {							
 							plotterReady = true;
 							sendPlotRequest(machines.get(msue.getMachineId()).getAkkaActor(), getRef());
-						} else if (msue.getStatus().equals(MachineStatus.IDLE) && msue.getMachineId().equals("Turntable1/Turntable_FU") ) {
+						} else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals("Turntable1/Turntable_FU") ) {
 							turntableReady = true;
-						} else if (msue.getStatus().equals(MachineStatus.COMPLETING) &&
+						} else if (msue.getStatus().equals(BasicMachineStates.COMPLETING) &&
 								msue.getMachineId().equals("opc.tcp://192.168.0.31/119") ) {
 							//now do unloading
 							sendTransportRequestNorth31ToSouth37(machines.get("Turntable1/Turntable_FU"), getRef());							

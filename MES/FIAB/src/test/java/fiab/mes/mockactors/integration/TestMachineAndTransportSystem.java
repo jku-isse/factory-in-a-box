@@ -17,6 +17,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import fiab.core.capabilities.BasicMachineStates;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -25,7 +26,6 @@ import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.shopfloor.DefaultLayout;
@@ -154,8 +154,8 @@ class TestMachineAndTransportSystem {
 	
 	
 	private boolean lockMachineforRequest(MachineStatusUpdateEvent mue, String matchMachineId, ActorRef testSys) {
-		MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
-		if (newState.equals(MachineStatus.IDLE) && mue.getMachineId().equals(matchMachineId)) {
+		BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
+		if (newState.equals(BasicMachineStates.IDLE) && mue.getMachineId().equals(matchMachineId)) {
 			ActorRef machine = knownActors.get(matchMachineId).getAkkaActor();
 			logger.info("Sending lock for Order request to machine");
 			machine.tell(new LockForOrder("TestStep1","TestRootOrder1"), testSys); // here we dont register and wait for readyness, wont work later
@@ -165,8 +165,8 @@ class TestMachineAndTransportSystem {
 	}
 	
 	private boolean unloadMachineforRequest(MachineStatusUpdateEvent mue, String matchMachineId, ActorRef testSys) {
-		MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
-		if (newState.equals(MachineStatus.COMPLETING) && mue.getMachineId().equals(matchMachineId)) {
+		BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
+		if (newState.equals(BasicMachineStates.COMPLETING) && mue.getMachineId().equals(matchMachineId)) {
 			RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get(matchMachineId), knownActors.get("OutputStationActor35"), "TestOrder2", testSys);
 			coordActor.tell(rtr, testSys);
 			return true;

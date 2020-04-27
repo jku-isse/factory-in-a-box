@@ -13,20 +13,20 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientMessageTypes;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatus;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.mockactors.MockServerHandshakeActor.StateOverrideRequests;
 import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalClientEndpointStatus;
 import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalServerEndpointStatus;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ClientMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ClientSide;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 public class MockTransportModuleWrapper extends AbstractActor{
@@ -35,7 +35,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	protected InterMachineEventBus interEventBus;
 	protected boolean doPublishState = false;
 	protected ActorRef self;
-	protected MachineStatus currentState = MachineStatus.STOPPED;
+	protected BasicMachineStates currentState = BasicMachineStates.STOPPED;
 	protected HandshakeEndpointInfo eps;
 
 	protected InternalTransportModuleRequest currentRequest;
@@ -54,10 +54,10 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(WellknownTransportModuleCapability.SimpleMessageTypes.class, msg -> {
+				.match(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.class, msg -> {
 					switch(msg) {
 					case Reset:
-						if (currentState.equals(MachineStatus.STOPPED) || currentState.equals(MachineStatus.COMPLETE))
+						if (currentState.equals(BasicMachineStates.STOPPED) || currentState.equals(BasicMachineStates.COMPLETE))
 							reset();
 						else 
 							log.warning("Wrapper told to reset in wrong state "+currentState);
@@ -95,22 +95,22 @@ public class MockTransportModuleWrapper extends AbstractActor{
 					}
 				})
 				.match(InternalTransportModuleRequest.class, req -> {
-					if (currentState.equals(MachineStatus.IDLE)) {
-						sender().tell(new MachineStatusUpdateEvent(self.path().name(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, "", MachineStatus.STARTING), self);
+					if (currentState.equals(BasicMachineStates.IDLE)) {
+						sender().tell(new MachineStatusUpdateEvent(self.path().name(), null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", BasicMachineStates.STARTING), self);
 		        		startTransport(req);
 					} else {
 		        		log.warning("Received TransportModuleRequest in incompatible state: "+currentState);
 						//respond with error message that we are not in the right state for request
 		        		sender().tell(new MachineInWrongStateResponse(getSelf().path().name(), 
-		        				WellknownMachinePropertyFields.STATE_VAR_NAME, 
+		        				OPCUABasicMachineBrowsenames.STATE_VAR_NAME, 
 		        				"Machine is not in correct state",
 		        				currentState,
 		        				req,
-		        				MachineStatus.IDLE), self);
+		        				BasicMachineStates.IDLE), self);
 		        	}
 				})
 				.match(ServerSide.class, state -> {
-					if (currentState.equals(MachineStatus.EXECUTE)) {
+					if (currentState.equals(BasicMachineStates.EXECUTE)) {
 						String capId = getSender().path().name();
 						log.info(String.format("ServerSide EP %s Status: %s", capId, state));
 						eps.getHandshakeEP(capId).ifPresent(leps -> {
@@ -123,7 +123,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 					}
 				})
 				.match(ClientSide.class, state -> {										
-					if (currentState.equals(MachineStatus.EXECUTE)) {
+					if (currentState.equals(BasicMachineStates.EXECUTE)) {
 						String capId = getSender().path().name();
 						log.info(String.format("ClientSide EP %s local status: %s", capId, state));
 						String localCapId = capId.lastIndexOf("~") > 0 ? capId.substring(0, capId.lastIndexOf("~")) : capId;
@@ -135,7 +135,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 								handleCompletingStateUpdate(localCapId);
 								break;
 							case IDLE:
-								getSender().tell(HandshakeProtocol.ClientMessageTypes.Start, self);
+								getSender().tell(IOStationCapability.ClientMessageTypes.Start, self);
 								break;
 							default:
 								break;
@@ -148,18 +148,18 @@ public class MockTransportModuleWrapper extends AbstractActor{
 				.build();
 	}
 
-	private Set<MachineStatus> epNonUpdateableStates = Sets.immutableEnumSet(MachineStatus.STARTING, MachineStatus.EXECUTE, MachineStatus.COMPLETING);
+	private Set<BasicMachineStates> epNonUpdateableStates = Sets.immutableEnumSet(BasicMachineStates.STARTING, BasicMachineStates.EXECUTE, BasicMachineStates.COMPLETING);
 	
-	protected void setAndPublishState(MachineStatus newState) {
+	protected void setAndPublishState(BasicMachineStates newState) {
 		//log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
 		this.currentState = newState;
 		if (doPublishState) {
-			interEventBus.publish(new MachineStatusUpdateEvent(self.path().name(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, "", newState));
+			interEventBus.publish(new MachineStatusUpdateEvent(self.path().name(), null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState));
 		}
 	}
 	
 	private void reset() {
-		setAndPublishState(MachineStatus.RESETTING);
+		setAndPublishState(BasicMachineStates.RESETTING);
 		// EPS are reset upon transport start
 		currentRequest = null;
 		context().system()
@@ -180,7 +180,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	setAndPublishState(MachineStatus.IDLE); 
+            	setAndPublishState(BasicMachineStates.IDLE); 
             }
           }, context().system().dispatcher());
 	}
@@ -188,19 +188,19 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	private void startTransport(InternalTransportModuleRequest req) {
 		log.info("Starting Transport");
 		currentRequest = req;
-		setAndPublishState(MachineStatus.STARTING);
+		setAndPublishState(BasicMachineStates.STARTING);
 		// check which two handshake FUs we use,
 		Optional<LocalEndpointStatus> fromEP = eps.getHandshakeEP(req.getCapabilityInstanceIdFrom()); 
 		Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(req.getCapabilityInstanceIdTo());
 		if (fromEP.isPresent() && toEP.isPresent()) {
-			setAndPublishState(MachineStatus.EXECUTE);
+			setAndPublishState(BasicMachineStates.EXECUTE);
 			// imitate turning towards first
 			fromEP.ifPresent(leps -> {
 				// now check if localEP is client or server, then reset
 				if (leps.isProvidedCapability()) {
-					leps.getActor().tell(HandshakeProtocol.ServerMessageTypes.Reset, self);
+					leps.getActor().tell(IOStationCapability.ServerMessageTypes.Reset, self);
 				} else {
-					leps.getActor().tell(HandshakeProtocol.ClientMessageTypes.Reset, self);
+					leps.getActor().tell(IOStationCapability.ClientMessageTypes.Reset, self);
 				}
 			});			
 			// when execute, immitate loading, complete first (not necessary with autocomplete
@@ -237,9 +237,9 @@ public class MockTransportModuleWrapper extends AbstractActor{
 			if (leps.isProvidedCapability()) {
 				// as the second transport part, the this server/turntable has to be loaded
 				leps.getActor().tell(StateOverrideRequests.SetLoaded, self);
-				leps.getActor().tell(HandshakeProtocol.ServerMessageTypes.Reset, self);
+				leps.getActor().tell(IOStationCapability.ServerMessageTypes.Reset, self);
 			} else {
-				leps.getActor().tell(HandshakeProtocol.ClientMessageTypes.Reset, self);
+				leps.getActor().tell(IOStationCapability.ClientMessageTypes.Reset, self);
 			}
 		});
 		// when execute, immitate loading, complete second		
@@ -248,14 +248,14 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	private void finalizeTransport() {
 		log.info("Finalizing Transport");
 		// transition into Completing, handshakes should be now in complete as well
-		setAndPublishState(MachineStatus.COMPLETING);
+		setAndPublishState(BasicMachineStates.COMPLETING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(500), 
     			 new Runnable() {
             @Override
             public void run() {            	
-            	setAndPublishState(MachineStatus.COMPLETE);
+            	setAndPublishState(BasicMachineStates.COMPLETE);
             	//we do autoresetting here
             	reset();           	
             }
@@ -264,7 +264,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	
 
 	private void stop() {
-		setAndPublishState(MachineStatus.STOPPING);
+		setAndPublishState(BasicMachineStates.STOPPING);
 		//tell all handshake FUs to stop, we ignore HandshakeFU level for now
 		eps.tellAllEPsToStop();
 		// serverSide.tell(MockServerHandshakeActor.MessageTypes.Stop, getSelf());
@@ -283,7 +283,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 	}
 	
 	private void transitionToStop() {
-		setAndPublishState(MachineStatus.STOPPED); 
+		setAndPublishState(BasicMachineStates.STOPPED); 
 	}
 	
 	private static class HandshakeEndpointInfo {
