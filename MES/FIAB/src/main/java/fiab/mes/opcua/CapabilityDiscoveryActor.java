@@ -26,9 +26,11 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface.CapabilityImplInfo;
 import fiab.mes.opcua.CapabilityImplementationMetadata.MetadataInsufficientException;
 import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
+import fiab.opcua.CapabilityImplInfo;
+import fiab.opcua.client.ClientKeyStoreLoader;
+import fiab.opcua.client.OPCUAClientFactory;
 
 import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.*;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
@@ -88,7 +90,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 
 	private void connectToServer(BrowseRequest req) {
 		try {
-			client = new OPCUAUtils().createClient(req.endpointURL);
+			client = new OPCUAClientFactory().createClient(req.endpointURL);
 			client.connect().get();
 			this.status = DISCOVERY_STATUS.CONNECTED;
 			log.info("Connected to "+req.endpointURL);

@@ -13,4 +13,7 @@ public interface OPCUACapabilitiesAndWiringInfoBrowsenames {
 			REMOTE_ENDPOINT = "REMOTE_ENDPOINT",
 			REMOTE_NODEID = "REMOTE_NODEID", 
 			REMOTE_ROLE = "REMOTE_ROLE";
+	
+	public static final boolean IS_PROVIDED = true;
+	public static final boolean IS_REQUIRED = false;
 }

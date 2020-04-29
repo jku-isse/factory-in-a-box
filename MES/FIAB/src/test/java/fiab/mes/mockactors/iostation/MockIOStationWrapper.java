@@ -8,17 +8,19 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
+import fiab.machine.iostation.IOStationServerHandshakeActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
-import fiab.mes.mockactors.MockServerHandshakeActor.StateOverrideRequests;
 
 public class MockIOStationWrapper extends AbstractActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected InterMachineEventBus interEventBus;
 	protected boolean doPublishState = false;
-	protected ServerSide handshakeStatus = ServerSide.STOPPED;
+	protected ServerSideStates handshakeStatus = ServerSideStates.STOPPED;
 	protected ActorRef serverSide;
 	protected ActorRef self;
 	protected boolean isInputStation = true;
@@ -36,7 +38,7 @@ public class MockIOStationWrapper extends AbstractActor {
 		if (isInputStation)
 			serverSide = getContext().actorOf(MockInputStationServerHandshakeActor.props(), "InputStationServerSideHandshakeMock"); 
 		else 
-			serverSide = getContext().actorOf(MockOutputStationServerHandshakeActor.props(), "OutputStationServerSideHandshakeMock"); 
+			serverSide = getContext().actorOf(IOStationServerHandshakeActor.propsForOutputstation(), "OutputStationServerSideHandshakeMock"); 
 		reloadPallet();
 	}
 	
@@ -53,11 +55,11 @@ public class MockIOStationWrapper extends AbstractActor {
 						serverSide.tell(msg, self); //forward to iostationserverhandshake
 					}
 				})
-				.match(ServerSide.class, msg -> { // state event updates from handshake, pass upward
+				.match(ServerSideStates.class, msg -> { // state event updates from handshake, pass upward
 					if (getSender().equals(serverSide)) {
 						handshakeStatus = msg;
 						setAndPublishState(msg);
-						if (msg.equals(ServerSide.COMPLETE)) { //we auto reload here
+						if (msg.equals(ServerSideStates.COMPLETE)) { //we auto reload here
 							context().system()
 					    	.scheduler()
 					    	.scheduleOnce(Duration.ofMillis(1000), 
@@ -77,7 +79,7 @@ public class MockIOStationWrapper extends AbstractActor {
 				.build();
 	}
 
-	private void setAndPublishState(ServerSide newState) {
+	private void setAndPublishState(ServerSideStates newState) {
 		if (doPublishState) {
 			interEventBus.publish(new IOStationStatusUpdateEvent(self.path().toString(), "", newState));
 		}
@@ -87,9 +89,9 @@ public class MockIOStationWrapper extends AbstractActor {
 		//tell handshake that the pallet is loaded if inputstation, otherwise setempty
 			log.info(self.path().name()+": Auto Reloading Pallet");
 			if (isInputStation) {
-				serverSide.tell(StateOverrideRequests.SetLoaded, self); 
+				serverSide.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, self); 
 			} else {
-				serverSide.tell(StateOverrideRequests.SetEmpty, self); 
+				serverSide.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, self); 
 			}
 	}
 	

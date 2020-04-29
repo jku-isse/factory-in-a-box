@@ -12,19 +12,19 @@ import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.handshake.actor.ClientHandshakeActor;
+import fiab.handshake.actor.LocalEndpointStatus;
+import fiab.handshake.actor.ServerSideHandshakeActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
-import fiab.mes.mockactors.MockClientHandshakeActor;
-import fiab.mes.mockactors.MockServerHandshakeActor;
 import fiab.mes.mockactors.iostation.MockIOStationFactory;
 import fiab.mes.mockactors.plotter.MockPlottingMachineWrapperDelegate;
 import fiab.mes.mockactors.plotter.MockTransportAwareMachineWrapper;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
 import fiab.mes.mockactors.transport.TestMockTransportModuleActor;
-import fiab.mes.mockactors.transport.LocalEndpointStatus;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
@@ -62,11 +62,11 @@ public class DefaultLayout {
 		// setup turntable1
 		InterMachineEventBus intraEventBus1 = new InterMachineEventBus();	
 		ActorRef ttWrapper1 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus1), "TT1");
-		ActorRef westClient1 = system.actorOf(MockClientHandshakeActor.props(ttWrapper1, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
-		ActorRef northClient1 = system.actorOf(MockClientHandshakeActor.props(ttWrapper1, handShakeServer31), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT);
-		ActorRef southClient1 = system.actorOf(MockClientHandshakeActor.props(ttWrapper1, handShakeServer37), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT);
+		ActorRef westClient1 = system.actorOf(ClientHandshakeActor.props(ttWrapper1, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
+		ActorRef northClient1 = system.actorOf(ClientHandshakeActor.props(ttWrapper1, handShakeServer31), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT);
+		ActorRef southClient1 = system.actorOf(ClientHandshakeActor.props(ttWrapper1, handShakeServer37), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT);
 		boolean autoComplete = true;
-		ActorRef eastServer1 = system.actorOf(MockServerHandshakeActor.props(ttWrapper1, autoComplete), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
+		ActorRef eastServer1 = system.actorOf(ServerSideHandshakeActor.props(ttWrapper1, autoComplete), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
 		//Map<String, LocalEndpointStatus> eps1 = new HashMap<>();
 
 		ttWrapper1.tell( new LocalEndpointStatus.LocalClientEndpointStatus(northClient1, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT), ActorRef.noSender());
@@ -82,10 +82,10 @@ public class DefaultLayout {
 		// setup turntable 2
 		InterMachineEventBus intraEventBus2 = new InterMachineEventBus();	
 		ActorRef ttWrapper2 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus2), "TT2");
-		ActorRef eastClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
-		ActorRef westClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, eastServer1), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT+"~2");
-		ActorRef northClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, handShakeServer32), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT+"~2");
-		ActorRef southClient2 = system.actorOf(MockClientHandshakeActor.props(ttWrapper2, handShakeServer38), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT+"~2");
+		ActorRef eastClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
+		ActorRef westClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, eastServer1), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT+"~2");
+		ActorRef northClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, handShakeServer32), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT+"~2");
+		ActorRef southClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, handShakeServer38), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT+"~2");
 		
 		//Map<String, LocalEndpointStatus> eps2 = new HashMap<>();
 		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(northClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT), ActorRef.noSender());

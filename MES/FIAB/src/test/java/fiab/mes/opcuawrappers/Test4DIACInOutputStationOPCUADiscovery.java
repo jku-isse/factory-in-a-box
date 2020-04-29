@@ -15,7 +15,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
@@ -84,7 +84,7 @@ class Test4DIACInOutputStationOPCUADiscovery {
 							getLastSender().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());
 					}
 					if (te instanceof IOStationStatusUpdateEvent) {
-						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSide.IDLE_LOADED)) {
+						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 							doRun = false;
 						}
 					}
@@ -124,7 +124,7 @@ class Test4DIACInOutputStationOPCUADiscovery {
 							getLastSender().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());
 					}
 					if (te instanceof IOStationStatusUpdateEvent) {
-						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSide.IDLE_LOADED)) {
+						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 							doRun = false;
 						}
 					}

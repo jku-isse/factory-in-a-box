@@ -3,6 +3,8 @@ package fiab.opcua.hardwaremock.iostation;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.machine.iostation.opcua.OPCUAVirtualIOStationWrapper;
+import fiab.machine.iostation.opcua.legacy.OPCUAInputStationMock;
 import fiab.opcua.hardwaremock.BaseOpcUaServer;
 
 public class StartupOPCUAIOStationMocks {
@@ -14,8 +16,8 @@ public class StartupOPCUAIOStationMocks {
 	
 	private static void startupIOatPos34and37onSingleTurntable()  throws Exception {
 		ActorSystem system = ActorSystem.create("ROOT_SYSTEM");		
-		ActorRef actor1 = system.actorOf(OPCUAMockIOStationWrapper.props( true, true));
-		ActorRef actor2 = system.actorOf(OPCUAMockIOStationWrapper.props( false, true));
+		ActorRef actor1 = system.actorOf(OPCUAVirtualIOStationWrapper.props( true, true));
+		ActorRef actor2 = system.actorOf(OPCUAVirtualIOStationWrapper.props( false, true));
 		//ActorRef actor2 = system.actorOf(MockOutputStationServerHandshakeActor.props());
 		BaseOpcUaServer server1 = new BaseOpcUaServer(0, "InputStation");
 		OPCUAInputStationMock ism1 = new OPCUAInputStationMock(server1.getServer(), NAMESPACE_URI, "InputStation", actor1, IOStationCapability.INPUTSTATION_CAPABILITY_URI);
@@ -30,8 +32,8 @@ public class StartupOPCUAIOStationMocks {
 	
 	private static void startupIOatPos34and35acrossTwoTurntables() throws Exception{
 		ActorSystem system = ActorSystem.create("ROOT_SYSTEM");		
-		ActorRef actor1 = system.actorOf(OPCUAMockIOStationWrapper.props( true, true));
-		ActorRef actor2 = system.actorOf(OPCUAMockIOStationWrapper.props( false, true));
+		ActorRef actor1 = system.actorOf(OPCUAVirtualIOStationWrapper.props( true, true));
+		ActorRef actor2 = system.actorOf(OPCUAVirtualIOStationWrapper.props( false, true));
 		//ActorRef actor2 = system.actorOf(MockOutputStationServerHandshakeActor.props());
 		BaseOpcUaServer server1 = new BaseOpcUaServer(0, "InputStation");
 		OPCUAInputStationMock ism1 = new OPCUAInputStationMock(server1.getServer(), NAMESPACE_URI, "InputStation", actor1, IOStationCapability.INPUTSTATION_CAPABILITY_URI);

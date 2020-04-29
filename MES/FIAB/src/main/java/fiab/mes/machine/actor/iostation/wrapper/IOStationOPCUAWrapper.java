@@ -5,7 +5,7 @@ import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
@@ -26,7 +26,7 @@ public class IOStationOPCUAWrapper extends AbstractOPCUAWrapper implements IOSta
 			String stateAsString = value.getValue().getValue().toString();
 			System.out.println(stateAsString);
 			try {
-				ServerSide state = ServerSide.valueOf(stateAsString);
+				ServerSideStates state = ServerSideStates.valueOf(stateAsString);
 				if (this.intraMachineBus != null) {
 					intraMachineBus.publish(new IOStationStatusUpdateEvent("", "OPCUA State Endpoint has new State", state));
 				}

@@ -12,7 +12,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
@@ -56,7 +56,7 @@ public class TestBasicIOStationActorWithTransport {
 				while (doRun) {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
-					if (mue.getStatus().equals(ServerSide.IDLE_LOADED)) {
+					if (mue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 						doRun = false;
 					}
 				}
@@ -78,7 +78,7 @@ public class TestBasicIOStationActorWithTransport {
 				while (doRun) {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
-					if (mue.getStatus().equals(ServerSide.IDLE_EMPTY)) {
+					if (mue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
 						doRun = false;
 					}
 				}

@@ -18,6 +18,8 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.core.capabilities.wiring.WiringInfo;
+import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
@@ -27,17 +29,16 @@ import fiab.mes.mockactors.transport.FUs.MockConveyorActor;
 import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.opcua.hardwaremock.BaseOpcUaServer;
-import fiab.opcua.hardwaremock.OPCUABase;
-import fiab.opcua.hardwaremock.turntable.WiringUtils.WiringInfo;
 import fiab.opcua.hardwaremock.turntable.methods.Reset;
 import fiab.opcua.hardwaremock.turntable.methods.Stop;
 import fiab.opcua.hardwaremock.turntable.methods.TransportRequest;
+import fiab.opcua.server.OPCUABase;
 
 public class OPCUATurntableRootActor extends AbstractActor {
 
 	private String machineName = "Turntable";
 	static final String NAMESPACE_URI = "urn:factory-in-a-box";
-	private HashMap<String, HandshakeFU> handshakeFUs = new HashMap<>();
+	private HashMap<String, ServerSideHandshakeFU> handshakeFUs = new HashMap<>();
 	private UaVariableNode status = null;
 	private ActorRef ttWrapper;
 	private boolean enableCoordinatorActor = true;
@@ -110,22 +111,22 @@ public class OPCUATurntableRootActor extends AbstractActor {
 		} // if not, then finegrained control of all FUs from the outside
 		
 		// there is always a west, south, north, client
-		HandshakeFU westFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, false, enableCoordinatorActor);
+		ServerSideHandshakeFU westFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, false, enableCoordinatorActor);
 		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, 
 				westFU);
-		HandshakeFU southFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, false, enableCoordinatorActor);
+		ServerSideHandshakeFU southFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, false, enableCoordinatorActor);
 		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, 
 				southFU);
-		HandshakeFU northFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, false, enableCoordinatorActor);
+		ServerSideHandshakeFU northFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, false, enableCoordinatorActor);
 		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, 
 				northFU);
 		
 		if (machineName.equalsIgnoreCase("Turntable1")) { // we have a server here
-			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, true, enableCoordinatorActor);
+			ServerSideHandshakeFU eastFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, true, enableCoordinatorActor);
 			handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, 
 					eastFU);
 		} else { // we have a client here
-			HandshakeFU eastFU = new HandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, false, enableCoordinatorActor);
+			ServerSideHandshakeFU eastFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, false, enableCoordinatorActor);
 			handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, 
 					eastFU);
 		}

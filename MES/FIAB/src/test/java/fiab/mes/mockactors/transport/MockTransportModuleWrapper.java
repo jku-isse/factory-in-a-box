@@ -16,17 +16,19 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.handshake.actor.LocalEndpointStatus;
+import fiab.handshake.actor.LocalEndpointStatus.LocalClientEndpointStatus;
+import fiab.handshake.actor.LocalEndpointStatus.LocalServerEndpointStatus;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.msg.MachineInWrongStateResponse;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.MockServerHandshakeActor.StateOverrideRequests;
-import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalClientEndpointStatus;
-import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalServerEndpointStatus;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 public class MockTransportModuleWrapper extends AbstractActor{
@@ -109,20 +111,20 @@ public class MockTransportModuleWrapper extends AbstractActor{
 		        				BasicMachineStates.IDLE), self);
 		        	}
 				})
-				.match(ServerSide.class, state -> {
+				.match(ServerSideStates.class, state -> {
 					if (currentState.equals(BasicMachineStates.EXECUTE)) {
 						String capId = getSender().path().name();
 						log.info(String.format("ServerSide EP %s Status: %s", capId, state));
 						eps.getHandshakeEP(capId).ifPresent(leps -> {
 							((LocalServerEndpointStatus) leps).setState(state);
-							if (state.equals(ServerSide.COMPLETING))
+							if (state.equals(ServerSideStates.COMPLETING))
 								handleCompletingStateUpdate(capId);
 						});
 					} else {
 						log.warning(String.format("Received ServerSide Event %s from %s in non EXECUTE state: %s", state, getSender().path().name(), currentState));
 					}
 				})
-				.match(ClientSide.class, state -> {										
+				.match(ClientSideStates.class, state -> {										
 					if (currentState.equals(BasicMachineStates.EXECUTE)) {
 						String capId = getSender().path().name();
 						log.info(String.format("ClientSide EP %s local status: %s", capId, state));
@@ -236,7 +238,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 			// now check if localEP is client or server, then reset
 			if (leps.isProvidedCapability()) {
 				// as the second transport part, the this server/turntable has to be loaded
-				leps.getActor().tell(StateOverrideRequests.SetLoaded, self);
+				leps.getActor().tell(HandshakeCapability.StateOverrideRequests.SetLoaded, self);
 				leps.getActor().tell(IOStationCapability.ServerMessageTypes.Reset, self);
 			} else {
 				leps.getActor().tell(IOStationCapability.ClientMessageTypes.Reset, self);

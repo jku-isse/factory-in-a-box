@@ -13,7 +13,7 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
@@ -37,7 +37,7 @@ public class BasicIOStationActor extends AbstractActor {
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machineId;
 	protected AbstractCapability cap;
-	protected IOStationCapability.ServerSide currentState = ServerSide.UNKNOWN;
+	protected IOStationCapability.ServerSideStates currentState = ServerSideStates.UNKNOWN;
 	protected IOStationWrapperInterface hal;
 	protected InterMachineEventBus intraBus;
 	protected boolean doAutoReset = true;
@@ -72,15 +72,15 @@ public class BasicIOStationActor extends AbstractActor {
 		.match(RegisterProcessStepRequest.class, registerReq -> {
         	orders.add(registerReq);
         	log.info(String.format("Order %s registered.", registerReq.getRootOrderId()));
-        	if ((currentState == ServerSide.IDLE_EMPTY && isOutputStation) || 
-        			(currentState == ServerSide.IDLE_LOADED && isInputStation)) {
+        	if ((currentState == ServerSideStates.IDLE_EMPTY && isOutputStation) || 
+        			(currentState == ServerSideStates.IDLE_LOADED && isInputStation)) {
         		triggerNextQueuedOrder();
         	}
         } )
         .match(LockForOrder.class, lockReq -> {
         	log.info("received LockForOrder msg "+lockReq.getStepId()+", current state: "+currentState);
-        	if ((currentState == ServerSide.IDLE_EMPTY && isOutputStation) || 
-        			(currentState == ServerSide.IDLE_LOADED && isInputStation)) {
+        	if ((currentState == ServerSideStates.IDLE_EMPTY && isOutputStation) || 
+        			(currentState == ServerSideStates.IDLE_LOADED && isInputStation)) {
         		// we are still in the right state, now we provide/receive the reserved order
         		// nothing to be done here
         	} else {
@@ -96,14 +96,14 @@ public class BasicIOStationActor extends AbstractActor {
         })
         .match(Stop.class, req -> {
         	log.info(String.format("IOStation %s received StopRequest", machineId.getId()));
-        	setAndPublishSensedState(ServerSide.STOPPING);
+        	setAndPublishSensedState(ServerSideStates.STOPPING);
         	hal.stop();
         })
         .match(Reset.class, req -> {
-        	if (currentState.equals(ServerSide.COMPLETE) 
-        			|| currentState.equals(ServerSide.STOPPED) ) {
+        	if (currentState.equals(ServerSideStates.COMPLETE) 
+        			|| currentState.equals(ServerSideStates.STOPPED) ) {
         		log.info(String.format("IOStation %s received ResetRequest in suitable state", machineId.getId()));
-        		setAndPublishSensedState(ServerSide.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
+        		setAndPublishSensedState(ServerSideStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
         		hal.reset();
         	} else {
         		log.warning(String.format("IOStation %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
@@ -130,7 +130,7 @@ public class BasicIOStationActor extends AbstractActor {
 		hal.subscribeToLoadStatus();
 	}
 	
-	private void setAndPublishSensedState(ServerSide newState) {
+	private void setAndPublishSensedState(ServerSideStates newState) {
 		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, lastOrder);
 		log.info(msg);
 		this.currentState = newState;
@@ -145,8 +145,8 @@ public class BasicIOStationActor extends AbstractActor {
 	}
 	
 	private void processIOStationStatusUpdateEvent(IOStationStatusUpdateEvent mue) {
-		if (mue.getParameterName().equals(IOStationCapability.STATE_SERVERSIDE_VAR_NAME)) {
-			ServerSide newState = mue.getStatus();
+		if (mue.getParameterName().equals(IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME)) {
+			ServerSideStates newState = mue.getStatus();
 			setAndPublishSensedState(newState);
 			switch(newState) {
 			case IDLE_EMPTY:
@@ -184,7 +184,7 @@ public class BasicIOStationActor extends AbstractActor {
 			switch(currentState) {
 			case IDLE_EMPTY: //falltrough
 			case IDLE_LOADED: // cancel by stopping and autoresetting 
-				setAndPublishSensedState(ServerSide.STOPPING);
+				setAndPublishSensedState(ServerSideStates.STOPPING);
 				hal.stop();
 				break;
 			default: // finish handshake, or just remain in whatever state otherwise, stopping, etc, 

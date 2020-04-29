@@ -25,7 +25,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBus;
@@ -374,13 +374,13 @@ public class OrderPlanningActor extends AbstractActor{
 		log.info(String.format("IOStationUpdateEvent for machine %s : %s", ue.getMachineId(), ue.getStatus().toString()));
 		capMan.resolveById(ue.getMachineId()).ifPresent(machine -> {
 			ordMapper.updateMachineStatus(machine, ue);
-			if (ue.getStatus().equals(ServerSide.IDLE_EMPTY)) {
+			if (ue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
 				// we reached idle for an outputstation
 				ordMapper.getProcessesInState(OrderEventType.COMPLETED).stream()
 				.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
 				ordMapper.getProcessesInState(OrderEventType.CANCELED).stream() //orders that need to be prematurely removed
 				.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
-			} else if (ue.getStatus().equals(ServerSide.IDLE_LOADED)) {
+			} else if (ue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 				// we reached idle for an inputstation
 				// we are ready to start a new process as this input is ready
 				ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()

@@ -8,10 +8,10 @@ import com.google.common.collect.Sets;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
-import fiab.mes.mockactors.MockServerHandshakeActor;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.handshake.actor.ServerSideHandshakeActor;
 
-public class MockInputStationServerHandshakeActor extends MockServerHandshakeActor{
+public class MockInputStationServerHandshakeActor extends ServerSideHandshakeActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);	
 	
@@ -28,15 +28,15 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
 	
 	@Override
 	protected void reset() {
-		publishNewState(ServerSide.RESETTING);
+		publishNewState(ServerSideStates.RESETTING);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(1000), 
     			 new Runnable() {
             @Override
             public void run() {
-            	if (isLoaded && !currentState.equals(ServerSide.IDLE_LOADED)) {
-            		publishNewState(ServerSide.IDLE_LOADED);
+            	if (isLoaded && !currentState.equals(ServerSideStates.IDLE_LOADED)) {
+            		publishNewState(ServerSideStates.IDLE_LOADED);
             	} else {
             		// stay in resetting
             	}
@@ -44,14 +44,14 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
           }, context().system().dispatcher());
 	}
 	
-	private Set<ServerSide> loadChangeableStates = Sets.newHashSet(ServerSide.COMPLETE, ServerSide.COMPLETING, ServerSide.STOPPED, ServerSide.STOPPING);
+	private Set<ServerSideStates> loadChangeableStates = Sets.newHashSet(ServerSideStates.COMPLETE, ServerSideStates.COMPLETING, ServerSideStates.STOPPED, ServerSideStates.STOPPING);
 	
 	@Override
 	protected void updateLoadState(boolean isLoaded) {
 		log.info("Updating Loading State");
 		if (this.isLoaded != isLoaded) {
 			this.isLoaded = isLoaded;
-			if (currentState.equals(ServerSide.RESETTING)) {
+			if (currentState.equals(ServerSideStates.RESETTING)) {
 				reset(); // we reset again to reach IdleLoaded
 			} else if (!loadChangeableStates.contains(currentState)) {
 				stopAndAutoReset();
@@ -61,7 +61,7 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
 	
 	private void stopAndAutoReset() {
 		
-		publishNewState(ServerSide.STOPPING);
+		publishNewState(ServerSideStates.STOPPING);
 		//clientSide = null;
 		context().system()
     	.scheduler()
@@ -69,7 +69,7 @@ public class MockInputStationServerHandshakeActor extends MockServerHandshakeAct
     			 new Runnable() {
             @Override
             public void run() {
-            	publishNewState(ServerSide.STOPPED);
+            	publishNewState(ServerSideStates.STOPPED);
             	reset();
             }
           }, context().system().dispatcher());

@@ -19,7 +19,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
@@ -356,8 +356,8 @@ public class MachineOrderMappingManager {
 				}
 				this.lastMachineState = lastMachineState;
 			} else if (lastMachineState instanceof IOStationStatusUpdateEvent) {
-				if (((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSide.IDLE_EMPTY) ||
-						((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSide.IDLE_LOADED)) {
+				if (((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSideStates.IDLE_EMPTY) ||
+						((IOStationStatusUpdateEvent) lastMachineState).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 					this.allocationState = AssignmentState.NONE;
 					this.orderId = null;	
 				}

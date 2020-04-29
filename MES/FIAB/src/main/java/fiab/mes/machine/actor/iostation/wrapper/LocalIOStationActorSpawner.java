@@ -23,7 +23,7 @@ import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
-import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface.CapabilityImplInfo;
+import fiab.opcua.CapabilityImplInfo;
 
 public class LocalIOStationActorSpawner extends AbstractActor {
 

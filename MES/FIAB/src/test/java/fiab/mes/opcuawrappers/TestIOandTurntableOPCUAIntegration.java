@@ -17,7 +17,7 @@ import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
@@ -246,7 +246,7 @@ class TestIOandTurntableOPCUAIntegration {
 					}
 					if (te instanceof IOStationStatusUpdateEvent) {
 						IOStationStatusUpdateEvent iosue = (IOStationStatusUpdateEvent)te;
-						if ((iosue.getStatus().equals(ServerSide.COMPLETE) || iosue.getStatus().equals(ServerSide.COMPLETING)) &&
+						if ((iosue.getStatus().equals(ServerSideStates.COMPLETE) || iosue.getStatus().equals(ServerSideStates.COMPLETING)) &&
 								iosue.getMachineId().equals("OutputStation/HANDSHAKE_FU") ) {
 							logger.info("Completing test upon receiving COMPLETE/ING from: "+iosue.getMachineId());
 							doRun = false;

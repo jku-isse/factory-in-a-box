@@ -8,14 +8,14 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
+import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
-import fiab.mes.mockactors.MockServerHandshakeActor;
-import fiab.opcua.hardwaremock.OPCUABase;
-import fiab.opcua.hardwaremock.StatePublisher;
-import fiab.opcua.hardwaremock.iostation.methods.InitHandover;
-import fiab.opcua.hardwaremock.iostation.methods.StartHandover;
+import fiab.handshake.actor.ServerSideHandshakeActor;
+import fiab.handshake.fu.server.methods.InitHandover;
+import fiab.handshake.fu.server.methods.StartHandover;
+import fiab.opcua.server.OPCUABase;
 
 public class HandshakeFU implements StatePublisher{
 
@@ -40,8 +40,8 @@ public class HandshakeFU implements StatePublisher{
 	public ActorRef setupOPCUANodeSet(ActorRef ttBaseActor, OPCUABase base, UaFolderNode rootNode, String fuPrefix, ActorContext context) {
 		String path = fuPrefix + "/HANDSHAKE_FU";
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "HANDSHAKE_FU");					
-		status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.STATE_SERVERSIDE_VAR_NAME, ServerSide.STOPPED);
-		ActorRef localServer = context.actorOf(MockServerHandshakeActor.props(ttBaseActor, true, this));
+		status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME, ServerSideStates.STOPPED);
+		ActorRef localServer = context.actorOf(ServerSideHandshakeActor.props(ttBaseActor, true, this));
 		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, "INIT_HANDOVER", "Requests init");		
 		base.addMethodNode(handshakeNode, n1, new InitHandover(n1, localServer)); 		
 		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, "START_HANDOVER", "Requests start");		

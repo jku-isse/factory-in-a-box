@@ -9,13 +9,13 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
-import fiab.opcua.hardwaremock.OPCUABase;
-import fiab.opcua.hardwaremock.StatePublisher;
 import fiab.opcua.hardwaremock.turntable.methods.TurningRequest;
 import fiab.opcua.hardwaremock.turntable.methods.TurningReset;
 import fiab.opcua.hardwaremock.turntable.methods.TurningStop;
+import fiab.opcua.server.OPCUABase;
 import stateMachines.turning.TurningStates;
 import stateMachines.turning.TurningTriggers;
 

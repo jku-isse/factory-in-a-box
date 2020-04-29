@@ -1,18 +1,18 @@
 package fiab.mes.machine.msg;
 
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 
 public class IOStationStatusUpdateEvent extends MachineUpdateEvent {
 	
-	protected ServerSide status;
+	protected ServerSideStates status;
 	
-	public IOStationStatusUpdateEvent(String machineId, String message, ServerSide status) {
-		super(machineId, "",  IOStationCapability.STATE_SERVERSIDE_VAR_NAME, message);
+	public IOStationStatusUpdateEvent(String machineId, String message, ServerSideStates status) {
+		super(machineId, "",  IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME, message);
 		this.status = status;
 	}
 	
-	public ServerSide getStatus() {
+	public ServerSideStates getStatus() {
 		return status;
 	}
 

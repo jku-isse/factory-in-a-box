@@ -9,11 +9,11 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.handshake.actor.ServerSideHandshakeActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.msg.MachineInWrongStateResponse;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.MockServerHandshakeActor;
 import fiab.mes.mockactors.plotter.MockMachineWrapper.MessageTypes;
 import static fiab.mes.shopfloor.GlobalTransitionDelaySingelton.*;
 
@@ -23,7 +23,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 	protected InterMachineEventBus interEventBus;
 	protected BasicMachineStates currentState = BasicMachineStates.STOPPING;
 	protected boolean doPublishState = false;
-	protected ServerSide handshakeStatus;
+	protected ServerSideStates handshakeStatus;
 	protected ActorRef serverSide;
 	protected ActorRef self;
 	
@@ -43,7 +43,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 		//serverSide = getContext().actorOf(MockServerHandshakeActor.props(getSelf(), doAutoComplete).withDispatcher(CallingThreadDispatcher.Id()), "ServerSideHandshakeMock");
 		if (!doLateBinding) {
 			boolean doAutoComplete = true;
-			serverSide = getContext().actorOf(MockServerHandshakeActor.props(getSelf(), doAutoComplete), "ServerSideHandshakeMock");
+			serverSide = getContext().actorOf(ServerSideHandshakeActor.props(getSelf(), doAutoComplete), "ServerSideHandshakeMock");
 			this.setAndPublishState(BasicMachineStates.STOPPED);
 		}
 	}	
@@ -77,7 +77,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
 						break;
 					}
 				})
-				.match(ServerSide.class, msg -> { // state event updates
+				.match(ServerSideStates.class, msg -> { // state event updates
 					log.info(String.format("Received %s from %s", msg, getSender()));
 					if (getSender().equals(serverSide)) {
 						handshakeStatus = msg;
@@ -141,7 +141,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
             @Override
             public void run() {
             	// only when handshakeFU and other FUs have stopped
-            	if (handshakeStatus.equals(ServerSide.STOPPED)) {
+            	if (handshakeStatus.equals(ServerSideStates.STOPPED)) {
             		transitionToStop();
             	}
             }
@@ -165,7 +165,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
             public void run() {
             	// we only transition when the pallet is loaded, e.g., the server handshake is completing or completed,
             	//sending of the complete() command (by the here nonexisting converyerFU when loaded) --> not necessary if we set serverside protocol actor to auto-complete
-            	if (handshakeStatus.equals(ServerSide.COMPLETE)) {
+            	if (handshakeStatus.equals(ServerSideStates.COMPLETE)) {
             		transitionStartingToExecute();
             	}
             }
@@ -194,7 +194,7 @@ public class MockTransportAwareMachineWrapper extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	if (handshakeStatus.equals(ServerSide.COMPLETE)) {
+            	if (handshakeStatus.equals(ServerSideStates.COMPLETE)) {
             		//only when the handshake is in completed are we good to continue, actually we only care about loadstate
             		transitionCompletingToComplete();
             	}

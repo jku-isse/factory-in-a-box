@@ -14,19 +14,16 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.mockactors.plotter.MockMachineWrapper;
 import fiab.mes.mockactors.plotter.MockTransportAwareMachineWrapper;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
-import fiab.opcua.hardwaremock.BaseOpcUaServer;
-import fiab.opcua.hardwaremock.NonEncryptionBaseOpcUaServer;
-import fiab.opcua.hardwaremock.OPCUABase;
 import fiab.opcua.hardwaremock.plotter.methods.PlotRequest;
 import fiab.opcua.hardwaremock.plotter.methods.Reset;
 import fiab.opcua.hardwaremock.plotter.methods.Stop;
+import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
+import fiab.opcua.server.OPCUABase;
 
 public class OPCUAPlotterRootActor extends AbstractActor {
 

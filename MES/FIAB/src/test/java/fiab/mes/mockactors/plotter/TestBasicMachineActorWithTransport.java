@@ -21,7 +21,7 @@ import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.ComparableCapability;
 import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
@@ -113,16 +113,16 @@ public class TestBasicMachineActorWithTransport {
 							boolean handshakeDone = false;
 							serverSide.tell(IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates, getRef());
 							while (!handshakeDone) {
-								ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
+								ServerSideStates state = expectMsgClass(Duration.ofSeconds(5), ServerSideStates.class);
 								switch(state) {
 								case IDLE_EMPTY:
 									serverSide.tell(IOStationCapability.ServerMessageTypes.RequestInitiateHandover, getRef());
-									expectMsg(Duration.ofSeconds(5), ServerSide.STARTING);
+									expectMsg(Duration.ofSeconds(5), ServerSideStates.STARTING);
 									expectMsg(Duration.ofSeconds(5), IOStationCapability.ServerMessageTypes.OkResponseInitHandover);
 									break;
 								case READY_EMPTY:
 									serverSide.tell(IOStationCapability.ServerMessageTypes.RequestStartHandover, getRef());
-									expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE);
+									expectMsg(Duration.ofSeconds(5), ServerSideStates.EXECUTE);
 									expectMsg(Duration.ofSeconds(5), IOStationCapability.ServerMessageTypes.OkResponseStartHandover);
 									serverSide.tell(IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates, getRef()); //otherwise the handshake events interfere with other expected events
 									handshakeDone = true; // part until where we need to be involved, thanks to autocomplete

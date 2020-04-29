@@ -12,8 +12,10 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.CallingThreadDispatcher;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSide;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.handshake.actor.ClientHandshakeActor;
+import fiab.handshake.actor.ServerSideHandshakeActor;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.order.OrderProcess;
 
@@ -45,26 +47,26 @@ public class TestHandshakeProtocol {
 		new TestKit(system) { 
 			{
 				boolean doAutoComplete = false;
-				ActorRef serverSide = system.actorOf(MockServerHandshakeActor.props(getRef(), doAutoComplete).withDispatcher(CallingThreadDispatcher.Id()), "ServerSide"); 
-				ActorRef clientSide = system.actorOf(MockClientHandshakeActor.props(getRef(), serverSide).withDispatcher(CallingThreadDispatcher.Id()), "ClientSide"); 
+				ActorRef serverSide = system.actorOf(ServerSideHandshakeActor.props(getRef(), doAutoComplete).withDispatcher(CallingThreadDispatcher.Id()), "ServerSide"); 
+				ActorRef clientSide = system.actorOf(ClientHandshakeActor.props(getRef(), serverSide).withDispatcher(CallingThreadDispatcher.Id()), "ClientSide"); 
 				
 				boolean serverDone = false;
 				boolean clientDone = false;
 				clientSide.tell(IOStationCapability.ClientMessageTypes.Reset, getRef());
 				serverSide.tell(IOStationCapability.ServerMessageTypes.Reset, getRef());
 				while (!(serverDone && clientDone)) {
-					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), ClientSide.class, ServerSide.class);
+					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), ClientSideStates.class, ServerSideStates.class);
 					logEvent(msg, getLastSender());
-					if (msg.equals(ClientSide.IDLE)) {
+					if (msg.equals(ClientSideStates.IDLE)) {
 						clientSide.tell(IOStationCapability.ClientMessageTypes.Start, getRef());
 					}
-					if (msg.equals(ServerSide.EXECUTE)) {
+					if (msg.equals(ServerSideStates.EXECUTE)) {
 						serverSide.tell(IOStationCapability.ServerMessageTypes.Complete, getRef());
 					}
-					if (msg.equals(ServerSide.COMPLETE)) {
+					if (msg.equals(ServerSideStates.COMPLETE)) {
 						serverDone = true;
 					}
-					if (msg.equals(ClientSide.COMPLETED)) {
+					if (msg.equals(ClientSideStates.COMPLETED)) {
 						clientDone = true;
 					}
 				}				

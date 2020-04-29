@@ -17,7 +17,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
@@ -32,9 +32,9 @@ import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.mockactors.iostation.MockIOStationFactory;
-import fiab.mes.opcua.OPCUAUtils;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
+import fiab.opcua.client.OPCUAClientFactory;
 
 class TestIOStationOPCUAWrapper {
 
@@ -56,7 +56,7 @@ class TestIOStationOPCUAWrapper {
 		NodeId resetMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/RESET");
 		NodeId stopMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STOP");
 		NodeId stateVar = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STATE");
-		OpcUaClient client = new OPCUAUtils().createClient("opc.tcp://localhost:4840/milo");
+		OpcUaClient client = new OPCUAClientFactory().createClient("opc.tcp://localhost:4840/milo");
 		client.connect().get();
 		boolean isInputStation = true;
 		capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
@@ -99,7 +99,7 @@ class TestIOStationOPCUAWrapper {
 							getLastSender().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());
 					}
 					if (te instanceof IOStationStatusUpdateEvent) {
-						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSide.IDLE_LOADED)) {
+						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 							doRun = false;
 						}
 					}

@@ -10,13 +10,14 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSide;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.handshake.actor.LocalEndpointStatus;
+import fiab.handshake.actor.LocalEndpointStatus.LocalClientEndpointStatus;
+import fiab.handshake.actor.LocalEndpointStatus.LocalServerEndpointStatus;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalClientEndpointStatus;
-import fiab.mes.mockactors.transport.LocalEndpointStatus.LocalServerEndpointStatus;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 public class NoOpTransportModuleWrapper extends AbstractActor{
@@ -50,10 +51,10 @@ public class NoOpTransportModuleWrapper extends AbstractActor{
 				.match(InternalTransportModuleRequest.class, req -> {
 					log.warning("Not supposed to get message of type: "+ req.toString());
 				})
-				.match(ServerSide.class, state -> {
+				.match(ServerSideStates.class, state -> {
 					// ignoring events from Handshake FUs
 				})
-				.match(ClientSide.class, state -> {										
+				.match(ClientSideStates.class, state -> {										
 					// ignoring events from Handshake FUs
 				})				
 				.build();
