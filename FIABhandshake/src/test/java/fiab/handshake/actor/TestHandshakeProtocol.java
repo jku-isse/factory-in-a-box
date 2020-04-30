@@ -1,4 +1,4 @@
-package fiab.mes.mockactors;
+package fiab.handshake.actor;
 
 import java.time.Duration;
 
@@ -12,18 +12,16 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.CallingThreadDispatcher;
 import akka.testkit.javadsl.TestKit;
+import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.ServerSideHandshakeActor;
-import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.mes.order.OrderProcess;
 
 public class TestHandshakeProtocol { 
 
 	protected static ActorSystem system;	
 	public static String ROOT_SYSTEM = "routes";
-	protected OrderProcess op;
 	
 	private static final Logger logger = LoggerFactory.getLogger(TestHandshakeProtocol.class);
 	
@@ -52,16 +50,16 @@ public class TestHandshakeProtocol {
 				
 				boolean serverDone = false;
 				boolean clientDone = false;
-				clientSide.tell(IOStationCapability.ClientMessageTypes.Reset, getRef());
-				serverSide.tell(IOStationCapability.ServerMessageTypes.Reset, getRef());
+				clientSide.tell(HandshakeCapability.ClientMessageTypes.Reset, getRef());
+				serverSide.tell(HandshakeCapability.ServerMessageTypes.Reset, getRef());
 				while (!(serverDone && clientDone)) {
 					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), ClientSideStates.class, ServerSideStates.class);
 					logEvent(msg, getLastSender());
 					if (msg.equals(ClientSideStates.IDLE)) {
-						clientSide.tell(IOStationCapability.ClientMessageTypes.Start, getRef());
+						clientSide.tell(HandshakeCapability.ClientMessageTypes.Start, getRef());
 					}
 					if (msg.equals(ServerSideStates.EXECUTE)) {
-						serverSide.tell(IOStationCapability.ServerMessageTypes.Complete, getRef());
+						serverSide.tell(HandshakeCapability.ServerMessageTypes.Complete, getRef());
 					}
 					if (msg.equals(ServerSideStates.COMPLETE)) {
 						serverDone = true;
