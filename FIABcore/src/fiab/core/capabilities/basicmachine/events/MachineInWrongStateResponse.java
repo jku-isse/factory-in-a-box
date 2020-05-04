@@ -1,4 +1,4 @@
-package fiab.mes.machine.msg;
+package fiab.core.capabilities.basicmachine.events;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -13,7 +13,7 @@ public class MachineInWrongStateResponse extends MachineStatusUpdateEvent {
 	
 	public MachineInWrongStateResponse(String machineId, String parameterName, String message,
 			BasicMachineStates status, Object request, BasicMachineStates... prerequisiteStates) {
-		super(machineId, null, parameterName, message, status);
+		super(machineId, parameterName, message, status);
 		states.addAll(Arrays.asList(prerequisiteStates));
 		this.request = request;
 	}

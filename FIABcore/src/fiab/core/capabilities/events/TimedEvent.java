@@ -1,4 +1,4 @@
-package fiab.mes.general;
+package fiab.core.capabilities.events;
 
 import java.time.Instant;
 import java.time.ZoneId;

@@ -1,4 +1,4 @@
-package fiab.mes.machine.msg;
+package fiab.core.capabilities.basicmachine.events;
 
 import fiab.core.capabilities.BasicMachineStates;
 
@@ -6,8 +6,8 @@ public class MachineStatusUpdateEvent extends MachineUpdateEvent {
 	
 	protected BasicMachineStates status;
 	
-	public MachineStatusUpdateEvent(String machineId, String nodeId, String parameterName, String message, BasicMachineStates status) {
-		super(machineId, nodeId, parameterName, message);
+	public MachineStatusUpdateEvent(String machineId, String parameterName, String message, BasicMachineStates status) {
+		super(machineId, parameterName, message);
 		this.status = status;
 	}
 	

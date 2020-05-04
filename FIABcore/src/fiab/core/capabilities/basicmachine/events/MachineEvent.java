@@ -1,8 +1,8 @@
-package fiab.mes.machine.msg;
+package fiab.core.capabilities.basicmachine.events;
 
 import java.time.ZonedDateTime;
 
-import fiab.mes.general.TimedEvent;
+import fiab.core.capabilities.events.TimedEvent;
 
 public class MachineEvent extends TimedEvent {
 	

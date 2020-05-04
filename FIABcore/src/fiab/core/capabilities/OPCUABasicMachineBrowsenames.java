@@ -5,5 +5,4 @@ public interface OPCUABasicMachineBrowsenames {
 		
 	public static final String STOP_REQUEST = "STOP";
 	public static final String RESET_REQUEST = "RESET";
-	
 }
