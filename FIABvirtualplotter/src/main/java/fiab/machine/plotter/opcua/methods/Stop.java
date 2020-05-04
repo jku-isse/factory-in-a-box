@@ -1,4 +1,4 @@
-package fiab.opcua.hardwaremock.plotter.methods;
+package fiab.machine.plotter.opcua.methods;
 
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-import fiab.mes.mockactors.plotter.MockMachineWrapper;
 
 import java.time.Duration;
 
@@ -39,7 +39,7 @@ public class Stop extends AbstractMethodInvocationHandler {
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
     	logger.debug("Invoking Stop() method of objectId={}", invocationContext.getObjectId());    	
-    	actor.tell(MockMachineWrapper.MessageTypes.Stop, ActorRef.noSender());
+    	actor.tell(PlotterMessageTypes.Stop, ActorRef.noSender());
     	return new Variant[0]; 	    	
     }	
     

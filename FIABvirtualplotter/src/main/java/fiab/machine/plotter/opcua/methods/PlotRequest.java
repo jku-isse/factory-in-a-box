@@ -1,4 +1,4 @@
-package fiab.opcua.hardwaremock.plotter.methods;
+package fiab.machine.plotter.opcua.methods;
 
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
@@ -13,10 +13,10 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
-import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.plotter.MockMachineWrapper;
 import static akka.pattern.Patterns.ask;
 
 import java.time.Duration;
@@ -69,7 +69,7 @@ public class PlotRequest extends AbstractMethodInvocationHandler {
 		try {
 			String capIdFrom = (String) inputValues[0].getValue();
 			// for now we ignore that we could have gotten a image id we don't support							
-			resp = ask(actor, MockMachineWrapper.MessageTypes.Plot, timeout).toCompletableFuture().get();
+			resp = ask(actor, PlotterMessageTypes.Plot, timeout).toCompletableFuture().get();
 			if (resp instanceof MachineStatusUpdateEvent) {
 				 resp = ((MachineStatusUpdateEvent) resp).getStatus();
 			}
