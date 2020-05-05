@@ -15,6 +15,7 @@ import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
+import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.server.methods.Complete;
 import fiab.handshake.fu.server.methods.InitHandover;
 import fiab.handshake.fu.server.methods.Reset;
@@ -24,7 +25,7 @@ import fiab.handshake.fu.server.methods.StartHandover;
 import fiab.handshake.fu.server.methods.Stop;
 import fiab.opcua.server.OPCUABase;
 
-public class ServerSideHandshakeFU implements StatePublisher{
+public class ServerSideHandshakeFU implements StatePublisher, HandshakeFU{
 
 	private static final Logger logger = LoggerFactory.getLogger(ServerSideHandshakeFU.class);
 	
@@ -52,6 +53,7 @@ public class ServerSideHandshakeFU implements StatePublisher{
 		setupOPCUANodeSet();
 	}
 	
+	@Override
 	public ActorRef getFUActor() {
 		return localClient;
 	}
@@ -102,6 +104,7 @@ public class ServerSideHandshakeFU implements StatePublisher{
 				new String(isProvided ? OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED : OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_REQUIRED));
 	}
 	
+	@Override
 	public void provideWiringInfo(WiringInfo info) throws Exception {
 		
 	}

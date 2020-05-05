@@ -22,6 +22,7 @@ import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
+import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.methods.Complete;
 import fiab.handshake.fu.client.methods.Reset;
 import fiab.handshake.fu.client.methods.Start;
@@ -30,7 +31,7 @@ import fiab.opcua.CapabilityImplInfo;
 import fiab.opcua.client.OPCUAClientFactory;
 import fiab.opcua.server.OPCUABase;
 
-public class ClientSideHandshakeFU implements StatePublisher{
+public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU{
 
 	private static final Logger logger = LoggerFactory.getLogger(ClientSideHandshakeFU.class);
 	
@@ -105,6 +106,7 @@ public class ClientSideHandshakeFU implements StatePublisher{
 		
 	}
 	
+	@Override
 	public void provideWiringInfo(WiringInfo info) throws Exception {
 		
 		// process wiring info --> create new opcua client, and recreate wrapper actor
@@ -185,5 +187,11 @@ public class ClientSideHandshakeFU implements StatePublisher{
 		if(status != null) {
 			status.setValue(new DataValue(new Variant(newStatus)));
 		}
+	}
+
+
+	@Override
+	public ActorRef getFUActor() {
+		return localClient;
 	}
 }
