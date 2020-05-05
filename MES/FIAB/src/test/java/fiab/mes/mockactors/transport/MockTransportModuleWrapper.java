@@ -15,20 +15,19 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalClientEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalServerEndpointStatus;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 public class MockTransportModuleWrapper extends AbstractActor{
@@ -98,7 +97,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 				})
 				.match(InternalTransportModuleRequest.class, req -> {
 					if (currentState.equals(BasicMachineStates.IDLE)) {
-						sender().tell(new MachineStatusUpdateEvent(self.path().name(), null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", BasicMachineStates.STARTING), self);
+						sender().tell(new MachineStatusUpdateEvent(self.path().name(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", BasicMachineStates.STARTING), self);
 		        		startTransport(req);
 					} else {
 		        		log.warning("Received TransportModuleRequest in incompatible state: "+currentState);
@@ -156,7 +155,7 @@ public class MockTransportModuleWrapper extends AbstractActor{
 		//log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
 		this.currentState = newState;
 		if (doPublishState) {
-			interEventBus.publish(new MachineStatusUpdateEvent(self.path().name(), null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState));
+			interEventBus.publish(new MachineStatusUpdateEvent(self.path().name(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState));
 		}
 	}
 	

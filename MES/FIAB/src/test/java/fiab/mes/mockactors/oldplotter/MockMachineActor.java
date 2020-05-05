@@ -15,14 +15,13 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
-import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 
 
@@ -85,7 +84,7 @@ public class MockMachineActor extends AbstractActor{
 	private void setAndPublishNewState(BasicMachineStates newState) {
 		log.debug(String.format("%s sets state from %s to %s", this.machine.getId(), this.currentState, newState));
 		this.currentState = newState;
-		eventBusByRef.tell(new MachineStatusUpdateEvent(machine.getId(), null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState), self());
+		eventBusByRef.tell(new MachineStatusUpdateEvent(machine.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState), self());
 	}
 	
 	private void checkIfAvailableForNextOrder() {

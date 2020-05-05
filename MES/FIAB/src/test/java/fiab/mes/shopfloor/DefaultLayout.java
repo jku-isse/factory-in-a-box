@@ -15,13 +15,13 @@ import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdenti
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
+import fiab.machine.plotter.MockTransportAwareMachineWrapper;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
-import fiab.mes.mockactors.iostation.MockIOStationFactory;
+import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.mes.mockactors.plotter.MockPlottingMachineWrapperDelegate;
-import fiab.mes.mockactors.plotter.MockTransportAwareMachineWrapper;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
 import fiab.mes.mockactors.transport.TestMockTransportModuleActor;
@@ -33,8 +33,8 @@ import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Positi
 public class DefaultLayout {
 
 	public ActorSystem system;
-	public MockIOStationFactory partsIn;
-	public MockIOStationFactory partsOut;
+	public VirtualIOStationActorFactory partsIn;
+	public VirtualIOStationActorFactory partsOut;
 	
 	public static final boolean engageAutoReload = true;
 	public static final boolean disengageAutoReload = false;
@@ -46,13 +46,13 @@ public class DefaultLayout {
 	public void setupTwoTurntableWith2MachinesAndIO() throws InterruptedException, ExecutionException {
 		final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		
-		partsIn = MockIOStationFactory.getMockedInputStation(system, eventBusByRef, engageAutoReload, 34);
-		partsOut = MockIOStationFactory.getMockedOutputStation(system, eventBusByRef, engageAutoReload, 35);
+		partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, engageAutoReload, 34);
+		partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, engageAutoReload, 35);
 		// now add to ttWrapper client Handshake actors
-		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+MockIOStationFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
+		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
 		Thread.sleep(500);
 		ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+MockIOStationFactory.WRAPPER_POSTFIX+"/OutputStationServerSideHandshakeMock");
+		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/OutputStationServerSideHandshakeMock");
 		Thread.sleep(500);
 		ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 	

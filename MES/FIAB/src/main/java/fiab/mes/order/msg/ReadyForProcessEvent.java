@@ -2,7 +2,7 @@ package fiab.mes.order.msg;
 
 import java.util.Optional;
 
-import fiab.mes.general.TimedEvent;
+import fiab.core.capabilities.events.TimedEvent;
 
 public class ReadyForProcessEvent extends TimedEvent {
 	RegisterProcessStepRequest responseTo;

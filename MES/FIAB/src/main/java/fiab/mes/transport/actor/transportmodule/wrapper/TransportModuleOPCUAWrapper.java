@@ -8,8 +8,8 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
@@ -43,7 +43,7 @@ public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements
 			try {
 				BasicMachineStates state = BasicMachineStates.valueOf(stateAsString);
 				if (this.intraMachineBus != null) {
-					intraMachineBus.publish(new MachineStatusUpdateEvent("", null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "TransportModule published new State", state));
+					intraMachineBus.publish(new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "TransportModule published new State", state));
 				}
 			} catch (java.lang.IllegalArgumentException e) {
 				logger.error("Received Unknown State: "+e.getMessage());

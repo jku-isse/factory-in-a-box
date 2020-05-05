@@ -1,7 +1,5 @@
 package fiab.mes.opcuawrappers;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.Duration;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -17,23 +15,21 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.machine.actor.iostation.wrapper.IOStationOPCUAWrapper;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.iostation.MockIOStationFactory;
-import fiab.mes.planer.msg.PlanerStatusMessage;
-import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
+import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.opcua.client.OPCUAClientFactory;
 
 class TestIOStationOPCUAWrapper {
@@ -63,7 +59,7 @@ class TestIOStationOPCUAWrapper {
 		intraEventBus = new InterMachineEventBus();
 		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar);
-		model = MockIOStationFactory.getDefaultIOStationActor(isInputStation, 34);
+		model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, 34);
 		
 
 	}

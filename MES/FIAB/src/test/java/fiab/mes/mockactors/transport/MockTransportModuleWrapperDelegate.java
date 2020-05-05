@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 

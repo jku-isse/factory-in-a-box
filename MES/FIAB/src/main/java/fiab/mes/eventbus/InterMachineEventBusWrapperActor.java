@@ -4,10 +4,7 @@ import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.general.TimedEvent;
-import fiab.mes.machine.msg.GenericMachineRequests;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.order.msg.OrderEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
 
 public class InterMachineEventBusWrapperActor extends AbstractActor {
 

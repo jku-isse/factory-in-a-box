@@ -1,6 +1,8 @@
 package fiab.mes.machine.msg;
 
-import fiab.mes.machine.msg.MachineEvent.MachineEventType;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent.MachineEventType;
+import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 
 public class MachineEventWrapper {
 
@@ -21,7 +23,7 @@ public class MachineEventWrapper {
 		this.timestamp = e.getTimestamp().toString();
 		if (e instanceof MachineUpdateEvent) {
 			MachineUpdateEvent mue = (MachineUpdateEvent)e;
-			this.nodeId = mue.getNodeId();
+			this.nodeId = "";
 			this.parameterName = mue.getParameterName();
 			this.newValue = mue.getValue().toString();
 		}

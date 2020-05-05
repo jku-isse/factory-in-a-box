@@ -1,10 +1,9 @@
 package fiab.mes.mockactors.transport.coordinator;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.AfterClass;
@@ -20,6 +19,8 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.handshake.actor.ClientHandshakeActor;
@@ -30,28 +31,20 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.iostation.MockIOStationFactory;
-import fiab.mes.mockactors.oldplotter.TestMockMachineActor;
+import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
 import fiab.mes.mockactors.transport.TestMockTransportModuleActor;
-import fiab.mes.order.OrderProcess;
-import fiab.mes.order.msg.OrderEvent;
-import fiab.mes.order.msg.OrderProcessUpdateEvent;
-import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
-import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
-import fiab.mes.order.msg.OrderEvent.OrderEventType;
 
 class TestTransportSystemCoordinatorActor {
 
@@ -64,8 +57,8 @@ class TestTransportSystemCoordinatorActor {
 	protected static ActorRef coordActor;
 	HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
 	TransportPositionLookup dns = new TransportPositionLookup();
-	static MockIOStationFactory partsIn;
-	static MockIOStationFactory partsOut;
+	static VirtualIOStationActorFactory partsIn;
+	static VirtualIOStationActorFactory partsOut;
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 	
 	private static boolean engageAutoReload = true;
@@ -132,12 +125,12 @@ class TestTransportSystemCoordinatorActor {
 	private void setupTwoTurntableWithIOShopfloor() throws InterruptedException, ExecutionException {
 		final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		
-		partsIn = MockIOStationFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 34);
-		partsOut = MockIOStationFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);
+		partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 34);
+		partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);
 		// now add to ttWrapper client Handshake actors
-		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+MockIOStationFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
+		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
 		ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+MockIOStationFactory.WRAPPER_POSTFIX+"/OutputStationServerSideHandshakeMock");
+		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/OutputStationServerSideHandshakeMock");
 		ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 	
 		// setup turntable1
@@ -193,12 +186,12 @@ class TestTransportSystemCoordinatorActor {
 	private void setupSingleTurntableWithIOShopfloor() throws InterruptedException, ExecutionException {
 		final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		
-		partsIn = MockIOStationFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 20);
-		partsOut = MockIOStationFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);
+		partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 20);
+		partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);
 		// now add to ttWrapper client Handshake actors
-		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+MockIOStationFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
+		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
 		ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+MockIOStationFactory.WRAPPER_POSTFIX+"/OutputStationServerSideHandshakeMock");
+		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/OutputStationServerSideHandshakeMock");
 		ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();			
 		
 		// setup turntable 2

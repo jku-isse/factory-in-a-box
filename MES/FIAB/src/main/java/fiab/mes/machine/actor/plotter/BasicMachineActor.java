@@ -23,25 +23,24 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.machine.plotter.IntraMachineEventBus;
+import fiab.machine.plotter.SubscriptionClassifier;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
-import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.machine.msg.GenericMachineRequests.Reset;
 import fiab.mes.machine.msg.GenericMachineRequests.Stop;
+import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ProcessRequestException;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
-import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 
 
@@ -53,7 +52,7 @@ public class BasicMachineActor extends AbstractActor{
 	protected AbstractCapability cap;
 	protected BasicMachineStates currentState;
 	protected PlottingMachineWrapperInterface hal;
-	protected InterMachineEventBus intraBus;
+	protected IntraMachineEventBus intraBus;
 	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	private String lastOrder;
@@ -64,11 +63,11 @@ public class BasicMachineActor extends AbstractActor{
 	//private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
 	
-	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, InterMachineEventBus intraBus) {	    
+	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {	    
 		return Props.create(BasicMachineActor.class, () -> new BasicMachineActor(machineEventBus, cap, modelActor, hal, intraBus));
 	}
 	
-	public BasicMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, InterMachineEventBus intraBus) {
+	public BasicMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {
 		this.cap = cap;
 		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;
@@ -188,7 +187,7 @@ public class BasicMachineActor extends AbstractActor{
 		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, lastOrder);
 		log.debug(msg);
 		this.currentState = newState;
-		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
+		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
 		tellEventBus(mue);
 	}
 	

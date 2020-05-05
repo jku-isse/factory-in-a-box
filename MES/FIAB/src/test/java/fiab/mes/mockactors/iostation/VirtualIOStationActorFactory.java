@@ -1,7 +1,5 @@
 package fiab.mes.mockactors.iostation;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
@@ -10,16 +8,15 @@ import akka.actor.ActorSystem;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
-import fiab.mes.mockactors.plotter.MockMachineWrapper;
 
-public class MockIOStationFactory {
+public class VirtualIOStationActorFactory {
 
-	public static MockIOStationFactory getMockedInputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
-		return new MockIOStationFactory(system, true, eventBusByRef, doAutoReload, ipId);
+	public static VirtualIOStationActorFactory getMockedInputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
+		return new VirtualIOStationActorFactory(system, true, eventBusByRef, doAutoReload, ipId);
 	}
 	
-	public static MockIOStationFactory getMockedOutputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
-		return new MockIOStationFactory(system, false, eventBusByRef, doAutoReload, ipId);
+	public static VirtualIOStationActorFactory getMockedOutputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
+		return new VirtualIOStationActorFactory(system, false, eventBusByRef, doAutoReload, ipId);
 	}
 
 	
@@ -32,7 +29,7 @@ public class MockIOStationFactory {
 	public Actor model;
 	//private static AtomicInteger actorCount = new AtomicInteger();
 	
-	private MockIOStationFactory(ActorSystem system, boolean isInputStation, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
+	private VirtualIOStationActorFactory(ActorSystem system, boolean isInputStation, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
 		model = getDefaultIOStationActor(isInputStation, ipId);
 		intraEventBus = new InterMachineEventBus();
 		wrapper = system.actorOf(MockIOStationWrapper.props(intraEventBus, isInputStation, doAutoReload), model.getActorName()+WRAPPER_POSTFIX);

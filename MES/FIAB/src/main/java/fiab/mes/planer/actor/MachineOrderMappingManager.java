@@ -1,9 +1,7 @@
 package fiab.mes.planer.actor;
 
-import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,17 +16,15 @@ import ProcessCore.ProcessStep;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.order.msg.OrderEvent.OrderEventType;
-import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus.AssignmentState;
-import fiab.mes.order.OrderProcess;
 import fiab.mes.order.msg.OrderEvent;
+import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.order.msg.RegisterProcessRequest;
+import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus.AssignmentState;
 
 public class MachineOrderMappingManager {
 

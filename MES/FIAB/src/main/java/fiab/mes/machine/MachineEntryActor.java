@@ -1,6 +1,5 @@
 package fiab.mes.machine;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -11,6 +10,7 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
@@ -18,7 +18,6 @@ import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.GenericMachineRequests.BaseRequest;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
-import fiab.mes.machine.msg.MachineEvent;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 
 public class MachineEntryActor extends AbstractActor {

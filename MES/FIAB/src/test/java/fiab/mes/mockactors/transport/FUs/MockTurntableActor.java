@@ -1,5 +1,7 @@
 package fiab.mes.mockactors.transport.FUs;
 
+import static fiab.turntable.turning.TurningStates.STOPPED;
+
 import java.time.Duration;
 
 import com.github.oxo42.stateless4j.StateMachine;
@@ -12,13 +14,11 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.msg.GenericMachineRequests;
+import fiab.turntable.turning.TurningStateMachineConfig;
+import fiab.turntable.turning.TurningStates;
+import fiab.turntable.turning.TurningTriggers;
+import fiab.turntable.turning.TurntableStatusUpdateEvent;
 import stateMachines.turning.TurnRequest;
-import stateMachines.turning.TurningStateMachineConfig;
-import stateMachines.turning.TurningStates;
-import stateMachines.turning.TurningTriggers;
-import stateMachines.turning.TurntableStatusUpdateEvent;
-
-import static stateMachines.turning.TurningStates.*;
 
 public class MockTurntableActor extends AbstractActor{
 

@@ -1,5 +1,7 @@
 package fiab.mes.mockactors.transport.FUs;
 
+import static fiab.turntable.conveying.ConveyorStates.STOPPED;
+
 import java.time.Duration;
 
 import com.github.oxo42.stateless4j.StateMachine;
@@ -11,12 +13,10 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
 import fiab.mes.eventbus.InterMachineEventBus;
-import stateMachines.conveyor.ConveyorStateMachineConfig;
-import stateMachines.conveyor.ConveyorStates;
-import stateMachines.conveyor.ConveyorStatusUpdateEvent;
-import stateMachines.conveyor.ConveyorTriggers;
-
-import static stateMachines.conveyor.ConveyorStates.*;
+import fiab.turntable.conveying.ConveyorStateMachineConfig;
+import fiab.turntable.conveying.ConveyorStates;
+import fiab.turntable.conveying.ConveyorStatusUpdateEvent;
+import fiab.turntable.conveying.ConveyorTriggers;
 
 public class MockConveyorActor extends AbstractActor{
 

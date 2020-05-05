@@ -16,23 +16,23 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapper;
-import fiab.mes.mockactors.transport.NoOpTransportModuleWrapper;
-import fiab.mes.mockactors.transport.FUs.MockConveyorActor;
-import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.opcua.hardwaremock.BaseOpcUaServer;
-import fiab.opcua.hardwaremock.turntable.methods.Reset;
-import fiab.opcua.hardwaremock.turntable.methods.Stop;
-import fiab.opcua.hardwaremock.turntable.methods.TransportRequest;
 import fiab.opcua.server.OPCUABase;
+import fiab.turntable.actor.NoOpTransportModuleCoordinator;
+import fiab.turntable.conveying.fu.opcua.ConveyingFU;
+import fiab.turntable.opcua.methods.Reset;
+import fiab.turntable.opcua.methods.Stop;
+import fiab.turntable.opcua.methods.TransportRequest;
+import fiab.turntable.turning.fu.opcua.TurningFU;
 
 public class OPCUATurntableRootActor extends AbstractActor {
 
@@ -100,7 +100,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
 			ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
 			//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 		} else {
-			ttWrapper = context().actorOf(NoOpTransportModuleWrapper.props(), "NoOpTT1");
+			ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT1");
 			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext());
 			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext());
 		}

@@ -1,7 +1,5 @@
 package fiab.mes.mockactors.stopOrReset;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
@@ -14,35 +12,26 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ActorCoreModel.Actor;
-import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.events.TimedEvent;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.oldplotter.MockMachineActor;
-import fiab.mes.mockactors.oldplotter.TestMockMachineActor;
 import fiab.mes.order.OrderProcess;
-import fiab.mes.order.OrderProcess.StepStatusEnum;
 import fiab.mes.order.ecore.ProduceProcess;
-import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
-import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
+import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;

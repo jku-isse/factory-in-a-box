@@ -2,7 +2,6 @@ package fiab.mes.opcua;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
-import akka.actor.Props;
 import fiab.opcua.CapabilityImplInfo;
 
 public interface CapabilityCentricActorSpawnerInterface {

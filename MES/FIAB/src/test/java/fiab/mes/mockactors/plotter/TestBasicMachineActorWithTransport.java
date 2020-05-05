@@ -1,7 +1,6 @@
 package fiab.mes.mockactors.plotter;
 
 import java.time.Duration;
-import java.util.HashMap;
 
 import org.junit.AfterClass;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,41 +11,30 @@ import org.slf4j.LoggerFactory;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
-import ProcessCore.CapabilityInvocation;
-import ProcessCore.ProcessCoreFactory;
 import ProcessCore.ProcessStep;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.ComparableCapability;
 import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.machine.plotter.IntraMachineEventBus;
+import fiab.machine.plotter.SubscriptionClassifier;
+import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.eventbus.OrderEventBusWrapperActor;
-import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.general.TimedEvent;
-import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.mockactors.oldplotter.MockMachineActor;
 import fiab.mes.order.OrderProcess;
-import fiab.mes.order.OrderProcess.ProcessChangeImpact;
-import fiab.mes.order.OrderProcess.StepStatusEnum;
 import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.LockForOrder;
-import fiab.mes.order.msg.OrderEvent;
-import fiab.mes.order.msg.OrderEvent.OrderEventType;
-import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.shopfloor.DefaultLayout;
@@ -89,9 +77,9 @@ public class TestBasicMachineActorWithTransport {
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
 				//eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				
-				InterMachineEventBus intraEventBus = new InterMachineEventBus();
+				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
-				ActorRef machineWrapper = system.actorOf(MockTransportAwareMachineWrapper.props(intraEventBus), "MachineWrapper1");
+				ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper1");
 				ActorSelection serverSide = system.actorSelection("/user/MachineWrapper1/ServerSideHandshakeMock");
 				PlottingMachineWrapperInterface wrapperDelegate = new MockPlottingMachineWrapperDelegate(machineWrapper);
 				machine = system.actorOf(BasicMachineActor.props(eventBusByRef, cap, modelActor, wrapperDelegate, intraEventBus));

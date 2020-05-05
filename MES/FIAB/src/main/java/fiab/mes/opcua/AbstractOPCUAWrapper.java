@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.actor.iostation.wrapper.IOStationOPCUAWrapper;
 
 public abstract class AbstractOPCUAWrapper {
 

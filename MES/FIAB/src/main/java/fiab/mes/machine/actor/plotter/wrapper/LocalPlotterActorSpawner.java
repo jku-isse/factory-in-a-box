@@ -21,7 +21,7 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
@@ -76,7 +76,7 @@ public class LocalPlotterActorSpawner extends AbstractActor {
 		Optional<SupportedColors> color = extractColor(info.getCapabilityURI());
 		if (color.isPresent()) {
 			AbstractCapability capability = WellknownPlotterCapability.getColorPlottingCapability(color.get());
-			InterMachineEventBus intraEventBus = new InterMachineEventBus();
+			IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 			Position selfPos = resolvePosition(info);
 			final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 			PlotterOPCUAWrapper hal = new PlotterOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.plotMethod);

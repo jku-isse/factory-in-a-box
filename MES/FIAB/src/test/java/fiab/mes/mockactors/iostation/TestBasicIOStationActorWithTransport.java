@@ -12,11 +12,11 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.general.TimedEvent;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 
@@ -47,7 +47,7 @@ public class TestBasicIOStationActorWithTransport {
 		new TestKit(system) { 
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				MockIOStationFactory parts = MockIOStationFactory.getMockedInputStation(system, eventBusByRef,false, 34);
+				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef,false, 34);
 				// we subscribe to the intereventbus to observe basic io station behavior
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				//eventBusByRef.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
@@ -69,7 +69,7 @@ public class TestBasicIOStationActorWithTransport {
 		new TestKit(system) { 
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				MockIOStationFactory parts = MockIOStationFactory.getMockedOutputStation(system, eventBusByRef, false, 35);
+				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, false, 35);
 				// we subscribe to the intereventbus to observe basic io station behavior
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
 				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class));

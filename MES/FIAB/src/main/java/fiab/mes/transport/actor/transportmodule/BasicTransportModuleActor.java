@@ -1,14 +1,8 @@
 package fiab.mes.transport.actor.transportmodule;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import com.google.common.collect.Sets;
-import com.sun.xml.bind.v2.WellKnownNamespace;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
@@ -20,23 +14,16 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
-import fiab.mes.machine.msg.GenericMachineRequests.BaseRequest;
 import fiab.mes.machine.msg.GenericMachineRequests.Reset;
 import fiab.mes.machine.msg.GenericMachineRequests.Stop;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.order.msg.LockForOrder;
-import fiab.mes.order.msg.ReadyForProcessEvent;
-import fiab.mes.order.msg.RegisterProcessStepRequest;
-import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
@@ -176,7 +163,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 		log.debug(msg);
 		if (currentState != newState) {
 			this.currentState = newState;
-			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
+			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
 			tellEventBus(mue);
 		}
 	}

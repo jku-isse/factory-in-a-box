@@ -1,30 +1,16 @@
 package fiab.mes.mockactors.plotter;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
-import ActorCoreModel.Actor;
-import ProcessCore.AbstractCapability;
 import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.order.msg.LockForOrder;
-import fiab.mes.order.msg.ReadyForProcessEvent;
-import fiab.mes.order.msg.RegisterProcessStepRequest;
-import fiab.mes.planer.actor.MachineOrderMappingManager;
 
 
 public class MockMachineWrapper extends AbstractActor{
@@ -46,7 +32,7 @@ public class MockMachineWrapper extends AbstractActor{
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(MessageTypes.class, msg -> {
+				.match(PlotterMessageTypes.class, msg -> {
 					switch(msg) {
 					case SubscribeState: 
 						doPublishState = true;
@@ -119,7 +105,7 @@ public class MockMachineWrapper extends AbstractActor{
 		//log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
 		this.currentState = newState;
 		if (doPublishState) {
-			interEventBus.publish(new MachineStatusUpdateEvent("", null, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState));
+			interEventBus.publish(new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState));
 		}
 	}
 	
@@ -185,10 +171,5 @@ public class MockMachineWrapper extends AbstractActor{
             	reset(); // we automatically reset
             }
           }, context().system().dispatcher());
-	}
-	
-	
-	public static enum MessageTypes {
-		SubscribeState, Reset, Plot, Stop
 	}
 }

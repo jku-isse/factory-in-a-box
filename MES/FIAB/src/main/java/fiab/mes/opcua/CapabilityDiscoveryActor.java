@@ -1,5 +1,14 @@
 package fiab.mes.opcua;
 
+import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
+import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY;
+import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.ID;
+import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE;
+import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED;
+import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_REQUIRED;
+import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE;
+import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
@@ -31,9 +40,6 @@ import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.opcua.CapabilityImplInfo;
 import fiab.opcua.client.ClientKeyStoreLoader;
 import fiab.opcua.client.OPCUAClientFactory;
-
-import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames.*;
-import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class CapabilityDiscoveryActor extends AbstractActor {
 

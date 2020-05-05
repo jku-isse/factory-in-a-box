@@ -1,7 +1,6 @@
 package fiab.mes.transport.actor.transportsystem;
 
 import java.util.AbstractMap;
-import java.util.AbstractSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,12 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.transport.TransportModuleCapability;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.planer.actor.MachineCapabilityManager;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
 import fiab.mes.transport.actor.transportsystem.TransportModuleUsageTracker.TransportModuleOrderMappingStatus.AllocationState;
