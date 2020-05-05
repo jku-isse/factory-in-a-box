@@ -16,6 +16,7 @@ import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
@@ -75,7 +76,7 @@ public class OPCUAPlotterRootActor extends AbstractActor {
 		plotterCoordinator = context().actorOf(VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus), machineName);
 		plotterCoordinator.tell(PlotterMessageTypes.SubscribeState, getSelf());
 		
-		ServerSideHandshakeFU defaultHandshakeFU = new ServerSideHandshakeFU(opcuaBase, root, fuPrefix, plotterCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+		HandshakeFU defaultHandshakeFU = new ServerSideHandshakeFU(opcuaBase, root, fuPrefix, plotterCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
 		//ActorRef serverSide = defaultHandshakeFU.getFUActor();
 		//		.setupOPCUANodeSet(plotterWrapper, opcuaBase, ttNode, fuPrefix, getContext());
 		//plotterCoordinator.tell(serverSide, getSelf());

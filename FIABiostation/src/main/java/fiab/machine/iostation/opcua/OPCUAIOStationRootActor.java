@@ -18,7 +18,7 @@ import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.handshake.actor.LocalEndpointStatus;
-import fiab.handshake.fu.server.ServerSideHandshakeFU;
+import fiab.handshake.fu.HandshakeFU;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
 
@@ -29,7 +29,7 @@ public class OPCUAIOStationRootActor extends AbstractActor {
 	private String machineName = "IO";
 	static final String NAMESPACE_URI = "urn:factory-in-a-box";	
 	private UaVariableNode statusIOS = null;
-	private ServerSideHandshakeFU fu;
+	private HandshakeFU fu;
 	protected ActorRef self;
 	boolean isInputStation;
 	boolean doAutoReload;
