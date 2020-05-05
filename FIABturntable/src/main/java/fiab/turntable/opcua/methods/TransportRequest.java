@@ -1,4 +1,9 @@
-package fiab.opcua.hardwaremock.turntable.methods;
+package fiab.turntable.opcua.methods;
+
+import static akka.pattern.Patterns.ask;
+
+import java.time.Duration;
+import java.util.concurrent.ExecutionException;
 
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
@@ -13,13 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.BasicMachineStates;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
-
-import static akka.pattern.Patterns.ask;
-
-import java.time.Duration;
-import java.util.concurrent.ExecutionException;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.turntable.actor.InternalTransportModuleRequest;
 
 public class TransportRequest extends AbstractMethodInvocationHandler {
 

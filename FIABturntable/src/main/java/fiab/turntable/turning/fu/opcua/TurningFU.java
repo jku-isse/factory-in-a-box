@@ -1,4 +1,4 @@
-package fiab.opcua.hardwaremock.turntable;
+package fiab.turntable.turning.fu.opcua;
 
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
@@ -11,13 +11,13 @@ import akka.actor.ActorRef;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
-import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
-import fiab.opcua.hardwaremock.turntable.methods.TurningRequest;
-import fiab.opcua.hardwaremock.turntable.methods.TurningReset;
-import fiab.opcua.hardwaremock.turntable.methods.TurningStop;
 import fiab.opcua.server.OPCUABase;
-import stateMachines.turning.TurningStates;
-import stateMachines.turning.TurningTriggers;
+import fiab.turntable.turning.TurningStates;
+import fiab.turntable.turning.TurningTriggers;
+import fiab.turntable.turning.TurntableActor;
+import fiab.turntable.turning.fu.opcua.methods.TurningRequest;
+import fiab.turntable.turning.fu.opcua.methods.TurningReset;
+import fiab.turntable.turning.fu.opcua.methods.TurningStop;
 
 public class TurningFU implements StatePublisher{
 
@@ -46,7 +46,7 @@ public class TurningFU implements StatePublisher{
 		String path = fuPrefix + "/TURNING_FU";
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "TURNING_FU");	
 
-		ActorRef turningActor = context.actorOf(MockTurntableActor.props(null, this), "TT1-TurningFU");
+		ActorRef turningActor = context.actorOf(TurntableActor.props(null, this), "TurningFU");
 
 		status = base.generateStringVariableNode(handshakeNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, TurningStates.STOPPED);
 

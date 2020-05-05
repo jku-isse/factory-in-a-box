@@ -1,4 +1,6 @@
-package fiab.opcua.hardwaremock.turntable.methods;
+package fiab.turntable.opcua.methods;
+
+import java.time.Duration;
 
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
@@ -10,8 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-
-import java.time.Duration;
 
 public class Reset extends AbstractMethodInvocationHandler {
 

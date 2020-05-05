@@ -1,4 +1,6 @@
-package fiab.opcua.hardwaremock.turntable.methods;
+package fiab.turntable.turning.fu.opcua.methods;
+
+import java.time.Duration;
 
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
@@ -12,19 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability;
-import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.mockactors.plotter.MockMachineWrapper;
-import stateMachines.turning.TurnRequest;
-import stateMachines.turning.TurnTableOrientation;
-import stateMachines.turning.TurningTriggers;
-
-import static akka.pattern.Patterns.ask;
-
-import java.time.Duration;
-import java.util.concurrent.ExecutionException;
+import fiab.turntable.turning.TurnTableOrientation;
 
 public class TurningRequest extends AbstractMethodInvocationHandler {
 
@@ -65,7 +55,7 @@ public class TurningRequest extends AbstractMethodInvocationHandler {
 		try {
 			int pos = (Integer) inputValues[0].getValue();
 			// for now we ignore that we could have gotten a image id we don't support							
-			actor.tell(new TurnRequest(TurnTableOrientation.createFromInt(pos)), ActorRef.noSender());
+			actor.tell(new fiab.turntable.turning.TurnRequest(TurnTableOrientation.createFromInt(pos)), ActorRef.noSender());
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}    	        

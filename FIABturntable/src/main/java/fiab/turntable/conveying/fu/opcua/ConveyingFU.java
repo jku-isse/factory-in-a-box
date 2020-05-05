@@ -1,4 +1,4 @@
-package fiab.opcua.hardwaremock.turntable;
+package fiab.turntable.conveying.fu.opcua;
 
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
@@ -11,20 +11,14 @@ import akka.actor.ActorRef;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
-import fiab.mes.mockactors.transport.FUs.MockConveyorActor;
-import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
-import fiab.opcua.hardwaremock.turntable.methods.ConveyingLoad;
-import fiab.opcua.hardwaremock.turntable.methods.ConveyingReset;
-import fiab.opcua.hardwaremock.turntable.methods.ConveyingStop;
-import fiab.opcua.hardwaremock.turntable.methods.ConveyingUnload;
-import fiab.opcua.hardwaremock.turntable.methods.TurningRequest;
-import fiab.opcua.hardwaremock.turntable.methods.TurningReset;
-import fiab.opcua.hardwaremock.turntable.methods.TurningStop;
 import fiab.opcua.server.OPCUABase;
-import stateMachines.conveyor.ConveyorStates;
-import stateMachines.conveyor.ConveyorTriggers;
-import stateMachines.turning.TurningStates;
-import stateMachines.turning.TurningTriggers;
+import fiab.turntable.conveying.ConveyorActor;
+import fiab.turntable.conveying.ConveyorStates;
+import fiab.turntable.conveying.ConveyorTriggers;
+import fiab.turntable.conveying.fu.opcua.methods.ConveyingLoad;
+import fiab.turntable.conveying.fu.opcua.methods.ConveyingReset;
+import fiab.turntable.conveying.fu.opcua.methods.ConveyingStop;
+import fiab.turntable.conveying.fu.opcua.methods.ConveyingUnload;
 
 public class ConveyingFU implements StatePublisher{
 
@@ -53,7 +47,7 @@ public class ConveyingFU implements StatePublisher{
 		String path = fuPrefix + "/CONVEYING_FU";
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "CONVEYING_FU");	
 
-		ActorRef turningActor = context.actorOf(MockConveyorActor.props(null, this), "TT1-ConveyingFU");
+		ActorRef turningActor = context.actorOf(ConveyorActor.props(null, this), "TT1-ConveyingFU");
 
 		status = base.generateStringVariableNode(handshakeNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, ConveyorStates.STOPPED);
 

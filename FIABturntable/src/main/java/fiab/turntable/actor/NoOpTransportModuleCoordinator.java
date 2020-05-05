@@ -1,8 +1,9 @@
-package fiab.mes.mockactors.transport;
+package fiab.turntable.actor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
@@ -17,10 +18,8 @@ import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdenti
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalClientEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalServerEndpointStatus;
-import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
-public class NoOpTransportModuleWrapper extends AbstractActor{
+public class NoOpTransportModuleCoordinator extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected ActorRef self;
@@ -28,10 +27,10 @@ public class NoOpTransportModuleWrapper extends AbstractActor{
 	protected HandshakeEndpointInfo eps;
 	
 	static public Props props() {	    
-		return Props.create(NoOpTransportModuleWrapper.class, () -> new NoOpTransportModuleWrapper());
+		return Props.create(NoOpTransportModuleCoordinator.class, () -> new NoOpTransportModuleCoordinator());
 	}
 	
-	public NoOpTransportModuleWrapper() {
+	public NoOpTransportModuleCoordinator() {
 		self = getSelf();
 		eps = new HandshakeEndpointInfo(self);
 	}

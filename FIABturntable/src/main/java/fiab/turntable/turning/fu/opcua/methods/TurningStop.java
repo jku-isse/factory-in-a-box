@@ -1,4 +1,6 @@
-package fiab.opcua.hardwaremock.turntable.methods;
+package fiab.turntable.turning.fu.opcua.methods;
+
+import java.time.Duration;
 
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
@@ -9,10 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-import stateMachines.turning.TurningTriggers;
-
-import java.time.Duration;
+import fiab.turntable.turning.TurningTriggers;
 
 public class TurningStop extends AbstractMethodInvocationHandler {
 
