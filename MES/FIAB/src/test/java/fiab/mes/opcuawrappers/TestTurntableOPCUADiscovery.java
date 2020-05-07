@@ -21,15 +21,15 @@ import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
-import fiab.mes.opcua.CapabilityImplementationMetadata;
-import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
+import fiab.opcua.CapabilityImplementationMetadata;
+import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
 class TestTurntableOPCUADiscovery {
 
@@ -56,7 +56,7 @@ class TestTurntableOPCUADiscovery {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
 				String endpointURL = "opc.tcp://localhost:4843/";
 				

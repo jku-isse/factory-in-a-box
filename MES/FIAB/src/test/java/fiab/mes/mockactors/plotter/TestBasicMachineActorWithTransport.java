@@ -28,6 +28,8 @@ import fiab.machine.plotter.SubscriptionClassifier;
 import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
+import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.GenericMachineRequests;
@@ -75,10 +77,10 @@ public class TestBasicMachineActorWithTransport {
 		new TestKit(system) { 
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				//eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				
 				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
-				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				//intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
 				ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper1");
 				ActorSelection serverSide = system.actorSelection("/user/MachineWrapper1/ServerSideHandshakeMock");
 				PlottingMachineWrapperInterface wrapperDelegate = new MockPlottingMachineWrapperDelegate(machineWrapper);
@@ -131,43 +133,6 @@ public class TestBasicMachineActorWithTransport {
 
 				}			
 				
-				
-//				boolean doRun = true;
-//				while (doRun) {
-//					MachineStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class);
-//					logEvent(mue);
-//					MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
-//					if (newState.equals(MachineStatus.IDLE)) {
-//						machine.tell(new LockForOrder("TestStep1","TestRootOrder1"), getRef()); // here we dont register and wait for readyness, wont work later
-//					}
-//					if (newState.equals(MachineStatus.STARTING)) {
-//						boolean handshakeDone = false;
-//						serverSide.tell(HandshakeProtocol.ServerMessageTypes.SubscribeToStateUpdates, getRef());
-//						while (!handshakeDone) {
-//							ServerSide state = expectMsgClass(Duration.ofSeconds(5), ServerSide.class);
-//							switch(state) {
-//							case IDLE_EMPTY:
-//								serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestInitiateHandover, getRef());
-//								expectMsg(Duration.ofSeconds(5), ServerSide.STARTING);
-//								expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseInitHandover);
-//								break;
-//							case READY_EMPTY:
-//								serverSide.tell(HandshakeProtocol.ServerMessageTypes.RequestStartHandover, getRef());
-//								expectMsg(Duration.ofSeconds(5), ServerSide.EXECUTE);
-//								expectMsg(Duration.ofSeconds(5), HandshakeProtocol.ServerMessageTypes.OkResponseStartHandover);
-//								serverSide.tell(HandshakeProtocol.ServerMessageTypes.UnsubscribeToStateUpdates, getRef()); //otherwise the handshake events interfere with other expected events
-//								handshakeDone = true; // part until where we need to be involved, thanks to autocomplete
-//								break;
-//							default:
-//								break;
-//							}
-//						}
-//					}
-//					if (newState.equals(MachineStatus.COMPLETING)) {
-//						doRun = false;
-//					}
-//				}
-				//expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
 			}	
 		};
 	}
@@ -176,58 +141,7 @@ public class TestBasicMachineActorWithTransport {
 		logger.info(event.toString());
 	}
 	
-//	@Test
-//	void testRegisterProcess() {
-//		final AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.RED);
-//		final Actor modelActor = getDefaultMachineActor(1);
-//		new TestKit(system) { 
-//			{
-//				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-//				//eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
-//				
-//				
-//				InterMachineEventBus intraEventBus = new InterMachineEventBus();
-//				ActorRef machineWrapper = system.actorOf(MockMachineWrapper.props(intraEventBus));
-//				PlottingMachineWrapperInterface wrapperDelegate = new MockPlottingMachineWrapperDelegate(machineWrapper);
-//				machine = system.actorOf(BasicMachineActor.props(eventBusByRef, cap, modelActor, wrapperDelegate, intraEventBus));
-//				// we subscribe to the intraeventbus to observe wrapper behavior
-//				boolean isIdle = false;
-//				while (!isIdle) {
-//					TimedEvent te = expectMsgClass(Duration.ofSeconds(3600), TimedEvent.class);
-//					logEvent(te);
-//				}
-//				//expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-//				ProcessStep step = op.getAvailableSteps().get(0);
-//				RegisterProcessStepRequest req = new RegisterProcessStepRequest("Order1", step.toString(), step, getRef());
-//				machine.tell(req, getRef());
-//				expectMsgAnyClassOf(Duration.ofSeconds(5), ReadyForProcessEvent.class);
-//			}	
-//		};
-//	}
-		
-	
-//	@Test
-//	void testLockForOrder() {
-//		final AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.RED);
-//		final Actor modelActor = getDefaultMachineActor(1);
-//		new TestKit(system) { 
-//			{
-//				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-//				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
-//				machine = system.actorOf(MockMachineActor.props(eventBusByRef, cap, modelActor));
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class);
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); //idle
-//				ProcessStep step = op.getAvailableSteps().get(0);
-//				RegisterProcessStepRequest req = new RegisterProcessStepRequest("Order1", step.toString(), step, getRef());
-//				machine.tell(req, getRef());
-//				expectMsgAnyClassOf(Duration.ofSeconds(3), ReadyForProcessEvent.class);
-//				machine.tell(new LockForOrder(step.toString(), "Order1"), getRef());
-//				expectMsgAnyClassOf(Duration.ofSeconds(1), MachineUpdateEvent.class); // producting
-//				expectMsgAnyClassOf(Duration.ofSeconds(7), MachineUpdateEvent.class); // completing
-//				expectMsgAnyClassOf(Duration.ofSeconds(2), MachineUpdateEvent.class); // idle
-//			}	
-//		};
-//	}
+
 
 	
 

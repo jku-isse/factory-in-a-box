@@ -22,7 +22,7 @@ import fiab.core.capabilities.events.TimedEvent;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
@@ -89,7 +89,7 @@ class TestStopMachine {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );	
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
 							
 				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
@@ -153,7 +153,7 @@ class TestStopMachine {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );	
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
 							
 				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
@@ -217,7 +217,7 @@ class TestStopMachine {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );	
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
 							
 				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
@@ -284,7 +284,7 @@ class TestStopMachine {
 
 	
 	public OrderProcess subscribeAndRegisterSinglePrintRedOrder(String oid, ActorRef testProbe) {		
-		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
+		orderEventBus.tell(new SubscribeMessage(testProbe, new MESSubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleRedStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
@@ -292,14 +292,14 @@ class TestStopMachine {
 	}
 	
 	public void subscribeAndRegisterSinglePrintGreenOrder(String oid, ActorRef testProbe) {		
-		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
+		orderEventBus.tell(new SubscribeMessage(testProbe, new MESSubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleGreenStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 	}
 	
 	public OrderProcess subscribeAndRegisterPrintGreenAndRedOrder(String oid, ActorRef testProbe) {		
-		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
+		orderEventBus.tell(new SubscribeMessage(testProbe, new MESSubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(ProduceProcess.getRedAndGreenStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);

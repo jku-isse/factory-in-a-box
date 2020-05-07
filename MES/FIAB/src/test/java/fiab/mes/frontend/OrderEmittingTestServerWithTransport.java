@@ -26,7 +26,7 @@ import fiab.mes.ShopfloorStartup;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
@@ -102,8 +102,8 @@ public class OrderEmittingTestServerWithTransport {
 				{ 
 					System.out.println("test frontend responses by emitting orders with sequential process");
 					
-					orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "")), getRef() );
-					machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
+					orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "")), getRef() );
+					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 			
 					new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 					int countConnEvents = 0;
@@ -150,8 +150,8 @@ public class OrderEmittingTestServerWithTransport {
 				{ 
 					System.out.println("test frontend responses by emitting orders with sequential process");
 					
-					orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "")), getRef() );
-					machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
+					orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "")), getRef() );
+					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 			
 					new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 					int countConnEvents = 0;

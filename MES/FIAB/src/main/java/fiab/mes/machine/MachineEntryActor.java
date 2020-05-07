@@ -13,7 +13,7 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.GenericMachineRequests.BaseRequest;
 import fiab.mes.machine.msg.MachineConnectedEvent;
@@ -36,7 +36,7 @@ public class MachineEntryActor extends AbstractActor {
 	
 	public MachineEntryActor() {
 		machineEventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		machineEventBusByRef.tell(new SubscribeMessage(getSelf(), new SubscriptionClassifier(self().path().name(), "*")), getSelf());
+		machineEventBusByRef.tell(new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(self().path().name(), "*")), getSelf());
 	}
 
 	@Override

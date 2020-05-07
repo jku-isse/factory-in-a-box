@@ -22,7 +22,7 @@ public class ServerSideHandshakeActor extends AbstractActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);	
 	protected boolean isLoaded = false; //assume at bootup that no pallet is loaded
-	private ActorRef machineWrapper;
+	private ActorRef parentActor;
 	protected ServerSideStates currentState = ServerSideStates.STOPPED;
 	//protected ActorRef clientSide;
 	protected ActorRef self;
@@ -30,19 +30,20 @@ public class ServerSideHandshakeActor extends AbstractActor{
 	protected boolean doAutoComplete = false;
 	protected StatePublisher publishEP;
 	
-	static public Props props(ActorRef machineWrapper, boolean doAutoComplete) {	    
-		return Props.create(ServerSideHandshakeActor.class, () -> new ServerSideHandshakeActor(machineWrapper, doAutoComplete, null));
+	static public Props props(ActorRef parent, boolean doAutoComplete) {	    
+		return Props.create(ServerSideHandshakeActor.class, () -> new ServerSideHandshakeActor(parent, doAutoComplete, null));
 	}
 	
-	static public Props props(ActorRef machineWrapper, boolean doAutoComplete, StatePublisher publishEP) {	    
-		return Props.create(ServerSideHandshakeActor.class, () -> new ServerSideHandshakeActor(machineWrapper, doAutoComplete, publishEP));
+	static public Props props(ActorRef parent, boolean doAutoComplete, StatePublisher publishEP) {	    
+		return Props.create(ServerSideHandshakeActor.class, () -> new ServerSideHandshakeActor(parent, doAutoComplete, publishEP));
 	}
 	
 	public ServerSideHandshakeActor(ActorRef machineWrapper, boolean doAutoComplete, StatePublisher publishEP) {
-		this.machineWrapper = machineWrapper;
+		this.parentActor = machineWrapper;
 		this.doAutoComplete = doAutoComplete;
 		this.publishEP = publishEP;
 		self = getSelf();
+		publishNewState(currentState);
 	}
 	
 	@Override
@@ -71,8 +72,12 @@ public class ServerSideHandshakeActor extends AbstractActor{
 						stop();
 						break;
 					case SubscribeToStateUpdates:
-						subscribers.add(getSender());
-						getSender().tell(currentState, getSelf()); // update subscriber with current state
+						if (getSender() != context().system().deadLetters()) {
+							subscribers.add(getSender());
+							getSender().tell(currentState, getSelf()); // update subscriber with current state
+						} else {
+							publishNewState(currentState);
+						}
 						break;
 					case UnsubscribeToStateUpdates:
 						subscribers.remove(getSender());
@@ -101,8 +106,8 @@ public class ServerSideHandshakeActor extends AbstractActor{
 
 	protected void publishNewState(ServerSideStates newState) {
 		currentState = newState;
-		if (machineWrapper != null) {
-			machineWrapper.tell(newState, self);
+		if (parentActor != null) {
+			parentActor.tell(newState, self);
 		}
 		if (publishEP != null) {
 			publishEP.setStatusValue(newState.toString());

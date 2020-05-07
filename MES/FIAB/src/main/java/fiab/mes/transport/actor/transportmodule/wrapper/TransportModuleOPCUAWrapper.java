@@ -16,10 +16,12 @@ import fiab.mes.transport.msg.InternalTransportModuleRequest;
 public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements TransportModuleWrapperInterface {
 
 	protected NodeId transportMethod;
+	protected InterMachineEventBus intraMachineBus;
 	
 	public TransportModuleOPCUAWrapper(InterMachineEventBus intraMachineBus, OpcUaClient client,
 			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId transportMethod) {
-		super(intraMachineBus, client, capabilityImplNode, stopMethod, resetMethod, stateVar);
+		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar);
+		this.intraMachineBus = intraMachineBus;
 		this.transportMethod = transportMethod;
 	}
 

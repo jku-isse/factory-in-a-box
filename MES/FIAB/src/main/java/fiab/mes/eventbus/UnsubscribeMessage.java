@@ -3,15 +3,15 @@ package fiab.mes.eventbus;
 import akka.actor.ActorRef;
 
 public class UnsubscribeMessage {
-	private SubscriptionClassifier topic;
+	private MESSubscriptionClassifier topic;
 	private ActorRef subscriber;
 	
-	public UnsubscribeMessage(ActorRef subscriber, SubscriptionClassifier topic) {
+	public UnsubscribeMessage(ActorRef subscriber, MESSubscriptionClassifier topic) {
 		this.topic = topic;
 		this.subscriber = subscriber;
 	}
 	
-	public SubscriptionClassifier getSubscriptionClassifier() {
+	public MESSubscriptionClassifier getSubscriptionClassifier() {
 		return topic;
 	}
 

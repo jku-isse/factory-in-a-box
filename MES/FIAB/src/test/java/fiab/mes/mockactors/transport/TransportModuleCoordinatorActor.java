@@ -28,7 +28,7 @@ import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalClientEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalServerEndpointStatus;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.turntable.conveying.ConveyorStates;
@@ -64,7 +64,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 	public TransportModuleCoordinatorActor(InterMachineEventBus machineEventBus, ActorRef turntableFU, ActorRef converyorFU) {
 		this.interEventBus = machineEventBus;			
 		self = getSelf();
-		interEventBus.subscribe(self, new SubscriptionClassifier(self.path().name(), "*")); // to obtain events from turntable and conveyor
+		interEventBus.subscribe(self, new MESSubscriptionClassifier(self.path().name(), "*")); // to obtain events from turntable and conveyor
 		eps = new HandshakeEndpointInfo(self);
 		this.turntableFU = turntableFU;
 		this.conveyorFU = converyorFU;

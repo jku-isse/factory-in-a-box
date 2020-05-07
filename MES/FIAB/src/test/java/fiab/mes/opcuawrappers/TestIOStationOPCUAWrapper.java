@@ -23,7 +23,7 @@ import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.machine.actor.iostation.wrapper.IOStationOPCUAWrapper;
 import fiab.mes.machine.msg.GenericMachineRequests;
@@ -81,7 +81,7 @@ class TestIOStationOPCUAWrapper {
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 				machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName());
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				boolean doRun = true;
 				int countConnEvents = 0;
 				while ( countConnEvents < 1 || doRun) {

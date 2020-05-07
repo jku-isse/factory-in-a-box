@@ -22,7 +22,7 @@ import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.transport.msg.InternalTransportModuleRequest;
@@ -67,7 +67,7 @@ public class TestMockTransportModuleWrapper {
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable
 				InterMachineEventBus intraEventBus = new InterMachineEventBus();	
-				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				intraEventBus.subscribe(getRef(), new MESSubscriptionClassifier("TestClass", "*"));
 				ActorRef ttWrapper = system.actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1");
 				ActorRef westClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT); 
 				ActorRef eastClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
@@ -110,7 +110,7 @@ public class TestMockTransportModuleWrapper {
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable
 				InterMachineEventBus intraEventBus = new InterMachineEventBus();	
-				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				intraEventBus.subscribe(getRef(), new MESSubscriptionClassifier("TestClass", "*"));
 				ActorRef ttWrapper = system.actorOf(MockTransportModuleWrapper.props(intraEventBus), "TT1");
 				ActorRef westClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, inRef), "WestClient"); 
 				ActorRef eastClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, outRef), "EastClient");
@@ -152,7 +152,7 @@ public class TestMockTransportModuleWrapper {
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable1
 				InterMachineEventBus intraEventBus1 = new InterMachineEventBus();	
-				intraEventBus1.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				intraEventBus1.subscribe(getRef(), new MESSubscriptionClassifier("TestClass", "*"));
 				ActorRef ttWrapper1 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus1), "TT1");
 				ActorRef westClient1 = system.actorOf(ClientHandshakeActor.props(ttWrapper1, inRef), "WestClient1");
 				boolean autoComplete = true;
@@ -165,7 +165,7 @@ public class TestMockTransportModuleWrapper {
 				ttWrapper1.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
 				// setup turntable 2
 				InterMachineEventBus intraEventBus2 = new InterMachineEventBus();	
-				intraEventBus2.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				intraEventBus2.subscribe(getRef(), new MESSubscriptionClassifier("TestClass", "*"));
 				ActorRef ttWrapper2 = system.actorOf(MockTransportModuleWrapper.props(intraEventBus2), "TT2");
 				ActorRef eastClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, outRef), "EastClient2");
 				ActorRef westClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, eastServer1), "WestClient2");

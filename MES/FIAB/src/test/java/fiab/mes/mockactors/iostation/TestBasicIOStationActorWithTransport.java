@@ -13,10 +13,12 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
+import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 
@@ -47,15 +49,20 @@ public class TestBasicIOStationActorWithTransport {
 		new TestKit(system) { 
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef,false, 34);
+				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef,true, 34);
 				// we subscribe to the intereventbus to observe basic io station behavior
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
-				//eventBusByRef.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
-				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class));
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				//parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
+				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1000), MachineConnectedEvent.class));
 				boolean doRun = true;
 				while (doRun) {
-					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
+					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(1000), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
+					if (mue.getStatus().equals(ServerSideStates.RESETTING)) {
+						parts.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, getRef()); 
+					}
+					
+					
 					if (mue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 						doRun = false;
 					}
@@ -71,13 +78,19 @@ public class TestBasicIOStationActorWithTransport {
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
 				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, false, 35);
 				// we subscribe to the intereventbus to observe basic io station behavior
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
-				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1), MachineConnectedEvent.class));
-				//eventBusByRef.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				// we subscribe to the intereventbus to observe basic io station behavior
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				//parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
+				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1000), MachineConnectedEvent.class));
 				boolean doRun = true;
 				while (doRun) {
-					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), IOStationStatusUpdateEvent.class);
+					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(1000), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
+					if (mue.getStatus().equals(ServerSideStates.RESETTING)) {
+						parts.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, getRef()); 
+					}
+					
+					
 					if (mue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
 						doRun = false;
 					}

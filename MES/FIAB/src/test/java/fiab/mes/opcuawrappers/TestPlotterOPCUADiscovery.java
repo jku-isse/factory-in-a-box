@@ -17,17 +17,19 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.machine.plotter.opcua.StartupUtil;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
-import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
+import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
 class TestPlotterOPCUADiscovery {
 
@@ -44,19 +46,20 @@ class TestPlotterOPCUADiscovery {
 	@BeforeEach
 	void setup() throws Exception{
 		system = ActorSystem.create("TEST_PLOTTER_ROOT_SYSTEM");
+		//StartupUtil.startup(0, "TestPlotter", SupportedColors.BLACK);
 		// assume OPCUA server (mock or otherwise is started
 		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 	
 	}
 
 	@Test
-	void testDiscoveryIntegration() {
+	void testDiscoveryIntegrationVirtualPlotter() {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://192.168.0.35:4840/";
+				String endpointURL = "opc.tcp://localhost:4840/";
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				ShopfloorConfigurations.addColorPlotterStationSpawner(capURI2Spawning);			

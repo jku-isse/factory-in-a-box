@@ -32,7 +32,6 @@ import fiab.mes.eventbus.InterMachineEventBus;
 
 public abstract class AbstractOPCUAWrapper {
 
-	protected InterMachineEventBus intraMachineBus;
 	protected OpcUaClient client;
 	protected NodeId capabilityImplNode;
 	protected NodeId stopMethod;
@@ -41,10 +40,9 @@ public abstract class AbstractOPCUAWrapper {
 
 	protected static final Logger logger = LoggerFactory.getLogger(AbstractOPCUAWrapper.class);
 	
-	public AbstractOPCUAWrapper(InterMachineEventBus intraMachineBus, OpcUaClient client, NodeId capabilityImplNode,
+	public AbstractOPCUAWrapper(OpcUaClient client, NodeId capabilityImplNode,
 			NodeId stopMethod, NodeId resetMethod, NodeId stateVar) {
 		super();
-		this.intraMachineBus = intraMachineBus;
 		this.client = client;
 		this.capabilityImplNode = capabilityImplNode;
 		this.stopMethod = stopMethod;

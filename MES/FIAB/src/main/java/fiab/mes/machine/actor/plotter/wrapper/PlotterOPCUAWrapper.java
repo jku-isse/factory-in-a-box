@@ -16,11 +16,13 @@ import fiab.mes.opcua.AbstractOPCUAWrapper;
 public class PlotterOPCUAWrapper extends AbstractOPCUAWrapper implements PlottingMachineWrapperInterface {
 
 	protected NodeId plotMethod;
+	protected IntraMachineEventBus intraMachineBus;
 	
 	public PlotterOPCUAWrapper(IntraMachineEventBus intraMachineBus, OpcUaClient client,
 			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId plotMethod) {
-		super(intraMachineBus, client, capabilityImplNode, stopMethod, resetMethod, stateVar);
+		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar);
 		this.plotMethod = plotMethod;
+		this.intraMachineBus = intraMachineBus;
 	}
 
 	

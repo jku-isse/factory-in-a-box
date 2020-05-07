@@ -15,7 +15,8 @@ import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdenti
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
-import fiab.machine.plotter.MockTransportAwareMachineWrapper;
+import fiab.machine.plotter.IntraMachineEventBus;
+import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
@@ -110,10 +111,10 @@ public class DefaultLayout {
 	}
 	
 	public static ActorRef setupMachineActor(ActorSelection eventBusByRef, int ipid, AbstractCapability colorCap, ActorSystem system) throws InterruptedException, ExecutionException {
-		InterMachineEventBus intraEventBus = new InterMachineEventBus();
+		IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 		final AbstractCapability cap = colorCap;
 		final Actor modelActor = getDefaultMachineActor(ipid);
-		ActorRef machineWrapper = system.actorOf(MockTransportAwareMachineWrapper.props(intraEventBus), "MachineWrapper"+ipid);
+		ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper"+ipid);
 		ActorSelection serverSide = system.actorSelection("/user/MachineWrapper"+ipid+"/ServerSideHandshakeMock");
 		Thread.sleep(1000);
 		ActorRef serverSideRef = serverSide.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();

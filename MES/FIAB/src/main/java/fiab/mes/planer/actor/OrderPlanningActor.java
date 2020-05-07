@@ -23,7 +23,7 @@ import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
@@ -138,11 +138,11 @@ public class OrderPlanningActor extends AbstractActor{
 	}
 
 	private void getEventBusAndSubscribe() throws Exception{
-		SubscribeMessage orderSub = new SubscribeMessage(getSelf(), new SubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));		
+		SubscribeMessage orderSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));		
 		orderEventBus = this.context().actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		orderEventBus.tell(orderSub, getSelf());
 		
-		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new SubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
+		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
 		machineEventBus = this.context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		machineEventBus.tell(machineSub, getSelf());
 		

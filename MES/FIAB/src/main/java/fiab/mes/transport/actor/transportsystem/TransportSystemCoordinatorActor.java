@@ -18,7 +18,7 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
@@ -66,7 +66,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	}
 	
 	private void getEventBusAndSubscribe() {		
-		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new SubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
+		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
 		machineEventBus = this.context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		machineEventBus.tell(machineSub, getSelf());				
 	}

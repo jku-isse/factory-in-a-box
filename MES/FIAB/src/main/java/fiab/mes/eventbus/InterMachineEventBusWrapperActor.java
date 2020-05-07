@@ -12,12 +12,16 @@ public class InterMachineEventBusWrapperActor extends AbstractActor {
 	public static final String WRAPPER_ACTOR_LOOKUP_NAME = "InterMachineEventBusWrapperActor";
 	private InterMachineEventBus meb;
 
-	public InterMachineEventBusWrapperActor() {
-		meb = new InterMachineEventBus();
+	public InterMachineEventBusWrapperActor(InterMachineEventBus bus) {
+		meb = bus == null ? new InterMachineEventBus() : bus;
 	}
 
 	public static Props props() {
-		return Props.create(InterMachineEventBusWrapperActor.class, () -> new InterMachineEventBusWrapperActor());
+		return Props.create(InterMachineEventBusWrapperActor.class, () -> new InterMachineEventBusWrapperActor(null));
+	}
+	
+	public static Props propsWithPreparedBus(InterMachineEventBus bus) {
+		return Props.create(InterMachineEventBusWrapperActor.class, () -> new InterMachineEventBusWrapperActor(bus));
 	}
 
 	@Override

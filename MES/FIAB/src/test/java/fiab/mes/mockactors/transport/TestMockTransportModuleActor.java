@@ -25,7 +25,7 @@ import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
@@ -67,7 +67,7 @@ public class TestMockTransportModuleActor {
 			{
 				
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				
 				VirtualIOStationActorFactory partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 20);
 				VirtualIOStationActorFactory partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);

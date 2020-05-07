@@ -35,9 +35,10 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.opcua.CapabilityImplementationMetadata.MetadataInsufficientException;
-import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.opcua.CapabilityImplInfo;
+import fiab.opcua.CapabilityImplementationMetadata;
+import fiab.opcua.CapabilityImplementationMetadata.MetadataInsufficientException;
+import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.opcua.client.ClientKeyStoreLoader;
 import fiab.opcua.client.OPCUAClientFactory;
 
@@ -207,8 +208,8 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 						AbstractMap.SimpleEntry<String, ProvOrReq> foundEntry = new SimpleEntry<String, ProvOrReq>(capMeta.getCapabilityURI(), capMeta.getProvOrReq());
 						Optional.ofNullable(req.capURI2Spawning.get(foundEntry)).ifPresent(spawningEP -> {
 							spawner = spawningEP.createActorSpawner(getContext());
-							log.info("Creating ActorSpawner for Capability Type: "+capMeta.capabilityURI );							
-							spawner.tell(new CapabilityCentricActorSpawnerInterface.SpawnRequest(new CapabilityImplInfo(client, req.endpointURL, actorNode, browseRoot, capMeta.capabilityURI)), self);
+							log.info("Creating ActorSpawner for Capability Type: "+capMeta.getCapabilityURI() );							
+							spawner.tell(new CapabilityCentricActorSpawnerInterface.SpawnRequest(new CapabilityImplInfo(client, req.endpointURL, actorNode, browseRoot, capMeta.getCapabilityURI())), self);
 							this.status = DISCOVERY_STATUS.COMPLETED_WITH_SPAWN;
 						});						
 					} catch (MetadataInsufficientException e) {

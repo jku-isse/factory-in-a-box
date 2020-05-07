@@ -22,9 +22,9 @@ import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
 import fiab.mes.machine.actor.plotter.wrapper.LocalPlotterActorSpawner;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
-import fiab.mes.opcua.CapabilityImplementationMetadata;
-import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
+import fiab.opcua.CapabilityImplementationMetadata;
+import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
 public class ShopfloorConfigurations {
 

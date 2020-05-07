@@ -41,7 +41,7 @@ import fiab.mes.auth.Authenticator.User;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.MachineEventWrapper;
 import fiab.mes.order.OrderProcess;
@@ -196,7 +196,7 @@ public class ActorRestEndpoint extends AllDirectives{
 				.map(msg -> (OrderEvent) msg)
 				.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg))
 				.mapMaterializedValue(actor -> { 
-					eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT1", orderId.orElse("*"))) , actor);  
+					eventBusByRef.tell(new SubscribeMessage(actor, new MESSubscriptionClassifier("RESTENDPOINT1", orderId.orElse("*"))) , actor);  
 					return NotUsed.getInstance();
 				});				
 		return completeOK( source, EventStreamMarshalling.toEventStream());
@@ -210,7 +210,7 @@ public class ActorRestEndpoint extends AllDirectives{
 				.filter(msg -> msg instanceof OrderProcessUpdateEvent)
 				.map(msg -> ServerSentEventTranslator.toServerSentEvent(((OrderProcessUpdateEvent)msg).getOrderId(), (OrderProcessUpdateEvent) msg))
 				.mapMaterializedValue(actor -> { 
-					eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT2", optId.orElse("*"))) , actor);
+					eventBusByRef.tell(new SubscribeMessage(actor, new MESSubscriptionClassifier("RESTENDPOINT2", optId.orElse("*"))) , actor);
 					return NotUsed.getInstance();
 				});				
 		return completeOK( source, EventStreamMarshalling.toEventStream());
@@ -364,7 +364,7 @@ public class ActorRestEndpoint extends AllDirectives{
 				.map(msg -> (MachineEvent) msg)
 				.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg))
 				.mapMaterializedValue(actor -> { 
-					machineEventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", machineId.orElse("*"))) , actor);  
+					machineEventBusByRef.tell(new SubscribeMessage(actor, new MESSubscriptionClassifier("RESTENDPOINT", machineId.orElse("*"))) , actor);  
 					return NotUsed.getInstance();
 				});				
 		return completeOK( source, EventStreamMarshalling.toEventStream());

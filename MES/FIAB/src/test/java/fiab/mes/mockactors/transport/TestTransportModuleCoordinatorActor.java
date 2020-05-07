@@ -22,7 +22,7 @@ import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.mes.mockactors.transport.FUs.MockConveyorActor;
 import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
@@ -69,7 +69,7 @@ public class TestTransportModuleCoordinatorActor {
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable
 				InterMachineEventBus intraEventBus = new InterMachineEventBus();	
-				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				intraEventBus.subscribe(getRef(), new MESSubscriptionClassifier("TestClass", "*"));
 				ActorRef turntableFU = system.actorOf(MockTurntableActor.props(intraEventBus, null), "TT1-TurntableFU");
 				ActorRef conveyorFU = system.actorOf(MockConveyorActor.props(intraEventBus, null), "TT1-ConveyorFU");
 				ActorRef ttWrapper = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus, turntableFU, conveyorFU), "TT1");

@@ -24,7 +24,7 @@ import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdenti
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
 import fiab.mes.machine.msg.GenericMachineRequests;
@@ -32,12 +32,12 @@ import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
-import fiab.mes.opcua.CapabilityImplementationMetadata;
-import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.msg.TransportModuleRequest;
+import fiab.opcua.CapabilityImplementationMetadata;
+import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
 class TestIOandTurntableOPCUAIntegration {
 
@@ -59,7 +59,7 @@ class TestIOandTurntableOPCUAIntegration {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
 							
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
@@ -129,7 +129,7 @@ class TestIOandTurntableOPCUAIntegration {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
@@ -197,7 +197,7 @@ class TestIOandTurntableOPCUAIntegration {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
 							
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();

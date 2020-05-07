@@ -12,9 +12,12 @@ import fiab.mes.opcua.AbstractOPCUAWrapper;
 
 public class IOStationOPCUAWrapper extends AbstractOPCUAWrapper implements IOStationWrapperInterface {
 	
+	protected InterMachineEventBus intraMachineBus; 
+	
 	public IOStationOPCUAWrapper(InterMachineEventBus intraMachineBus, OpcUaClient client, NodeId capabilityImplNode,
 			NodeId stopMethod, NodeId resetMethod, NodeId stateVar) {
-		super(intraMachineBus, client, capabilityImplNode,stopMethod,resetMethod,stateVar);
+		super(client, capabilityImplNode,stopMethod,resetMethod,stateVar);
+		this.intraMachineBus = intraMachineBus;
 		logger.info("IOStationOPCUAWrapper initialized");
 	}
 
