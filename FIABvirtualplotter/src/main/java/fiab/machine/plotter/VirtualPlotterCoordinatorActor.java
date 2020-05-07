@@ -12,6 +12,7 @@ import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
+import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
@@ -89,8 +90,12 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor{
 							}
 							break;
 						case STOPPED: 
-							if (currentState.equals(BasicMachineStates.STOPPING) ) //only if we wait for FU to stop
-								transitionToStop();
+							if (currentState.equals(BasicMachineStates.STOPPING) ) { //only if we wait for FU to stop, alternative way to learn about serverside
+								if (serverSide == null) {
+									setServerHandshakeActor(getSender()); // will also result in transition to stop
+								} else
+									transitionToStop();
+							}
 							break;
 						default: // irrelevant states
 							break;
@@ -164,7 +169,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor{
 		setAndPublishState(BasicMachineStates.STARTING);
 		sender().tell(new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", currentState), self);
 		//now here we also enable pallet to be loaded onto machine
-		serverSide.tell(IOStationCapability.ServerMessageTypes.Reset, self);
+		serverSide.tell(HandshakeCapability.ServerMessageTypes.Reset, self);
 		context().system()
     	.scheduler()
     	.scheduleOnce(Duration.ofMillis(5000), 

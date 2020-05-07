@@ -11,7 +11,7 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
+import fiab.turntable.actor.InternalTransportModuleRequest;
 
 public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements TransportModuleWrapperInterface {
 

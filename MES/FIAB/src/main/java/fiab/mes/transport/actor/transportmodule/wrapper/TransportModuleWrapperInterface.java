@@ -1,6 +1,6 @@
 package fiab.mes.transport.actor.transportmodule.wrapper;
 
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
+import fiab.turntable.actor.InternalTransportModuleRequest;
 
 public interface TransportModuleWrapperInterface {
 	

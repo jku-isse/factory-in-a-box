@@ -76,7 +76,7 @@ public class OPCUAPlotterRootActor extends AbstractActor {
 		plotterCoordinator = context().actorOf(VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus), machineName);
 		plotterCoordinator.tell(PlotterMessageTypes.SubscribeState, getSelf());
 		
-		HandshakeFU defaultHandshakeFU = new ServerSideHandshakeFU(opcuaBase, root, fuPrefix, plotterCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+		HandshakeFU defaultHandshakeFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, plotterCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
 		//ActorRef serverSide = defaultHandshakeFU.getFUActor();
 		//		.setupOPCUANodeSet(plotterWrapper, opcuaBase, ttNode, fuPrefix, getContext());
 		//plotterCoordinator.tell(serverSide, getSelf());

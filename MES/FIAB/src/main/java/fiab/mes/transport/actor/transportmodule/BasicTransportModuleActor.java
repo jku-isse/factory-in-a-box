@@ -28,8 +28,8 @@ import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
 import fiab.mes.transport.msg.TransportModuleRequest;
+import fiab.turntable.actor.InternalTransportModuleRequest;
 
 
 public class BasicTransportModuleActor extends AbstractActor{

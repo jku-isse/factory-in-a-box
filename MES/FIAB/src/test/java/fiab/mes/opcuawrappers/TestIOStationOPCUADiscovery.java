@@ -19,6 +19,7 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.machine.iostation.opcua.StartupUtil;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -34,6 +35,13 @@ import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
 class TestIOStationOPCUADiscovery {
 
+	public static void main(String args[]) {
+		StartupUtil.startupInputstation(0, "VirtualInputStation1");
+		StartupUtil.startupOutputstation(1, "VirtualOutputStation1");
+	}
+	
+	
+	
 	private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUADiscovery.class);
 	
 //	InterMachineEventBus intraEventBus;
@@ -59,7 +67,7 @@ class TestIOStationOPCUADiscovery {
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://localhost:4840/";
+				String endpointURL = "opc.tcp://localhost:4840/milo";
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					

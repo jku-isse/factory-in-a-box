@@ -2,8 +2,6 @@ package fiab.machine.iostation;
 
 import java.time.Duration;
 
-import com.google.common.collect.ImmutableSet;
-
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import fiab.core.capabilities.StatePublisher;

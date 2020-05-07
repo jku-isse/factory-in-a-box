@@ -17,6 +17,7 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
@@ -24,10 +25,13 @@ import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
-import fiab.mes.mockactors.transport.FUs.MockConveyorActor;
-import fiab.mes.mockactors.transport.FUs.MockTurntableActor;
 import fiab.mes.order.OrderProcess;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
+import fiab.turntable.actor.InternalTransportModuleRequest;
+import fiab.turntable.actor.IntraMachineEventBus;
+import fiab.turntable.actor.SubscriptionClassifier;
+import fiab.turntable.actor.TransportModuleCoordinatorActor;
+import fiab.turntable.conveying.ConveyorActor;
+import fiab.turntable.turning.TurntableActor;
 
 public class TestTransportModuleCoordinatorActor { 
 
@@ -60,18 +64,20 @@ public class TestTransportModuleCoordinatorActor {
 			{
 				
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				VirtualIOStationActorFactory partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 34);
-				VirtualIOStationActorFactory partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);
+				VirtualIOStationActorFactory partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, engageAutoReload, 34);
+				partsIn.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, getRef()); 
+				VirtualIOStationActorFactory partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, engageAutoReload, 35);
+				partsOut.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, getRef()); 
 				// now add to ttWrapper client Handshake actors
-				ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
+				ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 				ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-				ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/OutputStationServerSideHandshakeMock");
+				ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable
-				InterMachineEventBus intraEventBus = new InterMachineEventBus();	
-				intraEventBus.subscribe(getRef(), new MESSubscriptionClassifier("TestClass", "*"));
-				ActorRef turntableFU = system.actorOf(MockTurntableActor.props(intraEventBus, null), "TT1-TurntableFU");
-				ActorRef conveyorFU = system.actorOf(MockConveyorActor.props(intraEventBus, null), "TT1-ConveyorFU");
+				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
+				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				ActorRef turntableFU = system.actorOf(TurntableActor.props(intraEventBus, null), "TT1-TurntableFU");
+				ActorRef conveyorFU = system.actorOf(ConveyorActor.props(intraEventBus, null), "TT1-ConveyorFU");
 				ActorRef ttWrapper = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus, turntableFU, conveyorFU), "TT1");
 				ActorRef westClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT); 
 				ActorRef eastClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
@@ -89,12 +95,11 @@ public class TestTransportModuleCoordinatorActor {
 					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineUpdateEvent.class);
 					logEvent(mue);
 					if (mue instanceof MachineStatusUpdateEvent) {
-						BasicMachineStates newState = BasicMachineStates.valueOf(((MachineStatusUpdateEvent) mue).getStatus().toString());
-						if (newState.equals(BasicMachineStates.IDLE) && !hasSentReq) {
+						if (((MachineStatusUpdateEvent) mue).getStatus().equals(BasicMachineStates.IDLE) && !hasSentReq) {
 							ttWrapper.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder1", "Req1"), getRef());
 							hasSentReq = true;
 						}
-						if (newState.equals(BasicMachineStates.COMPLETE)) {
+						if (((MachineStatusUpdateEvent) mue).getStatus().equals(BasicMachineStates.COMPLETE)) {
 							doRun = false;
 						}
 					}
