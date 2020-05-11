@@ -6,7 +6,7 @@
   <name>Virtual Plotter Station</name>
   <description>Mimicks a real Plotter Station at OPC UA and handshake level</description>
   <properties>
-		<akka.version>2.5.25</akka.version>
+		<akka.version>2.5.23</akka.version>
 	</properties>
 	<dependencies>
 		<dependency>

@@ -41,6 +41,7 @@
 		</dependency>
 	</dependencies>
 
+
 <build>
 		<plugins>
 			<plugin>
@@ -103,7 +104,7 @@
 							<artifactId>FIABcore</artifactId>
 							<version>1.0.1-SNAPSHOT</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/libs/FIABcore-1.0.1-SNAPSHOT.jar
+							<file>${project.basedir}/../libs/FIABcore-1.0.1-SNAPSHOT.jar
 							</file>
 						</configuration>
 					</execution>

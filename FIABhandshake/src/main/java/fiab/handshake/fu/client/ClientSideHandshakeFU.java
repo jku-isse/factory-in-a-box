@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.handshake.fu.HandshakeFU;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
@@ -22,7 +24,9 @@ import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
-import fiab.handshake.fu.HandshakeFU;
+import fiab.handshake.fu.client.OPCUAClientHandshakeActorWrapper;
+import fiab.opcua.CapabilityImplInfo;
+//import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.methods.Complete;
 import fiab.handshake.fu.client.methods.Reset;
 import fiab.handshake.fu.client.methods.Start;
@@ -77,7 +81,7 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "HANDSHAKE_FU_"+capInstId);	
 		
 		
-			status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_CLIENTSIDE_VAR_NAME, fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates.STOPPED); 
+			status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_CLIENTSIDE_VAR_NAME, HandshakeCapability.ClientSideStates.STOPPED);
 			opcuaWrapper = context.actorOf(OPCUAClientHandshakeActorWrapper.props(), capInstId+"_OPCUAWrapper");
 			localClient = context.actorOf(ClientHandshakeActor.props(ttBaseActor, opcuaWrapper, this), capInstId);
 			opcuaWrapper.tell(localClient, ActorRef.noSender());
@@ -140,6 +144,7 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		try {
 			client = new OPCUAClientFactory().createClient(info.getRemoteEndpointURL());
 			client.connect().get();
+
 		} catch (Exception e) {
 			logger.warn(e.getMessage());
 			throw new WiringException("Could not connect to remote endpoint");

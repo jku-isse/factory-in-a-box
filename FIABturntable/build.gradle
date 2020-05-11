@@ -10,6 +10,8 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'com.github.ev3dev-lang-java.gradle-plugin' version '1.6.8'
+    id 'maven-publish'
+    id 'maven'
 }
 
 group 'factory.in.a.box'
@@ -33,7 +35,7 @@ dependencies {
     //compile('com.googlecode.json-simple:json-simple:1.1.1')
     compileOnly('org.projectlombok:lombok:1.18.10')
     annotationProcessor('org.projectlombok:lombok:1.18.10')
-    //testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
+    testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
     //testCompile('junit:junit:4.12')
     //testImplementation('org.awaitility:awaitility:4.0.1')
     compile "org.eclipse.milo:stack-core:0.3.7"
@@ -86,4 +88,25 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 shadowJar {
     mergeServiceFiles()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = group
+            artifactId = 'FIABturntable'
+            version = version
+
+            from components.java
+        }
+    }
+}
+
+task writeNewPom {
+    doLast {
+        pom {
+            project {
+            }
+        }.writeTo("$buildDir/pom.xml")
+    }
 }

@@ -6,8 +6,6 @@ package hardware.sensors;
  */
 public class MockSensor extends Sensor {
 
-
-
     private boolean detectedInput;
 
     public MockSensor(){
