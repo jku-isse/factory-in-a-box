@@ -7,6 +7,9 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<name>FIAB OPC UA Base Classes</name>
 	<description>Provide reusable OPC UA infrastructure classes</description>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.eclipse.milo</groupId>
