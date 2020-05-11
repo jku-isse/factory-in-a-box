@@ -25,7 +25,7 @@ import fiab.handshake.fu.server.methods.StartHandover;
 import fiab.handshake.fu.server.methods.Stop;
 import fiab.opcua.server.OPCUABase;
 
-public class ServerSideHandshakeFU implements StatePublisher, HandshakeFU{
+public class ServerSideHandshakeFU implements StatePublisher, HandshakeFU {
 
 	private static final Logger logger = LoggerFactory.getLogger(ServerSideHandshakeFU.class);
 	
