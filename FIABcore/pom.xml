@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>factory.in.a.box</groupId>
 	<artifactId>FIABcore</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>FIAB Core</name>
 	<description>Contains core definitions for capabilities, OPC UA names, etc</description>
 	<dependencies>
@@ -93,7 +93,7 @@
 							<artifactId>CoreModel</artifactId>
 							<version>1.0.0</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/libs/coremodel-1.0.0.jar
+							<file>${project.basedir}/../libs/coremodel-1.0.0.jar
 							</file>
 						</configuration>
 					</execution>
