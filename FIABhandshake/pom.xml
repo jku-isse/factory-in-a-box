@@ -36,9 +36,13 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABopcuabase</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
-
+        <dependency>
+            <groupId>factory.in.a.box</groupId>
+            <artifactId>FIABcore</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -71,9 +75,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABopcuabase</artifactId>
-                            <version>1.0.0-SNAPSHOT</version>
+                            <version>1.0.1-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/libs/FIABopcuabase-1.0.0-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/original-FIABopcuabase-1.0.1-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
@@ -86,9 +90,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABcore</artifactId>
-                            <version>1.0.0-SNAPSHOT</version>
+                            <version>1.0.1-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/libs/FIABcore-1.0.0-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABcore-1.0.1-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>

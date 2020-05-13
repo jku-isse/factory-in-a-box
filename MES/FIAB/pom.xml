@@ -156,44 +156,135 @@
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
-            <artifactId>FIABopcuabase</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <artifactId>FIABcore</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
-            <artifactId>FIABcore</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <artifactId>FIABopcuabase</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABhandshake</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABiostation</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABvirtualplotter</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABturntable</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+                <executions>
+                    <execution>
+                        <id>install-jar-lib</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>factory.in.a.box</groupId>
+                            <artifactId>FIABcore</artifactId>
+                            <version>1.0.1-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/../../libs/FIABcore-1.0.1-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-jar-lib-2</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>factory.in.a.box</groupId>
+                            <artifactId>FIABopcuabase</artifactId>
+                            <version>1.0.1-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/../../libs/original-FIABopcuabase-1.0.1-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-jar-lib-3</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>factory.in.a.box</groupId>
+                            <artifactId>FIABhandshake</artifactId>
+                            <version>1.0.1-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/../../libs/original-FIABhandshake-1.0.1-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-jar-lib-4</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>factory.in.a.box</groupId>
+                            <artifactId>FIABturntable</artifactId>
+                            <version>1.0.1-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/../../libs/original-FIABturntable-1.0.1-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-jar-lib-5</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>factory.in.a.box</groupId>
+                            <artifactId>FIABiostation</artifactId>
+                            <version>1.0.1-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/../../libs/original-FIABiostation-1.0.1-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-jar-lib-6</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>factory.in.a.box</groupId>
+                            <artifactId>FIABvirtualplotter</artifactId>
+                            <version>1.0.1-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/../../libs/original-FIABvirtualplotter-1.0.1-SNAPSHOT.jar</file>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
@@ -239,101 +330,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>2.5.2</version>
-                <executions><execution>
-                    <id>install-jar-lib-2</id>
-                    <goals>
-                        <goal>install-file</goal>
-                    </goals>
-                    <phase>validate</phase>
-                    <configuration>
-                        <groupId>factory.in.a.box</groupId>
-                        <artifactId>FIABcore</artifactId>
-                        <version>1.0.0-SNAPSHOT</version>
-                        <packaging>jar</packaging>
-                        <file>${project.basedir}/libs/FIABcore-1.0.0-SNAPSHOT.jar
-                        </file>
-                    </configuration>
-                </execution>
-                    <execution>
-                        <id>install-jar-lib</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <phase>validate</phase>
-                        <configuration>
-                            <groupId>factory.in.a.box</groupId>
-                            <artifactId>FIABopcuabase</artifactId>
-                            <version>1.0.0-SNAPSHOT</version>
-                            <packaging>jar</packaging>
-                            <file>${project.basedir}/libs/FIABopcuabase-1.0.0-SNAPSHOT.jar
-                            </file>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>install-jar-lib-3</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <phase>validate</phase>
-                        <configuration>
-                            <groupId>factory.in.a.box</groupId>
-                            <artifactId>FIABhandshake</artifactId>
-                            <version>1.0.0-SNAPSHOT</version>
-                            <packaging>jar</packaging>
-                            <file>${project.basedir}/libs/FIABhandshake-1.0.0-SNAPSHOT.jar
-                            </file>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>install-jar-lib-4</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <phase>validate</phase>
-                        <configuration>
-                            <groupId>factory.in.a.box</groupId>
-                            <artifactId>FIABturntable</artifactId>
-                            <version>1.0.0-SNAPSHOT</version>
-                            <packaging>jar</packaging>
-                            <file>${project.basedir}/libs/FIABturntable-1.0.0-SNAPSHOT.jar</file>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>install-jar-lib-5</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <phase>validate</phase>
-                        <configuration>
-                            <groupId>factory.in.a.box</groupId>
-                            <artifactId>FIABiostation</artifactId>
-                            <version>1.0.0-SNAPSHOT</version>
-                            <packaging>jar</packaging>
-                            <file>${project.basedir}/libs/FIABiostation-1.0.0-SNAPSHOT.jar
-                            </file>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>install-jar-lib-6</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <phase>validate</phase>
-                        <configuration>
-                            <groupId>factory.in.a.box</groupId>
-                            <artifactId>FIABvirtualplotter</artifactId>
-                            <version>1.0.0-SNAPSHOT</version>
-                            <packaging>jar</packaging>
-                            <file>${project.basedir}/libs/FIABvirtualplotter-1.0.0-SNAPSHOT.jar
-                            </file>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
         </plugins>
         <pluginManagement>
             <plugins>
