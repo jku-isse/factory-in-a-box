@@ -55,7 +55,7 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<plugin>
+			<!--plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>3.2.0</version>
@@ -76,7 +76,7 @@
 									</excludes>
 								</filter>
 							</filters>
-							<transformers>
+							<transformers-->
 								<!-- <transformer -->
 								<!-- implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer"> -->
 								<!-- <resource>reference.conf</resource> -->
@@ -87,14 +87,15 @@
 								<!-- <Main-Class>fiab.mes.ShopfloorStartup</Main-Class> -->
 								<!-- </manifestEntries> -->
 								<!-- </transformer> -->
-							</transformers>
+							<!-- /transformers>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
+				<version>2.5.2</version>
 				<executions>
 					<execution>
 						<id>install-jar-lib-2</id>
