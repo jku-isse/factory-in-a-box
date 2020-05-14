@@ -53,6 +53,8 @@ class TestIOandTurntableOPCUAIntegration {
 		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 	
 	}
+	
+	//TODO check tests!
 
 	@Test
 	void testHandoverWithVirtualIOStationsAndTT() {

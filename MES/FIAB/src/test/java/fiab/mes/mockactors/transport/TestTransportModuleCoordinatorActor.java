@@ -58,6 +58,8 @@ public class TestTransportModuleCoordinatorActor {
 	    system = null;
 	}
 
+	
+	//TODO check tests!
 	@Test
 	void testSetupMinimalShopfloor() throws InterruptedException, ExecutionException {
 		new TestKit(system) { 
