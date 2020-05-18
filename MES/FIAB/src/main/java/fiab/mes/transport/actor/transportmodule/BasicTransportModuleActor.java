@@ -30,6 +30,8 @@ import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.msg.TransportModuleRequest;
 import fiab.turntable.actor.InternalTransportModuleRequest;
+import fiab.turntable.actor.IntraMachineEventBus;
+import fiab.turntable.actor.SubscriptionClassifier;
 
 
 public class BasicTransportModuleActor extends AbstractActor{
@@ -40,7 +42,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 	protected AbstractCapability cap;
 	protected BasicMachineStates currentState = BasicMachineStates.UNKNOWN;
 	protected TransportModuleWrapperInterface hal;
-	protected InterMachineEventBus intraBus;
+	protected IntraMachineEventBus intraBus;
 	protected TransportPositionLookup tpl;
 	protected Position selfPos;
 	protected InternalCapabilityToPositionMapping icpm;
@@ -50,11 +52,11 @@ public class BasicTransportModuleActor extends AbstractActor{
 	private HistoryTracker externalHistory;
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
 	
-	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, Position selfPos, InterMachineEventBus intraBus, TransportPositionLookup tpl, InternalCapabilityToPositionMapping icpm) {	    
+	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, Position selfPos, IntraMachineEventBus intraBus, TransportPositionLookup tpl, InternalCapabilityToPositionMapping icpm) {	    
 		return Props.create(BasicTransportModuleActor.class, () -> new BasicTransportModuleActor(machineEventBus, cap, modelActor, hal, selfPos, intraBus, tpl, icpm));
 	}
 	
-	public BasicTransportModuleActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, Position selfPos, InterMachineEventBus intraBus, TransportPositionLookup tpl, InternalCapabilityToPositionMapping icpm) {
+	public BasicTransportModuleActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, Position selfPos, IntraMachineEventBus intraBus, TransportPositionLookup tpl, InternalCapabilityToPositionMapping icpm) {
 		this.cap = cap;
 		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;
@@ -110,7 +112,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 
 	private void init() {
 		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self());
-		intraBus.subscribe(getSelf(), new MESSubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
+		intraBus.subscribe(getSelf(), new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
 		hal.subscribeToStatus();
 	}
 	

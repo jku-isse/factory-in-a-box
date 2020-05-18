@@ -1,14 +1,9 @@
 package fiab.turntable.turning;
 
-import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.github.oxo42.stateless4j.StateMachine;
-
-import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
-import fiab.core.capabilities.basicmachine.BasicMachineRequests;
 import fiab.turntable.actor.IntraMachineEventBus;
 import hardware.TurningHardware;
 import hardware.lego.LegoTurningHardware;
@@ -16,12 +11,11 @@ import hardware.mock.TurningMockHardware;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
 
-import static fiab.turntable.turning.TurningStates.STOPPED;
 import static fiab.turntable.turning.TurningTriggers.*;
 
 import java.time.Duration;
 
-public class TurntableActor extends AbstractActor {
+public class TurntableActor extends BaseBehaviorTurntableActor {
 
     //In case the operating system is windows, we do not want to use EV3 libraries
     private static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");
@@ -29,26 +23,18 @@ public class TurntableActor extends AbstractActor {
 
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
-    private TurningHardware turningHardware;
-
-    private IntraMachineEventBus intraEventBus;
-    private StatePublisher publishEP;
-
+    private TurningHardware turningHardware;   
     protected TurnTableOrientation orientation;
-    protected StateMachine<TurningStates, TurningTriggers> tsm;
-
+   
     public static Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
         return Props.create(TurntableActor.class, () -> new TurntableActor(intraEventBus, publishEP));
     }
 
     public TurntableActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
-        this.intraEventBus = intraEventBus;
-        this.publishEP = publishEP;
-        this.tsm = new StateMachine<>(STOPPED, new TurningStateMachineConfig());
+        super(intraEventBus, publishEP);
         this.orientation = TurnTableOrientation.NORTH;
         Runtime.getRuntime().addShutdownHook(new Thread(this::motorStop));
-        initHardware();
-        publishNewState();
+        initHardware();     
     }
 
     private void initHardware() {
@@ -60,48 +46,7 @@ public class TurntableActor extends AbstractActor {
         }
     }
 
-    @Override
-    public Receive createReceive() {
-    	return receiveBuilder()
-    			.match(TurningTriggers.class, req -> {
-    				switch(req) {
-    				case STOP:
-    					if (tsm.canFire(STOP)) {
-    						tsm.fire(STOP);
-    						publishNewState();  //in STOPPING
-    						stop();
-    					} 
-    					break;
-    				case RESET:
-    					if (tsm.canFire(RESET)) {
-    						tsm.fire(RESET);    //in RESETTING
-    						publishNewState();
-    						reset();
-    					}
-    					break;
-    				}
-    			}).match(TurnRequest.class, req -> {
-    				if (tsm.canFire(TURN_TO)) {
-    					tsm.fire(TURN_TO);  //in STARTING
-    					publishNewState();
-    					turn(req);
-    				}
-    			})
-    			.matchAny(msg -> {
-    				log.warning("Unexpected Message received: " + msg.toString());
-    			})
-    			.build();
-    }
-
-    private void publishNewState() {
-        if (publishEP != null)
-            publishEP.setStatusValue(tsm.getState().toString());
-        if (intraEventBus != null) {
-            intraEventBus.publish(new TurntableStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", tsm.getState()));
-        }
-    }
-
-    private void stop() {
+    protected void stop() {
         motorStop();
         context().system()
                 .scheduler()
@@ -112,7 +57,7 @@ public class TurntableActor extends AbstractActor {
                         }, context().system().dispatcher());
     }
 
-    private void reset() {
+    protected void reset() {
         motorBackward();
         checkHomingPositionReached();
     }
@@ -133,7 +78,7 @@ public class TurntableActor extends AbstractActor {
         }
     }
 
-    private void turn(TurnRequest treq) {
+    protected void turn(TurnRequest treq) {
         tsm.fire(EXECUTE);
         publishNewState();
         // Do actual turning here
@@ -142,19 +87,19 @@ public class TurntableActor extends AbstractActor {
        // checkTurningPositionReached(target); // this is called by TurnTo anyway
     }
 
-    private void completing() {
+    protected void completing() {
         tsm.fire(NEXT);
         publishNewState();       //we are now in COMPLETING
         complete();
     }
 
-    private void complete() {
+    protected void complete() {
         tsm.fire(NEXT);
         publishNewState();       //we are now in COMPLETE
         autoResetToIdle();
     }
 
-    private void autoResetToIdle() {
+    protected void autoResetToIdle() {
         tsm.fire(NEXT);
         publishNewState();       //we are now in IDLE
     }

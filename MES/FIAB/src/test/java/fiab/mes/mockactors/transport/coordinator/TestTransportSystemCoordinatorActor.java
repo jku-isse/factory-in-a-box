@@ -35,6 +35,7 @@ import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
+import fiab.mes.mockactors.transport.CoreModelActorProvider;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
@@ -43,7 +44,10 @@ import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Positi
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
+import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.actor.TransportModuleCoordinatorActor;
+import fiab.turntable.conveying.BaseBehaviorConveyorActor;
+import fiab.turntable.turning.BaseBehaviorTurntableActor;
 
 class TestTransportSystemCoordinatorActor {
 
@@ -82,6 +86,8 @@ class TestTransportSystemCoordinatorActor {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;
 	}
+	
+	//TODO check tests!
 	
 	@Test
 	void testCoordinatorWith2TTLayout() throws InterruptedException, ExecutionException {
@@ -122,19 +128,20 @@ class TestTransportSystemCoordinatorActor {
 	}
 	
 	private void setupTwoTurntableWithIOShopfloor() throws InterruptedException, ExecutionException {
-		final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		
+		final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		
 		partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 34);
 		partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);
 		// now add to ttWrapper client Handshake actors
-		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
+		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 		ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/OutputStationServerSideHandshakeMock");
+		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 		ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 	
 		// setup turntable1
-		InterMachineEventBus intraEventBus1 = new InterMachineEventBus();	
-		ActorRef ttWrapper1 = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus1), "TT1");
+		IntraMachineEventBus intraEventBus1 = new IntraMachineEventBus();	
+		ActorRef turningActor1 = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus1, null), "Turn1");
+		ActorRef conveyingActor1 = system.actorOf(BaseBehaviorConveyorActor.props(intraEventBus1, null), "Conv1");
+		ActorRef ttWrapper1 = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus1, turningActor1, conveyingActor1), "TT1");
 		ActorRef westClient1 = system.actorOf(ClientHandshakeActor.props(ttWrapper1, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
 		boolean autoComplete = true;
 		ActorRef eastServer1 = system.actorOf(ServerSideHandshakeActor.props(ttWrapper1, autoComplete), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
@@ -145,8 +152,10 @@ class TestTransportSystemCoordinatorActor {
 		
 		
 		// setup turntable 2
-		InterMachineEventBus intraEventBus2 = new InterMachineEventBus();	
-		ActorRef ttWrapper2 = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus2), "TT2");
+		IntraMachineEventBus intraEventBus2 = new IntraMachineEventBus();	
+		ActorRef turningActor2 = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus2, null), "Turn2");
+		ActorRef conveyingActor2 = system.actorOf(BaseBehaviorConveyorActor.props(intraEventBus2, null), "Conv2");				
+		ActorRef ttWrapper2 = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus2, turningActor2, conveyingActor2), "TT2");
 		ActorRef eastClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
 		ActorRef westClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, eastServer1), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT+"~2");		
 		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
@@ -194,8 +203,10 @@ class TestTransportSystemCoordinatorActor {
 		ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();			
 		
 		// setup turntable 2
-		InterMachineEventBus intraEventBus2 = new InterMachineEventBus();	
-		ActorRef ttWrapper2 = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus2), "TT2");
+		IntraMachineEventBus intraEventBus2 = new IntraMachineEventBus();	
+		ActorRef turningActor2 = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus2, null), "Turn2");
+		ActorRef conveyingActor2 = system.actorOf(BaseBehaviorConveyorActor.props(intraEventBus2, null), "Conv2");				
+		ActorRef ttWrapper2 = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus2, turningActor2, conveyingActor2), "TT2");
 		ActorRef eastClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
 		ActorRef westClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT+"~2");
 		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
@@ -216,9 +227,9 @@ class TestTransportSystemCoordinatorActor {
 		}
 	}
 	
-	private ActorRef setupTurntableActor(ActorRef ttWrapper, InterMachineEventBus intraEventBus, ActorSelection eventBusByRef, int ipid ) {
+	private ActorRef setupTurntableActor(ActorRef ttWrapper, IntraMachineEventBus intraEventBus, ActorSelection eventBusByRef, int ipid ) {
 		AbstractCapability cap = TransportModuleCapability.getTransportCapability();
-		Actor modelActor = TestMockTransportModuleActor.getDefaultTransportModuleModelActor(ipid);
+		Actor modelActor = CoreModelActorProvider.getDefaultTransportModuleModelActor(ipid, 0);
 		MockTransportModuleWrapperDelegate hal = new MockTransportModuleWrapperDelegate(ttWrapper);
 		Position selfPos = new Position(ipid+"");
 		HardcodedDefaultTransportRoutingAndMapping env = new HardcodedDefaultTransportRoutingAndMapping();								

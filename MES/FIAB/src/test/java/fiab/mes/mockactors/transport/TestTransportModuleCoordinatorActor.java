@@ -30,7 +30,9 @@ import fiab.turntable.actor.InternalTransportModuleRequest;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.actor.SubscriptionClassifier;
 import fiab.turntable.actor.TransportModuleCoordinatorActor;
+import fiab.turntable.conveying.BaseBehaviorConveyorActor;
 import fiab.turntable.conveying.ConveyorActor;
+import fiab.turntable.turning.BaseBehaviorTurntableActor;
 import fiab.turntable.turning.TurntableActor;
 
 public class TestTransportModuleCoordinatorActor { 
@@ -59,7 +61,7 @@ public class TestTransportModuleCoordinatorActor {
 	}
 
 	
-	//TODO check tests!
+
 	@Test
 	void testSetupMinimalShopfloor() throws InterruptedException, ExecutionException {
 		new TestKit(system) { 
@@ -78,8 +80,8 @@ public class TestTransportModuleCoordinatorActor {
 				// setup turntable
 				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
 				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
-				ActorRef turntableFU = system.actorOf(TurntableActor.props(intraEventBus, null), "TT1-TurntableFU");
-				ActorRef conveyorFU = system.actorOf(ConveyorActor.props(intraEventBus, null), "TT1-ConveyorFU");
+				ActorRef turntableFU = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus, null), "TT1-TurntableFU");
+				ActorRef conveyorFU = system.actorOf(BaseBehaviorConveyorActor.props(intraEventBus, null), "TT1-ConveyorFU");
 				ActorRef ttWrapper = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus, turntableFU, conveyorFU), "TT1");
 				ActorRef westClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT); 
 				ActorRef eastClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);

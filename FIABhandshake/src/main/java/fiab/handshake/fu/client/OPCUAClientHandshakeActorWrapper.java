@@ -139,13 +139,13 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 	}
 	
 	private void setNewNodeIds(ServerHandshakeNodeIds nodeIds) {
-		if (this.nodeIds != null && this.nodeIds.getClient() != null) {
-			try {
-				this.nodeIds.getClient().disconnect().get(2, TimeUnit.SECONDS);
-			} catch (InterruptedException | ExecutionException | TimeoutException e) {				
-				e.printStackTrace();
-			}
-		}
+//		if (this.nodeIds != null && this.nodeIds.getClient() != null) {
+//			try {
+//				this.nodeIds.getClient().disconnect().get(2, TimeUnit.SECONDS);
+//			} catch (InterruptedException | ExecutionException | TimeoutException e) {				
+//				e.printStackTrace();
+//			}
+//		} // DISCONNECT ALREADY DONE BEFORE, no need to do it here
 		this.nodeIds = nodeIds;
 		hasValidNodeIds = true;
 	}

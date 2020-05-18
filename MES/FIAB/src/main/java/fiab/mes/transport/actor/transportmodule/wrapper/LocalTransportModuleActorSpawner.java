@@ -27,6 +27,7 @@ import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.CapabilityImplInfo;
+import fiab.turntable.actor.IntraMachineEventBus;
 
 public class LocalTransportModuleActorSpawner extends AbstractActor {
 
@@ -70,7 +71,7 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
 	private void spawnNewIOStationActor(CapabilityImplInfo info, Actor model, TransportModuleOPCUAnodes nodeIds) {
 		final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		AbstractCapability capability = TransportModuleCapability.getTransportCapability();
-		InterMachineEventBus intraEventBus = new InterMachineEventBus();
+		IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 		Position selfPos = resolvePosition(info);
 		TransportModuleOPCUAWrapper hal = new TransportModuleOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.transportMethod);
 		HardcodedDefaultTransportRoutingAndMapping env = new HardcodedDefaultTransportRoutingAndMapping();

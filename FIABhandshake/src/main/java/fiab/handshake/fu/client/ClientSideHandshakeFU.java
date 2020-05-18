@@ -31,7 +31,6 @@ import fiab.handshake.fu.client.methods.Complete;
 import fiab.handshake.fu.client.methods.Reset;
 import fiab.handshake.fu.client.methods.Start;
 import fiab.handshake.fu.client.methods.Stop;
-import fiab.opcua.CapabilityImplInfo;
 import fiab.opcua.WiringExposingUtils;
 import fiab.opcua.client.OPCUAClientFactory;
 import fiab.opcua.server.OPCUABase;

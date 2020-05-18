@@ -12,13 +12,14 @@ import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
 import fiab.turntable.actor.InternalTransportModuleRequest;
+import fiab.turntable.actor.IntraMachineEventBus;
 
 public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements TransportModuleWrapperInterface {
 
 	protected NodeId transportMethod;
-	protected InterMachineEventBus intraMachineBus;
+	protected IntraMachineEventBus intraMachineBus;
 	
-	public TransportModuleOPCUAWrapper(InterMachineEventBus intraMachineBus, OpcUaClient client,
+	public TransportModuleOPCUAWrapper(IntraMachineEventBus intraMachineBus, OpcUaClient client,
 			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId transportMethod) {
 		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar);
 		this.intraMachineBus = intraMachineBus;
