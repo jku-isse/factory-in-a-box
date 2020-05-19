@@ -255,7 +255,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					matchRequestsToModules(); // lets check which requests we can fulfill
 				});
 			} catch (RoutingException e) {
-				String msg = String.format("Unable to establish route between s% with Position %s and %s with Position %s due to %s", 
+				String msg = String.format("Unable to establish route between %s with Position %s and %s with Position %s due to %s", 
 						rtr.getSource().getId(), sourceP.getPos(), rtr.getDestination().getId(), destP.getPos(), e.getMessage());
 				log.warning(msg);
 				this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.NO_ROUTE ,msg), self);

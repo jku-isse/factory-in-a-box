@@ -1,4 +1,4 @@
-package fiab.mes.opcuawrappers;
+package fiab.mes.mockactors.iostation.opcua;
 
 import java.time.Duration;
 import java.util.AbstractMap;
@@ -19,7 +19,6 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.machine.iostation.opcua.StartupUtil;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -33,16 +32,9 @@ import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
-class TestIOStationOPCUADiscovery {
+class Test4DIACInOutputStationOPCUADiscovery {
 
-	public static void main(String args[]) {
-		StartupUtil.startupInputstation(0, "VirtualInputStation1");
-		StartupUtil.startupOutputstation(1, "VirtualOutputStation1");
-	}
-	
-	
-	
-	private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUADiscovery.class);
+	private static final Logger logger = LoggerFactory.getLogger(Test4DIACInOutputStationOPCUADiscovery.class);
 	
 //	InterMachineEventBus intraEventBus;
 //	AbstractCapability capability;
@@ -61,13 +53,13 @@ class TestIOStationOPCUADiscovery {
 	}
 
 	@Test
-	void testDiscoveryIntegration() {
+	void testInputStationDiscoveryAndReset() {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://localhost:4840/milo";
+				String endpointURL = "opc.tcp://192.168.0.42:4840/";
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
@@ -101,37 +93,27 @@ class TestIOStationOPCUADiscovery {
 	}
 	
 	@Test
-	void testDiscoveryIntegrationInputAndOutputStation() {
+	void testOutputStationDiscoveryAndReset() {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://localhost:4840/milo";
-				String endpointURL2 = "opc.tcp://localhost:4841/milo";
+				String endpointURL = "opc.tcp://192.168.0.41:4840/";
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
-					@Override
-					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
-					}
-				});
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
 						return context.actorOf(LocalIOStationActorSpawner.props());
 					}
 				});
-				ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-				discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(endpointURL, capURI2Spawning), getRef());
-				ActorRef discovAct2 = system.actorOf(CapabilityDiscoveryActor.props());
-				discovAct2.tell(new CapabilityDiscoveryActor.BrowseRequest(endpointURL2, capURI2Spawning), getRef());
+				ActorRef discovAct = system.actorOf(CapabilityDiscoveryActor.props());
+				discovAct.tell(new CapabilityDiscoveryActor.BrowseRequest(endpointURL, capURI2Spawning), getRef());
 				
-				//boolean doRun = true;
-				int countIdle = 0;
+				boolean doRun = true;
 				int countConnEvents = 0;
-				while (countConnEvents < 2 || countIdle < 2) {
+				while (countConnEvents < 1 || doRun) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent) {
@@ -143,15 +125,13 @@ class TestIOStationOPCUADiscovery {
 					}
 					if (te instanceof IOStationStatusUpdateEvent) {
 						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
-							countIdle++;
-						}
-						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
-							countIdle++;
+							doRun = false;
 						}
 					}
 				}
 			}};
 	}
+	
 	
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());

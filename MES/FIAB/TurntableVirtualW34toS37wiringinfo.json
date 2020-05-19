@@ -1,0 +1,16 @@
+{
+	"WEST_CLIENT": {
+		"localCapabilityId": "WEST_CLIENT",
+		"remoteCapabilityId": "DefaultHandshakeServerSide",
+		"remoteEndpointURL": "opc.tcp://localhost:4840/milo",
+		"remoteNodeId": "ns=2;s=VirtualInputStation1/IOSTATION/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+		"remoteRole": "RemoteRole1"
+	},
+	"SOUTH_CLIENT": {
+		"localCapabilityId": "SOUTH_CLIENT",
+		"remoteCapabilityId": "DefaultHandshakeServerSide",
+		"remoteEndpointURL": "opc.tcp://localhost:4847/milo",
+		"remoteNodeId": "ns=2;s=VirtualOutputStation1/IOSTATION/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+		"remoteRole": "RemoteRole1"
+	}
+}

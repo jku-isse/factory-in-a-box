@@ -43,6 +43,9 @@ public class TransportPositionLookup implements TransportPositionLookupInterface
 				logger.warn(String.format("URI for actor %s has no host part for resolving Position", uriAsString));
 				return TransportRoutingInterface.UNKNOWN_POSITION;
 			}
+			if (host.equals("127.0.0.1") || host.equals("localhost") ){
+				return parsePosViaPortNr(uriAsString);
+			}
 			InetAddress inetAddr = InetAddress.getByName(host);
 			int lastPos = (inetAddr.getAddress()[3]+256)%256;
 			Position pos = new Position(""+lastPos);			

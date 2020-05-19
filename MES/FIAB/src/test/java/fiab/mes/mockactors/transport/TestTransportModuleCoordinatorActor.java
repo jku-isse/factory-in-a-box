@@ -1,6 +1,10 @@
 package fiab.mes.mockactors.transport;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.AfterClass;
@@ -26,6 +30,7 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.mes.order.OrderProcess;
+import fiab.mes.shopfloor.DefaultLayout;
 import fiab.turntable.actor.InternalTransportModuleRequest;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.actor.SubscriptionClassifier;
@@ -39,18 +44,14 @@ public class TestTransportModuleCoordinatorActor {
 
 	protected static ActorSystem system;
 	protected static ActorRef machine;
-	public static String ROOT_SYSTEM = "routes";
+	public static String ROOT_SYSTEM = "TEST_TTINTEGRATION";
 	protected OrderProcess op;
 	
 	private static final Logger logger = LoggerFactory.getLogger(TestTransportModuleCoordinatorActor.class);
 	
-	private static boolean engageAutoReload = true;
-	private static boolean disengageAutoReload = false;
 	@BeforeAll
-	static void setUpBeforeClass() throws Exception {
-		
+	static void setUpBeforeClass() throws Exception {		
 		system = ActorSystem.create(ROOT_SYSTEM);
-		ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 	}
 
 	
@@ -66,30 +67,19 @@ public class TestTransportModuleCoordinatorActor {
 	void testSetupMinimalShopfloor() throws InterruptedException, ExecutionException {
 		new TestKit(system) { 
 			{
-				
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				VirtualIOStationActorFactory partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, engageAutoReload, 34);
-				partsIn.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, getRef()); 
-				VirtualIOStationActorFactory partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, engageAutoReload, 35);
-				partsOut.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, getRef()); 
-				// now add to ttWrapper client Handshake actors
-				ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+				DefaultLayout layout = new DefaultLayout(system);
+				layout.setupIOStations(34, 35);
+				ActorSelection inServer = system.actorSelection("/user/"+layout.partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 				ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-				ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+				ActorSelection outServer = system.actorSelection("/user/"+layout.partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable
 				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
 				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
-				ActorRef turntableFU = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus, null), "TT1-TurntableFU");
-				ActorRef conveyorFU = system.actorOf(BaseBehaviorConveyorActor.props(intraEventBus, null), "TT1-ConveyorFU");
-				ActorRef ttWrapper = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus, turntableFU, conveyorFU), "TT1");
-				ActorRef westClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT); 
-				ActorRef eastClient = system.actorOf(ClientHandshakeActor.props(ttWrapper, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
-				
-				boolean isProv = false;				
-				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(westClient, isProv, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), getRef());
-				ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(eastClient, isProv, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT), getRef());
-				
+				Map<String,ActorRef> ioRefs = new HashMap<String,ActorRef>();
+				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, inRef);
+				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, outRef);
+				ActorRef ttWrapper = layout.setupSingleTurntable(1, intraEventBus, ioRefs, new HashSet<String>());
 				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());				
 				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
 				
@@ -104,6 +94,64 @@ public class TestTransportModuleCoordinatorActor {
 							hasSentReq = true;
 						}
 						if (((MachineStatusUpdateEvent) mue).getStatus().equals(BasicMachineStates.COMPLETE)) {
+							doRun = false;
+						}
+					}
+				}
+			}
+		};
+	}
+	
+	
+	@Test
+	void testSetup2TTplusIO() throws InterruptedException, ExecutionException {
+		new TestKit(system) { 
+			{
+				DefaultLayout layout = new DefaultLayout(system);
+				layout.setupIOStations(34, 35);
+				ActorSelection inServer = system.actorSelection("/user/"+layout.partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+				ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
+				ActorSelection outServer = system.actorSelection("/user/"+layout.partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
+				// setup turntable
+				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
+				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				Map<String,ActorRef> iRefs = new HashMap<String,ActorRef>();
+				iRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, inRef);
+				Set<String> serverRefs = new HashSet<String>();
+				serverRefs.add(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
+				ActorRef ttWrapper = layout.setupSingleTurntable(1, intraEventBus, iRefs, serverRefs);
+				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());				
+				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
+				
+				IntraMachineEventBus intraEventBus2 = new IntraMachineEventBus();	
+				intraEventBus2.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				Map<String,ActorRef> ioRefs = new HashMap<String,ActorRef>();
+				ActorSelection eastServerSel = system.actorSelection("/user/"+TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER+"~"+1);
+				ActorRef eastServer = eastServerSel.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
+				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, outRef);
+				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, eastServer);
+				ActorRef ttWrapper2 = layout.setupSingleTurntable(2, intraEventBus2, ioRefs, new HashSet<String>());
+				ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());				
+				ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
+				
+				boolean hasSentReqTT1 = false;
+				boolean hasSentReqTT2 = false;
+				boolean doRun = true;
+				while (doRun) {
+					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineUpdateEvent.class);
+					logEvent(mue);
+					if (mue instanceof MachineStatusUpdateEvent) {
+						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent)mue;
+						if (msue.getMachineId().equals("TT1") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT1) {
+							ttWrapper.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, "TestOrder1", "Req1"), getRef());
+							hasSentReqTT1 = true;
+						}
+						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT2) {
+							ttWrapper2.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder2", "Req2"), getRef());
+							hasSentReqTT2 = true;
+						}
+						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.COMPLETE)) {
 							doRun = false;
 						}
 					}

@@ -1,4 +1,4 @@
-package fiab.mes.opcuawrappers;
+package fiab.mes.mockactors.iostation.opcua;
 
 import java.time.Duration;
 

@@ -123,7 +123,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 						eps.getHandshakeEP(capId).ifPresent(leps -> {
 							((LocalEndpointStatus.LocalServerEndpointStatus) leps).setState(state);
 							if (state.equals(ServerSideStates.EXECUTE)) {
-								if (exeSubState.equals(InternalProcess.HANDSHAKE_DEST))
+								if (exeSubState.equals(InternalProcess.HANDSHAKE_SOURCE))
 									startLoadingOntoTurntable();
 								else
 									startUnloadingFromTurntable();

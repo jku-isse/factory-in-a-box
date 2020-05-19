@@ -1,4 +1,4 @@
-package fiab.mes.mockactors.transport.opcua;
+package fiab.mes.mockactors.transport.coordinator.opcua;
 
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.machine.plotter.opcua.StartupUtil;
