@@ -2,7 +2,7 @@ package fiab.mes.mockactors.iostation;
 
 import java.time.Duration;
 
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class TestBasicIOStationActorWithTransport {
 	}
 
 	
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;

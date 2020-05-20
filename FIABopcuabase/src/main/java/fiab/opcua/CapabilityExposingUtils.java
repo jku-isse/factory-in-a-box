@@ -3,9 +3,10 @@ package fiab.opcua;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 
-import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
+//import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.opcua.server.OPCUABase;
 
 public class CapabilityExposingUtils {

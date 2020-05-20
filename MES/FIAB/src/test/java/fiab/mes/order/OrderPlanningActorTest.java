@@ -5,8 +5,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -68,13 +67,13 @@ class OrderPlanningActorTest {
 		
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;
 	}
 
-	@Before
+	@BeforeAll
 	public static void setupBeforeEach() {
 		knownActors.clear();
 	}

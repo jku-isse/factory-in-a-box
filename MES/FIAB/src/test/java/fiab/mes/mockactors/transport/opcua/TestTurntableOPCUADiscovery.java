@@ -5,8 +5,10 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +35,7 @@ import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.turntable.opcua.OPCUATurntableRootActor;
 
+@Tag("junit")
 class TestTurntableOPCUADiscovery {
 
 	 public static void main(String[] args) {
@@ -49,11 +52,11 @@ class TestTurntableOPCUADiscovery {
 //	Actor model;
 //	IOStationOPCUAWrapper wrapper;
 //	ActorRef machine;
-	ActorRef machineEventBus;
-	ActorSystem system;
+	static ActorRef machineEventBus;
+	static ActorSystem system;
 
-	@BeforeEach
-	void setup() throws Exception{
+	@BeforeAll
+	static void setup() throws Exception{
 		system = ActorSystem.create("TEST_ROOT_SYSTEM");
 		// assume OPCUA server (mock or otherwise is started
 		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -61,16 +64,16 @@ class TestTurntableOPCUADiscovery {
 	}
 
 	@Test
-	void testDiscoveryIntegration() {
+	public void testDiscoveryIntegration() {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://localhost:4842/milo";
-				
+				String endpointURL = "opc.tcp://192.168.0.20:4842";
+				//String endpointURL = "opc.tcp://localhost:4842/milo";
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
 						return context.actorOf(LocalTransportModuleActorSpawner.props());
@@ -91,19 +94,21 @@ class TestTurntableOPCUADiscovery {
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-						if (msue.getStatus().equals(BasicMachineStates.STOPPED)) { 							
+						if (msue.getStatus().equals(BasicMachineStates.STOPPED) && doRun) {
 							machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());							
 						}
-						if (msue.getStatus().equals(BasicMachineStates.IDLE))
+						if (msue.getStatus().equals(BasicMachineStates.IDLE) && doRun){
+							machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Stop(msue.getMachineId()), getRef());
+
+						} if(msue.getStatus().equals(BasicMachineStates.STOPPED))
 							doRun = false;
 					}
 
 				}
 			}};
 	}
-	
-	
-	
+
+
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());
 	}

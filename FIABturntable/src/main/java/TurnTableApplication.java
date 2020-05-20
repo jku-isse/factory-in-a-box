@@ -4,11 +4,16 @@ import fiab.turntable.opcua.OPCUATurntableRootActor;
 public class TurnTableApplication /*extends JFrame*/ {
 
     public static void main(String[] args) {
-        ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
-        int portOffset = 2;
-        boolean exposeInternalControls = false;
-        system.actorOf(OPCUATurntableRootActor.props("Turntable1", portOffset, exposeInternalControls), "TurntableRoot");
-        
+        //TODO prevent startup if args.length = 0
+        if(args.length != 1){
+            System.out.println("TurnTable needs to be instantiated with a name from args, for example Turntable1");
+            System.exit(-1);
+        }else {
+            ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
+            int portOffset = 2;
+            boolean exposeInternalControls = false;
+            system.actorOf(OPCUATurntableRootActor.props(args[0], portOffset, exposeInternalControls), "TurntableRoot");
+        }
         /*
         InterMachineEventBus interMachineEventBus = new InterMachineEventBus();
         StatePublisher statePublisher = newStatus -> System.out.println("STATE_PUBLISHER - NEW STATUS: " + newStatus);

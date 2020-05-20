@@ -1,7 +1,5 @@
 package fiab.mes.mockactors.transport.opcua;
 
-import static org.junit.Assert.fail;
-
 import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.Arrays;
@@ -51,6 +49,8 @@ import fiab.mes.transport.msg.TransportModuleRequest;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.turntable.opcua.OPCUATurntableRootActor;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestTurntableWithIOStations {
 

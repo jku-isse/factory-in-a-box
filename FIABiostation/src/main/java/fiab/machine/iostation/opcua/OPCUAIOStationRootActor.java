@@ -2,6 +2,8 @@ package fiab.machine.iostation.opcua;
 
 import java.time.Duration;
 
+import fiab.handshake.fu.server.methods.Reset;
+import fiab.handshake.fu.server.methods.Stop;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
@@ -98,9 +100,9 @@ public class OPCUAIOStationRootActor extends AbstractActor {
 	private void setupOPCUANodeSet(OPCUABase opcuaBase, UaFolderNode folderNode, String path, ActorRef actor) {
 		
 		UaMethodNode n1 = opcuaBase.createPartialMethodNode(path, IOStationCapability.RESET_REQUEST, "Requests reset");		
-		opcuaBase.addMethodNode(folderNode, n1, new fiab.handshake.fu.server.methods.Reset(n1, actor)); 		
+		opcuaBase.addMethodNode(folderNode, n1, new Reset(n1, actor));
 		UaMethodNode n2 = opcuaBase.createPartialMethodNode(path, IOStationCapability.STOP_REQUEST, "Requests stop");		
-		opcuaBase.addMethodNode(folderNode, n2, new fiab.handshake.fu.server.methods.Stop(n2, actor));
+		opcuaBase.addMethodNode(folderNode, n2, new Stop(n2, actor));
 		//if (IOStationCapability.STATE_VAR_NAME != IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME) {
 			statusIOS = opcuaBase.generateStringVariableNode(folderNode, path, IOStationCapability.STATE_VAR_NAME, ServerSideStates.STOPPED);
 		//}

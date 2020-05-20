@@ -1,6 +1,5 @@
 package fiab.mes.mockactors.transport.coordinator.opcua;
 
-import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
@@ -11,9 +10,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,12 +109,12 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 		step = op.getAvailableSteps().get(0);
 	}
 
-	@Before
+	@BeforeEach
 	public static void setupBeforeEach() {
 		knownActors.clear();
 	}
 	
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;

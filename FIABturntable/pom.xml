@@ -189,12 +189,13 @@
                             <artifactId>FIABhandshake</artifactId>
                             <version>1.0.2-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABhandshake-1.0.2-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABhandshake-1.0.2-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+           
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -224,7 +225,7 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>fiab.turntable.TurnTableApplication</Main-Class>
+                                        <Main-Class>TurnTableApplication</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
@@ -232,6 +233,7 @@
                     </execution>
                 </executions>
             </plugin>
+            
         </plugins>
     </build>
 </project>

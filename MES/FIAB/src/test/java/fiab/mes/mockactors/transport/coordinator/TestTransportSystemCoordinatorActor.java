@@ -6,9 +6,9 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
-import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,12 +80,12 @@ class TestTransportSystemCoordinatorActor {
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		
 	}
 
-	@Before
+	@BeforeEach
 	public static void setupBeforeEach() {
 		knownActors.clear();
 	}
 	
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;

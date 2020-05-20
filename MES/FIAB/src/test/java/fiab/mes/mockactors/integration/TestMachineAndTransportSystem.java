@@ -7,8 +7,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
-import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -60,12 +59,12 @@ class TestMachineAndTransportSystem {
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		
 	}
 
-	@Before
+	@BeforeAll
 	public static void setupBeforeEach() {
 		knownActors.clear();
 	}
 	
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;
@@ -152,10 +151,7 @@ class TestMachineAndTransportSystem {
 			}	
 		};
 	}
-	
-	
-	
-	
+
 	private boolean lockMachineforRequest(MachineStatusUpdateEvent mue, String matchMachineId, ActorRef testSys) {
 		BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
 		if (newState.equals(BasicMachineStates.IDLE) && mue.getMachineId().equals(matchMachineId)) {

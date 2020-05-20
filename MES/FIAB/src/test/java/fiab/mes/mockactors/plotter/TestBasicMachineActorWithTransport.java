@@ -1,8 +1,8 @@
 package fiab.mes.mockactors.plotter;
-
+/*
 import java.time.Duration;
 
-import org.junit.AfterClass;
+//import org.junit.AfterClass;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
-import fiab.machine.plotter.IntraMachineEventBus;
+//import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.machine.plotter.SubscriptionClassifier;
 import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
 import fiab.mes.eventbus.InterMachineEventBus;
@@ -40,9 +40,9 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.shopfloor.DefaultLayout;
-
+*/
 public class TestBasicMachineActorWithTransport { 
-
+/*
 	protected static ActorSystem system;
 	protected static ActorRef machine;
 	public static String ROOT_SYSTEM = "routes";
@@ -142,7 +142,7 @@ public class TestBasicMachineActorWithTransport {
 	}
 	
 
-
+*/
 	
 
 	

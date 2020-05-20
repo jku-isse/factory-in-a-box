@@ -15,6 +15,7 @@ import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.ClientSideHandshakeFU;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
+import fiab.opcua.server.EncryptedBaseOpcUaServer;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
 import fiab.turntable.actor.InternalTransportModuleRequest;
@@ -79,14 +80,26 @@ public class OPCUATurntableRootActor extends AbstractActor {
                 })
                 .match(InternalTransportModuleRequest.class, req -> {
                     // forward to return response directly into method call back
-                    if (ttWrapper != null) ttWrapper.forward(req, getContext());
+                    if (ttWrapper != null){
+                        ttWrapper.forward(req, getContext());
+                    }else{
+                        log.info("OpcUaTTRootActor has no wrapper configured");
+                    }
                 }).build();
     }
 
 
     private void init() throws Exception {
-    	NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
-		OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
+        OPCUABase opcuaBase;
+        if(System.getProperty("os.name").toLowerCase().startsWith("win")){
+            NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
+            opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
+        }else{
+            EncryptedBaseOpcUaServer server1 = new EncryptedBaseOpcUaServer(portOffset, machineName);
+            opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
+        }
+
+		//OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
 		UaFolderNode root = opcuaBase.prepareRootNode();
         UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "Turntable_FU");
         String fuPrefix = machineName + "/" + "Turntable_FU";

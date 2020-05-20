@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,7 +85,7 @@ public class OrderEmittingTestServerWithTransport {
 	void setUp() throws Exception {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 		binding
 	        .thenCompose(ServerBinding::unbind) // trigger unbinding from the port

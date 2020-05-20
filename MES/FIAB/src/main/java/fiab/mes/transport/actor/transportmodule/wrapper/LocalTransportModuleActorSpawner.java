@@ -88,6 +88,8 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
 				log.error("Unable to resolve position for uri via port, assigning default position 20: "+info.getEndpointUrl());
 				pos = new Position("20");
 			}
+		}if(pos == null){
+			log.info("Unable to resolve pos " + pos);
 		}
 		return pos;
 	}

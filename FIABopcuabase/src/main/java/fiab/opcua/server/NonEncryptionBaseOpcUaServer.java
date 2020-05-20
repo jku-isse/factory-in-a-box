@@ -40,8 +40,6 @@ public class NonEncryptionBaseOpcUaServer {
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
-
-
     
     private final OpcUaServer server;
 
@@ -95,6 +93,7 @@ public class NonEncryptionBaseOpcUaServer {
         //Set<String> hNames = HostnameUtil.getHostnames("0.0.0.0"); // ATTENTION: resolving hostnames takes long when there are many interfaces (e.g., docker, VPN, etc)
         //hostnames.addAll(hNames);
         hostnames.add("127.0.0.1");
+
         //FIXME: add others here for external reachability
         
         for (String bindAddress : bindAddresses) {

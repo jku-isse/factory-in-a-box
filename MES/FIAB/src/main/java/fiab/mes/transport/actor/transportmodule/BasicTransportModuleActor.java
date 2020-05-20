@@ -65,6 +65,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 		this.tpl = tpl; // later versions will obtain such info dynamically from accessing own capability OPC UA information
 		this.icpm = icpm; // later versions will obtain such info dynamically from accessing own wiring OPC UA information
 		this.selfPos = selfPos;
+		log.info("Selfpos: " + selfPos);
 		this.self = self();
 		this.externalHistory = new HistoryTracker(machineId.getId());
 		init();

@@ -103,7 +103,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 			log.info("Connected to "+req.endpointURL);
 			getActorCapabilities(req, client, Identifiers.RootFolder);
 			if (this.status.equals(DISCOVERY_STATUS.IN_PROGRESS)) {
-				log.info("No Capabilities found for which an ActorSpawnerActor was registered");
+				log.info("No Capabilities found for which an ActorSpawner Actor was registered");
 				this.status = DISCOVERY_STATUS.COMPLETED_WITHOUT_SPAWN;
 				// no need to check a spawner actor
 			} else if (this.status.equals(DISCOVERY_STATUS.COMPLETED_WITH_SPAWN)) {
