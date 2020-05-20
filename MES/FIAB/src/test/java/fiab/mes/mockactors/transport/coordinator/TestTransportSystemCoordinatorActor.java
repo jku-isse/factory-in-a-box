@@ -59,7 +59,7 @@ class TestTransportSystemCoordinatorActor {
 	
 	protected static ActorSystem system;
 	public static String ROOT_SYSTEM = "TEST_TRANSPORTSYSTEM";
-//	protected static ActorRef machineEventBus;
+	protected static ActorRef machineEventBus;
 	protected static ActorRef orderEventBus;
 	protected static ActorRef coordActor;
 	HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
@@ -67,7 +67,7 @@ class TestTransportSystemCoordinatorActor {
 //	static VirtualIOStationActorFactory partsIn;
 //	static VirtualIOStationActorFactory partsOut;
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
-	
+	static DefaultLayout layout;
 //	private static boolean engageAutoReload = true;
 //	private static boolean disengageAutoReload = false;
 	
@@ -76,7 +76,7 @@ class TestTransportSystemCoordinatorActor {
 		// setup shopfloor
 		// setup machines				
 		system = ActorSystem.create(ROOT_SYSTEM);
-//		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		layout = new DefaultLayout(system);
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		
 	}
 
@@ -90,15 +90,13 @@ class TestTransportSystemCoordinatorActor {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;
 	}
+
 	
-	@Test
+	@Test //WORKS
 	void testCoordinatorWithSingleTTLayout() throws Exception {
 		new TestKit(system) { 
 			{ 				
-				DefaultLayout layout = new DefaultLayout(system);
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), "TransportCoordinator");				
 				//setupTwoTurntableWithIOShopfloor();
 				layout.setupSingleTT21withIOEast35West20();
@@ -136,17 +134,14 @@ class TestTransportSystemCoordinatorActor {
 		};
 	}
 	
-	@Test
+	@Test //WORKS
 	void testCoordinatorWithDualTTLayout() throws Exception {
 		new TestKit(system) { 
 			{ 				
-				DefaultLayout layout = new DefaultLayout(system);
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), "TransportCoordinator");				
 				//setupTwoTurntableWithIOShopfloor();
-				layout.setupDuralTT2021withIOEast35West34();
+				layout.setupDualTT2021withIOEast35West34();
 				int countConnEvents = 0;
 				while (countConnEvents < 4) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
@@ -185,137 +180,6 @@ class TestTransportSystemCoordinatorActor {
 			}	
 		};
 	}
-	
-	//TODO check tests!
-	
-	@Test
-	void testCoordinatorWith2TTLayout() throws InterruptedException, ExecutionException {
-		new TestKit(system) { 
-			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-
-				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), "TransportCoordinator");				
-				setupDualTT2021withIOEast35West34();
-				int countConnEvents = 0;
-				while (countConnEvents < 4) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
-					logEvent(te);
-					if (te instanceof MachineConnectedEvent)
-						countConnEvents++;					
-				}
-				assert(dns.getActorForPosition(new Position("20")).get().equals(knownActors.get("MockTurntableActor20")));
-				RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get("InputStationActor34"), knownActors.get("OutputStationActor35"), "TestOrder1", getRef());
-				coordActor.tell(rtr, getRef());
-				
-				boolean transportDone = false;
-				while(!transportDone) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class, IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class);
-					logEvent(te);
-					if (te instanceof RegisterTransportRequestStatusResponse) {
-						RegisterTransportRequestStatusResponse rtrr = (RegisterTransportRequestStatusResponse) te;
-						if (rtrr.getResponse().equals(RegisterTransportRequestStatusResponse.ResponseType.COMPLETED)) {
-							transportDone = true;
-						} else { 
-							assertTrue(rtrr.getResponse().equals(RegisterTransportRequestStatusResponse.ResponseType.QUEUED) ||
-									rtrr.getResponse().equals(RegisterTransportRequestStatusResponse.ResponseType.ISSUED)) ;
-						}
-					}
-				}
-			}	
-		};
-	}
-	
-//	private void setupTwoTurntableWithIOShopfloor() throws InterruptedException, ExecutionException {
-//		final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		
-//		partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 34);
-//		partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);
-//		// now add to ttWrapper client Handshake actors
-//		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
-//		ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-//		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
-//		ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-//	
-//		// setup turntable1
-//		IntraMachineEventBus intraEventBus1 = new IntraMachineEventBus();	
-//		ActorRef turningActor1 = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus1, null), "Turn1");
-//		ActorRef conveyingActor1 = system.actorOf(BaseBehaviorConveyorActor.props(intraEventBus1, null), "Conv1");
-//		ActorRef ttWrapper1 = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus1, turningActor1, conveyingActor1), "TT1");
-//		ActorRef westClient1 = system.actorOf(ClientHandshakeActor.props(ttWrapper1, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
-//		boolean autoComplete = true;
-//		ActorRef eastServer1 = system.actorOf(ServerSideHandshakeActor.props(ttWrapper1, autoComplete), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
-//		ttWrapper1.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient1, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
-//		ttWrapper1.tell( new LocalEndpointStatus.LocalServerEndpointStatus(eastServer1, true, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER), ActorRef.noSender());
-//		ttWrapper1.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
-//		ttWrapper1.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, ActorRef.noSender());
-//		
-//		
-//		// setup turntable 2
-//		IntraMachineEventBus intraEventBus2 = new IntraMachineEventBus();	
-//		ActorRef turningActor2 = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus2, null), "Turn2");
-//		ActorRef conveyingActor2 = system.actorOf(BaseBehaviorConveyorActor.props(intraEventBus2, null), "Conv2");				
-//		ActorRef ttWrapper2 = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus2, turningActor2, conveyingActor2), "TT2");
-//		ActorRef eastClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
-//		ActorRef westClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, eastServer1), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT+"~2");		
-//		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
-//		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(eastClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
-//		ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
-//		ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, ActorRef.noSender());
-//		
-//		// setup actual turntable actors:
-//		setupTurntableActor(ttWrapper1, intraEventBus1, eventBusByRef, 20);
-//		setupTurntableActor(ttWrapper2, intraEventBus2, eventBusByRef, 21);
-//	}
-	
-//	@Test - TODO: needs fixing
-//	void testCoordinatorWithMinimumLayout() throws InterruptedException, ExecutionException {
-//		new TestKit(system) { 
-//			{ 															
-//				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-//				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );
-//
-//				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), "TransportCoordinator");				
-//				setupSingleTurntableWithIOShopfloor();
-//				for (int i=0; i<11; i++) {
-//					logEvent(expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class));
-//				}
-//				assert(dns.getActorForPosition(new Position("21")).get().equals(knownActors.get("MockTurntableActor21")));
-//				RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get("InputStationActor20"), knownActors.get("OutputStationActor35"), "TestOrder1", getRef());
-//				coordActor.tell(rtr, getRef());
-//				
-//				for (int i=0; i<30; i++) {
-//					logEvent(expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class, IOStationStatusUpdateEvent.class));
-//				}
-//			}	
-//		};
-//	}
-	
-//	private void setupSingleTurntableWithIOShopfloor() throws InterruptedException, ExecutionException {
-//		final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-//		
-//		partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, disengageAutoReload, 20);
-//		partsOut = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, disengageAutoReload, 35);
-//		// now add to ttWrapper client Handshake actors
-//		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/InputStationServerSideHandshakeMock");
-//		ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-//		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX+"/OutputStationServerSideHandshakeMock");
-//		ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();			
-//		
-//		// setup turntable 2
-//		IntraMachineEventBus intraEventBus2 = new IntraMachineEventBus();	
-//		ActorRef turningActor2 = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus2, null), "Turn2");
-//		ActorRef conveyingActor2 = system.actorOf(BaseBehaviorConveyorActor.props(intraEventBus2, null), "Conv2");				
-//		ActorRef ttWrapper2 = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus2, turningActor2, conveyingActor2), "TT2");
-//		ActorRef eastClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, outRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
-//		ActorRef westClient2 = system.actorOf(ClientHandshakeActor.props(ttWrapper2, inRef), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT+"~2");
-//		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(westClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT), ActorRef.noSender());
-//		ttWrapper2.tell( new LocalEndpointStatus.LocalClientEndpointStatus(eastClient2, false, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT), ActorRef.noSender());
-//		ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
-//		ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, ActorRef.noSender());
-//		
-//		// setup actual turntable actors:
-//		setupTurntableActor(ttWrapper2, intraEventBus2, eventBusByRef, 21);
-//	}
 	
 	
 	

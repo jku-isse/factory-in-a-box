@@ -96,8 +96,10 @@ public class OrderEmittingTestServerWithTransport {
 	    system = null;
 	}
 	
+	//TODO: run tests
+	
 	@Test
-	void testFrontendResponsesByEmittingOrdersSequentialProcess() throws ExecutionException, InterruptedException, IOException {
+	void testFrontendResponsesByEmittingOrdersSequentialProcess() throws Exception {
 			new TestKit(system) { 
 				{ 
 					System.out.println("test frontend responses by emitting orders with sequential process");
@@ -145,7 +147,7 @@ public class OrderEmittingTestServerWithTransport {
 	}
 	
 	@Test
-	void testFrontendExternalProcess() throws ExecutionException, InterruptedException, IOException {
+	void testFrontendExternalProcess() throws Exception {
 			new TestKit(system) { 
 				{ 
 					System.out.println("test frontend responses by emitting orders with sequential process");

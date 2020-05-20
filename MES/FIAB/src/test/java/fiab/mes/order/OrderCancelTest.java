@@ -83,10 +83,10 @@ class OrderCancelTest {
 	}
 	
 	
-
+	// TODO: run TEST
 	
 	@Test
-	void testCancelBeforeAssignment() throws InterruptedException, ExecutionException {
+	void testCancelBeforeAssignment() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -152,7 +152,7 @@ class OrderCancelTest {
 	}
 	
 	@Test
-	void testCancelBeforeReqTransport() throws InterruptedException, ExecutionException {
+	void testCancelBeforeReqTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -212,7 +212,7 @@ class OrderCancelTest {
 	}
 	
 	@Test
-	void testCancelWhileExecute() throws InterruptedException, ExecutionException {
+	void testCancelWhileExecute() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);

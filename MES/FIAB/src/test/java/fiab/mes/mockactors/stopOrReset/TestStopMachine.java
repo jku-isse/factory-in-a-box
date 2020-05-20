@@ -81,11 +81,11 @@ class TestStopMachine {
 		knownActors.clear();
 	}
 	
-	
+	// TODO: run TESTS
 
 	
 	@Test
-	void testStopMachineWhenUnassigned() throws InterruptedException, ExecutionException {
+	void testStopMachineWhenUnassigned() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -149,7 +149,7 @@ class TestStopMachine {
 	}
 	
 	@Test
-	void testStopMachineWhenAssigned() throws InterruptedException, ExecutionException {
+	void testStopMachineWhenAssigned() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -213,7 +213,7 @@ class TestStopMachine {
 	}
 	
 	@Test
-	void testStopMachineWhenPlotting() throws InterruptedException, ExecutionException {
+	void testStopMachineWhenPlotting() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);

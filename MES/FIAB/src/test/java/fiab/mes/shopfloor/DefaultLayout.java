@@ -17,6 +17,8 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.handshake.actor.ClientHandshakeActor;
@@ -101,7 +103,8 @@ public class DefaultLayout {
 		return setupMESLevelTurntableActor(ttWrapper, intraEventBus, eventBusByRef, 21);
 	}
 	
-	public List<ActorRef> setupDuralTT2021withIOEast35West34() throws Exception{
+	// Returns list of MES level ActorRefs for TT1 and TT2
+	public List<ActorRef> setupDualTT2021withIOEast35West34() throws Exception{
 		setupIOStations(34, 35);
 		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 		ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
@@ -121,6 +124,42 @@ public class DefaultLayout {
 		ActorSelection eastServerSel = system.actorSelection("/user/"+TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER+"~"+20);
 		ActorRef eastServer = eastServerSel.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, outRef);
+		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, eastServer);
+		ActorRef ttWrapper2 = setupSingleTurntable(21, intraEventBus2, ioRefs, new HashSet<String>());
+		ActorRef mesTT2 = setupMESLevelTurntableActor(ttWrapper2, intraEventBus2, eventBusByRef, 21);
+		
+		return Arrays.asList(new ActorRef[]{mesTT1,mesTT2});
+	}
+	
+	public List<ActorRef> setupTwoTurntableWith2MachinesAndIO() throws Exception{
+		//IO Stations
+		setupIOStations(34, 35);
+		ActorSelection inServer = system.actorSelection("/user/"+partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+		ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
+		ActorSelection outServer = system.actorSelection("/user/"+partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+		ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
+		//Plotters
+		ActorRef handShakeServer31 = setupMachineActor(eventBusByRef, 31, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.RED), system);
+		ActorRef handShakeServer37 = setupMachineActor(eventBusByRef, 37, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.BLUE), system);	
+		
+		// setup turntable
+		IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
+		Map<String,ActorRef> iRefs = new HashMap<String,ActorRef>();
+		iRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, inRef);
+		iRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, handShakeServer31);
+		Set<String> serverRefs = new HashSet<String>();
+		serverRefs.add(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
+		ActorRef ttWrapper = setupSingleTurntable(20, intraEventBus, iRefs, serverRefs);
+		ActorRef mesTT1 = setupMESLevelTurntableActor(ttWrapper, intraEventBus, eventBusByRef, 20);
+		
+		
+		
+		IntraMachineEventBus intraEventBus2 = new IntraMachineEventBus();	
+		Map<String,ActorRef> ioRefs = new HashMap<String,ActorRef>();
+		ActorSelection eastServerSel = system.actorSelection("/user/"+TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER+"~"+20);
+		ActorRef eastServer = eastServerSel.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
+		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, outRef);
+		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, handShakeServer37);
 		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, eastServer);
 		ActorRef ttWrapper2 = setupSingleTurntable(21, intraEventBus2, ioRefs, new HashSet<String>());
 		ActorRef mesTT2 = setupMESLevelTurntableActor(ttWrapper2, intraEventBus2, eventBusByRef, 21);
@@ -196,19 +235,19 @@ public class DefaultLayout {
 		return system.actorOf(BasicTransportModuleActor.props(eventBusByRef, cap, modelActor, hal, selfPos, intraEventBus, new TransportPositionLookup(), env), "MESlevelTTActor"+ipid);
 	}
 	
-	
-//	public static ActorRef setupMachineActor(ActorSelection eventBusByRef, int ipid, AbstractCapability colorCap, ActorSystem system) throws InterruptedException, ExecutionException {
-//		fiab.machine.plotter.IntraMachineEventBus intraEventBus = new fiab.machine.plotter.IntraMachineEventBus();
-//		final AbstractCapability cap = colorCap;
-//		final Actor modelActor = getDefaultMachineActor(ipid);
-//		ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper"+ipid);
-//		ActorSelection serverSide = system.actorSelection("/user/MachineWrapper"+ipid+"/ServerSideHandshakeMock");
-//		Thread.sleep(1000);
-//		ActorRef serverSideRef = serverSide.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-//		PlottingMachineWrapperInterface wrapperDelegate = new MockPlottingMachineWrapperDelegate(machineWrapper);
-//		ActorRef machine = system.actorOf(BasicMachineActor.props(eventBusByRef, cap, modelActor, wrapperDelegate, intraEventBus));
-//		return serverSideRef;
-//	}
+	// Returns machine-level ActorRef of the ServerSideHandshakeActor
+	public static ActorRef setupMachineActor(ActorSelection eventBusByRef, int ipid, AbstractCapability colorCap, ActorSystem system) throws InterruptedException, ExecutionException {
+		fiab.machine.plotter.IntraMachineEventBus intraEventBus = new fiab.machine.plotter.IntraMachineEventBus();
+		final AbstractCapability cap = colorCap;
+		final Actor modelActor = getDefaultMachineActor(ipid);
+		ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper"+ipid);
+		ActorSelection serverSide = system.actorSelection("/user/MachineWrapper"+ipid+"/ServerSideHandshakeMock");
+		Thread.sleep(1000);
+		ActorRef serverSideRef = serverSide.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
+		PlottingMachineWrapperInterface wrapperDelegate = new MockPlottingMachineWrapperDelegate(machineWrapper);
+		ActorRef machine = system.actorOf(BasicMachineActor.props(eventBusByRef, cap, modelActor, wrapperDelegate, intraEventBus));
+		return serverSideRef;
+	}
 	
 
 	public static Actor getDefaultMachineActor(int id) {

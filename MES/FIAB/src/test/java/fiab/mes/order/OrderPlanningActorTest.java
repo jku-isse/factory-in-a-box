@@ -79,9 +79,10 @@ class OrderPlanningActorTest {
 		knownActors.clear();
 	}
 	
+	//TODO: run tests
 	
 	@Test
-	void testInitOrderPlannerWithTransport() throws InterruptedException, ExecutionException {
+	void testInitOrderPlannerWithTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				String oid = "Order1";
@@ -115,7 +116,7 @@ class OrderPlanningActorTest {
 	}
 	
 	@Test
-	void testInitOrderPlannerWithSingleStepProcessAndTransport() throws InterruptedException, ExecutionException {
+	void testInitOrderPlannerWithSingleStepProcessAndTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				String oid = "Order1";
@@ -164,7 +165,7 @@ class OrderPlanningActorTest {
 	}
 	
 	@Test
-	void testInitOrderPlannerWithMultipleSingleStepProcessesAndTransport() throws InterruptedException, ExecutionException {
+	void testInitOrderPlannerWithMultipleSingleStepProcessesAndTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -225,7 +226,7 @@ class OrderPlanningActorTest {
 	}
 	
 	@Test
-	void testInitOrderPlannerWithMultipleParallelSingleStepProcessesAndTransport() throws InterruptedException, ExecutionException {
+	void testInitOrderPlannerWithMultipleParallelSingleStepProcessesAndTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);

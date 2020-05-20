@@ -120,7 +120,9 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 					if (currentState.equals(BasicMachineStates.EXECUTE)) {
 						String capId = getSender().path().name();
 						log.info(String.format("ServerSide EP %s Status: %s", capId, state));
-						eps.getHandshakeEP(capId).ifPresent(leps -> {
+						String localCapId = capId.lastIndexOf("~") > 0 ? capId.substring(0, capId.lastIndexOf("~")) : capId;
+						
+						eps.getHandshakeEP(localCapId).ifPresent(leps -> {
 							((LocalEndpointStatus.LocalServerEndpointStatus) leps).setState(state);
 							if (state.equals(ServerSideStates.EXECUTE)) {
 								if (exeSubState.equals(InternalProcess.HANDSHAKE_SOURCE))
