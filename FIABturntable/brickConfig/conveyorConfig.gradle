@@ -1,0 +1,15 @@
+// Project configuration
+brick.pref {
+    // Main class - Edit this to be your main class//
+    mainClass = "TurnTableApplication"
+    // Brick connection parameters - The sshHost variable changes on almost every connect. Change it accordingly //
+    sshHost = "192.168.0.21"
+    sshUser = "robot"
+    sshPassword = "maker"
+    useSudo = true
+
+    /*libCustom += ["/home/robot/java/libraries/coremodel.jar",
+                  "/home/robot/java/libraries/coremodel-1.0.0.jar",
+                  "/libraries/opcuaextension-1.0.0.jar"]*/
+    //useEmbeddedPaths = true
+}

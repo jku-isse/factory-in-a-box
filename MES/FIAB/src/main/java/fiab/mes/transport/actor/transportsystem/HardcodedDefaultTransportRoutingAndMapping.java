@@ -11,8 +11,8 @@ import java.util.Set;
 
 import com.google.common.collect.Lists;
 
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.transport.actor.transportmodule.InternalCapabilityToPositionMapping;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 
 public class HardcodedDefaultTransportRoutingAndMapping implements TransportRoutingInterface, InternalCapabilityToPositionMapping {
 	
@@ -117,27 +117,27 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 	
 		
 	private void setupHardcodedCapabilityToPositionMapping() {
-		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER, pos21);
-		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, pos34);
-		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT, pos37);
-		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT, pos31);
-		tt20map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SELF, pos20);
-		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT, pos35);
-		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT, pos20);
-		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT, pos38);
-		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT, pos32);
-		tt21map.put(WellknownTransportModuleCapability.TRANSPORT_MODULE_SELF, pos21);
+		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, pos21);
+		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, pos34);
+		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, pos37);
+		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, pos31);
+		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF, pos20);
+		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, pos35);
+		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, pos20);
+		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, pos38);
+		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, pos32);
+		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF, pos21);
 		
-		pos20cap.put(pos21, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_SERVER);
-		pos20cap.put(pos34, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT);
-		pos20cap.put(pos37, WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT);
-		pos20cap.put(pos31, WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT);
-		pos20cap.put(pos20, WellknownTransportModuleCapability.TRANSPORT_MODULE_SELF);
-		pos21cap.put(pos35, WellknownTransportModuleCapability.TRANSPORT_MODULE_EAST_CLIENT);
-		pos21cap.put(pos20, WellknownTransportModuleCapability.TRANSPORT_MODULE_WEST_CLIENT);
-		pos21cap.put(pos38, WellknownTransportModuleCapability.TRANSPORT_MODULE_SOUTH_CLIENT);
-		pos21cap.put(pos32, WellknownTransportModuleCapability.TRANSPORT_MODULE_NORTH_CLIENT);
-		pos21cap.put(pos21, WellknownTransportModuleCapability.TRANSPORT_MODULE_SELF);		
+		pos20cap.put(pos21, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
+		pos20cap.put(pos34, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
+		pos20cap.put(pos37, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT);
+		pos20cap.put(pos31, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT);
+		pos20cap.put(pos20, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF);
+		pos21cap.put(pos35, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
+		pos21cap.put(pos20, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
+		pos21cap.put(pos38, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT);
+		pos21cap.put(pos32, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT);
+		pos21cap.put(pos21, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF);		
 	}
 	
 	

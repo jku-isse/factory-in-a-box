@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,17 +14,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
 import fiab.mes.machine.actor.plotter.wrapper.LocalPlotterActorSpawner;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
-import fiab.mes.opcua.CapabilityImplementationMetadata;
-import fiab.mes.opcua.CapabilityImplementationMetadata.ProvOrReq;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
-import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.opcua.CapabilityImplementationMetadata;
+import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
 public class ShopfloorConfigurations {
 
@@ -132,7 +131,7 @@ public class ShopfloorConfigurations {
 	}
 
 	public static void addInputStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
-		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 			@Override
 			public ActorRef createActorSpawner(ActorContext context) {
 				return context.actorOf(LocalIOStationActorSpawner.props());
@@ -141,7 +140,7 @@ public class ShopfloorConfigurations {
 	}
 	
 	public static void addOutputStationSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
-		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(HandshakeProtocol.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 			@Override
 			public ActorRef createActorSpawner(ActorContext context) {
 				return context.actorOf(LocalIOStationActorSpawner.props());
@@ -171,7 +170,7 @@ public class ShopfloorConfigurations {
 }
 	
 	public static void addTurntableSpawner( Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
-		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownTransportModuleCapability.TURNTABLE_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+		capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 			@Override
 			public ActorRef createActorSpawner(ActorContext context) {
 				return context.actorOf(LocalTransportModuleActorSpawner.props());

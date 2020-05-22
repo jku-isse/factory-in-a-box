@@ -3,10 +3,7 @@ package fiab.mes.restendpoint;
 import static akka.pattern.PatternsCS.ask;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -27,7 +24,6 @@ import akka.actor.ActorSystem;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.marshalling.sse.EventStreamMarshalling;
 import akka.http.javadsl.model.HttpHeader;
-import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.model.headers.RawHeader;
 import akka.http.javadsl.model.sse.ServerSentEvent;
@@ -38,13 +34,15 @@ import akka.http.javadsl.server.directives.RouteAdapter;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Source;
 import akka.util.Timeout;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.mes.auth.Authenticator;
 import fiab.mes.auth.Authenticator.Credentials;
 import fiab.mes.auth.Authenticator.User;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
+import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.MachineEventWrapper;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.OrderProcessWrapper;
@@ -53,14 +51,11 @@ import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEventWrapper;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
-import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
 import fiab.mes.restendpoint.xmltransformer.EcoreStringUnmarshaller;
 import scala.concurrent.duration.FiniteDuration;
-import fiab.mes.machine.msg.GenericMachineRequests;
-import fiab.mes.machine.msg.MachineEvent;
 
 public class ActorRestEndpoint extends AllDirectives{
 
@@ -201,7 +196,7 @@ public class ActorRestEndpoint extends AllDirectives{
 				.map(msg -> (OrderEvent) msg)
 				.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg))
 				.mapMaterializedValue(actor -> { 
-					eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT1", orderId.orElse("*"))) , actor);  
+					eventBusByRef.tell(new SubscribeMessage(actor, new MESSubscriptionClassifier("RESTENDPOINT1", orderId.orElse("*"))) , actor);  
 					return NotUsed.getInstance();
 				});				
 		return completeOK( source, EventStreamMarshalling.toEventStream());
@@ -215,7 +210,7 @@ public class ActorRestEndpoint extends AllDirectives{
 				.filter(msg -> msg instanceof OrderProcessUpdateEvent)
 				.map(msg -> ServerSentEventTranslator.toServerSentEvent(((OrderProcessUpdateEvent)msg).getOrderId(), (OrderProcessUpdateEvent) msg))
 				.mapMaterializedValue(actor -> { 
-					eventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT2", optId.orElse("*"))) , actor);
+					eventBusByRef.tell(new SubscribeMessage(actor, new MESSubscriptionClassifier("RESTENDPOINT2", optId.orElse("*"))) , actor);
 					return NotUsed.getInstance();
 				});				
 		return completeOK( source, EventStreamMarshalling.toEventStream());
@@ -237,13 +232,6 @@ public class ActorRestEndpoint extends AllDirectives{
 						CompletionStage<String> returnId = ask(orderEntryActor, rpr, timeout).thenApply((String.class::cast));
 						return completeOKWithFuture(returnId, Jackson.marshaller());
 					});
-//					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { //TODO this needs to be an XML unmarshaller, not JSON!! 
-//						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
-//						// TODO: transform XML string into Ecore model: XML
-//						RegisterProcessRequest order = transformToOrderProcessRequest(orderAsXML); // not sure how to do this yet
-//						CompletionStage<String> returnId = ask(orderEntryActor, order, timeout).thenApply((String.class::cast));
-//						return completeOKWithFuture(returnId, Jackson.marshaller());
-//					});
 				}
 				return complete(StatusCodes.UNAUTHORIZED);
 			})
@@ -369,7 +357,7 @@ public class ActorRestEndpoint extends AllDirectives{
 				.map(msg -> (MachineEvent) msg)
 				.map(msg -> ServerSentEventTranslator.toServerSentEvent(msg))
 				.mapMaterializedValue(actor -> { 
-					machineEventBusByRef.tell(new SubscribeMessage(actor, new SubscriptionClassifier("RESTENDPOINT", machineId.orElse("*"))) , actor);  
+					machineEventBusByRef.tell(new SubscribeMessage(actor, new MESSubscriptionClassifier("RESTENDPOINT", machineId.orElse("*"))) , actor);  
 					return NotUsed.getInstance();
 				});				
 		return completeOK( source, EventStreamMarshalling.toEventStream());

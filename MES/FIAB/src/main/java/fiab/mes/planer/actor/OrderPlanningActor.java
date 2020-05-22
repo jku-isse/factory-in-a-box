@@ -1,43 +1,33 @@
 package fiab.mes.planer.actor;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import ProcessCore.CapabilityInvocation;
-import ProcessCore.ParallelBranches;
-import ProcessCore.ProcessStep;
-import actorprocess.ActorAllocation;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
-import akka.actor.RootActorPath;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.basicmachine.events.MachineEvent.MachineEventType;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.eventbus.OrderEventBus;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
-import fiab.mes.machine.msg.MachineEvent.MachineEventType;
-import fiab.mes.machine.msg.MachineStatus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.order.MappedOrderProcess;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
@@ -54,8 +44,6 @@ import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatu
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 import fiab.mes.transport.msg.CancelTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
@@ -150,11 +138,11 @@ public class OrderPlanningActor extends AbstractActor{
 	}
 
 	private void getEventBusAndSubscribe() throws Exception{
-		SubscribeMessage orderSub = new SubscribeMessage(getSelf(), new SubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));		
+		SubscribeMessage orderSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));		
 		orderEventBus = this.context().actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		orderEventBus.tell(orderSub, getSelf());
 		
-		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new SubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
+		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
 		machineEventBus = this.context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		machineEventBus.tell(machineSub, getSelf());
 		
@@ -374,13 +362,13 @@ public class OrderPlanningActor extends AbstractActor{
 		log.info(String.format("IOStationUpdateEvent for machine %s : %s", ue.getMachineId(), ue.getStatus().toString()));
 		capMan.resolveById(ue.getMachineId()).ifPresent(machine -> {
 			ordMapper.updateMachineStatus(machine, ue);
-			if (ue.getStatus().equals(ServerSide.IDLE_EMPTY)) {
+			if (ue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
 				// we reached idle for an outputstation
 				ordMapper.getProcessesInState(OrderEventType.COMPLETED).stream()
 				.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
 				ordMapper.getProcessesInState(OrderEventType.CANCELED).stream() //orders that need to be prematurely removed
 				.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
-			} else if (ue.getStatus().equals(ServerSide.IDLE_LOADED)) {
+			} else if (ue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 				// we reached idle for an inputstation
 				// we are ready to start a new process as this input is ready
 				ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
@@ -593,8 +581,8 @@ public class OrderPlanningActor extends AbstractActor{
 		// now wait for machine available event to make use of it (currently we dont know its state)	
 	}
 	
-	protected AbstractCapability inputStationCap = HandshakeProtocol.getInputStationCapability();
-	protected AbstractCapability outputStationCap = HandshakeProtocol.getOutputStationCapability();
+	protected AbstractCapability inputStationCap = IOStationCapability.getInputStationCapability();
+	protected AbstractCapability outputStationCap = IOStationCapability.getOutputStationCapability();
 	
 	private void checkIOStations() {
 		PlannerState currState = state;

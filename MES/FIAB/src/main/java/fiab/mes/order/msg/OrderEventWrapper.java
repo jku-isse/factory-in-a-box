@@ -1,8 +1,6 @@
 package fiab.mes.order.msg;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 
 import fiab.mes.order.msg.OrderEvent.OrderEventType;

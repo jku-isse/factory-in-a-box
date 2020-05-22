@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutionException;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
-import org.eclipse.milo.opcua.sdk.client.nodes.UaObjectNode;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 
@@ -18,12 +17,12 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
-import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface.CapabilityImplInfo;
-import fiab.mes.transport.handshake.HandshakeProtocol;
+import fiab.opcua.CapabilityImplInfo;
 
 public class LocalIOStationActorSpawner extends AbstractActor {
 
@@ -49,9 +48,9 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 		// check if input or output station:		
 		String uri = req.getInfo().getCapabilityURI();
 		boolean isInputStation = false;
-		if (uri.equalsIgnoreCase(HandshakeProtocol.INPUTSTATION_CAPABILITY_URI))
+		if (uri.equalsIgnoreCase(IOStationCapability.INPUTSTATION_CAPABILITY_URI))
 			isInputStation = true;
-		else if (uri.equalsIgnoreCase(HandshakeProtocol.OUTPUTSTATION_CAPABILITY_URI)) {
+		else if (uri.equalsIgnoreCase(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI)) {
 			isInputStation = false;
 		} else { // something else, abort 
 			log.error("Called with nonsupported Capability: "+uri);
@@ -72,7 +71,7 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 	
 	private void spawnNewIOStationActor(CapabilityImplInfo info, boolean isInputStation, Actor model, NodeId stopMethod, NodeId resetMethod, NodeId stateVar) {
 		final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		AbstractCapability capability = isInputStation ? HandshakeProtocol.getInputStationCapability() : HandshakeProtocol.getOutputStationCapability();
+		AbstractCapability capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();
 		IOStationOPCUAWrapper wrapper = new IOStationOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), stopMethod, resetMethod, stateVar);
 		machine = this.context().actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName());
@@ -100,7 +99,7 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 			if (n instanceof UaVariableNode) {				
 				String bName = n.getBrowseName().get().getName();
 				switch(bName) {				
-				case HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_STATE_VAR:
+				case IOStationCapability.STATE_VAR_NAME:
 					nodeIds.setStateVar(n.getNodeId().get());
 					break;
 				}				
@@ -108,10 +107,10 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 			if (n instanceof UaMethodNode) {				
 				String bName = n.getBrowseName().get().getName();
 				switch(bName) {
-				case HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_METHOD_RESET:
+				case IOStationCapability.RESET_REQUEST:
 					nodeIds.setResetMethod(n.getNodeId().get());
 					break;
-				case HandshakeProtocol.IOSTATION_PROVIDED_OPCUA_METHOD_STOP:
+				case IOStationCapability.STOP_REQUEST:
 					nodeIds.setStopMethod(n.getNodeId().get());
 					break;				
 				}				

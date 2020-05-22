@@ -58,7 +58,7 @@ public class TestOrderEventBus { //extends AbstractJavaTest {
 		new TestKit(system) { 
 			{
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("TestMachine2", "*")), getRef() );
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("TestMachine2", "*")), getRef() );
 				OrderEvent oe = new OrderEvent("TestOrder1", "TestMachine1", OrderEventType.CREATED, "");
 				eventBusByRef.tell(oe, getRef());				
 				expectMsg(Duration.ofSeconds(3), oe);				

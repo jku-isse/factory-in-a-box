@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 
 public class MockPlottingMachineWrapperDelegate implements PlottingMachineWrapperInterface {
@@ -20,25 +21,25 @@ public class MockPlottingMachineWrapperDelegate implements PlottingMachineWrappe
 	@Override
 	public void subscribeToStatus() {
 		logger.info("subscribeToStatus called");
-		wrapper.tell(MockMachineWrapper.MessageTypes.SubscribeState, ActorRef.noSender());
+		wrapper.tell(PlotterMessageTypes.SubscribeState, ActorRef.noSender());
 	}
 
 	@Override
 	public void plot(String imageId, String orderId) {
 		logger.info("plot called");
-		wrapper.tell(MockMachineWrapper.MessageTypes.Plot, ActorRef.noSender());
+		wrapper.tell(PlotterMessageTypes.Plot, ActorRef.noSender());
 	}
 
 	@Override
 	public void stop() {
 		logger.info("stop called");
-		wrapper.tell(MockMachineWrapper.MessageTypes.Stop, ActorRef.noSender());
+		wrapper.tell(PlotterMessageTypes.Stop, ActorRef.noSender());
 	}
 
 	@Override
 	public void reset() {
 		logger.info("reset called");
-		wrapper.tell(MockMachineWrapper.MessageTypes.Reset, ActorRef.noSender());
+		wrapper.tell(PlotterMessageTypes.Reset, ActorRef.noSender());
 	}
 
 }

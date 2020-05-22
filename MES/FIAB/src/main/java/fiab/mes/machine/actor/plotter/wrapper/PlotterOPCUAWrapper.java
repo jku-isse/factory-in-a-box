@@ -5,21 +5,24 @@ import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
-import fiab.mes.machine.msg.MachineStatus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
 
 public class PlotterOPCUAWrapper extends AbstractOPCUAWrapper implements PlottingMachineWrapperInterface {
 
 	protected NodeId plotMethod;
+	protected IntraMachineEventBus intraMachineBus;
 	
-	public PlotterOPCUAWrapper(InterMachineEventBus intraMachineBus, OpcUaClient client,
+	public PlotterOPCUAWrapper(IntraMachineEventBus intraMachineBus, OpcUaClient client,
 			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId plotMethod) {
-		super(intraMachineBus, client, capabilityImplNode, stopMethod, resetMethod, stateVar);
+		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar);
 		this.plotMethod = plotMethod;
+		this.intraMachineBus = intraMachineBus;
 	}
 
 	
@@ -31,9 +34,9 @@ public class PlotterOPCUAWrapper extends AbstractOPCUAWrapper implements Plottin
 			String stateAsString = value.getValue().getValue().toString();
 			System.out.println(stateAsString);
 			try {
-				MachineStatus state = MachineStatus.valueOf(stateAsString);
+				BasicMachineStates state = BasicMachineStates.valueOf(stateAsString);
 				if (this.intraMachineBus != null) {
-					intraMachineBus.publish(new MachineStatusUpdateEvent("", null, WellknownMachinePropertyFields.STATE_VAR_NAME, "PlottingModule published new State", state));
+					intraMachineBus.publish(new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "PlottingModule published new State", state));
 				}
 			} catch (java.lang.IllegalArgumentException e) {
 				logger.error("Received Unknown State: "+e.getMessage());

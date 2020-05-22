@@ -5,20 +5,24 @@ import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
-import fiab.mes.machine.msg.MachineStatus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
+import fiab.turntable.actor.InternalTransportModuleRequest;
+import fiab.turntable.actor.IntraMachineEventBus;
 
 public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements TransportModuleWrapperInterface {
 
 	protected NodeId transportMethod;
+	protected IntraMachineEventBus intraMachineBus;
 	
-	public TransportModuleOPCUAWrapper(InterMachineEventBus intraMachineBus, OpcUaClient client,
+	public TransportModuleOPCUAWrapper(IntraMachineEventBus intraMachineBus, OpcUaClient client,
 			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId transportMethod) {
-		super(intraMachineBus, client, capabilityImplNode, stopMethod, resetMethod, stateVar);
+		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar);
+		this.intraMachineBus = intraMachineBus;
 		this.transportMethod = transportMethod;
 	}
 
@@ -40,9 +44,9 @@ public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements
 			String stateAsString = value.getValue().getValue().toString();
 			System.out.println(stateAsString);
 			try {
-				MachineStatus state = MachineStatus.valueOf(stateAsString);
+				BasicMachineStates state = BasicMachineStates.valueOf(stateAsString);
 				if (this.intraMachineBus != null) {
-					intraMachineBus.publish(new MachineStatusUpdateEvent("", null, WellknownMachinePropertyFields.STATE_VAR_NAME, "TransportModule published new State", state));
+					intraMachineBus.publish(new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "TransportModule published new State", state));
 				}
 			} catch (java.lang.IllegalArgumentException e) {
 				logger.error("Received Unknown State: "+e.getMessage());

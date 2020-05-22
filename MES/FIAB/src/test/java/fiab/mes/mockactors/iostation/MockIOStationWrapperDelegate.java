@@ -4,9 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.machine.actor.iostation.wrapper.IOStationWrapperInterface;
-import fiab.mes.transport.handshake.HandshakeProtocol;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerMessageTypes;
 
 public class MockIOStationWrapperDelegate implements IOStationWrapperInterface {
 
@@ -20,19 +19,19 @@ public class MockIOStationWrapperDelegate implements IOStationWrapperInterface {
 	@Override
 	public void stop() {
 		logger.info("stop called");
-		wrapper.tell(HandshakeProtocol.ServerMessageTypes.Stop, ActorRef.noSender());
+		wrapper.tell(IOStationCapability.ServerMessageTypes.Stop, ActorRef.noSender());
 	}
 
 	@Override
 	public void reset() {
 		logger.info("reset called");
-		wrapper.tell(HandshakeProtocol.ServerMessageTypes.Reset, ActorRef.noSender());
+		wrapper.tell(IOStationCapability.ServerMessageTypes.Reset, ActorRef.noSender());
 	}
 
 	@Override
 	public void subscribeToStatus() {
 		logger.info("subscribeToStatus called");
-		wrapper.tell(HandshakeProtocol.ServerMessageTypes.SubscribeToStateUpdates, ActorRef.noSender());
+		wrapper.tell(IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates, ActorRef.noSender());
 	}
 
 	@Override

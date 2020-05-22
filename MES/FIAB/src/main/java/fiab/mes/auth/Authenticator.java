@@ -1,5 +1,8 @@
 package fiab.mes.auth;
 
+import java.io.FileReader;
+import java.lang.reflect.Type;
+import java.security.Key;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,13 +12,9 @@ import com.google.gson.stream.JsonReader;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.security.SignatureException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-
-import java.io.FileReader;
-import java.security.Key;
-import java.lang.reflect.Type;
+import io.jsonwebtoken.security.SignatureException;
 
 public class Authenticator {
 	

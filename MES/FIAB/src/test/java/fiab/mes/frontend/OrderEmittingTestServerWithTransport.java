@@ -15,58 +15,28 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ActorCoreModel.Actor;
-import ProcessCore.AbstractCapability;
-import ProcessCore.CapabilityInvocation;
-import ProcessCore.ParallelBranches;
-import ProcessCore.ProcessCoreFactory;
-import akka.NotUsed;
-import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
-import akka.http.javadsl.ConnectHttp;
-import akka.http.javadsl.Http;
-import akka.http.javadsl.HttpsConnectionContext;
 import akka.http.javadsl.ServerBinding;
-import akka.http.javadsl.model.HttpRequest;
-import akka.http.javadsl.model.HttpResponse;
-import akka.stream.ActorMaterializer;
-import akka.stream.javadsl.Flow;
 import akka.testkit.javadsl.TestKit;
-import akka.util.Timeout;
-import fiab.mes.DefaultShopfloorInfrastructure;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.events.TimedEvent;
 import fiab.mes.ShopfloorStartup;
-import fiab.mes.auth.HttpsConfigurator;
-import fiab.mes.capabilities.ComparableCapability;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.general.TimedEvent;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.MachineEntryActor;
-import fiab.mes.machine.actor.plotter.BasicMachineActor;
-import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineStatus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.mockactors.oldplotter.MockMachineActor;
-import fiab.mes.mockactors.oldplotter.TestMockMachineActor;
-import fiab.mes.mockactors.plotter.MockMachineWrapper;
-import fiab.mes.mockactors.plotter.MockPlottingMachineWrapperDelegate;
-import fiab.mes.mockactors.plotter.TestBasicMachineActor;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.actor.OrderEntryActor;
 import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.RegisterProcessRequest;
-import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
-import fiab.mes.restendpoint.ActorRestEndpoint;
 import fiab.mes.shopfloor.DefaultLayout;
 
 public class OrderEmittingTestServerWithTransport {
@@ -77,6 +47,7 @@ public class OrderEmittingTestServerWithTransport {
 	private static ActorSelection orderEventBus;
 	private static ActorSelection orderEntryActor;
 	private static CompletionStage<ServerBinding> binding;
+	private static DefaultLayout layout;
 
 	private static final Logger logger = LoggerFactory.getLogger(OrderEmittingTestServerWithTransport.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
@@ -105,6 +76,7 @@ public class OrderEmittingTestServerWithTransport {
 //	    System.out.println("Server online at https://localhost:8080/");
 		
 		binding = ShopfloorStartup.startup(null, system);
+		layout = new DefaultLayout(system, false);
 		orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
 		machineEventBus = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		orderEntryActor = system.actorSelection("/user/"+OrderEntryActor.WELLKNOWN_LOOKUP_NAME);//.resolveOne(Timeout.create(Duration.ofSeconds(3)))..;
@@ -126,16 +98,17 @@ public class OrderEmittingTestServerWithTransport {
 	    system = null;
 	}
 	
-	@Test
-	void testFrontendResponsesByEmittingOrdersSequentialProcess() throws ExecutionException, InterruptedException, IOException {
+	
+	@Test // TODO: Startup works - process handling not, somehow
+	void testFrontendResponsesByEmittingOrdersSequentialProcess() throws Exception {
 			new TestKit(system) { 
 				{ 
 					System.out.println("test frontend responses by emitting orders with sequential process");
 					
-					orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "")), getRef() );
-					machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
+					orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "")), getRef() );
+					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 			
-					new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+					layout.setupTwoTurntableWith2MachinesAndIO();
 					int countConnEvents = 0;
 					boolean isPlannerFunctional = false;
 					while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -149,7 +122,7 @@ public class OrderEmittingTestServerWithTransport {
 							knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
 						}
 						if (te instanceof MachineStatusUpdateEvent) {
-							if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+							if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 								Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 										actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 								);	
@@ -174,16 +147,16 @@ public class OrderEmittingTestServerWithTransport {
 
 	}
 	
-	@Test
-	void testFrontendExternalProcess() throws ExecutionException, InterruptedException, IOException {
+	@Test // Startup works
+	void testFrontendExternalProcess() throws Exception {
 			new TestKit(system) { 
 				{ 
 					System.out.println("test frontend responses by emitting orders with sequential process");
 					
-					orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "")), getRef() );
-					machineEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", "*")), getRef() );
+					orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "")), getRef() );
+					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 			
-					new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+					layout.setupTwoTurntableWith2MachinesAndIO();
 					int countConnEvents = 0;
 					boolean isPlannerFunctional = false;
 					while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -197,7 +170,7 @@ public class OrderEmittingTestServerWithTransport {
 							knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
 						}
 						if (te instanceof MachineStatusUpdateEvent) {
-							if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+							if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 								Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 										actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 								);	

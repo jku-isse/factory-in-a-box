@@ -4,7 +4,7 @@ import akka.actor.ActorRef;
 import akka.event.japi.ScanningEventBus;
 import fiab.mes.order.msg.OrderEvent;
 
-public class OrderEventBus extends ScanningEventBus<OrderEvent, ActorRef, SubscriptionClassifier>{
+public class OrderEventBus extends ScanningEventBus<OrderEvent, ActorRef, MESSubscriptionClassifier>{
 	
 
 	@Override
@@ -19,13 +19,13 @@ public class OrderEventBus extends ScanningEventBus<OrderEvent, ActorRef, Subscr
 	}
 
 	@Override
-	public int compareClassifiers(SubscriptionClassifier a, SubscriptionClassifier b) {
+	public int compareClassifiers(MESSubscriptionClassifier a, MESSubscriptionClassifier b) {
 		return a.topic.compareTo(b.topic);
 		
 	}
 	
 	@Override
-	public boolean matches(SubscriptionClassifier classifier, OrderEvent event) {
+	public boolean matches(MESSubscriptionClassifier classifier, OrderEvent event) {
 		if (classifier.eventSource.equals(event.getMachineId()))
 			return false; // we dont notify sender of event
 		if (classifier.topic.equals("*"))

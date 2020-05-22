@@ -1,13 +1,12 @@
 package fiab.mes.general;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import akka.actor.ActorRef;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 
 public class HistoryTracker {

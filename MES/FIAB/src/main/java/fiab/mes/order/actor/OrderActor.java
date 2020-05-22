@@ -1,25 +1,23 @@
 package fiab.mes.order.actor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.order.msg.RegisterProcessRequest;
-import fiab.mes.restendpoint.requests.OrderStatusRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
+import fiab.mes.restendpoint.requests.OrderStatusRequest;
 
 public class OrderActor extends AbstractActor{
 	
@@ -41,7 +39,7 @@ public class OrderActor extends AbstractActor{
 		this.order = orderReq;
 		this.eventBusByRef = eventBusByRef;
 		log.info("Subscribing to OrderEventBus for OrderId: "+orderId);
-		eventBusByRef.tell(new SubscribeMessage(getSelf(), new SubscriptionClassifier(self().path().name(), this.orderId)), getSelf() );
+		eventBusByRef.tell(new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(self().path().name(), this.orderId)), getSelf() );
 		String msg = "Received RegisterProcessRequest, publish OrderEvent to create new Order with ID: "+orderId;
 		OrderEvent createEvent = new OrderEvent(this.orderId, self().path().name(), OrderEventType.CREATED, msg);
 		eventBusByRef.tell(createEvent, getSelf());

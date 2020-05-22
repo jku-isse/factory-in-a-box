@@ -1,6 +1,6 @@
 package fiab.mes.planer.msg;
 
-import fiab.mes.machine.msg.MachineEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
 
 public class PlanerStatusMessage extends MachineEvent {
 	

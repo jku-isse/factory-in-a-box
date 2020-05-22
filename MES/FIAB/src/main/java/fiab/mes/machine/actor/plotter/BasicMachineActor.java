@@ -21,27 +21,26 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.machine.plotter.IntraMachineEventBus;
+import fiab.machine.plotter.SubscriptionClassifier;
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.eventbus.SubscriptionClassifier;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
-import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineInWrongStateResponse;
-import fiab.mes.machine.msg.MachineStatus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
 import fiab.mes.machine.msg.GenericMachineRequests.Reset;
 import fiab.mes.machine.msg.GenericMachineRequests.Stop;
+import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ProcessRequestException;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
-import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 
 
@@ -51,9 +50,9 @@ public class BasicMachineActor extends AbstractActor{
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machineId;
 	protected AbstractCapability cap;
-	protected MachineStatus currentState;
+	protected BasicMachineStates currentState;
 	protected PlottingMachineWrapperInterface hal;
-	protected InterMachineEventBus intraBus;
+	protected IntraMachineEventBus intraBus;
 	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	private String lastOrder;
@@ -64,11 +63,11 @@ public class BasicMachineActor extends AbstractActor{
 	//private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
 	
-	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, InterMachineEventBus intraBus) {	    
+	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {	    
 		return Props.create(BasicMachineActor.class, () -> new BasicMachineActor(machineEventBus, cap, modelActor, hal, intraBus));
 	}
 	
-	public BasicMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, InterMachineEventBus intraBus) {
+	public BasicMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {
 		this.cap = cap;
 		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;
@@ -96,14 +95,14 @@ public class BasicMachineActor extends AbstractActor{
 		        })
 		        .match(Stop.class, req -> {
 		        	log.info(String.format("Machine %s received StopRequest", machineId.getId()));
-		        	setAndPublishSensedState(MachineStatus.STOPPING);
+		        	setAndPublishSensedState(BasicMachineStates.STOPPING);
 		        	hal.stop();
 		        })
 		        .match(Reset.class, req -> {
-		         	if (currentState.equals(MachineStatus.COMPLETE) 
-		        			|| currentState.equals(MachineStatus.STOPPED) ) {
+		         	if (currentState.equals(BasicMachineStates.COMPLETE) 
+		        			|| currentState.equals(BasicMachineStates.STOPPED) ) {
 		        		log.info(String.format("Machine %s received ResetRequest in suitable state", machineId.getId()));
-		        		setAndPublishSensedState(MachineStatus.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
+		        		setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
 		        		hal.reset();
 		        	} else {
 		        		log.warning(String.format("Machine %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
@@ -144,7 +143,7 @@ public class BasicMachineActor extends AbstractActor{
 			break;				
 		case STARTING: // here we might not get the order transported incoming
 		case COMPLETING:			
-        	setAndPublishSensedState(MachineStatus.STOPPING);
+        	setAndPublishSensedState(BasicMachineStates.STOPPING);
         	hal.stop();
 			// here we might not get the order transported away
 			// thus we stop the machine
@@ -154,8 +153,8 @@ public class BasicMachineActor extends AbstractActor{
 	}
 	
 	private void processMachineUpdateEvent(MachineStatusUpdateEvent mue) {
-		if (mue.getParameterName().equals(WellknownMachinePropertyFields.STATE_VAR_NAME)) {
-			MachineStatus newState = MachineStatus.valueOf(mue.getStatus().toString());
+		if (mue.getParameterName().equals(OPCUABasicMachineBrowsenames.STATE_VAR_NAME)) {
+			BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
 			setAndPublishSensedState(newState);
 			switch(newState) {
 			case COMPLETE:
@@ -184,11 +183,11 @@ public class BasicMachineActor extends AbstractActor{
 			
 	}
 	
-	private void setAndPublishSensedState(MachineStatus newState) {
+	private void setAndPublishSensedState(BasicMachineStates newState) {
 		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, lastOrder);
 		log.debug(msg);
 		this.currentState = newState;
-		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), null, WellknownMachinePropertyFields.STATE_VAR_NAME, msg, newState);
+		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
 		tellEventBus(mue);
 	}
 	
@@ -207,7 +206,7 @@ public class BasicMachineActor extends AbstractActor{
 	
 	private void checkIfAvailableForNextOrder() {
 		log.debug(String.format("Checking if %s is IDLE: %s", this.machineId.getId(), this.currentState));
-		if (currentState == MachineStatus.IDLE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
+		if (currentState == BasicMachineStates.IDLE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
 			RegisterProcessStepRequest ror = orders.remove(0);
 			lastOrder = ror.getRootOrderId();
 			log.info("Ready for next Order: "+ror.getRootOrderId());
@@ -217,7 +216,7 @@ public class BasicMachineActor extends AbstractActor{
 	}	
 	
 	private void plotUponLockForOrder(LockForOrder lockReq) {
-		if (currentState == MachineStatus.IDLE) {
+		if (currentState == BasicMachineStates.IDLE) {
     		// we need to extract from the reservedOrder the step, and from the step the input properties		        	
 			if (reservedForOrder != null || reservedForOrder.getProcessStepId().equals(lockReq.getStepId())) {
 				String imgName = "demo";
@@ -238,7 +237,7 @@ public class BasicMachineActor extends AbstractActor{
     	} else {
     		String msg = "Received lock for order in non-IDLE state: "+currentState;
     		log.warning(msg);
-    		sender().tell(new MachineInWrongStateResponse(this.machineId.getId(), WellknownMachinePropertyFields.STATE_VAR_NAME, msg, currentState, lockReq, MachineStatus.IDLE), self);
+    		sender().tell(new MachineInWrongStateResponse(this.machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, currentState, lockReq, BasicMachineStates.IDLE), self);
     	}
 	}
 	
@@ -299,12 +298,12 @@ public class BasicMachineActor extends AbstractActor{
     			 new Runnable() {
             @Override
             public void run() {
-            	if (currentState.equals(MachineStatus.COMPLETE) 
-            			|| currentState.equals(MachineStatus.STOPPED) ) {	        		
-            		setAndPublishSensedState(MachineStatus.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)            		
+            	if (currentState.equals(BasicMachineStates.COMPLETE) 
+            			|| currentState.equals(BasicMachineStates.STOPPED) ) {	        		
+            		setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)            		
             		hal.reset();
-            	} else if (currentState.equals(MachineStatus.COMPLETING) 
-            			|| currentState.equals(MachineStatus.STOPPING) ) {
+            	} else if (currentState.equals(BasicMachineStates.COMPLETING) 
+            			|| currentState.equals(BasicMachineStates.STOPPING) ) {
             		// we only recheck later of we are still in states leading to complete or stopped
             		doAutoResetAfterXseconds() ;          		
             	}

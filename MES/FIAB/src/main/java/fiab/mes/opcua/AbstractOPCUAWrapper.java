@@ -29,11 +29,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.machine.actor.iostation.wrapper.IOStationOPCUAWrapper;
 
 public abstract class AbstractOPCUAWrapper {
 
-	protected InterMachineEventBus intraMachineBus;
 	protected OpcUaClient client;
 	protected NodeId capabilityImplNode;
 	protected NodeId stopMethod;
@@ -42,10 +40,9 @@ public abstract class AbstractOPCUAWrapper {
 
 	protected static final Logger logger = LoggerFactory.getLogger(AbstractOPCUAWrapper.class);
 	
-	public AbstractOPCUAWrapper(InterMachineEventBus intraMachineBus, OpcUaClient client, NodeId capabilityImplNode,
+	public AbstractOPCUAWrapper(OpcUaClient client, NodeId capabilityImplNode,
 			NodeId stopMethod, NodeId resetMethod, NodeId stateVar) {
 		super();
-		this.intraMachineBus = intraMachineBus;
 		this.client = client;
 		this.capabilityImplNode = capabilityImplNode;
 		this.stopMethod = stopMethod;

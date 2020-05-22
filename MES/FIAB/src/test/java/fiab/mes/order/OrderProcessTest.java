@@ -1,11 +1,7 @@
 package fiab.mes.order;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +10,7 @@ import ProcessCore.CapabilityInvocation;
 import ProcessCore.ParallelBranches;
 import ProcessCore.ProcessCoreFactory;
 import ProcessCore.ProcessStep;
-import fiab.mes.capabilities.ComparableCapability;
+import fiab.core.capabilities.ComparableCapability;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 

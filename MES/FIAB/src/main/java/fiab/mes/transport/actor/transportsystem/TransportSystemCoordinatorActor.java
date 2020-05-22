@@ -15,14 +15,14 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.actor.transportsystem.TransportModuleUsageTracker.TransportModuleOrderMappingStatus;
@@ -66,7 +66,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	}
 	
 	private void getEventBusAndSubscribe() {		
-		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new SubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
+		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
 		machineEventBus = this.context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		machineEventBus.tell(machineSub, getSelf());				
 	}
@@ -255,7 +255,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					matchRequestsToModules(); // lets check which requests we can fulfill
 				});
 			} catch (RoutingException e) {
-				String msg = String.format("Unable to establish route between s% with Position %s and %s with Position %s due to %s", 
+				String msg = String.format("Unable to establish route between %s with Position %s and %s with Position %s due to %s", 
 						rtr.getSource().getId(), sourceP.getPos(), rtr.getDestination().getId(), destP.getPos(), e.getMessage());
 				log.warning(msg);
 				this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.NO_ROUTE ,msg), self);

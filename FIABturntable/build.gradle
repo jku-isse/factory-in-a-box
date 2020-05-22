@@ -1,0 +1,112 @@
+buildscript {
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
+    }
+}
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'java'
+    id 'eclipse'
+    id 'idea'
+    id 'com.github.ev3dev-lang-java.gradle-plugin' version '1.6.8'
+    id 'maven-publish'
+    id 'maven'
+}
+
+group 'factory.in.a.box'
+version '1.0.1-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    maven { url "https://jitpack.io" }
+    mavenCentral()
+    flatDir {
+        dirs '../libs'
+    }
+}
+
+dependencies {
+    compile("org.slf4j:slf4j-api:1.7.25")
+    compile("com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3")
+    compile("com.github.oxo42:stateless4j:2.5.0")
+    //compile("io.vertx:vertx-core:3.8.0")
+    //compile('com.googlecode.json-simple:json-simple:1.1.1')
+    compileOnly('org.projectlombok:lombok:1.18.10')
+    annotationProcessor('org.projectlombok:lombok:1.18.10')
+    testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
+    //testCompile('junit:junit:4.12')
+    //testImplementation('org.awaitility:awaitility:4.0.1')
+    compile "org.eclipse.milo:stack-core:0.3.7"
+    compile "org.eclipse.milo:sdk-server:0.3.7"
+    compile "org.eclipse.milo:sdk-core:0.3.7"
+    compile "org.eclipse.milo:sdk-client:0.3.7"
+    compile "com.typesafe.akka:akka-actor_2.12:2.5.23"
+    testCompile "com.typesafe.akka:akka-testkit_2.12:2.5.23"
+    compile fileTree(dir: '../libs', include: ['*.jar'])
+    compile "org.eclipse.emf:org.eclipse.emf.ecore:2.19.0"
+    compile "org.eclipse.emf:org.eclipse.emf.ecore.xmi:2.16.0"
+    compile "org.eclipse.emf:org.eclipse.emf.common:2.12.0"
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.9'
+    //shadow 'junit:junit:3.8.2'
+}
+
+//apply from: './brickConfig/turnTableConfig.gradle';
+apply from: './brickConfig/conveyorConfig.gradle';
+
+compileJava.options.encoding = 'UTF-8'
+
+//Compile
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+//Test
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+//Jar
+jar {
+    manifest {
+        attributes("Implementation-Title": project.name,
+                "Implementation-Version": version,
+                "Main-Class": brick.pref.mainClass,
+                "Class-Path": brick.getClassPath(true))
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+shadowJar {
+    mergeServiceFiles()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = group
+            artifactId = 'FIABturntable'
+            version = version
+
+            from components.java
+        }
+    }
+}
+
+task writeNewPom {
+    doLast {
+        pom {
+            project {
+            }
+        }.writeTo("$buildDir/pom.xml")
+    }
+}

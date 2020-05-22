@@ -3,15 +3,15 @@ import akka.actor.ActorRef;
 
 public class SubscribeMessage {
 	
-	private SubscriptionClassifier classifier;
+	private MESSubscriptionClassifier classifier;
 	private ActorRef subscriber;
 	
-	public SubscribeMessage(ActorRef subscriber, SubscriptionClassifier topic) {
+	public SubscribeMessage(ActorRef subscriber, MESSubscriptionClassifier topic) {
 		this.classifier = topic;
 		this.subscriber = subscriber;
 	}
 
-	public SubscriptionClassifier getSubscriptionClassifier() {
+	public MESSubscriptionClassifier getSubscriptionClassifier() {
 		return classifier;
 	}
 

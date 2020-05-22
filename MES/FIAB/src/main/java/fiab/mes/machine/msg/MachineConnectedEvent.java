@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import ProcessCore.AbstractCapability;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 
 public class MachineConnectedEvent extends MachineEvent {

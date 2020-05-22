@@ -4,10 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability.SimpleMessageTypes;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
-import fiab.mes.transport.msg.InternalTransportModuleRequest;
+import fiab.turntable.actor.InternalTransportModuleRequest;
 
 public class MockTransportModuleWrapperDelegate implements TransportModuleWrapperInterface {
 
@@ -28,19 +27,19 @@ public class MockTransportModuleWrapperDelegate implements TransportModuleWrappe
 	@Override
 	public void stop() {
 		logger.info("stop called");
-		wrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Stop, ActorRef.noSender());
+		wrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Stop, ActorRef.noSender());
 	}
 
 	@Override
 	public void reset() {
 		logger.info("reset called");
-		wrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.Reset, ActorRef.noSender());
+		wrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, ActorRef.noSender());
 	}
 
 	@Override
 	public void subscribeToStatus() {
 		logger.info("subscribeToStatus called");
-		wrapper.tell(WellknownTransportModuleCapability.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
+		wrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, ActorRef.noSender());
 	}
 
 	@Override

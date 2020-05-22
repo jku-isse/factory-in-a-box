@@ -18,18 +18,18 @@ import akka.actor.Kill;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.machine.actor.WellknownMachinePropertyFields;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
-import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface.CapabilityImplInfo;
-import fiab.mes.transport.actor.transportmodule.WellknownTransportModuleCapability;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
+import fiab.opcua.CapabilityImplInfo;
 
 public class LocalPlotterActorSpawner extends AbstractActor {
 
@@ -76,7 +76,7 @@ public class LocalPlotterActorSpawner extends AbstractActor {
 		Optional<SupportedColors> color = extractColor(info.getCapabilityURI());
 		if (color.isPresent()) {
 			AbstractCapability capability = WellknownPlotterCapability.getColorPlottingCapability(color.get());
-			InterMachineEventBus intraEventBus = new InterMachineEventBus();
+			IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 			Position selfPos = resolvePosition(info);
 			final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 			PlotterOPCUAWrapper hal = new PlotterOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.plotMethod);
@@ -133,13 +133,13 @@ public class LocalPlotterActorSpawner extends AbstractActor {
 		for (Node n : nodes) {
 			log.info("Checking node: "+n.getBrowseName().get().toParseableString());						
 			String bName = n.getBrowseName().get().getName();
-			if (bName.equalsIgnoreCase(WellknownMachinePropertyFields.MACHINE_UPCUA_RESET_REQUEST))
+			if (bName.equalsIgnoreCase(OPCUABasicMachineBrowsenames.RESET_REQUEST))
 				nodeIds.setResetMethod(n.getNodeId().get());
-			else if (bName.equalsIgnoreCase(WellknownMachinePropertyFields.MACHINE_UPCUA_STOP_REQUEST))
+			else if (bName.equalsIgnoreCase(OPCUABasicMachineBrowsenames.STOP_REQUEST))
 				nodeIds.setStopMethod(n.getNodeId().get());
-			else if (bName.equalsIgnoreCase(WellknownPlotterCapability.MACHINE_UPCUA_PLOT_REQUEST))
+			else if (bName.equalsIgnoreCase(WellknownPlotterCapability.OPCUA_PLOT_REQUEST))
 				nodeIds.setPlotMethod(n.getNodeId().get());
-			else if (bName.equalsIgnoreCase(WellknownMachinePropertyFields.STATE_VAR_NAME))
+			else if (bName.equalsIgnoreCase(OPCUABasicMachineBrowsenames.STATE_VAR_NAME))
 				nodeIds.setStateVar(n.getNodeId().get());											
 		}
 		return nodeIds;

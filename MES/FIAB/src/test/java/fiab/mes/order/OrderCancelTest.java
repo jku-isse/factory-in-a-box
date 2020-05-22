@@ -7,45 +7,32 @@ import java.util.concurrent.ExecutionException;
 
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ActorCoreModel.Actor;
-import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability;
-import fiab.mes.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.events.TimedEvent;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
-import fiab.mes.general.TimedEvent;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.machine.msg.MachineStatus;
-import fiab.mes.machine.msg.MachineStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineUpdateEvent;
-import fiab.mes.mockactors.oldplotter.MockMachineActor;
-import fiab.mes.mockactors.oldplotter.TestMockMachineActor;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
-import fiab.mes.order.msg.OrderProcessUpdateEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
-import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
@@ -53,16 +40,15 @@ import fiab.mes.shopfloor.DefaultLayout;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
-import fiab.mes.transport.handshake.HandshakeProtocol.ServerSide;
 
 class OrderCancelTest {
 
 	protected static ActorSystem system;
-	public static String ROOT_SYSTEM = "routes";
-	protected static ActorRef machineEventBus;
+	public static String ROOT_SYSTEM = "routes";	
 	protected static ActorRef orderEventBus;
 	protected static ActorRef orderPlanningActor;
 	protected static ActorRef coordActor;
+	protected static DefaultLayout layout;
 	
 	private static final Logger logger = LoggerFactory.getLogger(OrderCancelTest.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
@@ -73,11 +59,11 @@ class OrderCancelTest {
 		// setup machines
 		// setup processes
 		// setup order actors?
-		// add processes to orderplanning actor
+		// add processes to orderplanning actor		
 		system = ActorSystem.create(ROOT_SYSTEM);
 		HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
 		TransportPositionLookup dns = new TransportPositionLookup();
-		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		layout = new DefaultLayout(system);
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
@@ -97,16 +83,13 @@ class OrderCancelTest {
 	}
 	
 	
-
 	
-	@Test
-	void testCancelBeforeAssignment() throws InterruptedException, ExecutionException {
+	@Test //FIXME: machine of order 1 is suddenly not found anymore
+	void testCancelBeforeAssignment() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -120,7 +103,7 @@ class OrderCancelTest {
 						knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 							);	
@@ -155,7 +138,7 @@ class OrderCancelTest {
 							order2Done = true;
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 							);	
@@ -165,14 +148,12 @@ class OrderCancelTest {
 		};
 	}
 	
-	@Test
-	void testCancelBeforeReqTransport() throws InterruptedException, ExecutionException {
+	@Test //WORKS
+	void testCancelBeforeReqTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -186,7 +167,7 @@ class OrderCancelTest {
 						knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 							);	
@@ -215,7 +196,7 @@ class OrderCancelTest {
 						}
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 							);	
@@ -226,13 +207,11 @@ class OrderCancelTest {
 	}
 	
 	@Test
-	void testCancelWhileExecute() throws InterruptedException, ExecutionException {
+	void testCancelWhileExecute() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -246,7 +225,7 @@ class OrderCancelTest {
 						knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 							);	
@@ -279,7 +258,7 @@ class OrderCancelTest {
 						}
 					}
 					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(MachineStatus.STOPPED)) 
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
 							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
 									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
 							);	
@@ -296,7 +275,7 @@ class OrderCancelTest {
 	}
 	
 	public OrderProcess subscribeAndRegisterSinglePrintRedOrder(String oid, ActorRef testProbe) {		
-		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
+		orderEventBus.tell(new SubscribeMessage(testProbe, new MESSubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleRedStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
@@ -304,14 +283,14 @@ class OrderCancelTest {
 	}
 	
 	public void subscribeAndRegisterSinglePrintGreenOrder(String oid, ActorRef testProbe) {		
-		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
+		orderEventBus.tell(new SubscribeMessage(testProbe, new MESSubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleGreenStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
 	}
 	
 	public OrderProcess subscribeAndRegisterPrintGreenAndRedOrder(String oid, ActorRef testProbe) {		
-		orderEventBus.tell(new SubscribeMessage(testProbe, new SubscriptionClassifier("OrderMock", oid)), testProbe );
+		orderEventBus.tell(new SubscribeMessage(testProbe, new MESSubscriptionClassifier("OrderMock", oid)), testProbe );
 		OrderProcess op1 = new OrderProcess(ProduceProcess.getRedAndGreenStepProcess(oid));				
 		RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
 		orderPlanningActor.tell(req, testProbe);
@@ -322,12 +301,12 @@ class OrderCancelTest {
 		logger.info(event.toString());
 	}
 
-	public static ActorRef getMachineMockActor(int id, SupportedColors color) {
-		ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		Actor modelActor = TestMockMachineActor.getDefaultMachineActor(id);
-		AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(color);
-		return system.actorOf(MockMachineActor.props(eventBusByRef, cap, modelActor));
-	}
+//	public static ActorRef getMachineMockActor(int id, SupportedColors color) {
+//		ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+//		Actor modelActor = TestMockMachineActor.getDefaultMachineActor(id);
+//		AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(color);
+//		return system.actorOf(MockMachineActor.props(eventBusByRef, cap, modelActor));
+//	}
 	
 //	public RegisterProcessRequest buildRequest(ActorRef senderRef, String oid, int orderCount) {
 //		ProcessCore.Process p = TestMockMachineActor.getSequentialProcess(orderCount+"-");

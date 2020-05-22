@@ -1,6 +1,5 @@
 package fiab.mes.order.actor;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -9,18 +8,17 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.SubscriptionClassifier;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
-import akka.actor.AbstractActor.Receive;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 
 public class OrderEntryActor extends AbstractActor{
 
@@ -41,7 +39,7 @@ public class OrderEntryActor extends AbstractActor{
 	public OrderEntryActor() {
 		eventBusByRef = context().actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
 		orderPlannerByRef = context().actorSelection("/user/"+OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);	
-		eventBusByRef.tell(new SubscribeMessage(getSelf(), new SubscriptionClassifier(self().path().name(), "*")), getSelf());
+		eventBusByRef.tell(new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(self().path().name(), "*")), getSelf());
 	}
 	
 	@Override

@@ -1,5 +1,7 @@
 package fiab.mes;
 
+import java.util.concurrent.CompletionStage;
+
 import akka.NotUsed;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -16,8 +18,6 @@ import fiab.mes.auth.HttpsConfigurator;
 import fiab.mes.machine.MachineEntryActor;
 import fiab.mes.order.actor.OrderEntryActor;
 import fiab.mes.restendpoint.ActorRestEndpoint;
-
-import java.util.concurrent.CompletionStage;
 
 public class ShopfloorStartup extends AllDirectives {
 

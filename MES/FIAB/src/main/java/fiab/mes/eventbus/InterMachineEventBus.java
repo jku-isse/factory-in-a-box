@@ -2,11 +2,9 @@ package fiab.mes.eventbus;
 
 import akka.actor.ActorRef;
 import akka.event.japi.ScanningEventBus;
-import fiab.mes.general.TimedEvent;
-import fiab.mes.machine.msg.MachineEvent;
-import fiab.mes.order.msg.OrderEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
 
-public class InterMachineEventBus extends ScanningEventBus<MachineEvent, ActorRef, SubscriptionClassifier> {
+public class InterMachineEventBus extends ScanningEventBus<MachineEvent, ActorRef, MESSubscriptionClassifier> {
 
 
 	@Override
@@ -20,13 +18,13 @@ public class InterMachineEventBus extends ScanningEventBus<MachineEvent, ActorRe
 	}
 
 	@Override
-	public int compareClassifiers(SubscriptionClassifier a, SubscriptionClassifier b) {
+	public int compareClassifiers(MESSubscriptionClassifier a, MESSubscriptionClassifier b) {
 		return a.topic.compareTo(b.topic);
 
 	}
 
 	@Override
-	public boolean matches(SubscriptionClassifier classifier, MachineEvent event) {
+	public boolean matches(MESSubscriptionClassifier classifier, MachineEvent event) {
 		if (classifier.eventSource.equals(event.getMachineId()))
 			return false; // we dont notify sender of event
 		if (classifier.topic.equals("*"))

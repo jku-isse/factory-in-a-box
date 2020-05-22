@@ -10,8 +10,6 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.typesafe.config.impl.Parseable;
-
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 
@@ -44,6 +42,9 @@ public class TransportPositionLookup implements TransportPositionLookupInterface
 			if (host == null) {
 				logger.warn(String.format("URI for actor %s has no host part for resolving Position", uriAsString));
 				return TransportRoutingInterface.UNKNOWN_POSITION;
+			}
+			if (host.equals("127.0.0.1") || host.equals("localhost") ){
+				return parsePosViaPortNr(uriAsString);
 			}
 			InetAddress inetAddr = InetAddress.getByName(host);
 			int lastPos = (inetAddr.getAddress()[3]+256)%256;
