@@ -44,11 +44,11 @@ import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 class OrderCancelTest {
 
 	protected static ActorSystem system;
-	public static String ROOT_SYSTEM = "routes";
-	protected static ActorRef machineEventBus;
+	public static String ROOT_SYSTEM = "routes";	
 	protected static ActorRef orderEventBus;
 	protected static ActorRef orderPlanningActor;
 	protected static ActorRef coordActor;
+	protected static DefaultLayout layout;
 	
 	private static final Logger logger = LoggerFactory.getLogger(OrderCancelTest.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
@@ -59,11 +59,11 @@ class OrderCancelTest {
 		// setup machines
 		// setup processes
 		// setup order actors?
-		// add processes to orderplanning actor
+		// add processes to orderplanning actor		
 		system = ActorSystem.create(ROOT_SYSTEM);
 		HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
 		TransportPositionLookup dns = new TransportPositionLookup();
-		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		layout = new DefaultLayout(system);
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
@@ -83,16 +83,13 @@ class OrderCancelTest {
 	}
 	
 	
-	// TODO: run TEST
 	
-	@Test
+	@Test //FIXME: machine of order 1 is suddenly not found anymore
 	void testCancelBeforeAssignment() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -151,14 +148,12 @@ class OrderCancelTest {
 		};
 	}
 	
-	@Test
+	@Test //WORKS
 	void testCancelBeforeReqTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -215,10 +210,8 @@ class OrderCancelTest {
 	void testCancelWhileExecute() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {

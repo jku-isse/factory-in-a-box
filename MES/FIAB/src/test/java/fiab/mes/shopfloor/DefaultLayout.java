@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import com.google.common.collect.Lists;
-
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
@@ -37,7 +35,6 @@ import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRouting
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.turntable.actor.IntraMachineEventBus;
-import fiab.turntable.actor.SubscriptionClassifier;
 import fiab.turntable.actor.TransportModuleCoordinatorActor;
 import fiab.turntable.conveying.BaseBehaviorConveyorActor;
 import fiab.turntable.turning.BaseBehaviorTurntableActor;
@@ -57,12 +54,24 @@ public class DefaultLayout {
 	
 	boolean ioStationsInitialized = false;
 	
+	public DefaultLayout(ActorSystem system, boolean doStartupMachineEventBus) {
+		this.system = system;
+		if (doStartupMachineEventBus) {		
+			init();
+		} else {
+			eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
+		}
+	}
+	
 	public DefaultLayout(ActorSystem system) {
 		this.system = system;
-		ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-
+		init();   	
 	}
+	
+	private void init() {
+		ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		 
+	};
 	
 	public void setupIOStations(int inStationPortOffset, int outStationPortOffset) {
 		partsIn = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef, engageAutoReload, inStationPortOffset);
@@ -141,12 +150,15 @@ public class DefaultLayout {
 		//Plotters
 		ActorRef handShakeServer31 = setupMachineActor(eventBusByRef, 31, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.RED), system);
 		ActorRef handShakeServer37 = setupMachineActor(eventBusByRef, 37, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.BLUE), system);	
+		ActorRef handShakeServer32 = setupMachineActor(eventBusByRef, 32, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.BLACK), system);
+		ActorRef handShakeServer38 = setupMachineActor(eventBusByRef, 38, WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.GREEN), system);	
 		
 		// setup turntable
 		IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
 		Map<String,ActorRef> iRefs = new HashMap<String,ActorRef>();
 		iRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, inRef);
 		iRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, handShakeServer31);
+		iRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, handShakeServer37);
 		Set<String> serverRefs = new HashSet<String>();
 		serverRefs.add(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
 		ActorRef ttWrapper = setupSingleTurntable(20, intraEventBus, iRefs, serverRefs);
@@ -159,7 +171,8 @@ public class DefaultLayout {
 		ActorSelection eastServerSel = system.actorSelection("/user/"+TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER+"~"+20);
 		ActorRef eastServer = eastServerSel.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, outRef);
-		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, handShakeServer37);
+		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, handShakeServer32);
+		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, handShakeServer38);
 		ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, eastServer);
 		ActorRef ttWrapper2 = setupSingleTurntable(21, intraEventBus2, ioRefs, new HashSet<String>());
 		ActorRef mesTT2 = setupMESLevelTurntableActor(ttWrapper2, intraEventBus2, eventBusByRef, 21);

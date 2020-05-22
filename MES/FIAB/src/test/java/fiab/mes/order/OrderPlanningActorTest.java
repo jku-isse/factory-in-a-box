@@ -41,11 +41,11 @@ import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 class OrderPlanningActorTest {
 
 	protected static ActorSystem system;
-	public static String ROOT_SYSTEM = "routes";
-	protected static ActorRef machineEventBus;
+	public static String ROOT_SYSTEM = "routes";	
 	protected static ActorRef orderEventBus;
 	protected static ActorRef orderPlanningActor;
 	protected static ActorRef coordActor;
+	protected static DefaultLayout layout;
 	
 	private static final Logger logger = LoggerFactory.getLogger(OrderPlanningActorTest.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
@@ -60,7 +60,7 @@ class OrderPlanningActorTest {
 		system = ActorSystem.create(ROOT_SYSTEM);
 		HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
 		TransportPositionLookup dns = new TransportPositionLookup();
-		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		layout = new DefaultLayout(system);
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
@@ -79,18 +79,15 @@ class OrderPlanningActorTest {
 		knownActors.clear();
 	}
 	
-	//TODO: run tests
 	
-	@Test
+	@Test //WORKS
 	void testInitOrderPlannerWithTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				String oid = "Order1";
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();				
 				orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", oid)), getRef() );
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -115,16 +112,13 @@ class OrderPlanningActorTest {
 		};
 	}
 	
-	@Test
+	@Test //WORKS
 	void testInitOrderPlannerWithSingleStepProcessAndTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
 				String oid = "Order1";
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				//orderEventBus.tell(new SubscribeMessage(getRef(), new SubscriptionClassifier("OrderMock", oid)), getRef() );
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();	
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -164,14 +158,12 @@ class OrderPlanningActorTest {
 		};
 	}
 	
-	@Test
+	@Test //FIXME: final transport to outputstation doesn work
 	void testInitOrderPlannerWithMultipleSingleStepProcessesAndTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();	
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -225,14 +217,12 @@ class OrderPlanningActorTest {
 		};
 	}
 	
-	@Test
+	@Test // WORKS
 	void testInitOrderPlannerWithMultipleParallelSingleStepProcessesAndTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();	
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -243,6 +233,13 @@ class OrderPlanningActorTest {
 					}
 					if (te instanceof MachineConnectedEvent) {
 						countConnEvents++; 
+						knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+					}
+					if (te instanceof MachineStatusUpdateEvent) {
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
+							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
+									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
+							);	
 					}
 				} 
 				
@@ -267,7 +264,13 @@ class OrderPlanningActorTest {
 								order2Done = true;
 							}
 						}
-					}														
+					}
+					if (te instanceof MachineStatusUpdateEvent) {
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
+							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
+									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
+							);	
+					}
 				} 
 			}	
 		};

@@ -48,6 +48,7 @@ class TestStopMachine {
 	protected static ActorRef orderEventBus;
 	protected static ActorRef orderPlanningActor;
 	protected static ActorRef coordActor;
+	protected static DefaultLayout layout;
 	
 	private static final Logger logger = LoggerFactory.getLogger(TestStopMachine.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
@@ -62,7 +63,7 @@ class TestStopMachine {
 		system = ActorSystem.create(ROOT_SYSTEM);
 		HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
 		TransportPositionLookup dns = new TransportPositionLookup();
-		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		layout = new DefaultLayout(system);
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
@@ -81,17 +82,12 @@ class TestStopMachine {
 		knownActors.clear();
 	}
 	
-	// TODO: run TESTS
-
-	
-	@Test
+	@Test //WORKS
 	void testStopMachineWhenUnassigned() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -148,14 +144,12 @@ class TestStopMachine {
 		};
 	}
 	
-	@Test
+	@Test //FIXME: stopping is sent and acknoledged, but order is correctly processed til end, nevertheless
 	void testStopMachineWhenAssigned() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -212,14 +206,12 @@ class TestStopMachine {
 		};
 	}
 	
-	@Test
+	@Test //WORKS
 	void testStopMachineWhenPlotting() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );	
-							
-				new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
+				layout.setupTwoTurntableWith2MachinesAndIO();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {

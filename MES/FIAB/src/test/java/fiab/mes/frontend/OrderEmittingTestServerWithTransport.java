@@ -47,6 +47,7 @@ public class OrderEmittingTestServerWithTransport {
 	private static ActorSelection orderEventBus;
 	private static ActorSelection orderEntryActor;
 	private static CompletionStage<ServerBinding> binding;
+	private static DefaultLayout layout;
 
 	private static final Logger logger = LoggerFactory.getLogger(OrderEmittingTestServerWithTransport.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
@@ -75,6 +76,7 @@ public class OrderEmittingTestServerWithTransport {
 //	    System.out.println("Server online at https://localhost:8080/");
 		
 		binding = ShopfloorStartup.startup(null, system);
+		layout = new DefaultLayout(system, false);
 		orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
 		machineEventBus = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		orderEntryActor = system.actorSelection("/user/"+OrderEntryActor.WELLKNOWN_LOOKUP_NAME);//.resolveOne(Timeout.create(Duration.ofSeconds(3)))..;
@@ -96,9 +98,8 @@ public class OrderEmittingTestServerWithTransport {
 	    system = null;
 	}
 	
-	//TODO: run tests
 	
-	@Test
+	@Test // TODO: Startup works - process handling not, somehow
 	void testFrontendResponsesByEmittingOrdersSequentialProcess() throws Exception {
 			new TestKit(system) { 
 				{ 
@@ -107,7 +108,7 @@ public class OrderEmittingTestServerWithTransport {
 					orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "")), getRef() );
 					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 			
-					new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+					layout.setupTwoTurntableWith2MachinesAndIO();
 					int countConnEvents = 0;
 					boolean isPlannerFunctional = false;
 					while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -146,7 +147,7 @@ public class OrderEmittingTestServerWithTransport {
 
 	}
 	
-	@Test
+	@Test // Startup works
 	void testFrontendExternalProcess() throws Exception {
 			new TestKit(system) { 
 				{ 
@@ -155,7 +156,7 @@ public class OrderEmittingTestServerWithTransport {
 					orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "")), getRef() );
 					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 			
-					new DefaultLayout(system).setupTwoTurntableWith2MachinesAndIO();
+					layout.setupTwoTurntableWith2MachinesAndIO();
 					int countConnEvents = 0;
 					boolean isPlannerFunctional = false;
 					while (!isPlannerFunctional || countConnEvents < 8 ) {

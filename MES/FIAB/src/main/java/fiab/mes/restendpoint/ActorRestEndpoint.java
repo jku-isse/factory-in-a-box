@@ -232,13 +232,6 @@ public class ActorRestEndpoint extends AllDirectives{
 						CompletionStage<String> returnId = ask(orderEntryActor, rpr, timeout).thenApply((String.class::cast));
 						return completeOKWithFuture(returnId, Jackson.marshaller());
 					});
-//					return entity(Jackson.unmarshaller(String.class), orderAsXML -> { //TODO this needs to be an XML unmarshaller, not JSON!! 
-//						final Timeout timeout = Timeout.durationToTimeout(FiniteDuration.apply(5, TimeUnit.SECONDS));
-//						// TODO: transform XML string into Ecore model: XML
-//						RegisterProcessRequest order = transformToOrderProcessRequest(orderAsXML); // not sure how to do this yet
-//						CompletionStage<String> returnId = ask(orderEntryActor, order, timeout).thenApply((String.class::cast));
-//						return completeOKWithFuture(returnId, Jackson.marshaller());
-//					});
 				}
 				return complete(StatusCodes.UNAUTHORIZED);
 			})
