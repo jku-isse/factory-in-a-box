@@ -19,6 +19,7 @@ public abstract class LocalEndpointStatus {
 	public String getCapabilityId() {
 		return capabilityId;
 	}
+
 	public LocalEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
 		super();
 		this.actor = actor;
