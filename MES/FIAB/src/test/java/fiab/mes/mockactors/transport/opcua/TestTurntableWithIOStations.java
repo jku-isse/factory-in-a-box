@@ -163,7 +163,7 @@ public class TestTurntableWithIOStations {
 				
 				boolean didReactOnIdle = false;
 				boolean doRun = true;				
-				while (machines.size() < urlsToBrowse.size() || doRun) {
+				while (doRun == true) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent) {						
@@ -184,7 +184,6 @@ public class TestTurntableWithIOStations {
 							doRun = false;
 						}
 					}
-
 				}
 			}};
 			return true;

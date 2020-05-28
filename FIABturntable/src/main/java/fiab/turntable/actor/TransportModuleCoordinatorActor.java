@@ -169,8 +169,9 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 				.match(TurntableStatusUpdateEvent.class, state -> {
 					ttFUState = state.getStatus();
 					switch(state.getStatus()) {								
-					case COMPLETING:
-						// signal that handshake can start
+					case COMPLETING: //fallthrough,
+					case COMPLETE:	
+						// signal that handshake can start (if we haven't already done this when COMPLETING was received
 						if (exeSubState.equals(InternalProcess.TURNING_SOURCE)){
 							startSourceHandshake();
 						} else if (exeSubState.equals(InternalProcess.TURNING_DEST)) {
@@ -193,7 +194,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 							} else {
 								ep.getActor().tell(ClientMessageTypes.Complete, self);
 							}
-						});
+						});						
 						turnToDestination();
 					} else if (state.getStatus().equals(ConveyorStates.IDLE) && exeSubState.equals(InternalProcess.CONVEYING_DEST)) {
 						Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdTo()); 
@@ -204,6 +205,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 								ep.getActor().tell(ClientMessageTypes.Complete, self);
 							}
 						});
+						turntableFU.tell(TurningTriggers.RESET, self); //set the turntable to home position again to counter drifting
 						finalizeTransport();
 					}
 				})
@@ -324,11 +326,20 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 //	}
 	
 	private void turnToDestination() {
+		turntableFU.tell(TurningTriggers.RESET, self); //set the turntable to home position again to counter drifting
 		log.info("Starting to Turn to Destination");
 		Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdTo());
-		toEP.ifPresent(ep -> {
-			turntableFU.tell(new TurnRequest(resolveCapabilityToOrientation(ep)), self);
-			exeSubState = InternalProcess.TURNING_DEST;
+		toEP.ifPresent(ep -> {			
+			context().system()
+	    	.scheduler()
+	    	.scheduleOnce(Duration.ofMillis(5000), //waiting to turntable having reached home position, very ugly this way
+	    			 new Runnable() {
+	            @Override
+	            public void run() {            	
+	            	turntableFU.tell(new TurnRequest(resolveCapabilityToOrientation(ep)), self);
+	    			exeSubState = InternalProcess.TURNING_DEST;         	
+	            }
+	          }, context().system().dispatcher());						
 		});
 	}
 

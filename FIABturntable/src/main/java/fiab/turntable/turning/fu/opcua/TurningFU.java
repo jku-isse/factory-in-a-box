@@ -12,6 +12,7 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.opcua.server.OPCUABase;
+import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.turning.TurningStates;
 import fiab.turntable.turning.TurningTriggers;
 import fiab.turntable.turning.TurntableActor;
@@ -32,22 +33,22 @@ public class TurningFU implements StatePublisher{
 	private org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode status = null;
 
 
-	public TurningFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl) {
+	public TurningFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl,  IntraMachineEventBus intraEventBus) {
 		this.base = base;
 		this.rootNode = root;
 
 		this.context = context;
 		this.fuPrefix = fuPrefix;
 
-		setupOPCUANodeSet(exposeInternalControl);
+		setupOPCUANodeSet(exposeInternalControl, intraEventBus);
 	}
 
 
-	private void setupOPCUANodeSet(boolean exposeInternalControl) {
+	private void setupOPCUANodeSet(boolean exposeInternalControl,  IntraMachineEventBus intraEventBus) {
 		String path = fuPrefix + "/TURNING_FU";
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "TURNING_FU");	
 
-		turningActor = context.actorOf(TurntableActor.props(null, this), "TurningFU");
+		turningActor = context.actorOf(TurntableActor.props(intraEventBus, this), "TurningFU");
 
 		status = base.generateStringVariableNode(handshakeNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, TurningStates.STOPPED);
 

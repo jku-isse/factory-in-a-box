@@ -58,7 +58,9 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     }
 
     protected void reset() {
-        motorBackward();
+    	if (!sensorHomingHasDetectedInput()) {
+    		motorBackward();
+    	}
         checkHomingPositionReached();
     }
 
@@ -96,13 +98,14 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     protected void complete() {
         tsm.fire(NEXT);
         publishNewState();       //we are now in COMPLETE
-        autoResetToIdle();
+        //autoResetToIdle(); // we dont want to reset immediately because that would mean we return to home immediately
     }
 
-    protected void autoResetToIdle() {
-        tsm.fire(NEXT);
-        publishNewState();       //we are now in IDLE
-    }
+//    protected void autoResetToIdle() {
+//        reset();
+//    	//tsm.fire(NEXT);
+//        //publishNewState();       //we are now in IDLE
+//    }
 
     private void turnTo(TurnTableOrientation target) {
         if (target.getNumericValue() > this.orientation.getNumericValue()) {

@@ -12,6 +12,7 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.opcua.server.OPCUABase;
+import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.conveying.ConveyorActor;
 import fiab.turntable.conveying.ConveyorStates;
 import fiab.turntable.conveying.ConveyorTriggers;
@@ -33,22 +34,22 @@ public class ConveyingFU implements StatePublisher{
 	private org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode status = null;
 
 
-	public ConveyingFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl) {
+	public ConveyingFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl,  IntraMachineEventBus intraEventBus) {
 		this.base = base;
 		this.rootNode = root;
 
 		this.context = context;
 		this.fuPrefix = fuPrefix;
 
-		setupOPCUANodeSet(exposeInternalControl);
+		setupOPCUANodeSet(exposeInternalControl, intraEventBus);
 	}
 
 
-	private void setupOPCUANodeSet(boolean exposeInternalControl) {
+	private void setupOPCUANodeSet(boolean exposeInternalControl,  IntraMachineEventBus intraEventBus) {
 		String path = fuPrefix + "/CONVEYING_FU";
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "CONVEYING_FU");	
 
-		conveyingActor = context.actorOf(ConveyorActor.props(null, this), "TT1-ConveyingFU");
+		conveyingActor = context.actorOf(ConveyorActor.props(intraEventBus, this), "TT1-ConveyingFU");
 
 		status = base.generateStringVariableNode(handshakeNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, ConveyorStates.STOPPED);
 
