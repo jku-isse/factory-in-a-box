@@ -28,38 +28,40 @@ public class ConveyingFU implements StatePublisher{
 	ActorContext context;
 	String fuPrefix;
 	OPCUABase base;
+	ActorRef conveyingActor;
 
 	private org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode status = null;
 
 
-	public ConveyingFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context) {
+	public ConveyingFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl) {
 		this.base = base;
 		this.rootNode = root;
 
 		this.context = context;
 		this.fuPrefix = fuPrefix;
 
-		setupOPCUANodeSet();
+		setupOPCUANodeSet(exposeInternalControl);
 	}
 
 
-	private void setupOPCUANodeSet() {
+	private void setupOPCUANodeSet(boolean exposeInternalControl) {
 		String path = fuPrefix + "/CONVEYING_FU";
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "CONVEYING_FU");	
 
-		ActorRef turningActor = context.actorOf(ConveyorActor.props(null, this), "TT1-ConveyingFU");
+		conveyingActor = context.actorOf(ConveyorActor.props(null, this), "TT1-ConveyingFU");
 
 		status = base.generateStringVariableNode(handshakeNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, ConveyorStates.STOPPED);
 
-		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, ConveyorTriggers.RESET.toString(), "Requests reset");		
-		base.addMethodNode(handshakeNode, n1, new ConveyingReset(n1, turningActor)); 		
-		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, ConveyorTriggers.STOP.toString(), "Requests stop");		
-		base.addMethodNode(handshakeNode, n2, new ConveyingStop(n2, turningActor));
-		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n3 = base.createPartialMethodNode(path, ConveyorTriggers.LOAD.toString(), "Requests load");		
-		base.addMethodNode(handshakeNode, n3, new ConveyingLoad(n3, turningActor));
-		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n4 = base.createPartialMethodNode(path, ConveyorTriggers.UNLOAD.toString(), "Requests unload");		
-		base.addMethodNode(handshakeNode, n4, new ConveyingUnload(n4, turningActor));
-
+		if (exposeInternalControl) {
+			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, ConveyorTriggers.RESET.toString(), "Requests reset");		
+			base.addMethodNode(handshakeNode, n1, new ConveyingReset(n1, conveyingActor)); 		
+			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, ConveyorTriggers.STOP.toString(), "Requests stop");		
+			base.addMethodNode(handshakeNode, n2, new ConveyingStop(n2, conveyingActor));
+			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n3 = base.createPartialMethodNode(path, ConveyorTriggers.LOAD.toString(), "Requests load");		
+			base.addMethodNode(handshakeNode, n3, new ConveyingLoad(n3, conveyingActor));
+			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n4 = base.createPartialMethodNode(path, ConveyorTriggers.UNLOAD.toString(), "Requests unload");		
+			base.addMethodNode(handshakeNode, n4, new ConveyingUnload(n4, conveyingActor));
+		}
 		// add capabilities 
 		UaFolderNode capabilitiesFolder = base.generateFolder(handshakeNode, path, new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
 		path = path +"/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
@@ -72,6 +74,10 @@ public class ConveyingFU implements StatePublisher{
 				new String("DefaultConveyingCapability"));
 		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
 				new String(OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED));
+	}
+	
+	public ActorRef getActor() {
+		return conveyingActor;
 	}
 
 	@Override

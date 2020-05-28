@@ -100,15 +100,19 @@ public class OPCUATurntableRootActor extends AbstractActor {
         //ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 
 		if (!exposeInternalControl) {
-			   ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
-		                context().actorOf(TurntableActor.props(intraEventBus, null), "TurntableFU"),
-		                context().actorOf(ConveyorActor.props(intraEventBus, null), "ConveyingFU")), "TurntableCoordinator");
+			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl);
+			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl);
+			ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
+		                //context().actorOf(TurntableActor.props(intraEventBus, null), "TurntableFU"),
+		                //context().actorOf(ConveyorActor.props(intraEventBus, null), "ConveyingFU")), 
+						turningFU.getActor(),
+						conveyorFU.getActor()),	"TurntableCoordinator");
 			   ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
 			//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 		} else {
 			ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");
-			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext());
-			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext());
+			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl);
+			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl);
 		}
         
         setupTurntableCapabilities(opcuaBase, ttNode, fuPrefix);

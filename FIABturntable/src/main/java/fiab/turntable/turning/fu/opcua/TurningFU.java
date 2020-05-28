@@ -27,36 +27,38 @@ public class TurningFU implements StatePublisher{
 	ActorContext context;
 	String fuPrefix;
 	OPCUABase base;
+	ActorRef turningActor;
 
 	private org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode status = null;
 
 
-	public TurningFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context) {
+	public TurningFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl) {
 		this.base = base;
 		this.rootNode = root;
 
 		this.context = context;
 		this.fuPrefix = fuPrefix;
 
-		setupOPCUANodeSet();
+		setupOPCUANodeSet(exposeInternalControl);
 	}
 
 
-	private void setupOPCUANodeSet() {
+	private void setupOPCUANodeSet(boolean exposeInternalControl) {
 		String path = fuPrefix + "/TURNING_FU";
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "TURNING_FU");	
 
-		ActorRef turningActor = context.actorOf(TurntableActor.props(null, this), "TurningFU");
+		turningActor = context.actorOf(TurntableActor.props(null, this), "TurningFU");
 
 		status = base.generateStringVariableNode(handshakeNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, TurningStates.STOPPED);
 
-		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, TurningTriggers.RESET.toString(), "Requests reset");		
-		base.addMethodNode(handshakeNode, n1, new TurningReset(n1, turningActor)); 		
-		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, TurningTriggers.STOP.toString(), "Requests stop");		
-		base.addMethodNode(handshakeNode, n2, new TurningStop(n2, turningActor));
-		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n3 = base.createPartialMethodNode(path, "RequestTurn", "Requests turning");		
-		base.addMethodNode(handshakeNode, n3, new TurningRequest(n3, turningActor));
-
+		if (exposeInternalControl) {
+			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, TurningTriggers.RESET.toString(), "Requests reset");		
+			base.addMethodNode(handshakeNode, n1, new TurningReset(n1, turningActor)); 		
+			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, TurningTriggers.STOP.toString(), "Requests stop");		
+			base.addMethodNode(handshakeNode, n2, new TurningStop(n2, turningActor));
+			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n3 = base.createPartialMethodNode(path, "RequestTurn", "Requests turning");		
+			base.addMethodNode(handshakeNode, n3, new TurningRequest(n3, turningActor));
+		}
 
 		// add capabilities 
 		UaFolderNode capabilitiesFolder = base.generateFolder(handshakeNode, path, new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
@@ -72,6 +74,10 @@ public class TurningFU implements StatePublisher{
 				new String(OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED));
 	}
 
+	public ActorRef getActor() {
+		return turningActor;
+	}
+	
 	@Override
 	public void setStatusValue(String newStatus) {		
 		if(status != null) {
