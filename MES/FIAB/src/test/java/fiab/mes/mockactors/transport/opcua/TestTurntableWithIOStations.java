@@ -115,8 +115,7 @@ public class TestTurntableWithIOStations {
 	
 // WORKS
 	@Test
-	void virtualIOandTT() {
-		
+	void virtualIOandTT() {		
 		// MAKE SURE TO RUN CORRECT SHOPFLOOR LAYOUT ABOVE
 		Set<String> urlsToBrowse = new HashSet<String>();
 		urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34
@@ -130,16 +129,26 @@ public class TestTurntableWithIOStations {
 		runTransport34to37TestWith(capURI2Spawning, urlsToBrowse);
 	}
 	
-	@Test //FIXME: needs starting with different turntable name and corresponding config above.
-	void realIOandVirtualTT() {
-		String endpointURL1 = "opc.tcp://192.168.0.34:4840"; //Pos34
-		// we provided wiring info to TT1 for outputstation at SOUTH_CLIENT for testing purpose, for two turntable setup needs changing
-		String endpointURL2 = "opc.tcp://192.168.0.37:4840";	// POS SOUTH 37				
-		String endpointURL3 = "opc.tcp://localhost:4842/milo";		// Pos20
-		fail("Need to setup real machines first");
+	@Test  //FIXME: hardware centric not ok
+	void realIOandRealSingleTT() {
+		Set<String> urlsToBrowse = new HashSet<String>();
+		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
+		urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
+		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT
+		Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+		ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+		Position posFrom = new Position("34");
+		Position posTo = new Position("35");
+		runTransportTestWith(capURI2Spawning, urlsToBrowse, posFrom, posTo);
 	}
 	
 	private boolean runTransport34to37TestWith(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse) {
+		Position posFrom = new Position("34");
+		Position posTo = new Position("37");
+		return runTransportTestWith(capURI2Spawning, urlsToBrowse, posFrom, posTo);
+	}
+	
+	private boolean runTransportTestWith(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse, Position posFrom, Position posTo) {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
@@ -167,7 +176,7 @@ public class TestTurntableWithIOStations {
 						}
 						else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !didReactOnIdle) {
 							logger.info("Sending TEST transport request to: "+msue.getMachineId());
-							TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), new Position("34"), new Position("37"), "Order1", "TReq1");
+							TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), posFrom, posTo, "Order1", "TReq1");
 							machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
 							didReactOnIdle = true;
 						} else if (msue.getStatus().equals(BasicMachineStates.COMPLETE) || msue.getStatus().equals(BasicMachineStates.COMPLETING)) {

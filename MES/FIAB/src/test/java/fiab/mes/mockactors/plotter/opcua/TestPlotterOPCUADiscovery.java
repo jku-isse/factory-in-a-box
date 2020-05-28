@@ -37,6 +37,9 @@ class TestPlotterOPCUADiscovery {
 		StartupUtil.startup(0, "VirtualPlotter1", SupportedColors.BLACK);
 	}
 	
+	public static String TESTPLOTTER31 = "opc.tcp://localhost:4840/milo";
+	public static String ACTUALPLOTTER31 = "opc.tcp://192.168.0.31:4840";
+	
 	private static final Logger logger = LoggerFactory.getLogger(TestPlotterOPCUADiscovery.class);
 	
 //	InterMachineEventBus intraEventBus;
@@ -58,12 +61,23 @@ class TestPlotterOPCUADiscovery {
 
 	@Test
 	void testDiscoveryIntegrationVirtualPlotter() {
+		String endpointURL = TESTPLOTTER31;
+		runDiscovery(endpointURL);
+	}
+	
+	@Test
+	void testDiscoveryIntegrationActualPlotter() {
+		String endpointURL = ACTUALPLOTTER31;
+		runDiscovery(endpointURL);
+	}
+	
+	private void runDiscovery(String endpointURL) {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://localhost:4840/milo";
+				
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				ShopfloorConfigurations.addColorPlotterStationSpawner(capURI2Spawning);			
@@ -101,7 +115,6 @@ class TestPlotterOPCUADiscovery {
 				}
 			}};
 	}
-	
 	
 	
 	private void logEvent(TimedEvent event) {

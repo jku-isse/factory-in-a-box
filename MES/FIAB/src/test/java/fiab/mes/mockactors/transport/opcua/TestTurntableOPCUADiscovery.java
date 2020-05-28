@@ -60,14 +60,24 @@ class TestTurntableOPCUADiscovery {
 	
 	}
 
+	
 	@Test
-	void testDiscoveryIntegration() {
+	void testDiscoveryVirtualTurntable() {
+		discoverTurntable("opc.tcp://localhost:4842/milo");
+	}
+	
+	@Test
+	void testDiscoveryActualTurntable() {
+		discoverTurntable("opc.tcp://192.168.0.20:4842");
+	}
+	
+	private void discoverTurntable(String endpointURL) {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				String endpointURL = "opc.tcp://localhost:4842/milo";
+				
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
@@ -101,7 +111,6 @@ class TestTurntableOPCUADiscovery {
 				}
 			}};
 	}
-	
 	
 	
 	private void logEvent(TimedEvent event) {
