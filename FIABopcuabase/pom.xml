@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>factory.in.a.box</groupId>
 	<artifactId>FIABopcuabase</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<name>FIAB OPC UA Base Classes</name>
 	<description>Provide reusable OPC UA infrastructure classes</description>
 	<properties>
@@ -110,6 +110,7 @@
 							<packaging>jar</packaging>
 							<file>${project.basedir}/../libs/FIABcore-1.0.1-SNAPSHOT.jar
 							</file>
+							<generatePom>true</generatePom>
 						</configuration>
 					</execution>
 				</executions>

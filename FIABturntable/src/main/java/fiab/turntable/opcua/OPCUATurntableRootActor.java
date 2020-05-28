@@ -17,6 +17,7 @@ import fiab.handshake.fu.client.ClientSideHandshakeFU;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
+import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
 import fiab.turntable.actor.InternalTransportModuleRequest;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.actor.NoOpTransportModuleCoordinator;
@@ -85,9 +86,16 @@ public class OPCUATurntableRootActor extends AbstractActor {
 
 
     private void init() throws Exception {
-    	NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
-		OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
-		UaFolderNode root = opcuaBase.prepareRootNode();
+        OPCUABase opcuaBase;
+        if (System.getProperty("os.name").contains("win")) {
+            NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
+            opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
+        } else {
+            PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
+            opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
+        }
+        //OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
+        UaFolderNode root = opcuaBase.prepareRootNode();
         UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "Turntable_FU");
         String fuPrefix = machineName + "/" + "Turntable_FU";
 
@@ -98,6 +106,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
 //                context().actorOf(ConveyorActor.props(intraEventBus, null))), "TurntableCoordinator");
 //        ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
         //ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
+
 
 		if (!exposeInternalControl) {
 			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl);
@@ -113,8 +122,8 @@ public class OPCUATurntableRootActor extends AbstractActor {
 			ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");
 			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl);
 			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl);
-		}
-        
+		}        
+
         setupTurntableCapabilities(opcuaBase, ttNode, fuPrefix);
         setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, ttWrapper);
 
@@ -131,13 +140,13 @@ public class OPCUATurntableRootActor extends AbstractActor {
 
         // we can have server and client set up regardless of shopfloor location, TODO: setup client and server for N, S, E, W 
         //if (machineName.equalsIgnoreCase("Turntable1")) { // we have a server here
-            HandshakeFU eastServerFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, true, exposeInternalControl);
-            handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER,
-                    eastServerFU);
+        HandshakeFU eastServerFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, true, exposeInternalControl);
+        handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER,
+                eastServerFU);
         //} else { // we have a client here
-            HandshakeFU eastClientFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, false, exposeInternalControl);
-            handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT,
-                    eastClientFU);
+        HandshakeFU eastClientFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, false, exposeInternalControl);
+        handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT,
+                eastClientFU);
         //}
 
 
