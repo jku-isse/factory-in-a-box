@@ -15,6 +15,7 @@ import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+//import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalClientEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalServerEndpointStatus;
@@ -60,7 +61,7 @@ public class NoOpTransportModuleCoordinator extends AbstractActor{
 	}
 	
 	private static class HandshakeEndpointInfo {
-		protected Map<String,LocalEndpointStatus> handshakeEPs = new HashMap<>();
+		protected Map<String, LocalEndpointStatus> handshakeEPs = new HashMap<>();
 		
 		ActorRef self;
 		protected HandshakeEndpointInfo(ActorRef self) {
