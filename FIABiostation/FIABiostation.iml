@@ -19,7 +19,7 @@
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.2.3" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.2.3" level="project" />
-    <orderEntry type="module" module-name="FIABopcuabase" />
+    <orderEntry type="library" name="Maven: factory.in.a.box:FIABopcuabase:1.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.milo:stack-core:0.3.7" level="project" />
     <orderEntry type="library" name="Maven: org.bouncycastle:bcprov-jdk15on:1.61" level="project" />
     <orderEntry type="library" name="Maven: org.bouncycastle:bcpkix-jdk15on:1.61" level="project" />

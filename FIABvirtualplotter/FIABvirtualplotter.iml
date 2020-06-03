@@ -25,7 +25,7 @@
     <orderEntry type="library" name="Maven: org.eclipse.emf:org.eclipse.emf.ecore.xmi:2.16.0" level="project" />
     <orderEntry type="library" name="Maven: at.pro2future:CoreModel:1.0.0" level="project" />
     <orderEntry type="module" module-name="FIABhandshake" />
-    <orderEntry type="module" module-name="FIABopcuabase" />
+    <orderEntry type="library" name="Maven: factory.in.a.box:FIABopcuabase:1.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.milo:stack-core:0.3.7" level="project" />
     <orderEntry type="library" name="Maven: org.bouncycastle:bcprov-jdk15on:1.61" level="project" />
     <orderEntry type="library" name="Maven: org.bouncycastle:bcpkix-jdk15on:1.61" level="project" />

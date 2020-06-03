@@ -726,7 +726,7 @@
     <orderEntry type="library" name="Maven: org.projectlombok:lombok:1.18.12" level="project" />
     <orderEntry type="module" module-name="FIABcore" />
     <orderEntry type="library" name="Maven: at.pro2future:CoreModel:1.0.0" level="project" />
-    <orderEntry type="module" module-name="FIABopcuabase" />
+    <orderEntry type="library" name="Maven: factory.in.a.box:FIABopcuabase:1.0.1-SNAPSHOT" level="project" />
     <orderEntry type="module" module-name="FIABhandshake" />
     <orderEntry type="module" module-name="FIABiostation" />
     <orderEntry type="module" module-name="FIABvirtualplotter" />

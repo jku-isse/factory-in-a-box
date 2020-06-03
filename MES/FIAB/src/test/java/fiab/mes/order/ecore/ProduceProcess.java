@@ -59,7 +59,35 @@ public class ProduceProcess {
 	public static ProcessCore.Process getSequential4ColorProcess(String prefix) {
 		return getSequential4ColorProcess(prefix, ProcessCoreFactory.eINSTANCE.createXmlRoot());
 	}
-	
+
+	public static ProcessCore.Process getDemoProcess(String prefix) {
+		return getSequential4ColorProcess(prefix, ProcessCoreFactory.eINSTANCE.createXmlRoot());
+	}
+
+	public static ProcessCore.Process getDemoProcess(String prefix, XmlRoot root, SupportedColors... colors) {
+		// first four supported colors: BLACK, BLUE, GREEN, RED,
+		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
+		p.setDisplayName(prefix+"SequentialProcess");
+		p.setID(prefix+"SequentialProcess");
+
+		int count = 0;
+		for (SupportedColors color : colors) {
+			AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(color);
+			root.getCapabilities().add(cap);
+
+			CapabilityInvocation s1 = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+			s1.setID(prefix+count);
+			s1.setDisplayName(root.getCapabilities().get(count).getDisplayName());
+			s1.setInvokedCapability(root.getCapabilities().get(count));
+			s1.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(count).getInputs().get(0)));
+			EcoreProcessUtils.addProcessvariables(p, "Image1");
+			EcoreProcessUtils.mapCapInputToProcessVar(p.getVariables(), s1);
+			p.getSteps().add(s1);
+			count++;
+		}
+		return p;
+	}
+
 	public static ProcessCore.Process getSequential4ColorProcess(String prefix, XmlRoot root) {
 		// first four supported colors: BLACK, BLUE, GREEN, RED,
 		for (SupportedColors color : WellknownPlotterCapability.SupportedColors.values()) {
