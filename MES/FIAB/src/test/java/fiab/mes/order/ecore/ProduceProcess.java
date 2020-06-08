@@ -130,6 +130,10 @@ public class ProduceProcess {
 		return p;
 	}
 	
+	public static ProcessCore.Process getSingleBlackStepProcess(String prefix) {
+		return getSequentialStepProcess(prefix, ProcessCoreFactory.eINSTANCE.createXmlRoot(), SupportedColors.BLACK);
+	}
+	
 	public static ProcessCore.Process getSingleGreenStepProcess(String prefix) {
 		return getSequentialStepProcess(prefix, ProcessCoreFactory.eINSTANCE.createXmlRoot(), SupportedColors.GREEN);
 	}
@@ -158,7 +162,7 @@ public class ProduceProcess {
 			s1.setDisplayName(root.getCapabilities().get(count).getDisplayName());		
 			s1.setInvokedCapability(root.getCapabilities().get(count));				
 			s1.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(count).getInputs().get(0)));
-			EcoreProcessUtils.addProcessvariables(p, "Image"+count);
+			EcoreProcessUtils.addProcessvariables(p, "demo");
 			EcoreProcessUtils.mapCapInputToProcessVar(p.getVariables(), s1);
 			p.getSteps().add(s1);
 			count++;

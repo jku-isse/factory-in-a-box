@@ -25,9 +25,10 @@ public class ShopfloorStartup extends AllDirectives {
   public static void main(String[] args) throws Exception {
 
 	  String jsonDiscoveryFile = System.getProperty("jsondiscoveryfile");
+	  int expectedTTs = Integer.parseInt(System.getProperty("expectedTTs", "1"));
 	  ActorSystem system = ActorSystem.create("routes");
 
-	  CompletionStage<ServerBinding> binding = startup(jsonDiscoveryFile, system);
+	  CompletionStage<ServerBinding> binding = startup(jsonDiscoveryFile, expectedTTs, system);
 
 	  System.out.println("Server online at https://localhost:8080/\nPress RETURN to stop...");
 	  System.in.read(); // let it run until user presses return
@@ -37,7 +38,7 @@ public class ShopfloorStartup extends AllDirectives {
 	  .thenAccept(unbound -> system.terminate()); // and shutdown when done
   }
   
-  public static CompletionStage<ServerBinding> startup(String jsonDiscoveryFile, ActorSystem system) {
+  public static CompletionStage<ServerBinding> startup(String jsonDiscoveryFile, int expectedTTs, ActorSystem system) {
 	    // boot up server using the route as defined below	    	      
 	    final Http http = Http.get(system);
 	    
@@ -46,7 +47,7 @@ public class ShopfloorStartup extends AllDirectives {
 	    
 	    final ActorMaterializer materializer = ActorMaterializer.create(system);
 
-	    DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system);
+	    DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system, expectedTTs);
 	    ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
 	    ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
 	    	    

@@ -133,6 +133,9 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 		pos20cap.put(pos37, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT);
 		pos20cap.put(pos31, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT);
 		pos20cap.put(pos20, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF);
+		// for testing of single turntable module:
+		pos20cap.put(pos35, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
+		
 		pos21cap.put(pos35, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
 		pos21cap.put(pos20, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
 		pos21cap.put(pos38, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT);

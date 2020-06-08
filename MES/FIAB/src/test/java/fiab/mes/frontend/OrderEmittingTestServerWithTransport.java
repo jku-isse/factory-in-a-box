@@ -75,7 +75,7 @@ public class OrderEmittingTestServerWithTransport {
 //	
 //	    System.out.println("Server online at https://localhost:8080/");
 		
-		binding = ShopfloorStartup.startup(null, system);
+		binding = ShopfloorStartup.startup(null, 1, system);
 		layout = new DefaultLayout(system, false);
 		orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
 		machineEventBus = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);

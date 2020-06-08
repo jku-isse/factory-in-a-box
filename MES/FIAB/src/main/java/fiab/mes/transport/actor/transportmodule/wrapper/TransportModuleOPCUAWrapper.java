@@ -6,6 +6,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
+import akka.actor.ActorRef;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
@@ -20,8 +21,8 @@ public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements
 	protected IntraMachineEventBus intraMachineBus;
 	
 	public TransportModuleOPCUAWrapper(IntraMachineEventBus intraMachineBus, OpcUaClient client,
-			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId transportMethod) {
-		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar);
+			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId transportMethod, ActorRef spawner) {
+		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar, spawner);
 		this.intraMachineBus = intraMachineBus;
 		this.transportMethod = transportMethod;
 	}
@@ -37,12 +38,12 @@ public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements
 	}
 
 	public void onStateSubscriptionChange(UaMonitoredItem item, DataValue value) {
-		logger.info(
+		logger.debug(
 				"subscription value received: item={}, value={}",
 				item.getReadValueId().getNodeId(), value.getValue());
 		if( value.getValue().isNotNull() ) {
 			String stateAsString = value.getValue().getValue().toString();
-			System.out.println(stateAsString);
+			//System.out.println(stateAsString);
 			try {
 				BasicMachineStates state = BasicMachineStates.valueOf(stateAsString);
 				if (this.intraMachineBus != null) {

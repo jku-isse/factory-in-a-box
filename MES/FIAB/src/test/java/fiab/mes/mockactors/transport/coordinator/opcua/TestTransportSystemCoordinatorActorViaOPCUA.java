@@ -156,7 +156,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), "TransportCoordinator");
+				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), "TransportCoordinator");
 				
 				urlsToBrowse.stream().forEach(url -> {
 					ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
@@ -211,7 +211,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), "TransportCoordinator");
+				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), "TransportCoordinator");
 				// setup discoveryactor		
 				Set<String> urlsToBrowse = new HashSet<String>();
 				urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34
@@ -278,6 +278,78 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 			}};
 	}
 	
+	
+	
+	@Test //FIXME to adapt
+	void testHandoverWithRealIOStationsAndTTandPlotter() {
+		new TestKit(system) { 
+			{ 
+				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), "TransportCoordinator");
+				// setup discoveryactor		
+				Set<String> urlsToBrowse = new HashSet<String>();
+				urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
+				urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 north plotter
+				urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
+				urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT		
+				
+				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+				ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+				urlsToBrowse.stream().forEach(url -> {
+					ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
+					discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
+				});
+				HashMap<String,AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
+				
+				boolean didReactOnIdle = false;
+				boolean doRun = true;
+				boolean plotterReady = false;
+				boolean turntableReady = false;
+				while (machines.size() < urlsToBrowse.size() || doRun) {
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class, RegisterTransportRequestStatusResponse.class); 
+					logEvent(te);
+					if (te instanceof MachineConnectedEvent) {						
+						machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());						
+					}
+					if (te instanceof MachineStatusUpdateEvent) {
+						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
+						if (msue.getStatus().equals(BasicMachineStates.STOPPED)) { 							
+							machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());							
+						} else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals("opc.tcp://localhost:4845/milo/VirtualPlotter31/Plotting_FU") ) {							
+							sendPlotRegister(machines.get(msue.getMachineId()).getAkkaActor(), getRef());
+						} else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals("Turntable1/Turntable_FU") ) {
+							turntableReady = true;
+						} else if (msue.getStatus().equals(BasicMachineStates.COMPLETING) &&
+								msue.getMachineId().equals("opc.tcp://localhost:4845/milo/VirtualPlotter31/Plotting_FU") ) {
+							//now do unloading
+							RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get("opc.tcp://localhost:4845/milo/VirtualPlotter31/Plotting_FU"), knownActors.get("VirtualOutputStation1/IOSTATION"), "TestOrder1", getRef());
+							coordActor.tell(rtr, getRef());								
+						} 
+					}
+					if (te instanceof ReadyForProcessEvent) {
+						assert(((ReadyForProcessEvent) te).isReady());
+						plotterReady = true;
+						sendPlotRequest(machines.get("opc.tcp://localhost:4845/milo/VirtualPlotter31/Plotting_FU").getAkkaActor(), getRef());						
+					}
+					
+					if (te instanceof IOStationStatusUpdateEvent) {
+						IOStationStatusUpdateEvent iosue = (IOStationStatusUpdateEvent)te;
+						if ((iosue.getStatus().equals(ServerSideStates.COMPLETE) || iosue.getStatus().equals(ServerSideStates.COMPLETING)) &&
+								iosue.getMachineId().equals("VirtualOutputStation1/IOSTATION") ) {
+							logger.info("Completing test upon receiving COMPLETE/ING from: "+iosue.getMachineId());
+							doRun = false;
+						}						
+					}
+					if (plotterReady && turntableReady && !didReactOnIdle) {
+						logger.info("Sending TEST transport request to Turntable1");
+						RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get("VirtualInputStation1/IOSTATION"), knownActors.get("opc.tcp://localhost:4845/milo/VirtualPlotter31/Plotting_FU"), "TestOrder1", getRef());
+						coordActor.tell(rtr, getRef());		
+						didReactOnIdle = true;
+					}
+				}
+			}};
+	}
 	
 	private void sendPlotRequest(ActorRef plotter, ActorRef self) {
 		LockForOrder lfo = new LockForOrder("Step1", "Order1");

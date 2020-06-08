@@ -67,7 +67,10 @@ public class BaseBehaviorTurntableActor extends AbstractActor {
     					tsm.fire(TURN_TO);  //in STARTING
     					publishNewState();
     					turn(req);
+    				} else {
+    					log.warning("Turntable not ready for TurningRequest to: "+req.getTto());
     				}
+    					
     			})
     			.matchAny(msg -> {
     				log.warning("Unexpected Message received: " + msg.toString());

@@ -39,9 +39,7 @@ class TestIOStationOPCUADiscovery {
 		StartupUtil.startupInputstation(0, "VirtualInputStation1");
 		StartupUtil.startupOutputstation(1, "VirtualOutputStation1");
 	}
-	
-	
-	
+		
 	private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUADiscovery.class);
 	
 //	InterMachineEventBus intraEventBus;
@@ -60,14 +58,28 @@ class TestIOStationOPCUADiscovery {
 	
 	}
 
+	
 	@Test
-	void testDiscoveryIntegration() {
+	void testDiscoveryActualInputStation() {
+		discoverIOStation("opc.tcp://192.168.0.34:4840");
+	}
+	
+	@Test
+	void testDiscoveryActualOutputStation() {
+		discoverIOStation("opc.tcp://192.168.0.35:4840");
+	}
+	
+	@Test
+	void testDiscoveryVirtualInputStation() {
+		discoverIOStation("opc.tcp://localhost:4840/milo");
+	}
+	
+	private void discoverInputStation(String endpointURL) {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				// setup discoveryactor
-				String endpointURL = "opc.tcp://localhost:4840/milo";
+				// setup discoveryactor				
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
@@ -100,8 +112,56 @@ class TestIOStationOPCUADiscovery {
 			}};
 	}
 	
+	private void discoverIOStation(String endpointURL) {
+		new TestKit(system) { 
+			{ 
+				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
+				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				// setup discoveryactor
+				
+				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+					@Override
+					public ActorRef createActorSpawner(ActorContext context) {
+						return context.actorOf(LocalIOStationActorSpawner.props());
+					}
+				});
+				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
+					@Override
+					public ActorRef createActorSpawner(ActorContext context) {
+						return context.actorOf(LocalIOStationActorSpawner.props());
+					}
+				});
+				ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
+				discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(endpointURL, capURI2Spawning), getRef());			
+				
+				//boolean doRun = true;
+				int countIdle = 0;
+				int countConnEvents = 0;
+				while (countConnEvents < 1 || countIdle < 1) {
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
+					logEvent(te);
+					if (te instanceof MachineConnectedEvent) {
+						countConnEvents++; 
+					}
+					if (te instanceof MachineStatusUpdateEvent) {
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
+							getLastSender().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());
+					}
+					if (te instanceof IOStationStatusUpdateEvent) {
+						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
+							countIdle++;
+						}
+						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
+							countIdle++;
+						}
+					}
+				}
+			}};
+	}
+	
 	@Test
-	void testDiscoveryIntegrationInputAndOutputStation() {
+	void testDiscoveryVirtualInputAndOutputStation() {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				

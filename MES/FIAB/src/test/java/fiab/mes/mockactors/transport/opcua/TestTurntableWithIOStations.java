@@ -62,12 +62,13 @@ public class TestTurntableWithIOStations {
 	
 	public static void main(String args[]) {
 		//startupW34toN31toS37();
-		startupW34toE35();
+		//startupW34toE35();
+		startupW34toS37();
 	}
 	
 	public static void startupW34toS37(){
-		StartupUtil.startupInputstation(0, "VirtualInputStation1");
-		StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
+		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1");
+		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
         int portOffset = 2;
         boolean exposeInternalControls = false;
@@ -75,8 +76,8 @@ public class TestTurntableWithIOStations {
 	}
 	
 	public static void startupW34toN31toS37() {
-		StartupUtil.startupInputstation(0, "VirtualInputStation1"); //Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
-		StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
+		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1"); //Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
+		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
 		fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK);
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
         int portOffset = 2;
@@ -115,8 +116,7 @@ public class TestTurntableWithIOStations {
 	
 // WORKS
 	@Test
-	void virtualIOandTT() {
-		
+	void virtualIOandTT() {		
 		// MAKE SURE TO RUN CORRECT SHOPFLOOR LAYOUT ABOVE
 		Set<String> urlsToBrowse = new HashSet<String>();
 		urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34
@@ -130,16 +130,40 @@ public class TestTurntableWithIOStations {
 		runTransport34to37TestWith(capURI2Spawning, urlsToBrowse);
 	}
 	
-	@Test //FIXME: needs starting with different turntable name and corresponding config above.
-	void realIOandVirtualTT() {
-		String endpointURL1 = "opc.tcp://192.168.0.34:4840"; //Pos34
-		// we provided wiring info to TT1 for outputstation at SOUTH_CLIENT for testing purpose, for two turntable setup needs changing
-		String endpointURL2 = "opc.tcp://192.168.0.37:4840";	// POS SOUTH 37				
-		String endpointURL3 = "opc.tcp://localhost:4842/milo";		// Pos20
-		fail("Need to setup real machines first");
+	@Test  //Works somewhat
+	void realIOandRealSingleTT() {
+		Set<String> urlsToBrowse = new HashSet<String>();
+		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
+		urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
+		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT
+		Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+		ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+		Position posFrom = new Position("34");
+		Position posTo = new Position("35");
+		runTransportTestWith(capURI2Spawning, urlsToBrowse, posFrom, posTo);
 	}
 	
+//	@Test  //FIXME: hardware centric not ok
+//	void realIOandRealSingleTTAndPLotter() {
+//		Set<String> urlsToBrowse = new HashSet<String>();
+//		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
+//		urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
+//		urlsToBrowse.add("opc.tcp://192.168.0.31:4840");	// POS NORTH 31/ plotter 1
+//		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT
+//		Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+//		ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+//		Position posFrom = new Position("34");
+//		Position posTo = new Position("31");
+//		runTransportTestWith(capURI2Spawning, urlsToBrowse, posFrom, posTo);
+//	}
+	
 	private boolean runTransport34to37TestWith(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse) {
+		Position posFrom = new Position("34");
+		Position posTo = new Position("37");
+		return runTransportTestWith(capURI2Spawning, urlsToBrowse, posFrom, posTo);
+	}
+	
+	private boolean runTransportTestWith(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse, Position posFrom, Position posTo) {
 		new TestKit(system) { 
 			{ 
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
@@ -154,7 +178,7 @@ public class TestTurntableWithIOStations {
 				
 				boolean didReactOnIdle = false;
 				boolean doRun = true;				
-				while (machines.size() < urlsToBrowse.size() || doRun) {
+				while (doRun == true) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent) {						
@@ -167,7 +191,7 @@ public class TestTurntableWithIOStations {
 						}
 						else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !didReactOnIdle) {
 							logger.info("Sending TEST transport request to: "+msue.getMachineId());
-							TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), new Position("34"), new Position("37"), "Order1", "TReq1");
+							TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), posFrom, posTo, "Order1", "TReq1");
 							machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
 							didReactOnIdle = true;
 						} else if (msue.getStatus().equals(BasicMachineStates.COMPLETE) || msue.getStatus().equals(BasicMachineStates.COMPLETING)) {
@@ -175,7 +199,6 @@ public class TestTurntableWithIOStations {
 							doRun = false;
 						}
 					}
-
 				}
 			}};
 			return true;

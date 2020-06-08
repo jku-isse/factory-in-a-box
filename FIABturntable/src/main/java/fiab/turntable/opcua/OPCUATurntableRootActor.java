@@ -23,12 +23,10 @@ import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.actor.NoOpTransportModuleCoordinator;
 import fiab.turntable.actor.SubscriptionClassifier;
 import fiab.turntable.actor.TransportModuleCoordinatorActor;
-import fiab.turntable.conveying.ConveyorActor;
 import fiab.turntable.conveying.fu.opcua.ConveyingFU;
 import fiab.turntable.opcua.methods.Reset;
 import fiab.turntable.opcua.methods.Stop;
 import fiab.turntable.opcua.methods.TransportRequest;
-import fiab.turntable.turning.TurntableActor;
 import fiab.turntable.turning.fu.opcua.TurningFU;
 
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
@@ -107,17 +105,22 @@ public class OPCUATurntableRootActor extends AbstractActor {
 //        ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
         //ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 
-        if (!exposeInternalControl) {
-            ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
-                    context().actorOf(TurntableActor.props(intraEventBus, null), "TurntableFU"),
-                    context().actorOf(ConveyorActor.props(intraEventBus, null), "ConveyingFU")), "TurntableCoordinator");
-            ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
-            //ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
-        } else {
-            ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");
-            TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext());
-            ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext());
-        }
+
+		if (!exposeInternalControl) {
+			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
+			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
+			ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
+		                //context().actorOf(TurntableActor.props(intraEventBus, null), "TurntableFU"),
+		                //context().actorOf(ConveyorActor.props(intraEventBus, null), "ConveyingFU")), 
+						turningFU.getActor(),
+						conveyorFU.getActor()),	"TurntableCoordinator");
+			   ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
+			//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
+		} else {
+			ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");
+			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null);
+			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null);
+		}        
 
         setupTurntableCapabilities(opcuaBase, ttNode, fuPrefix);
         setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, ttWrapper);

@@ -47,6 +47,7 @@ import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.CancelTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
+import fiab.mes.transport.msg.TransportSystemStatusMessage;
 
 
 public class OrderPlanningActor extends AbstractActor{
@@ -77,6 +78,7 @@ public class OrderPlanningActor extends AbstractActor{
 	protected ActorSelection transportCoordinator;
 	protected ActorRef self;
 	protected PlannerState state = PlannerState.STOPPED;
+	protected TransportSystemStatusMessage.State tsysState = TransportSystemStatusMessage.State.STOPPED;
 	
 	static public Props props() {	    
 		return Props.create(OrderPlanningActor.class, () -> new OrderPlanningActor());
@@ -133,6 +135,10 @@ public class OrderPlanningActor extends AbstractActor{
 				})
 				.match(RegisterTransportRequestStatusResponse.class, resp -> {
 					handleResponseToTransportRequest(resp);
+				})
+				.match(TransportSystemStatusMessage.class, msg -> {
+					this.tsysState = msg.getState();
+					checkPlannerState();
 				})
 				.build();
 	}
@@ -373,6 +379,8 @@ public class OrderPlanningActor extends AbstractActor{
 				// we are ready to start a new process as this input is ready
 				ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
 					.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+				ordMapper.getProcessesInState(OrderEventType.REGISTERED).stream()
+				.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
 			}
 		});
 	}
@@ -570,32 +578,33 @@ public class OrderPlanningActor extends AbstractActor{
  		// now we can remove the machine
 		capMan.removeActor(mde.getMachine());
 		ordMapper.removeMachine(mde.getMachine());		
-		checkIOStations();
+		checkPlannerState();
 	}
 	
 	private void handleNewlyAvailableMachine(MachineConnectedEvent mce) {
 		capMan.setCapabilities(mce);
 		log.info("Storing Capabilities for machine: "+mce.getMachineId());
 		//check for input/output stations
-		checkIOStations();
+		checkPlannerState();
 		// now wait for machine available event to make use of it (currently we dont know its state)	
 	}
 	
 	protected AbstractCapability inputStationCap = IOStationCapability.getInputStationCapability();
 	protected AbstractCapability outputStationCap = IOStationCapability.getOutputStationCapability();
 	
-	private void checkIOStations() {
+	private void checkPlannerState() {
 		PlannerState currState = state;
 		PlannerState newState = PlannerState.STOPPED;
 		if (capMan.getMachinesProvidingCapability(inputStationCap).size() > 0 && 
-				capMan.getMachinesProvidingCapability(outputStationCap).size() > 0) {
+				capMan.getMachinesProvidingCapability(outputStationCap).size() > 0 &&
+				tsysState.equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
 			newState = PlannerState.FULLY_OPERATIONAL;
 		} else {
 			newState = PlannerState.DEGRADED_MODE;
 		}
 		if (newState != currState) {
 			state = newState;
-			publishLocalState(MachineEventType.UPDATED, state, "Input/Outputstation availability changed");
+			publishLocalState(MachineEventType.UPDATED, state, "Input/Outputstation/Transportsystem availability changed");
 		}
 	}
 	

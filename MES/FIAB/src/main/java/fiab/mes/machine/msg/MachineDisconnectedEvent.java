@@ -16,6 +16,10 @@ public class MachineDisconnectedEvent extends MachineEvent {
 		super(machine.getId(), MachineEventType.DISCONNECTED);
 	}
 	
+	public MachineDisconnectedEvent(String id) {
+		super(id, MachineEventType.DISCONNECTED);
+	}
+	
 	public AkkaActorBackedCoreModelAbstractActor getMachine() {
 		return machine;
 	}

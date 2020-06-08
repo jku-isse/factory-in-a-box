@@ -310,7 +310,7 @@ public class MachineOrderMappingManager {
 	}
 	
 	public Optional<MachineOrderMappingStatus> getMappingStatusOfMachine(AkkaActorBackedCoreModelAbstractActor machine) {
-		return Optional.of(moms.get(machine));		
+		return Optional.ofNullable(moms.get(machine));		
 	}
 	
 	public static class MachineOrderMappingStatusLifecycleException extends Exception {
