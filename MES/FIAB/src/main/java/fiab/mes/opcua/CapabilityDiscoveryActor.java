@@ -35,6 +35,7 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.opcua.CapabilityImplInfo;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.MetadataInsufficientException;
@@ -90,6 +91,12 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 				} )
 				.match(ActorKilledException.class, ex -> {
 					log.info("Received KillException from: "+ex.getMessage());
+				})
+				.match(MachineDisconnectedEvent.class, mde -> {
+					// can only happen when we spawned an actor, 
+					// we try again to restart
+					this.status = DISCOVERY_STATUS.CONNECTING;
+					connectToServer(this.req);
 				})
 				.build();
 	}

@@ -80,6 +80,12 @@ public class TransportModuleUsageTracker {
 				.collect(Collectors.toList());
 	}
 	
+	public List<AkkaActorBackedCoreModelAbstractActor> getKnownTransportModules() {
+		return moms.values().stream()				
+				.map(tmoms -> tmoms.getMachine())
+				.collect(Collectors.toList());
+	}
+	
 	public Optional<TransportModuleOrderMappingStatus.AllocationState> getUsageState(AkkaActorBackedCoreModelAbstractActor actor) {
 		return Optional.ofNullable(moms.get(actor)).map(tmoms -> tmoms.getAssignmentState());
 	}

@@ -2,6 +2,7 @@ package fiab.mes.transport.actor.transportmodule.wrapper;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
@@ -15,11 +16,13 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.pattern.Patterns;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
@@ -28,12 +31,16 @@ import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.CapabilityImplInfo;
 import fiab.turntable.actor.IntraMachineEventBus;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.FiniteDuration;
 
 
 public class LocalTransportModuleActorSpawner extends AbstractActor {
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     ActorRef machine;
+    ActorRef discovery;
 
     public static Props props() {
         return Props.create(LocalTransportModuleActorSpawner.class, () -> new LocalTransportModuleActorSpawner());
@@ -44,7 +51,16 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         return receiveBuilder()
                 .match(CapabilityCentricActorSpawnerInterface.SpawnRequest.class, req -> {
                     log.info(String.format("Received CapabilityImplementationInfos for Cap: %s on %s",req.getInfo().getCapabilityURI(), req.getInfo().getEndpointUrl()));
+                    discovery = getSender();
                     retrieveMethodAndVariableNodeIds(req); })
+                .match(MachineDisconnectedEvent.class, req -> {
+					machine.tell(req, getSelf());					
+					FiniteDuration duration = FiniteDuration.create(5, TimeUnit.SECONDS);
+					Future<Boolean> stopFuture = Patterns.gracefulStop(machine, duration);
+				    Boolean stopped = Await.result(stopFuture, duration);
+					discovery.tell(req, getSelf());					
+					getContext().stop(getSelf());
+				})
                 .build();
     }
 
@@ -73,7 +89,7 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         AbstractCapability capability = TransportModuleCapability.getTransportCapability();
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         Position selfPos = resolvePosition(info);
-        TransportModuleOPCUAWrapper hal = new TransportModuleOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.transportMethod);
+        TransportModuleOPCUAWrapper hal = new TransportModuleOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.transportMethod, getSelf());
         HardcodedDefaultTransportRoutingAndMapping env = new HardcodedDefaultTransportRoutingAndMapping();
         machine = this.context().actorOf(BasicTransportModuleActor.props(eventBusByRef, capability, model, hal, selfPos, intraEventBus, new TransportPositionLookup(), env), model.getActorName()+selfPos.getPos());
         log.info("Spawned Actor: "+machine.path());

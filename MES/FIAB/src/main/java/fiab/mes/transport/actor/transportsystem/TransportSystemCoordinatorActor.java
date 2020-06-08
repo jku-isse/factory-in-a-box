@@ -16,6 +16,7 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent.MachineEventType;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
@@ -24,6 +25,8 @@ import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
+import fiab.mes.planer.msg.PlanerStatusMessage;
+import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.actor.transportsystem.TransportModuleUsageTracker.TransportModuleOrderMappingStatus;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
@@ -33,14 +36,15 @@ import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse.ResponseType;
 import fiab.mes.transport.msg.TransportModuleRequest;
+import fiab.mes.transport.msg.TransportSystemStatusMessage;
 
 public class TransportSystemCoordinatorActor extends AbstractActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	public static final String WELLKNOWN_LOOKUP_NAME = "TransportSystemCoordinatorActor";
 	
-	static public Props props(TransportRoutingInterface routing, TransportPositionLookupInterface dns) {	    
-		return Props.create(TransportSystemCoordinatorActor.class, () -> new TransportSystemCoordinatorActor(routing, dns));
+	static public Props props(TransportRoutingInterface routing, TransportPositionLookupInterface dns, int expectedTTs) {	    
+		return Props.create(TransportSystemCoordinatorActor.class, () -> new TransportSystemCoordinatorActor(routing, dns, expectedTTs));
 	}
 		
 	// Externally provided:
@@ -56,19 +60,24 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	protected List<TransportModuleRequest> allocatedQueue = new ArrayList<>();
 	protected Map<String, RegisterTransportRequest> queuedRequests = new HashMap<>();
 	protected ActorRef self;
+	protected TransportSystemStatusMessage.State state = TransportSystemStatusMessage.State.STOPPED;
+	protected int expectedTTs = 1;
 	
-	public TransportSystemCoordinatorActor(TransportRoutingInterface routing, TransportPositionLookupInterface dns) {
+	public TransportSystemCoordinatorActor(TransportRoutingInterface routing, TransportPositionLookupInterface dns, int expectedTTs) {
 		this.routing = routing;
 		this.dns = dns;
 		this.self = getSelf();
 		this.externalHistory = new HistoryTracker(WELLKNOWN_LOOKUP_NAME);
 		getEventBusAndSubscribe();
+		this.state = TransportSystemStatusMessage.State.STARTING;
+		this.expectedTTs = expectedTTs;
+		publishLocalState(MachineEventType.UPDATED, this.state, "TransportSystem Started and waiting for transport modules");
 	}
 	
 	private void getEventBusAndSubscribe() {		
 		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
 		machineEventBus = this.context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		machineEventBus.tell(machineSub, getSelf());				
+		machineEventBus.tell(machineSub, getSelf());			
 	}
 	
 	
@@ -76,6 +85,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	public Receive createReceive() {
 		return receiveBuilder()
 				.match(RegisterTransportRequest.class, req -> {
+					log.info(String.format("Received Transport Request %s -> %s", req.getSource().getId(), req.getDestination().getId()));
 					handleNewIncomingRequest(req); // Message to register transport among machines (including input and output station)
 				})
 				// available transport systems
@@ -98,6 +108,10 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 		        })
 				// TODO: include transportModuleErrorEvent/Message
 				.build();
+	}
+	
+	private void publishLocalState(MachineEventType eventType, TransportSystemStatusMessage.State state, String message) {
+		machineEventBus.tell(new TransportSystemStatusMessage(WELLKNOWN_LOOKUP_NAME, eventType, state, message), this.self());
 	}
 	
 	//REFACTOR this when adding code to handle transport module error such as stopping unexpectedly
@@ -166,6 +180,17 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 		//capMan.setCapabilities(machineEvent);
 		dns.getPositionForActor(machineEvent.getMachine()); // implicit coupling to hardcoded dns impl that needs first a call with actor to allow later for resolving by position
 		tmut.trackIfTransportModule(machineEvent);
+		TransportSystemStatusMessage.State currState = state;
+		TransportSystemStatusMessage.State newState = TransportSystemStatusMessage.State.STOPPED;
+		if (tmut.getKnownTransportModules().size() >= expectedTTs) {
+			newState = TransportSystemStatusMessage.State.FULLY_OPERATIONAL;
+		} else {
+			newState = TransportSystemStatusMessage.State.DEGRADED_MODE;
+		}
+		if (newState != currState) {
+			state = newState;
+			publishLocalState(MachineEventType.UPDATED, state, "Transportmodule availability changed");
+		}
 		//log.info("Storing Capabilities: "+machineEvent.getMachineId());
 		// now wait for machine available event to make use of it (currently we dont know its state)
 	}
@@ -185,16 +210,22 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 				// for now we only support moving from machine to machine through 1 or 2 turntables
 				case 3: 					
 					Optional<AkkaActorBackedCoreModelAbstractActor> act1_3 = dns.getActorForPosition(route.get(1));					
-					tmrRoot = act1_3.map(actor -> { if (tmut.isTransportModule(actor)) { // must be a turntable
-						return new TransportModuleRequest(actor, route.get(0), route.get(2), rtr.getOrderId(), incrementalId.getAndIncrement()+""); 
+					if (act1_3.isPresent()) {
+						tmrRoot = act1_3.map(actor -> { if (tmut.isTransportModule(actor)) { // must be a turntable
+							return new TransportModuleRequest(actor, route.get(0), route.get(2), rtr.getOrderId(), incrementalId.getAndIncrement()+""); 
+						} else {
+							// this should not be possible, perhaps we don't know about that turntable yet, thus we cant contact it, thus an error
+							String msg = String.format("Unable to establish transport module for Position %s for request %s", route.get(1), rtr.getOrderId());
+							log.warning(msg);
+							this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.MISSING_TRANSPORT_MODULE ,msg), self);
+							return null;
+						}
+						});
 					} else {
-						// this should not be possible, perhaps we don't know about that turntable yet, thus we cant contact it, thus an error
 						String msg = String.format("Unable to establish transport module for Position %s for request %s", route.get(1), rtr.getOrderId());
 						log.warning(msg);
-						this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.MISSING_TRANSPORT_MODULE ,msg), self);
-						return null;
+						this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.MISSING_TRANSPORT_MODULE ,msg), self);						
 					}
-					});	
 					break;
 				case 4:	// same as for case 3 but another stop in between, 
 					Optional<AkkaActorBackedCoreModelAbstractActor> act1_4 = dns.getActorForPosition(route.get(1));

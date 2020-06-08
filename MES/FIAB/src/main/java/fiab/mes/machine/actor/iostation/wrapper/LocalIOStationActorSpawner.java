@@ -2,12 +2,18 @@ package fiab.mes.machine.actor.iostation.wrapper;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
+import org.eclipse.milo.opcua.sdk.client.api.ServiceFaultListener;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
+import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
+import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscriptionManager.SubscriptionListener;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
+import org.eclipse.milo.opcua.stack.core.types.structured.ServiceFault;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
@@ -17,12 +23,17 @@ import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.pattern.Patterns;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
+import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.opcua.CapabilityImplInfo;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.FiniteDuration;
 
 public class LocalIOStationActorSpawner extends AbstractActor {
 
@@ -30,6 +41,7 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 	public static String nsPrefix = "2:";
 	
 	ActorRef machine;
+	ActorRef discovery;
 	
 	public static Props props() {
 		return Props.create(LocalIOStationActorSpawner.class, () -> new LocalIOStationActorSpawner());
@@ -40,7 +52,16 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 		return receiveBuilder()
 				.match(CapabilityCentricActorSpawnerInterface.SpawnRequest.class, req -> { 			
 					log.info(String.format("Received CapabilityImplementationInfos for Cap: %s on %s",req.getInfo().getCapabilityURI(), req.getInfo().getEndpointUrl()));
-							retrieveMethodAndVariableNodeIds(req); })
+					discovery = getSender();
+					retrieveMethodAndVariableNodeIds(req); })
+                .match(MachineDisconnectedEvent.class, req -> {
+					machine.tell(req, getSelf());					
+					FiniteDuration duration = FiniteDuration.create(5, TimeUnit.SECONDS);
+					Future<Boolean> stopFuture = Patterns.gracefulStop(machine, duration);
+				    Boolean stopped = Await.result(stopFuture, duration);
+					discovery.tell(req, getSelf());					
+					getContext().stop(getSelf());
+				})
 				.build();
 	}
 
@@ -64,6 +85,8 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 			}
 			Actor model = generateActor(req.getInfo());
 			spawnNewIOStationActor(req.getInfo(), isInputStation, model, nodeIds.getStopMethod(), nodeIds.getResetMethod(), nodeIds.getStateVar());
+//			req.getInfo().getClient().
+			//});
 		} catch(Exception e) {
 			log.error("Error obtaining info from OPCUA for spawning actor with error: "+e.getMessage());
 		}
@@ -73,7 +96,7 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 		final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		AbstractCapability capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
 		InterMachineEventBus intraEventBus = new InterMachineEventBus();
-		IOStationOPCUAWrapper wrapper = new IOStationOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), stopMethod, resetMethod, stateVar);
+		IOStationOPCUAWrapper wrapper = new IOStationOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), stopMethod, resetMethod, stateVar, getSelf());
 		machine = this.context().actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName());
 		
 	}	
@@ -83,9 +106,9 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 		Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
 		actor.setDisplayName(actorNode.getDisplayName().get().getText());
 		actor.setActorName(actorNode.getBrowseName().get().getName());
-		String id = info.getActorNode().getIdentifier().toString();
-		actor.setID(id);
+		String id = info.getActorNode().getIdentifier().toString();		
 		String uri = info.getEndpointUrl().endsWith("/") ? info.getEndpointUrl()+id : info.getEndpointUrl()+"/"+id;
+		actor.setID(uri);
 		actor.setUri(uri);
 		return actor;
 	}

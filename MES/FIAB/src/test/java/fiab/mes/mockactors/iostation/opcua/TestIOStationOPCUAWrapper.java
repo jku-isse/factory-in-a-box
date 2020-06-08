@@ -58,7 +58,7 @@ class TestIOStationOPCUAWrapper {
 		capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
 		intraEventBus = new InterMachineEventBus();
 		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar);
+		wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar, null);
 		model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, 34);
 		
 

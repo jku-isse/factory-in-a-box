@@ -97,7 +97,7 @@ class TestTransportSystemCoordinatorActor {
 		new TestKit(system) { 
 			{ 				
 				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), "TransportCoordinator");				
+				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), "TransportCoordinator");				
 				//setupTwoTurntableWithIOShopfloor();
 				layout.setupSingleTT21withIOEast35West20();
 				int countConnEvents = 0;
@@ -139,7 +139,7 @@ class TestTransportSystemCoordinatorActor {
 		new TestKit(system) { 
 			{ 				
 				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns), "TransportCoordinator");				
+				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), "TransportCoordinator");				
 				//setupTwoTurntableWithIOShopfloor();
 				layout.setupDualTT2021withIOEast35West34();
 				int countConnEvents = 0;

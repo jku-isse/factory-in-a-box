@@ -1,13 +1,22 @@
 package fiab.mes.machine.actor.plotter.wrapper;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
+import org.eclipse.milo.opcua.sdk.client.SessionActivityListener;
+import org.eclipse.milo.opcua.sdk.client.api.ServiceFaultListener;
+import org.eclipse.milo.opcua.sdk.client.api.UaSession;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
+import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
+import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscriptionManager.SubscriptionListener;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
+import org.eclipse.milo.opcua.stack.core.types.structured.ServiceFault;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
@@ -18,6 +27,7 @@ import akka.actor.Kill;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.pattern.Patterns;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
@@ -25,17 +35,22 @@ import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
+import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.CapabilityImplInfo;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.FiniteDuration;
 
 public class LocalPlotterActorSpawner extends AbstractActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	
 	ActorRef machine;
+	ActorRef discovery;
 	
 	public static Props props() {
 		return Props.create(LocalPlotterActorSpawner.class, () -> new LocalPlotterActorSpawner());
@@ -46,7 +61,16 @@ public class LocalPlotterActorSpawner extends AbstractActor {
 		return receiveBuilder()
 				.match(CapabilityCentricActorSpawnerInterface.SpawnRequest.class, req -> { 			
 					log.info(String.format("Received CapabilityImplementationInfos for Cap: %s on %s",req.getInfo().getCapabilityURI(), req.getInfo().getEndpointUrl()));
-							retrieveMethodAndVariableNodeIds(req); })
+					discovery = getSender();
+					retrieveMethodAndVariableNodeIds(req); })
+				.match(MachineDisconnectedEvent.class, req -> {
+					machine.tell(req, getSelf());					
+					FiniteDuration duration = FiniteDuration.create(5, TimeUnit.SECONDS);
+					Future<Boolean> stopFuture = Patterns.gracefulStop(machine, duration);
+				    Boolean stopped = Await.result(stopFuture, duration);
+					discovery.tell(req, getSelf());					
+					getContext().stop(getSelf());
+				})
 				.build();
 	}
 
@@ -79,7 +103,7 @@ public class LocalPlotterActorSpawner extends AbstractActor {
 			IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 			Position selfPos = resolvePosition(info);
 			final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-			PlotterOPCUAWrapper hal = new PlotterOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.plotMethod);
+			PlotterOPCUAWrapper hal = new PlotterOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.plotMethod, getSelf());
 			machine = this.context().actorOf(BasicMachineActor.props(eventBusByRef, capability, model, hal, intraEventBus), model.getActorName()+selfPos.getPos());
 			log.info("Spawned Actor: "+machine.path());
 		} else {

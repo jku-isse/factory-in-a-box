@@ -7,8 +7,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
+import org.eclipse.milo.opcua.sdk.client.SessionActivityListener;
+import org.eclipse.milo.opcua.sdk.client.api.UaSession;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
+import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscriptionManager.SubscriptionListener;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
@@ -28,7 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
-import fiab.mes.eventbus.InterMachineEventBus;
+import akka.actor.ActorRef;
+import fiab.mes.machine.msg.MachineDisconnectedEvent;
 
 public abstract class AbstractOPCUAWrapper {
 
@@ -37,20 +41,43 @@ public abstract class AbstractOPCUAWrapper {
 	protected NodeId stopMethod;
 	protected NodeId resetMethod;
 	protected NodeId stateVar;
+	protected ActorRef spawner;
 
 	protected static final Logger logger = LoggerFactory.getLogger(AbstractOPCUAWrapper.class);
 	
 	public AbstractOPCUAWrapper(OpcUaClient client, NodeId capabilityImplNode,
-			NodeId stopMethod, NodeId resetMethod, NodeId stateVar) {
+			NodeId stopMethod, NodeId resetMethod, NodeId stateVar, ActorRef spawner) {
 		super();
 		this.client = client;
 		this.capabilityImplNode = capabilityImplNode;
 		this.stopMethod = stopMethod;
 		this.resetMethod = resetMethod;
 		this.stateVar = stateVar;
+		this.spawner = spawner;
+		setupConnectionMonitor();
 		logger.info("AbstractOPCUAWrapper initialized");
 	}
 
+	protected void setupConnectionMonitor() {
+		client.addSessionActivityListener(new SessionActivityListener(){
+			@Override
+			public void onSessionInactive(UaSession session) {
+				logger.warn("Session inactive detected - restarting MESactor");
+				spawner.tell(new MachineDisconnectedEvent("Wrapper"), ActorRef.noSender());
+				client.disconnect();
+			}				
+		});
+		
+		client.getSubscriptionManager().addSubscriptionListener(new SubscriptionListener() {
+			@Override
+			public void onSubscriptionTransferFailed(UaSubscription subscription, StatusCode statusCode) {
+				logger.warn("SubscriptiontranferFailed  - restarting MESactor");
+				spawner.tell(new MachineDisconnectedEvent("Wrapper"), ActorRef.noSender());
+				client.disconnect();
+			}				
+		});
+	}
+	
 	protected CompletableFuture<Boolean> callMethod(NodeId methodId) {
 	
 		CallMethodRequest request = new CallMethodRequest(
@@ -101,7 +128,7 @@ public abstract class AbstractOPCUAWrapper {
 
 	public void stop() {
 		callMethod(stopMethod);
-		logger.info("Called STOP Method on OPCUA Node: "+stopMethod.toParseableString());
+		logger.debug("Called STOP Method on OPCUA Node: "+stopMethod.toParseableString());
 	}
 
 
@@ -110,7 +137,7 @@ public abstract class AbstractOPCUAWrapper {
 			logger.warn("Called RESET Method on OPCUA Node: "+resetMethod.toParseableString(), ex);
 			return false;
 		}).thenAccept(v -> {
-			if (v) 	logger.info("Called RESET Method successfully on OPCUA Node: "+resetMethod.toParseableString());
+			if (v) 	logger.debug("Called RESET Method successfully on OPCUA Node: "+resetMethod.toParseableString());
 		});
 	
 	}
@@ -143,7 +170,7 @@ public abstract class AbstractOPCUAWrapper {
 						).get();
 		for (UaMonitoredItem item : items) {
 					if (item.getStatusCode().isGood()) {
-						logger.info("item created for nodeId={}", item.getReadValueId().getNodeId());
+						logger.debug("item created for nodeId={}", item.getReadValueId().getNodeId());
 					} else {
 						logger.warn(
 								"failed to create item for nodeId={} (status={})",

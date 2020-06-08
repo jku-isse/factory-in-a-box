@@ -24,6 +24,7 @@ import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests.Reset;
 import fiab.mes.machine.msg.GenericMachineRequests.Stop;
 import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
@@ -107,6 +108,14 @@ public class BasicTransportModuleActor extends AbstractActor{
 		        		log.warning(String.format("TransportModule %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
 		        	}
 		        })
+		        .match(MachineDisconnectedEvent.class, req -> {					
+		        	log.warning(String.format("Lost connection to machine in state: %s, sending disconnected event and shutting down actor", this.currentState));
+		        	if (!currentState.equals(BasicMachineStates.STOPPED)) {
+		        		setAndPublishSensedState(BasicMachineStates.STOPPED);
+		        	}
+					eventBusByRef.tell(new MachineDisconnectedEvent(machineId), self());
+					getContext().stop(getSelf());
+				})
 		        .build();
 	}
 
