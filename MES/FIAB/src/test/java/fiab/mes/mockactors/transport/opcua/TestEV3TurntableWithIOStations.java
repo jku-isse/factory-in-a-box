@@ -57,7 +57,7 @@ public class TestEV3TurntableWithIOStations {
     }
 
     @Test
-    void InputandTTandPlotter() {
+    void InputandTTandPlotter31() {
         Set<String> urlsToBrowse = new HashSet<String>();
         urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34
         urlsToBrowse.add("opc.tcp://192.168.0.31:4840");    // POS NORTH31
@@ -65,23 +65,23 @@ public class TestEV3TurntableWithIOStations {
 
         Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
         ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-        Assert.assertTrue(runTransport34to31TestWith(capURI2Spawning, urlsToBrowse));
+        Assert.assertTrue(runTransportTestWith(capURI2Spawning, urlsToBrowse, "34", "31"));
     }
 
     //Not working
     @Test
-    void InputandTTandOutput() {
+    void InputandTTandPlotter37() {
         Set<String> urlsToBrowse = new HashSet<String>();
         urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34
-        urlsToBrowse.add("opc.tcp://192.168.0.35:4840");    // POS EAST 35 (will be 37)
+        urlsToBrowse.add("opc.tcp://192.168.0.37:4840");    // POS EAST 35 (will be 37)
         urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");        // Pos20
 
         Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
         ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-        Assert.assertTrue(runTransport34to35TestWith(capURI2Spawning, urlsToBrowse));
+        Assert.assertTrue(runTransportTestWith(capURI2Spawning, urlsToBrowse, "34", "37"));
     }
 
-    private boolean runTransport34to31TestWith(Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse) {
+    private boolean runTransportTestWith(Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse, String from, String to) {
         new TestKit(system) {
             {
                 final ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -93,7 +93,7 @@ public class TestEV3TurntableWithIOStations {
                 });
 
                 HashMap<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
-
+                List<String> stoppedMachines = new ArrayList<>();
                 boolean didReactOnIdle = false;
                 boolean doRun = true;
                 while (machines.size() < urlsToBrowse.size() || doRun) {
@@ -101,17 +101,23 @@ public class TestEV3TurntableWithIOStations {
                     logEvent(te);
                     if (te instanceof MachineConnectedEvent) {
                         machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
-                        machines.get(((MachineConnectedEvent) te).getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Stop(((MachineConnectedEvent) te).getMachineId()), getRef());
+                        if (!stoppedMachines.contains(((MachineConnectedEvent) te).getMachineId())) {
+                            machines.get(((MachineConnectedEvent) te).getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Stop(((MachineConnectedEvent) te).getMachineId()), getRef());
+                            stoppedMachines.add(((MachineConnectedEvent) te).getMachineId());
+                        }
                     }
                     if (te instanceof MachineStatusUpdateEvent) {
                         MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
                         if (msue.getStatus().equals(BasicMachineStates.STOPPED)) {
+                            if (msue.getMachineId().contains("Turntable_FU")) {
+                                didReactOnIdle = false;
+                            }
                             machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
                         } else if (msue.getStatus().equals(BasicMachineStates.IDLE)
-                                && msue.getMachineId().contains("Turntable")
+                                && msue.getMachineId().contains("Turntable_FU")
                                 && !didReactOnIdle) {
                             logger.info("Sending TEST transport request to: " + msue.getMachineId());
-                            TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), new TransportRoutingInterface.Position("34"), new TransportRoutingInterface.Position("31"), "Order1", "TReq1");
+                            TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), new TransportRoutingInterface.Position(from), new TransportRoutingInterface.Position(to), "Order1", "TReq1");
                             machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
                             didReactOnIdle = true;
                         } else if (msue.getStatus().equals(BasicMachineStates.COMPLETE) || msue.getStatus().equals(BasicMachineStates.COMPLETING)) {
@@ -125,49 +131,6 @@ public class TestEV3TurntableWithIOStations {
         return true;
     }
 
-    private boolean runTransport34to35TestWith(Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse) {
-        new TestKit(system) {
-            {
-                final ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-                eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
-
-                urlsToBrowse.forEach(url -> {
-                    ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-                    discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
-                });
-
-                HashMap<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
-
-                boolean didReactOnIdle = false;
-                boolean doRun = true;
-                while (machines.size() < urlsToBrowse.size() || doRun) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class);
-                    logEvent(te);
-                    if (te instanceof MachineConnectedEvent) {
-                        machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
-                        //machines.get(((MachineConnectedEvent) te).getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Stop(((MachineConnectedEvent) te).getMachineId()), getRef());
-                    }
-                    if (te instanceof MachineStatusUpdateEvent) {
-                        MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-                        if (msue.getStatus().equals(BasicMachineStates.STOPPED)) {
-                            machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
-                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE)
-                                && msue.getMachineId().contains("Turntable")
-                                && !didReactOnIdle) {
-                            logger.info("Sending TEST transport request to: " + msue.getMachineId());
-                            TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), new TransportRoutingInterface.Position("34"), new TransportRoutingInterface.Position("35"), "Order1", "TReq1");
-                            machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
-                            didReactOnIdle = true;
-                        } else if (msue.getStatus().equals(BasicMachineStates.COMPLETE) || msue.getStatus().equals(BasicMachineStates.COMPLETING)) {
-                            logger.info("Completing test upon receiving COMPLETE/ING from: " + msue.getMachineId());
-                            doRun = false;
-                        }
-                    }
-                }
-            }
-        };
-        return true;
-    }
 
     private void logEvent(TimedEvent event) {
         logger.info(event.toString());

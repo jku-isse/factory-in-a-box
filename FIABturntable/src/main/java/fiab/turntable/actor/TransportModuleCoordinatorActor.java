@@ -104,7 +104,9 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 				.match(InternalTransportModuleRequest.class, req -> {
 					if (currentState.equals(BasicMachineStates.IDLE)) {
 						sender().tell(new MachineStatusUpdateEvent(self.path().name(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", BasicMachineStates.STARTING), self);
-		        		turnToSource(req);
+		        		log.info("Received TransportModuleRequest from: " + req.getCapabilityInstanceIdFrom() +
+								", to: "+req.getCapabilityInstanceIdTo());
+						turnToSource(req);
 					} else {
 		        		log.warning("Received TransportModuleRequest in incompatible state: "+currentState);
 						//respond with error message that we are not in the right state for request
@@ -268,6 +270,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 			turntableFU.tell(new TurnRequest(resolveCapabilityToOrientation(fromEP.get())), self);
 			exeSubState = InternalProcess.TURNING_SOURCE;
 		} else {
+			log.warning("A HandshakeEndpoint could not be identified! From: " + fromEP.isPresent() + ", To: " + toEP.isPresent());
 			if (!fromEP.isPresent())
 				log.warning("Unknown HandshakeEndpoint identified by CapabilityId "+req.getCapabilityInstanceIdFrom());
 			if (!toEP.isPresent())

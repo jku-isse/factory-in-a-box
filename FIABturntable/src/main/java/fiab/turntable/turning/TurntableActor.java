@@ -21,7 +21,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     private static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");
     private final int timeForNinetyDeg = 1325;
 
-    private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     private TurningHardware turningHardware;   
     protected TurnTableOrientation orientation;
@@ -50,7 +50,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
         motorStop();
         context().system()
                 .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
+                .scheduleOnce(Duration.ofMillis(500),
                         () -> {
                             tsm.fire(NEXT);
                             publishNewState();
@@ -74,7 +74,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
             tsm.fire(NEXT);
             publishNewState();
         } else {
-            context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
+            context().system().scheduler().scheduleOnce(Duration.ofMillis(50),
                     this::checkHomingPositionReached
                     , context().system().dispatcher());
         }
@@ -158,7 +158,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     		if (this.orientation == orientation) {
     			completing();
     		} else {
-    			context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
+    			context().system().scheduler().scheduleOnce(Duration.ofMillis(50),
     					() -> checkTurningPositionReached(orientation)
     					, context().system().dispatcher());
     		}
