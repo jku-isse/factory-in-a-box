@@ -110,7 +110,7 @@ public class OrderEmittingTestServerWithOPCUA {
 	}
 	
 	
-	@Test // TODO: Startup works - process handling not, somehow
+	@Test //works
 	void testFrontendResponsesByEmittingOrdersSequentialProcess() throws Exception {
 			new TestKit(system) { 
 				{ 
