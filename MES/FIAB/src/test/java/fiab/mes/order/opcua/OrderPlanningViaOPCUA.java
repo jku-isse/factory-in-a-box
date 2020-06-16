@@ -94,8 +94,9 @@ class OrderPlanningViaOPCUA {
 			{ 			
 				Set<String> urlsToBrowse = new HashSet<String>();
 				urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
-				urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 north plotter
-				//urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos37 south plotter // alternative plotter
+				//urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 north plotter
+
+				urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos37 south plotter // alternative plotter
 				urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
 				urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT			
 
@@ -161,8 +162,9 @@ class OrderPlanningViaOPCUA {
 				Set<String> urlsToBrowse = new HashSet<String>();
 				urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
 				urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 north plotter
-				urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos37 south plotter
-				urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
+				//urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos37 south plotter
+				//urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
+				urlsToBrowse.add("opc.tcp://192.168.0.21:4840");	// POS EAST 35/ outputstation
 				urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT			
 
 		        Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();

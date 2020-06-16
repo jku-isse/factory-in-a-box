@@ -104,7 +104,7 @@ public class BasicMachineActor extends AbstractActor{
 		        			|| currentState.equals(BasicMachineStates.STOPPED) ) {
 		        		log.info(String.format("Machine %s received ResetRequest in suitable state", machineId.getId()));
 		        		setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
-		        		hal.reset();
+		        		reset();
 		        	} else {
 		        		log.warning(String.format("Machine %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
 		        	}
@@ -162,9 +162,8 @@ public class BasicMachineActor extends AbstractActor{
 			BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
 			setAndPublishSensedState(newState);
 			switch(newState) {
-			case COMPLETE:
-				reservedForOrder = null;
-				hal.reset(); //auto reset to become available for next round
+			case COMPLETE:				
+				localReset(); 
 				break;
 			case COMPLETING:
 				break;
@@ -174,6 +173,7 @@ public class BasicMachineActor extends AbstractActor{
 				checkIfAvailableForNextOrder();
 				break;
 			case RESETTING:
+				localReset(); 
 				break;
 			case STARTING:
 				break;
@@ -186,6 +186,15 @@ public class BasicMachineActor extends AbstractActor{
 			}
 		}
 			
+	}
+	
+	private void localReset() {
+		reservedForOrder = null;
+	}
+	
+	private void reset() {
+		localReset();
+		hal.reset();
 	}
 	
 	private void setAndPublishSensedState(BasicMachineStates newState) {
@@ -275,7 +284,7 @@ public class BasicMachineActor extends AbstractActor{
 		externalHistory.add(mue);
 		tellEventBusWithoutAddingToHistory(mue);
 		lastMUE=mue;
-		resendLastEvent();
+	//	resendLastEvent();
 	}
 	
 	private void tellEventBusWithoutAddingToHistory(MachineUpdateEvent mue) {
@@ -306,7 +315,7 @@ public class BasicMachineActor extends AbstractActor{
             	if (currentState.equals(BasicMachineStates.COMPLETE) 
             			|| currentState.equals(BasicMachineStates.STOPPED) ) {	        		
             		setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)            		
-            		hal.reset();
+            		reset();
             	} else if (currentState.equals(BasicMachineStates.COMPLETING) 
             			|| currentState.equals(BasicMachineStates.STOPPING) ) {
             		// we only recheck later of we are still in states leading to complete or stopped
