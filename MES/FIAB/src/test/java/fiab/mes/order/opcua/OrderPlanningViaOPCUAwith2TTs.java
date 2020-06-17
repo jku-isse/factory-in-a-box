@@ -47,7 +47,7 @@ import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata;
 
-class OrderPlanningViaOPCUA {
+class OrderPlanningViaOPCUAwith2TTs {
 
 	protected static ActorSystem system;
 	public static String ROOT_SYSTEM = "routes";	
@@ -56,7 +56,7 @@ class OrderPlanningViaOPCUA {
 	protected static ActorRef coordActor;
 	protected static ActorRef machineEventBus;
 	
-	private static final Logger logger = LoggerFactory.getLogger(OrderPlanningViaOPCUA.class);
+	private static final Logger logger = LoggerFactory.getLogger(OrderPlanningViaOPCUAwith2TTs.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 	
 	@BeforeAll
@@ -71,7 +71,7 @@ class OrderPlanningViaOPCUA {
 		TransportPositionLookup dns = new TransportPositionLookup();		
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 2), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
 				
 	}
@@ -88,78 +88,12 @@ class OrderPlanningViaOPCUA {
 	}
 	
 	
-	@Test // FIXME: plotter transitions directly into complete instead of waiting in completing for pallet removal
-	void testInitOrderPlannerWithSingleStepProcessAndTransport() throws Exception {
-		new TestKit(system) { 
-			{ 			
-				Set<String> urlsToBrowse = new HashSet<String>();
-				urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
-				//urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 north plotter
-
-				urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos37 south plotter // alternative plotter
-				urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
-				urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT			
-
-		        Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-		        ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-				//final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
-		        machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				
-				urlsToBrowse.stream().forEach(url -> {
-					ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-					discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
-				});								
-		        
-				String oid = "Order1";
-				int countConnEvents = 0;
-				boolean isPlannerFunctional = false;
-				boolean isTransportFunctional = false;
-				while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class); 
-					logEvent(te);
-					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
-						 isPlannerFunctional = true;
-					}
-					if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
-						 isTransportFunctional = true;
-					}
-					if (te instanceof MachineConnectedEvent) {
-						countConnEvents++; 
-						knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
-					}
-					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
-							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
-									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
-							);	
-					}
-				} 
-				subscribeAndRegisterSinglePrintBlackOrder(oid, getRef());
-				
-				boolean orderDone = false;
-				while (!orderDone) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class); 
-					logEvent(te);
-					if (te instanceof OrderEvent && ((OrderEvent) te).getEventType().equals(OrderEvent.OrderEventType.REMOVED)) {
-						orderDone = true;
-					}
-					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
-							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
-									actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
-							);
-					}
-					
-				} 
-			}	
-		};
-	}
 	
 	@Test // FIXME: plotter transitions directly into complete instead of waiting in completing for pallet removal
 	void testInitOrderPlannerWithTwoParallelSingleStepProcessAndTransport() throws Exception {
 		new TestKit(system) { 
 			{ 			
-				Set<String> urlsToBrowse = getSingleTTLayout();
+				Set<String> urlsToBrowse = get3134352021Layout();
 
 		        Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 		        ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
@@ -240,17 +174,17 @@ class OrderPlanningViaOPCUA {
 		orderPlanningActor.tell(req, testProbe);
 	}
 	
-	public Set<String> getSingleTTLayout() {
+	
+	public Set<String> get3134352021Layout() {
 		Set<String> urlsToBrowse = new HashSet<String>();
 		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
-		urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 north plotter
-		//urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos37 south plotter
-		//urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
-		urlsToBrowse.add("opc.tcp://192.168.0.21:4840");	// POS EAST 35/ outputstation
+		urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 TT1 north plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.32:4840"); //Pos32 TT2 north plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
+		urlsToBrowse.add("opc.tcp://192.168.0.21:4842/milo");	// POS EAST 35/ outputstation
 		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT	
 		return urlsToBrowse;
 	}
-	
 	
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());
@@ -258,3 +192,4 @@ class OrderPlanningViaOPCUA {
 
 
 }
+

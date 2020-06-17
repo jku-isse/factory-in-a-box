@@ -164,6 +164,7 @@ public class BasicMachineActor extends AbstractActor{
 			switch(newState) {
 			case COMPLETE:				
 				localReset(); 
+				doAutoResetAfterXseconds();
 				break;
 			case COMPLETING:
 				break;
@@ -184,8 +185,7 @@ public class BasicMachineActor extends AbstractActor{
 			default:
 				break;
 			}
-		}
-			
+		}							
 	}
 	
 	private void localReset() {
@@ -320,6 +320,7 @@ public class BasicMachineActor extends AbstractActor{
             			|| currentState.equals(BasicMachineStates.STOPPING) ) {
             		// we only recheck later of we are still in states leading to complete or stopped
             		doAutoResetAfterXseconds() ;          		
+            	} else { // noop             		
             	}
             }
           }, context().system().dispatcher());

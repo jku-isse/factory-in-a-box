@@ -206,6 +206,7 @@ public class OrderPlanningActor extends AbstractActor{
 				Optional<AkkaActorBackedCoreModelAbstractActor> outputStation = tryReserveOutputStation(rootOrderId);
 				if (!outputStation.isPresent()) {
 				// if not possible we wont do anything with this order at the moment and wait for outputstation to become available
+					log.info(String.format("No Output station available yet for removing order %s ",rootOrderId));
 					return;
 				} else {// else, we have now  the reservation of the outputstation for this order and we continue with transport
 					requestTransport(outputStation.get(), rootOrderId);
@@ -619,7 +620,7 @@ public class OrderPlanningActor extends AbstractActor{
 		Optional<AkkaActorBackedCoreModelAbstractActor> currentLoc = ordMapper.getCurrentMachineOfOrder(orderId);
 		if (!currentLoc.isPresent()) {
 			String msg = "Unable to located current machine of order: "+orderId;
-			log.warning(msg);
+			log.error(msg);
 			// now this is really an error as we ensure when requesting a machine that we do this only when first reserving and allocating an inputstation
 			ordMapper.markOrderPrematureRemovalFromShopfloor(orderId, msg);
 			// free up destination
@@ -656,6 +657,7 @@ public class OrderPlanningActor extends AbstractActor{
 				.filter(machine -> machine.equals(machine2))
 				.findAny()
 				.ifPresent(oStation -> { // an output station
+					ordMapper.freeUpMachine(machine2, false);
 					ordMapper.markOrderRemovedFromShopfloor(orderId, "Order left the shopfloor via Outputmachine: "+oStation.getId());
 				});
 			// freeup allocation of source machine

@@ -346,7 +346,6 @@ public class MachineOrderMappingManager {
 			if (!isDifferentState(lastMachineState)) return;
 			if (lastMachineState instanceof MachineStatusUpdateEvent) {
 				if (((MachineStatusUpdateEvent) lastMachineState).getStatus().equals(BasicMachineStates.IDLE)) {
-
 					this.allocationState = AssignmentState.NONE;
 					this.orderId = null;	
 				}

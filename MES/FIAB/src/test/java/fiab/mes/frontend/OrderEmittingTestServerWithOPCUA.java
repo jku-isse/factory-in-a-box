@@ -119,14 +119,7 @@ public class OrderEmittingTestServerWithOPCUA {
 					orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 			
-					Set<String> urlsToBrowse = new HashSet<String>();
-					urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station
-					urlsToBrowse.add("opc.tcp://localhost:4841/milo");	// POS EAST of TT2, Pos 35 output station				
-					urlsToBrowse.add("opc.tcp://localhost:4842/milo");		// TT1 Pos20
-					urlsToBrowse.add("opc.tcp://localhost:4843/milo");		// TT2 Pos21
-					// virtual plotters
-					urlsToBrowse.add("opc.tcp://localhost:4845/milo");	// POS NORTH of TT1 31		
-					urlsToBrowse.add("opc.tcp://localhost:4846/milo");	// POS NORTH of TT2 32	
+					Set<String> urlsToBrowse = getFullLayout();
 					Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 					ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
 										
@@ -160,7 +153,7 @@ public class OrderEmittingTestServerWithOPCUA {
 						}
 					} 
 			
-				    CountDownLatch count = new CountDownLatch(3);
+				    CountDownLatch count = new CountDownLatch(4);
 				    while(count.getCount() > 0) {
 				    	String oid = "P"+String.valueOf(count.getCount()+"-");
 				    	OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleBlackStepProcess(oid));				
@@ -179,6 +172,41 @@ public class OrderEmittingTestServerWithOPCUA {
 	}
 	
 	
+	public Set<String> get3134352021Layout() {
+		Set<String> urlsToBrowse = new HashSet<String>();
+		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
+		urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 TT1 north plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.32:4840"); //Pos32 TT2 north plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
+		urlsToBrowse.add("opc.tcp://192.168.0.21:4842/milo");	// POS EAST 35/ outputstation
+		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT	
+		return urlsToBrowse;
+	}
+	
+	public Set<String> getFullLayout() {
+		Set<String> urlsToBrowse = new HashSet<String>();
+		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
+		urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 TT1 north plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.32:4840"); //Pos32 TT2 north plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos31 TT1 south plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.38:4840"); //Pos32 TT2 south plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
+		urlsToBrowse.add("opc.tcp://192.168.0.21:4842/milo");	// POS 21 TT2
+		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT1	
+		return urlsToBrowse;
+	}
+	
+	public Set<String> getLocalhostLayout() {
+		Set<String> urlsToBrowse = new HashSet<String>();
+		urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station
+		urlsToBrowse.add("opc.tcp://localhost:4841/milo");	// POS EAST of TT2, Pos 35 output station				
+		urlsToBrowse.add("opc.tcp://localhost:4842/milo");		// TT1 Pos20
+		urlsToBrowse.add("opc.tcp://localhost:4843/milo");		// TT2 Pos21
+		// virtual plotters
+		urlsToBrowse.add("opc.tcp://localhost:4845/milo");	// POS NORTH of TT1 31		
+		urlsToBrowse.add("opc.tcp://localhost:4846/milo");	// POS NORTH of TT2 32	
+		return urlsToBrowse;
+	}
 	
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());
