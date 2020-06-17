@@ -21,9 +21,11 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 	// Input Outputstation left and right: 34,35
 	// Plotters top middle, bottom middle, 31,32,37,38 in use, 30,33,36,39 currently not in use
 	// IP Addresses encode locations and remain fixed (USB lan adapter stay with their locations)
-	// 30 | 31 | 32 | 33
-	// 34 | 20 | 21 | 35
-	// 36 | 37 | 38 | 39
+	// IP 23 is used for an iostation at pos 21!
+	// IP 22 is used for an iostation at pos 20!
+	// 30 | 31   | 32   | 33
+	// 34 | 20/2 | 21/3 | 35
+	// 36 | 37   | 38   | 39
 	
 	// routing table: - boy, are we implementing the IP stack here?
 	private Map<Position, Position> edgeNodeMapping = new HashMap<>();
@@ -37,6 +39,8 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 	private Position pos38 = new Position("38");
 	private Position pos20 = new Position("20");
 	private Position pos21 = new Position("21");
+	private Position pos22 = new Position("22");
+	private Position pos23 = new Position("23");
 	
 	public HardcodedDefaultTransportRoutingAndMapping() {
 		setupHardcodedLayout();
@@ -53,9 +57,16 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 		edgeNodeMapping.put(pos35, pos21);
 		edgeNodeMapping.put(pos38, pos21);
 		edgeNodeMapping.put(pos20, pos21);
-		// router ports
-		routerConnections.put(pos20, new HashSet<Position>(Arrays.asList(pos31,pos34,pos37,pos21)));
-		routerConnections.put(pos21, new HashSet<Position>(Arrays.asList(pos32,pos35,pos38,pos20)));
+		// alternative pos at 21 and 22 for ip 22 and 23
+		edgeNodeMapping.put(pos22, pos21); // TT2 to 22
+		edgeNodeMapping.put(pos21, pos22);
+		edgeNodeMapping.put(pos22, pos23); // 22 to 23
+		edgeNodeMapping.put(pos23, pos22);
+		edgeNodeMapping.put(pos23, pos20); //TT1 to 23
+		edgeNodeMapping.put(pos20, pos23);
+		// router ports, note that 22 and 23 are not router position but rather just placeholders for single TT usecases
+		routerConnections.put(pos20, new HashSet<Position>(Arrays.asList(pos31,pos34,pos37,pos21,pos23)));
+		routerConnections.put(pos21, new HashSet<Position>(Arrays.asList(pos32,pos35,pos38,pos20,pos22)));
 	}
 	
 	// for now we use machine ids
@@ -118,26 +129,28 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 		
 	private void setupHardcodedCapabilityToPositionMapping() {
 		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, pos21);
+		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, pos23); //when no second TT available
 		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, pos34);
 		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, pos37);
 		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, pos31);
 		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF, pos20);
 		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, pos35);
 		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, pos20);
+		//tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_SERVER, pos22); // when no second TT available; ACTUALLY WESTSERVER should also be pos20
 		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, pos38);
 		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, pos32);
 		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF, pos21);
 		
 		pos20cap.put(pos21, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
+		pos20cap.put(pos23, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT); // when no second TT available
 		pos20cap.put(pos34, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
 		pos20cap.put(pos37, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT);
 		pos20cap.put(pos31, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT);
 		pos20cap.put(pos20, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF);
-		// for testing of single turntable module:
-		pos20cap.put(pos35, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
 		
 		pos21cap.put(pos35, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT);
 		pos21cap.put(pos20, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT);
+		pos21cap.put(pos22, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT); //when using a server at TT1 pos, instead of TT1
 		pos21cap.put(pos38, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT);
 		pos21cap.put(pos32, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT);
 		pos21cap.put(pos21, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF);		

@@ -68,25 +68,7 @@ public class OrderEmittingTestServerWithOPCUA {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
-//		final Http http = Http.get(system);
-//		
-//		HttpsConnectionContext https = HttpsConfigurator.useHttps(system);
-//	    http.setDefaultServerHttpContext(https);
-//		
-//	    final ActorMaterializer materializer = ActorMaterializer.create(system);
-//	    DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system);
-//	    orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-//	    machineEventBus = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-//	    orderPlanningActor = system.actorSelection("/user/"+OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
-//	    orderEntryActor = system.actorOf(OrderEntryActor.props());
-//	    machineEntryActor = system.actorOf(MachineEntryActor.props());
-//	    ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
-//	
-//	    final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
-//	    binding = http.bindAndHandle(routeFlow, ConnectHttp.toHost("localhost", 8080), materializer);
-//	
-//	    System.out.println("Server online at https://localhost:8080/");
-		
+
 		binding = ShopfloorStartup.startup(null, 2, system);		
 		orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
 		machineEventBus = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -120,6 +102,7 @@ public class OrderEmittingTestServerWithOPCUA {
 					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 			
 					Set<String> urlsToBrowse = getFullLayout();
+					//Set<String> urlsToBrowse = getSingleTTLayout(); //set layout to 1 expectedTT in preTEst method
 					Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 					ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
 										
@@ -171,6 +154,15 @@ public class OrderEmittingTestServerWithOPCUA {
 
 	}
 	
+	public Set<String> getSingleTTLayout() {
+		Set<String> urlsToBrowse = new HashSet<String>();
+		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
+		urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 TT1 north plotter	
+		urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos31 TT1 south plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.23:4840");	// POS EAST CLIENT TT1 outputstation instead of second TT						
+		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT	
+		return urlsToBrowse;
+	}
 	
 	public Set<String> get3134352021Layout() {
 		Set<String> urlsToBrowse = new HashSet<String>();

@@ -278,7 +278,7 @@ public class MachineOrderMappingManager {
 	}
 	
 	private void updateMachineMappingStatus(AkkaActorBackedCoreModelAbstractActor machine, AssignmentState type) {
-		Optional.of(moms.get(machine)).ifPresent(mom -> { 
+		Optional.ofNullable(moms.get(machine)).ifPresent(mom -> { 
 			logger.debug(String.format("Updateing OrderMapping for order %s from %s to %s", mom.getOrderId(), mom.getAssignmentState(), type));			
 			mom.setAllocationState(type);
 		});
