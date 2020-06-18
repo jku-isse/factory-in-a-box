@@ -72,7 +72,7 @@ public class TestEV3FirstShopfloorHalf {
         Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
         ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
         Assert.assertTrue(runTransportPlotTestWith(capURI2Spawning, urlsToBrowse/*, "34", "31"*/));
-        Assert.assertTrue(runTransportTestWith(capURI2Spawning, urlsToBrowse, "31", "37"));
+        //Assert.assertTrue(runTransportTestWith(capURI2Spawning, urlsToBrowse, "31", "37"));
     }
 
     private boolean runTransportTestWith(Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse, String from, String to) {
@@ -161,10 +161,10 @@ public class TestEV3FirstShopfloorHalf {
                                 && msue.getMachineId().equals("Turntable1/Turntable_FU")
                                 && !didReactOnIdle) {
                             logger.info("Sending TEST transport request to: " + msue.getMachineId());
-                            TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), new TransportRoutingInterface.Position("34"), new TransportRoutingInterface.Position("31"), "Order1", "TReq1");
+                            TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), new TransportRoutingInterface.Position("34"), new TransportRoutingInterface.Position("37"), "Order1", "TReq1");
                             machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
                         } else if (msue.getStatus().equals(BasicMachineStates.IDLE)
-                                && msue.getMachineId().contains("328")
+                                && msue.getMachineId().contains("326")
                                 && !sentPlotRequest) {
                             sendPlotRegister(machines.get(msue.getMachineId()).getAkkaActor(), getRef());
                             sentPlotRequest = true;
@@ -172,17 +172,21 @@ public class TestEV3FirstShopfloorHalf {
                             didReactOnIdle = true;
                         } else if (msue.getStatus().equals(BasicMachineStates.COMPLETE) || msue.getStatus().equals(BasicMachineStates.COMPLETING)) {
                             logger.info("Received COMPLETE/ING from: " + msue.getMachineId());
+                        }else if (msue.getStatus().equals(BasicMachineStates.STOPPED)
+                                && msue.getMachineId().equals("Turntable1/Turntable_FU")) {
+                            didReactOnIdle = false;
                         }
-                        if (plotterReady && msue.getStatus().equals(BasicMachineStates.STARTING) && msue.getMachineId().contains("328")) {
+                        if (plotterReady && msue.getStatus().equals(BasicMachineStates.COMPLETE) && msue.getMachineId().contains("326")) {
                             //sendTransportRequestWest34ToNorth31(machines.get("192.168.0.20:4842/Turntable1/Turntable_FU"), getRef());
                             doRun = false;
                         }
+
                     }
                     if (te instanceof ReadyForProcessEvent) {
                         assert (((ReadyForProcessEvent) te).isReady());
                         plotterReady = true;
                         logger.info("Sending Plot request");
-                        sendPlotRequest(machines.get("opc.tcp://192.168.0.31:4840/328").getAkkaActor(), getRef());
+                        sendPlotRequest(machines.get("opc.tcp://192.168.0.37:4840/326").getAkkaActor(), getRef());
                     }
                 }
             }
