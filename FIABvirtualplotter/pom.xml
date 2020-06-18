@@ -41,13 +41,13 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABhandshake</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
+            <version>1.0.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABopcuabase</artifactId>
-            <version>1.0.1-SNAPSHOT</version>
+            <version>1.0.2-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
@@ -77,7 +77,7 @@
                             <artifactId>FIABopcuabase</artifactId>
                             <version>1.0.1-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABopcuabase-1.0.1-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/original-FIABopcuabase-1.0.2-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
@@ -107,13 +107,13 @@
                             <artifactId>FIABhandshake</artifactId>
                             <version>1.0.2-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABhandshake-1.0.2-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.0</version>
@@ -149,7 +149,7 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin-->
         </plugins>
     </build>
 </project>

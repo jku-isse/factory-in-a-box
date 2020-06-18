@@ -16,6 +16,7 @@ public class MediumMotorEV3 extends Motor {
     public MediumMotorEV3(Port motorPort) {
         super();
         this.mediumRegulatedMotor = new EV3MediumRegulatedMotor(motorPort);
+        mediumRegulatedMotor.resetTachoCount();
     }
 
     /**
@@ -36,6 +37,18 @@ public class MediumMotorEV3 extends Motor {
         super.backward();
         mediumRegulatedMotor.brake();
         mediumRegulatedMotor.backward();
+    }
+
+    @Override
+    public void rotate(int angle){
+        super.rotate(angle);
+        mediumRegulatedMotor.rotate(angle);
+    }
+
+    @Override
+    public void rotateTo(int angle){
+        super.rotateTo(angle);
+        mediumRegulatedMotor.rotateTo(angle, true);
     }
 
     /**
@@ -63,4 +76,8 @@ public class MediumMotorEV3 extends Motor {
         Delay.msDelay(msDelay);
     }
 
+    @Override
+    public void resetTachoCount() {
+        mediumRegulatedMotor.resetTachoCount();
+    }
 }

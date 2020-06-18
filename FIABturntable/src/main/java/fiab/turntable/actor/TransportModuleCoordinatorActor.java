@@ -296,6 +296,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor{
 	private void startSourceHandshake() {		
 		Optional<LocalEndpointStatus> fromEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdFrom()); 
 		Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdTo());
+		log.info("Trying to start handshake");
 		if (fromEP.isPresent() && toEP.isPresent()) {
 			fromEP.ifPresent(leps -> {
 				exeSubState = InternalProcess.HANDSHAKE_SOURCE;

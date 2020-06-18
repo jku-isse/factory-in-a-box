@@ -19,6 +19,7 @@ public class MockMotor extends Motor {
     protected ScheduledExecutorService executorService;
     private ScheduledFuture forwardTask;
     private ScheduledFuture backwardTask;
+    private ScheduledFuture rotateTask;
 
     public MockMotor(int speed) {
         super();
@@ -42,6 +43,16 @@ public class MockMotor extends Motor {
                 0, 1000, TimeUnit.MILLISECONDS);
     }
 
+    //TODO fix for windows systems
+    @Override
+    public void rotate(int angle) {
+        rotateTask = executorService.scheduleAtFixedRate(
+                () -> {
+                    System.out.println("===| Rotating: " + motorSpeed);
+                },
+                0, 1000, TimeUnit.MILLISECONDS);
+    }
+
     @Override
     public void stop() {
         super.stop();
@@ -51,6 +62,9 @@ public class MockMotor extends Motor {
         }
         if (backwardTask != null) {
             backwardTask.cancel(true);
+        }
+        if (rotateTask != null) {
+            rotateTask.cancel(true);
         }
     }
 
@@ -75,5 +89,10 @@ public class MockMotor extends Motor {
         } while (period > 0);
         if (interrupted)
             Thread.currentThread().interrupt();
+    }
+
+    @Override
+    public void resetTachoCount() {
+        System.out.println("Tacho Count Reset");
     }
 }
