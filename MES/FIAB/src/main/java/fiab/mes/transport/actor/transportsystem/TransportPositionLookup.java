@@ -73,6 +73,8 @@ public class TransportPositionLookup implements TransportPositionLookupInterface
 			if (port == 4846) return new Position("32");
 			if (port == 4847) return new Position("37");
 			if (port == 4848) return new Position("38");			
+			if (port == 4849) return new Position("22"); // alternative placements instead TTs
+			if (port == 4850) return new Position("23");
 			return TransportRoutingInterface.UNKNOWN_POSITION;
 		} catch (URISyntaxException e) {
 			logger.warn(String.format("Unable to load URI for actor %s", uriAsString));
