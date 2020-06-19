@@ -23,9 +23,9 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     private final int ratio = 3;
     private final int rightAngleDeg = 90;
     private final int NORTH_ANGLE = rightAngleDeg * TurnTableOrientation.NORTH.getNumericValue() * ratio;
-    private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio + 20;
-    private final int SOUTH_ANGLE = rightAngleDeg * TurnTableOrientation.SOUTH.getNumericValue() * ratio -20;
-    private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 30; //correction
+    private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio;
+    private final int SOUTH_ANGLE = rightAngleDeg * TurnTableOrientation.SOUTH.getNumericValue() * ratio - 20;
+    private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 35; //correction
 
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
@@ -99,9 +99,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     protected void completing() {
         tsm.fire(NEXT);
         publishNewState();       //we are now in COMPLETING
-        context().system().scheduler().scheduleOnce(Duration.ofMillis(3000),
-                () -> complete()
-                , context().system().dispatcher());
+        complete();
     }
 
     protected void complete() {
@@ -194,11 +192,8 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     private void checkTurningPositionReached(TurnTableOrientation orientation) {
         if (this.tsm.isInState(TurningStates.EXECUTING) && this.orientation == orientation
                 && isRotationFinished(orientation)) {
-            context().system().scheduler().scheduleOnce(Duration.ofMillis(1000),
-                    () -> {
                         log.info("Turning Position reached");
                         completing();
-                    }, context().system().dispatcher());
         } else {
             context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
                     () -> checkTurningPositionReached(orientation)

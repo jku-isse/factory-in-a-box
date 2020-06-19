@@ -171,6 +171,11 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                 .match(TurntableStatusUpdateEvent.class, state -> {
                     ttFUState = state.getStatus();
                     switch (state.getStatus()) {
+                        case IDLE:
+                            if (exeSubState.equals(InternalProcess.TURNING_DEST)) {
+                                sendTurntableFuTurnToRequest();
+                            }
+                            break;
                         case COMPLETING: //fallthrough,
                         case COMPLETE:
                             // signal that handshake can start (if we haven't already done this when COMPLETING was received
@@ -333,7 +338,8 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
         turntableFU.tell(TurningTriggers.RESET, self); //set the turntable to home position again to counter drifting
         log.info("Starting to Turn to Destination");
         Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdTo());
-        toEP.ifPresent(ep -> {
+        toEP.ifPresent(ep -> setExeSubState(InternalProcess.TURNING_DEST));
+        /*toEP.ifPresent(ep -> {
             context().system()
                     .scheduler()
                     .scheduleOnce(Duration.ofMillis(5000), //waiting to turntable having reached home position, very ugly this way
@@ -344,7 +350,16 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                                     setExeSubState(InternalProcess.TURNING_DEST);
                                 }
                             }, context().system().dispatcher());
-        });
+        });*/
+    }
+
+    private void sendTurntableFuTurnToRequest() {
+        context().system()
+                .scheduler()
+                .scheduleOnce(Duration.ofMillis(5000), () -> {
+                    Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdTo());
+                    toEP.ifPresent(ep -> turntableFU.tell(new TurnRequest(resolveCapabilityToOrientation(ep)), self));
+                }, context().system().dispatcher());
     }
 
     private void continueWithDestHandshake() {
@@ -379,7 +394,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
         setAndPublishState(BasicMachineStates.COMPLETING);
         context().system()
                 .scheduler()
-                .scheduleOnce(Duration.ofMillis(500),
+                .scheduleOnce(Duration.ofMillis(5000),
                         new Runnable() {
                             @Override
                             public void run() {
