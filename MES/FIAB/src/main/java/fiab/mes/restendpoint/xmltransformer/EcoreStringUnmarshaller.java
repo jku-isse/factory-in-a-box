@@ -29,8 +29,6 @@ public class EcoreStringUnmarshaller {
 	private final static ResourceSet rs;
 	private final static String CAPABILITY_URL = "Capabilities.xmi",
 			TARGET_URL = "Target.xmi";
-	// private final static String CAPABILITY_URL = "C:\\Users\\JanHolzweber\\eclipse_workspaces\\workshop in a box\\Try\\Capabilities.xmi",
-	//		TARGET_URL = "Target.xmi";
 
 	static {
 		rs = createResourceSet();

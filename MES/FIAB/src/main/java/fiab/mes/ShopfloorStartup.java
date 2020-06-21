@@ -30,7 +30,7 @@ public class ShopfloorStartup extends AllDirectives {
 
 	  CompletionStage<ServerBinding> binding = startup(jsonDiscoveryFile, expectedTTs, system);
 
-	  System.out.println("Server online at https://localhost:8080/\nPress RETURN to stop...");
+	  System.out.println(String.format("Server online at https://localhost:8080/ expecting %s turntables \nPress RETURN to stop...", expectedTTs));
 	  System.in.read(); // let it run until user presses return
 
 	  binding

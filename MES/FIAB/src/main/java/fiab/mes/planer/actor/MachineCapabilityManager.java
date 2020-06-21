@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
+import fiab.core.capabilities.ComparableCapability;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 
@@ -48,10 +49,25 @@ public class MachineCapabilityManager {
 	public static List<AbstractCapability> flatHierarchyToCapsWithNonNullId(AbstractCapability cap) {
 		List<AbstractCapability> caps = new ArrayList<>();
 		if (cap.getID() != null) {
-			caps.add(cap);
+			caps.add(transformToComparableCapability(cap));
 		}
 		cap.getCapabilities().parallelStream().forEach(subCap -> caps.addAll(flatHierarchyToCapsWithNonNullId(subCap)));
 		return caps;
+	}
+	
+	private static ComparableCapability transformToComparableCapability(AbstractCapability cap) {
+		if (cap instanceof ComparableCapability)
+			return (ComparableCapability) cap;
+		else {
+			ComparableCapability cc = new ComparableCapability();
+			cc.setID(cap.getID());
+			cc.setUri(cap.getUri());
+			cc.getInputs().addAll(cap.getInputs());
+			cc.getOutputs().addAll(cap.getOutputs());
+			cc.getVariables().addAll(cap.getVariables());
+			cc.setDisplayName(cap.getDisplayName());
+			return cc;
+		}
 	}
 	
 	public void removeActor(AkkaActorBackedCoreModelAbstractActor machine) {
