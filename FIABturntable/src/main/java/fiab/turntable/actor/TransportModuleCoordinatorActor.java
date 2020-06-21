@@ -212,7 +212,8 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                                 ep.getActor().tell(ClientMessageTypes.Complete, self);
                             }
                         });
-                        turntableFU.tell(TurningTriggers.RESET, self); //set the turntable to home position again to counter drifting
+                        // we reset later anyway, this reset here is too early, moves the turntable away too soon, unloading on receiving side, might not have fully taken over pallet
+                        //turntableFU.tell(TurningTriggers.RESET, self); //set the turntable to home position again to counter drifting
                         finalizeTransport();
                     }
                 })
@@ -237,7 +238,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
         currentRequest = null;
         context().system()
                 .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
+                .scheduleOnce(Duration.ofMillis(1000), // we wait in transitioncheck (see below) from resetting to idle anyway of turntable and conveyor are in state idle
                         new Runnable() {
                             @Override
                             public void run() {
@@ -394,7 +395,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
         setAndPublishState(BasicMachineStates.COMPLETING);
         context().system()
                 .scheduler()
-                .scheduleOnce(Duration.ofMillis(5000),
+                .scheduleOnce(Duration.ofMillis(2000), // time available for receiving side to fully take over pallet
                         new Runnable() {
                             @Override
                             public void run() {
