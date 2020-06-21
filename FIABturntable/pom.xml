@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>factory.in.a.box</groupId>
     <artifactId>FIABturntable</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.6-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -109,13 +109,13 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABopcuabase</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
+            <version>1.0.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABhandshake</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
+            <version>1.0.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -172,9 +172,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABopcuabase</artifactId>
-                            <version>1.0.2-SNAPSHOT</version>
+                            <version>1.0.3-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABopcuabase-1.0.2-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/original-FIABopcuabase-1.0.3-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
@@ -187,9 +187,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABhandshake</artifactId>
-                            <version>1.0.2-SNAPSHOT</version>
+                            <version>1.0.3-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABhandshake-1.0.2-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>

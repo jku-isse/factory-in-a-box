@@ -20,12 +20,18 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     //In case the operating system is windows, we do not want to use EV3 libraries
     private static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");
     private final int timeForNinetyDeg = 1325;
+    private final int ratio = 3;
+    private final int rightAngleDeg = 90;
+    private final int NORTH_ANGLE = rightAngleDeg * TurnTableOrientation.NORTH.getNumericValue() * ratio;
+    private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio;
+    private final int SOUTH_ANGLE = rightAngleDeg * TurnTableOrientation.SOUTH.getNumericValue() * ratio - 20;
+    private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 35; //correction
 
-    private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
-    private TurningHardware turningHardware;   
+    private TurningHardware turningHardware;
     protected TurnTableOrientation orientation;
-   
+
     public static Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
         return Props.create(TurntableActor.class, () -> new TurntableActor(intraEventBus, publishEP));
     }
@@ -34,7 +40,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
         super(intraEventBus, publishEP);
         this.orientation = TurnTableOrientation.NORTH;
         Runtime.getRuntime().addShutdownHook(new Thread(this::motorStop));
-        initHardware();     
+        initHardware();
     }
 
     private void initHardware() {
@@ -50,7 +56,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
         motorStop();
         context().system()
                 .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
+                .scheduleOnce(Duration.ofMillis(500),
                         () -> {
                             tsm.fire(NEXT);
                             publishNewState();
@@ -58,9 +64,9 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     }
 
     protected void reset() {
-    	if (!sensorHomingHasDetectedInput()) {
-    		motorBackward();
-    	}
+        if (!sensorHomingHasDetectedInput()) {
+            motorBackward();
+        }
         checkHomingPositionReached();
     }
 
@@ -70,11 +76,12 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     private void checkHomingPositionReached() {
         if (sensorHomingHasDetectedInput()) {
             motorStop();
+            resetTachoCount();
             orientation = TurnTableOrientation.NORTH;
             tsm.fire(NEXT);
             publishNewState();
         } else {
-            context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
+            context().system().scheduler().scheduleOnce(Duration.ofMillis(50),
                     this::checkHomingPositionReached
                     , context().system().dispatcher());
         }
@@ -86,7 +93,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
         // Do actual turning here
         TurnTableOrientation target = treq.getTto();
         context().system().scheduler().scheduleOnce(Duration.ofMillis(100), () -> turnTo(target), context().system().dispatcher());
-       // checkTurningPositionReached(target); // this is called by TurnTo anyway
+        // checkTurningPositionReached(target); // this is called by TurnTo anyway
     }
 
     protected void completing() {
@@ -108,15 +115,45 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
 //    }
 
     private void turnTo(TurnTableOrientation target) {
-        if (target.getNumericValue() > this.orientation.getNumericValue()) {
+        log.info("Turning to target: " + target.toString());
+        motorSetSpeed(200); //seems to be reset after resetting tacho count
+        switch (target) {
+            case NORTH:
+                if (!sensorHomingHasDetectedInput()) {
+                    motorTurnTo(NORTH_ANGLE);
+                }
+                log.info("Turned to North");
+                this.orientation = TurnTableOrientation.NORTH;
+                checkTurningPositionReached(target);
+                break;
+            case EAST:
+                motorTurnTo(EAST_ANGLE);
+                log.info("Turned to East");
+                this.orientation = TurnTableOrientation.EAST;
+                checkTurningPositionReached(target);
+                break;
+            case SOUTH:
+                motorTurnTo(SOUTH_ANGLE);
+                log.info("Turned to South");
+                this.orientation = TurnTableOrientation.SOUTH;
+                checkTurningPositionReached(target);
+                break;
+            case WEST:
+                motorTurnTo(WEST_ANGLE);
+                log.info("Turned to West");
+                this.orientation = TurnTableOrientation.WEST;
+                checkTurningPositionReached(target);
+                break;
+        }
+        /*if (target.getNumericValue() > this.orientation.getNumericValue()) {
             turnRight(target);
         } else if (target.getNumericValue() < this.orientation.getNumericValue()) {
             turnLeft(target);
         }
-        checkTurningPositionReached(target);
+        checkTurningPositionReached(target);*/
     }
 
-    private void turnLeft(TurnTableOrientation target) {
+   /* private void turnLeft(TurnTableOrientation target) {
         if (this.orientation == TurnTableOrientation.NORTH) {
             log.warning("Cannot turn left from North");
         }
@@ -131,12 +168,12 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
                 },
                 context().system().dispatcher());
         //this.turnMotor.rotate(-rotationToNext);
-    }
+    }*/
 
     /**
      * Turns right by the amount of degrees specified in rotationToNext
      */
-    private void turnRight(TurnTableOrientation target) {
+   /* private void turnRight(TurnTableOrientation target) {
         if (this.orientation == TurnTableOrientation.WEST) {
             log.warning("Cannot turn right from West");
             return;
@@ -151,18 +188,33 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
                     turnTo(target);
                 },
                 context().system().dispatcher());
+    }*/
+    private void checkTurningPositionReached(TurnTableOrientation orientation) {
+        if (this.tsm.isInState(TurningStates.EXECUTING) && this.orientation == orientation
+                && isRotationFinished(orientation)) {
+                        log.info("Turning Position reached");
+                        completing();
+        } else {
+            context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
+                    () -> checkTurningPositionReached(orientation)
+                    , context().system().dispatcher());
+        }
     }
 
-    private void checkTurningPositionReached(TurnTableOrientation orientation) {
-    	if (this.tsm.isInState(TurningStates.EXECUTING)) {
-    		if (this.orientation == orientation) {
-    			completing();
-    		} else {
-    			context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
-    					() -> checkTurningPositionReached(orientation)
-    					, context().system().dispatcher());
-    		}
-    	}
+    private boolean isRotationFinished(TurnTableOrientation orientation) {
+        //log.info("Rotation is now:" + getPosition());
+        switch (orientation) {
+            case NORTH:
+                return getPosition() >= NORTH_ANGLE - 5;
+            case EAST:
+                return getPosition() >= EAST_ANGLE - 5;
+            case SOUTH:
+                return getPosition() >= SOUTH_ANGLE - 5;
+            case WEST:
+                return getPosition() >= WEST_ANGLE - 5;
+            default:
+                return false;
+        }
     }
 
     private boolean sensorHomingHasDetectedInput() {
@@ -179,5 +231,21 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
 
     private void motorStop() {
         turningHardware.getTurningMotor().stop();
+    }
+
+    private void motorTurnTo(int angle) {
+        turningHardware.getTurningMotor().rotateTo(angle);
+    }
+
+    private void resetTachoCount() {
+        turningHardware.getTurningMotor().resetTachoCount();
+    }
+
+    private void motorSetSpeed(int speed) {
+        turningHardware.getTurningMotor().setSpeed(speed);
+    }
+
+    private int getPosition() {
+        return turningHardware.getTurningMotor().getRotationAngle();
     }
 }

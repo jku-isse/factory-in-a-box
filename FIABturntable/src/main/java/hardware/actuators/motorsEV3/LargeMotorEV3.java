@@ -16,6 +16,7 @@ public class LargeMotorEV3 extends Motor {
     public LargeMotorEV3(Port motorPort) {
         super();
         this.largeRegulatedMotor = new EV3LargeRegulatedMotor(motorPort);
+        largeRegulatedMotor.resetTachoCount();
     }
 
     /**
@@ -38,6 +39,25 @@ public class LargeMotorEV3 extends Motor {
         largeRegulatedMotor.hold();
         //largeRegulatedMotor.brake();
         largeRegulatedMotor.backward();
+    }
+
+    @Override
+    public void rotate(int angle) {
+        super.rotate(angle);
+        largeRegulatedMotor.hold();
+        largeRegulatedMotor.rotate(angle);
+    }
+
+    @Override
+    public void rotateTo(int angle) {
+        super.rotateTo(angle);
+        largeRegulatedMotor.hold();
+        largeRegulatedMotor.rotateTo(angle, true);
+    }
+
+    @Override
+    public int getRotationAngle() {
+        return (int) largeRegulatedMotor.getPosition();
     }
 
     /**
@@ -65,4 +85,9 @@ public class LargeMotorEV3 extends Motor {
         Delay.msDelay(msDelay);
     }
 
+    @Override
+    public void resetTachoCount() {
+        largeRegulatedMotor.resetTachoCount();
+        largeRegulatedMotor.hold();
+    }
 }
