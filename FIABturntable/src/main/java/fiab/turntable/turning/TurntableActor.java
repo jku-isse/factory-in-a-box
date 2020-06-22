@@ -19,11 +19,11 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
 
     //In case the operating system is windows, we do not want to use EV3 libraries
     private static final boolean DEBUG = System.getProperty("os.name").toLowerCase().contains("win");
-    private final int timeForNinetyDeg = 1325;
+    //private final int timeForNinetyDeg = 1325;
     private final int ratio = 3;
     private final int rightAngleDeg = 90;
     private final int NORTH_ANGLE = rightAngleDeg * TurnTableOrientation.NORTH.getNumericValue() * ratio;
-    private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio;
+    private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio + 5;
     private final int SOUTH_ANGLE = rightAngleDeg * TurnTableOrientation.SOUTH.getNumericValue() * ratio - 20;
     private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 35; //correction
 
@@ -81,7 +81,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
             tsm.fire(NEXT);
             publishNewState();
         } else {
-            context().system().scheduler().scheduleOnce(Duration.ofMillis(50),
+            context().system().scheduler().scheduleOnce(Duration.ofMillis(20),  //Tick duration of scheduler = 10ms
                     this::checkHomingPositionReached
                     , context().system().dispatcher());
         }
@@ -205,7 +205,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
         //log.info("Rotation is now:" + getPosition());
         switch (orientation) {
             case NORTH:
-                return getPosition() >= NORTH_ANGLE - 5;
+                return getPosition() >= NORTH_ANGLE - 5;    //Casting position from float to int somehow is always pos-1
             case EAST:
                 return getPosition() >= EAST_ANGLE - 5;
             case SOUTH:

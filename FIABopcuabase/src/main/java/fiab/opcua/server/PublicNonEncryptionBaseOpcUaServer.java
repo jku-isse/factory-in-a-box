@@ -81,8 +81,8 @@ public class PublicNonEncryptionBaseOpcUaServer {
         Set<String> hostnames = new LinkedHashSet<>();
         String sHostname = HostnameUtil.getHostname();
         hostnames.add(sHostname);
-        //Set<String> hNames = HostnameUtil.getHostnames("0.0.0.0"); // ATTENTION: resolving hostnames takes long when there are many interfaces (e.g., docker, VPN, etc)
-        //hostnames.addAll(hNames);
+        Set<String> hNames = HostnameUtil.getHostnames("0.0.0.0"); // ATTENTION: resolving hostnames takes long when there are many interfaces (e.g., docker, VPN, etc)
+        hostnames.addAll(hNames);
         hostnames.add("127.0.0.1");
         //FIXME: add others here for external reachability
 
