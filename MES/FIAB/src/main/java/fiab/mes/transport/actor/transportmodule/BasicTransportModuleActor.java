@@ -60,6 +60,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 	public BasicTransportModuleActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, TransportModuleWrapperInterface hal, Position selfPos, IntraMachineEventBus intraBus, TransportPositionLookup tpl, InternalCapabilityToPositionMapping icpm) {
 		this.cap = cap;
 		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
+		log.info("Starting MESMachineActor for: "+this.machineId);
 		this.eventBusByRef = machineEventBus;
 		this.hal = hal;
 		this.intraBus = intraBus;

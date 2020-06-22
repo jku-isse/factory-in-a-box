@@ -113,9 +113,10 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
         actor.setDisplayName(actorNode.getDisplayName().get().getText());
         actor.setActorName(actorNode.getBrowseName().get().getName());
-        String id = info.getActorNode().getIdentifier().toString();
-        actor.setID(id);
+        String id = info.getActorNode().getIdentifier().toString();        
         String uri = info.getEndpointUrl().endsWith("/") ? info.getEndpointUrl()+id : info.getEndpointUrl()+"/"+id;
+      //actor.setID(id);
+        actor.setID(uri);
         actor.setUri(uri);
         return actor;
     }
