@@ -25,6 +25,7 @@ import fiab.mes.machine.msg.GenericMachineRequests.Reset;
 import fiab.mes.machine.msg.GenericMachineRequests.Stop;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
@@ -113,6 +114,10 @@ public class BasicIOStationActor extends AbstractActor {
         	log.info(String.format("Machine %s received MachineHistoryRequest", machineId.getId()));
         	externalHistory.sendHistoryResponseTo(req, getSender(), self);
         })
+        .match(MachineDisconnectedEvent.class, req -> {					
+        	log.warning(String.format("Lost connection to machine in state: %s, sending disconnected event and shutting down actor", this.currentState));		        	
+			eventBusByRef.tell(new MachineDisconnectedEvent(machineId), self());					
+		})
         .build();
 	}
 

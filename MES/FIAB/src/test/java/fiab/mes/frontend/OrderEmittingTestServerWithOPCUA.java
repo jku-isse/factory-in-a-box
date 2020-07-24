@@ -154,6 +154,68 @@ public class OrderEmittingTestServerWithOPCUA {
 
 	}
 	
+	@Test //works
+	void testForMachineRelocation() throws Exception {
+			new TestKit(system) { 
+				{ 
+					System.out.println("test frontend responses by emitting orders with sequential process");
+					
+					orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
+					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
+			
+					Set<String> urlsToBrowse = getFullLayout();
+					//Set<String> urlsToBrowse = getSingleTTLayout(); //set layout to 1 expectedTT in preTEst method
+					Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+					ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+										
+					urlsToBrowse.stream().forEach(url -> {
+						ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
+						discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
+					});										
+					
+					int countConnEvents = 0;
+					boolean isPlannerFunctional = false;
+					boolean isTransportFunctional = false;
+					while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size()-1 || !isTransportFunctional) { // we expect one machine less, the spot we switch to, but which we nevertheless monitor
+						TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class); 
+						logEvent(te);
+						if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
+							 isPlannerFunctional = true;
+						}
+						if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
+							 isTransportFunctional = true;
+						}
+						if (te instanceof MachineConnectedEvent) {
+							countConnEvents++; 
+							knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+						}
+						// DO THIS MANUALLY FROM WEB UI!
+						if (te instanceof MachineStatusUpdateEvent) {
+							if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
+								Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId() ) ).ifPresent(
+										actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
+								);	
+						}
+					} 
+			
+				    CountDownLatch count = new CountDownLatch(4);
+				    while(count.getCount() > 0) {
+				    	String oid = "P"+String.valueOf(count.getCount()+"-");
+				    	OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleBlackStepProcess(oid));				
+						RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, getRef());
+				    	orderEntryActor.tell(req, getRef());
+				    	
+				    	count.countDown();
+				    	Thread.sleep(3000);
+				    }
+				    System.out.println("Finished with emitting orders. Press ENTER to end test!");
+				    System.in.read();
+				    System.out.println("Test completed");
+				}	
+			};
+
+	}
+	
 	public Set<String> getSingleTTLayout() {
 		Set<String> urlsToBrowse = new HashSet<String>();
 		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
@@ -186,7 +248,7 @@ public class OrderEmittingTestServerWithOPCUA {
 		urlsToBrowse.add("opc.tcp://192.168.0.21:4842/milo");	// POS 21 TT2
 		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT1	
 		return urlsToBrowse;
-	}
+	}	
 	
 	public Set<String> getLocalhostLayout() {
 		Set<String> urlsToBrowse = new HashSet<String>();

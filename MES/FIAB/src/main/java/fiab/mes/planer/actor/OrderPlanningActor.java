@@ -577,7 +577,8 @@ public class OrderPlanningActor extends AbstractActor{
  		// handling similar to stopping machine
  		handleStoppingOrStoppedMachine(mde.getMachine());
  		// now we can remove the machine
-		capMan.removeActor(mde.getMachine());
+		Optional<Set<AbstractCapability>> remCap = capMan.removeActor(mde.getMachine());
+		remCap.ifPresent(cap -> log.info("Removed Capabilities for machine: "+mde.getMachineId()));
 		ordMapper.removeMachine(mde.getMachine());		
 		checkPlannerState();
 	}
@@ -605,6 +606,10 @@ public class OrderPlanningActor extends AbstractActor{
 		}
 		if (newState != currState) {
 			state = newState;
+			if (newState.equals(PlannerState.DEGRADED_MODE))
+				log.warning(String.format("Switched State to %s", state));
+			else
+				log.info(String.format("Switched State to %s", state));
 			publishLocalState(MachineEventType.UPDATED, state, "Input/Outputstation/Transportsystem availability changed");
 		}
 	}

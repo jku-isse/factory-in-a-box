@@ -70,10 +70,11 @@ public class MachineCapabilityManager {
 		}
 	}
 	
-	public void removeActor(AkkaActorBackedCoreModelAbstractActor machine) {
+	public Optional<Set<AbstractCapability>> removeActor(AkkaActorBackedCoreModelAbstractActor machine) {
 		assert(machine != null);
-		actorProvides.remove(machine);
+		Set<AbstractCapability> remCap = actorProvides.remove(machine);
 		capProvidedBy.values().stream().forEach(capSet -> capSet.remove(machine));
+		return Optional.ofNullable(remCap);
 	}
 	
 	public Optional<AkkaActorBackedCoreModelAbstractActor> resolveByAkkaActor(ActorRef actorRef) {

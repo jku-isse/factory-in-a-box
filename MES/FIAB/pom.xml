@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>factory.in.a.box</groupId>
     <artifactId>MESactors</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.4-SNAPSHOT</version>
     <properties>
         <akka.version>2.5.25</akka.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
