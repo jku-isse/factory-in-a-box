@@ -238,7 +238,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
         currentRequest = null;
         context().system()
                 .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000), // we wait in transitioncheck (see below) from resetting to idle anyway of turntable and conveyor are in state idle
+                .scheduleOnce(Duration.ofMillis(500), // we wait in transitioncheck (see below) from resetting to idle anyway of turntable and conveyor are in state idle
                         new Runnable() {
                             @Override
                             public void run() {
@@ -250,7 +250,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
     private void transitionResettingToIdle() {
         context().system()
                 .scheduler()
-                .scheduleOnce(Duration.ofMillis(1000),
+                .scheduleOnce(Duration.ofMillis(500),
                         new Runnable() {
                             @Override
                             public void run() {
