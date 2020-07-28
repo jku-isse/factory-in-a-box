@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>factory.in.a.box</groupId>
     <artifactId>MESactors</artifactId>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.0.5-SNAPSHOT</version>
     <properties>
         <akka.version>2.5.25</akka.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -319,7 +319,7 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-            <!--plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.0</version>
@@ -355,7 +355,7 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin-->
+            </plugin>
 
         </plugins>
         <pluginManagement>

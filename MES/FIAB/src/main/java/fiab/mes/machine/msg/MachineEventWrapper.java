@@ -3,6 +3,8 @@ package fiab.mes.machine.msg;
 import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.core.capabilities.basicmachine.events.MachineEvent.MachineEventType;
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import fiab.mes.planer.msg.PlanerStatusMessage;
+import fiab.mes.transport.msg.TransportSystemStatusMessage;
 
 public class MachineEventWrapper {
 
@@ -12,9 +14,9 @@ public class MachineEventWrapper {
 	private String timestamp;
 	
 	//MachineUpdateEvent additional fields
-	private String nodeId;
-	private String parameterName;
-	private String newValue;
+	private String nodeId = "";
+	private String parameterName = "";
+	private String newValue = "";
 	
 	public MachineEventWrapper(MachineEvent e) {
 		this.message = e.getMessage();
@@ -22,10 +24,17 @@ public class MachineEventWrapper {
 		this.eventType = e.getEventType();
 		this.timestamp = e.getTimestamp().toString();
 		if (e instanceof MachineUpdateEvent) {
-			MachineUpdateEvent mue = (MachineUpdateEvent)e;
-			this.nodeId = "";
+			MachineUpdateEvent mue = (MachineUpdateEvent)e;			
 			this.parameterName = mue.getParameterName();
 			this.newValue = mue.getValue().toString();
+		} else if (e instanceof PlanerStatusMessage) {
+			PlanerStatusMessage se = (PlanerStatusMessage)e;
+			this.parameterName = se.getEventType().toString();
+			this.newValue = se.getState().toString();
+		} else if (e instanceof TransportSystemStatusMessage) {
+			TransportSystemStatusMessage se = (TransportSystemStatusMessage)e;
+			this.parameterName = se.getEventType().toString();
+			this.newValue = se.getState().toString();
 		}
 		
 	}
