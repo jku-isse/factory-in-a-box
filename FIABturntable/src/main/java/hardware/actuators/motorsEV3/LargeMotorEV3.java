@@ -67,6 +67,7 @@ public class LargeMotorEV3 extends Motor {
     public void stop() {
         super.stop();
         largeRegulatedMotor.stop();
+        largeRegulatedMotor.hold();
     }
 
     /**

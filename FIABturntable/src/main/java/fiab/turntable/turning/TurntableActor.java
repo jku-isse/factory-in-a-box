@@ -23,9 +23,9 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     private final int ratio = 3;
     private final int rightAngleDeg = 90;
     private final int NORTH_ANGLE = rightAngleDeg * TurnTableOrientation.NORTH.getNumericValue() * ratio;
-    private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio + 5;
+    private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio + 10;
     private final int SOUTH_ANGLE = rightAngleDeg * TurnTableOrientation.SOUTH.getNumericValue() * ratio - 20;
-    private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 35; //correction
+    private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 30; //correction
 
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
@@ -120,29 +120,30 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
         switch (target) {
             case NORTH:
                 if (!sensorHomingHasDetectedInput()) {
-                    motorTurnTo(NORTH_ANGLE);
+                    //motorTurnTo(NORTH_ANGLE);
+                    motorBackward();
                 }
-                log.info("Turned to North");
-                this.orientation = TurnTableOrientation.NORTH;
                 checkTurningPositionReached(target);
+                this.orientation = TurnTableOrientation.NORTH;
+                log.info("Turned to North");
                 break;
             case EAST:
                 motorTurnTo(EAST_ANGLE);
+                checkTurningPositionReached(target);
                 log.info("Turned to East");
                 this.orientation = TurnTableOrientation.EAST;
-                checkTurningPositionReached(target);
                 break;
             case SOUTH:
                 motorTurnTo(SOUTH_ANGLE);
+                checkTurningPositionReached(target);
                 log.info("Turned to South");
                 this.orientation = TurnTableOrientation.SOUTH;
-                checkTurningPositionReached(target);
                 break;
             case WEST:
                 motorTurnTo(WEST_ANGLE);
+                checkTurningPositionReached(target);
                 log.info("Turned to West");
                 this.orientation = TurnTableOrientation.WEST;
-                checkTurningPositionReached(target);
                 break;
         }
         /*if (target.getNumericValue() > this.orientation.getNumericValue()) {
@@ -193,8 +194,12 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
         if (this.tsm.isInState(TurningStates.EXECUTING) && this.orientation == orientation
                 && isRotationFinished(orientation)) {
                         log.info("Turning Position reached");
+                        if(orientation == TurnTableOrientation.NORTH){
+                            resetTachoCount();
+                        }
                         completing();
         } else {
+            //TODO notify if stuck here and state is execute
             context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
                     () -> checkTurningPositionReached(orientation)
                     , context().system().dispatcher());
@@ -205,7 +210,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
         //log.info("Rotation is now:" + getPosition());
         switch (orientation) {
             case NORTH:
-                return getPosition() >= NORTH_ANGLE - 5;    //Casting position from float to int somehow is always pos-1
+                return sensorHomingHasDetectedInput();    //Casting position from float to int somehow is always pos-1
             case EAST:
                 return getPosition() >= EAST_ANGLE - 5;
             case SOUTH:
