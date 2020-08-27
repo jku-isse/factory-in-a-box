@@ -40,7 +40,7 @@ public class CapabilityManagerUI extends AbstractActor {
     public CapabilityManagerUI(String title) throws HeadlessException {
         //TODO first init client then UI
         this.title = title;
-        client = context().actorOf(CapabilityManagerClient.props("opc.tcp://192.168.178.57:4840"));
+        client = context().actorOf(CapabilityManagerClient.props("opc.tcp://192.168.0.38:4840"));
         try {
             pathToJsonFile = Objects.requireNonNull(getClass().getClassLoader()
                     .getResource("plotterCapabilityExample.json")).toURI().toURL();
@@ -74,7 +74,7 @@ public class CapabilityManagerUI extends AbstractActor {
         frame.setLayout(new BorderLayout());
         frame.setTitle(title);
         buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(3,0));
+        buttonPanel.setLayout(new GridLayout(3, 0));
         frame.add(buttonPanel, BorderLayout.SOUTH);
         addTextField();
         addReadButton();
@@ -103,11 +103,17 @@ public class CapabilityManagerUI extends AbstractActor {
         });
     }
 
-    public void addWriteButton(){
+    public void addWriteButton() {
         JButton writeButton = new JButton("Write Remote value");
         buttonPanel.add(writeButton);
         writeButton.addActionListener(event -> {
-            client.tell(new WriteRequest(textArea.getText()), self());
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                PlotCapability plotCapability = mapper.readValue(textArea.getText(), PlotCapability.class);
+                client.tell(new WriteRequest(plotCapability.getPlotCapability()), self());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 

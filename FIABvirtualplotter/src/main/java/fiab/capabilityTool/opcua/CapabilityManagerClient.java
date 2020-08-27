@@ -8,7 +8,6 @@ import fiab.capabilityTool.gui.msg.ClientReadyNotification;
 import fiab.capabilityTool.gui.msg.ReadNotification;
 import fiab.capabilityTool.gui.msg.ReadRequest;
 import fiab.capabilityTool.gui.msg.WriteRequest;
-import fiab.capabilityTool.opcua.methods.SetCapability;
 import fiab.opcua.client.OPCUAClientFactory;
 import fiab.opcua.server.OPCUABase;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -59,19 +58,16 @@ public class CapabilityManagerClient extends AbstractActor {
                 .build();
     }
 
-    public void writeValue(String value) throws ExecutionException, InterruptedException {
-        NodeId objectId = new NodeId(1, 119);//NodeId.parse("ns=1;i=119");
-        NodeId methodId = new NodeId(1, "Plotter/PLOTTER_FU/SET_CAPABILITIES");//NodeId.parse("ns=1;s=Plotter/PLOTTER_FU/SET_CAPABILITIES");
-        CallMethodRequest methodRequest = new CallMethodRequest(
-                objectId,
-                methodId,
-                new Variant[]{new Variant(value)});
-        callMethod(methodRequest).get();
+    public void writeValue(String value) {
+        //NodeId objectId = new NodeId(1, 119);//NodeId.parse("ns=1;i=119");
+        NodeId methodId = new NodeId(1, "Plotter/PLOTTER_FU/SET_PLOT_CAPABILITY");//NodeId.parse("ns=1;s=Plotter/PLOTTER_FU/SET_CAPABILITIES");
+        callMethod(methodId, new Variant[]{new Variant(value)}).whenCompleteAsync((s, t) -> System.out.println("S: " + s + ", T: " + t));
     }
 
     public String readValue() {
         if (client != null) {
             try {
+                //http://factory-in-a-box.fiab/capabilities/plot/color/BLACK
                 //client.connect().get();
                 List<NodeId> nodeIdList = ImmutableList.of(new NodeId(1, "Plotter/PLOTTER_FU/CAPABILITIES/CAPABILITY1/TYPE"));
                 CompletableFuture<DataValue> dataValues = client.readValue(1000.0d, TimestampsToReturn.Both, nodeIdList.get(0));
@@ -84,18 +80,20 @@ public class CapabilityManagerClient extends AbstractActor {
         return "Client is null";
     }
 
-    protected CompletableFuture<String> callMethod(CallMethodRequest request) {
+    protected CompletableFuture<String> callMethod(NodeId methodId, Variant[] inputArgs) {
+
+        CallMethodRequest request = new CallMethodRequest(
+                new NodeId(1, 324), methodId, inputArgs);
 
         return client.call(request).thenCompose(result -> {
             StatusCode statusCode = result.getStatusCode();
 
             if (statusCode.isGood()) {
-                //String value = (String) (result.getOutputArguments())[0].getValue();
-                return CompletableFuture.completedFuture("OK");
+                String value = (String) (result.getOutputArguments())[0].getValue();
+                return CompletableFuture.completedFuture(value);
             } else {
                 StatusCode[] inputArgumentResults = result.getInputArgumentResults();
-                for (int i = 0; i < Objects.requireNonNull(inputArgumentResults).length; i++) {
-                    //logger.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
+                for (int i = 0; i < inputArgumentResults.length; i++) {
                     System.out.printf("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
                 }
 
