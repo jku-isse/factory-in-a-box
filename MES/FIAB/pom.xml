@@ -9,7 +9,12 @@
         <akka.version>2.5.25</akka.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
+    <repositories>
+        <repository>
+            <id>libs</id>
+            <url>file:///${project.basedir}/../../libs</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>com.typesafe.akka</groupId>

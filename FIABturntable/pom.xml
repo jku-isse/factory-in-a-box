@@ -14,6 +14,10 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>libs</id>
+            <url>file:///${project.basedir}/../libs</url>
+        </repository>
     </repositories>
     <dependencies>
         <dependency>
@@ -114,7 +118,7 @@
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
-            <artifactId>FIABhandshake</artifactId>
+            <artifactId>original-FIABhandshake</artifactId>
             <version>1.0.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
@@ -186,7 +190,7 @@
                         <phase>validate</phase>
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
-                            <artifactId>FIABhandshake</artifactId>
+                            <artifactId>original-FIABhandshake</artifactId>
                             <version>1.0.3-SNAPSHOT</version>
                             <packaging>jar</packaging>
                             <file>${project.basedir}/../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar

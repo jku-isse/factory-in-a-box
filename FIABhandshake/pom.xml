@@ -4,13 +4,19 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>factory.in.a.box</groupId>
     <artifactId>FIABhandshake</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <name>Pallet Handover Handshake</name>
     <description>Server and Client side actors and OPCUA based FUs</description>
     <properties>
         <akka.version>2.5.25</akka.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <repositories>
+        <repository>
+            <id>libs</id>
+            <url>file:///${project.basedir}/../libs</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
