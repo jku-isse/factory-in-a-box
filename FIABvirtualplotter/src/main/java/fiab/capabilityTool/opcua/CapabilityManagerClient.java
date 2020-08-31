@@ -59,17 +59,15 @@ public class CapabilityManagerClient extends AbstractActor {
     }
 
     public void writeValue(String value) {
-        //NodeId objectId = new NodeId(1, 119);//NodeId.parse("ns=1;i=119");
-        NodeId methodId = new NodeId(1, "Plotter/PLOTTER_FU/SET_PLOT_CAPABILITY");//NodeId.parse("ns=1;s=Plotter/PLOTTER_FU/SET_CAPABILITIES");
+        //plotcapability black: http://factory-in-a-box.fiab/capabilities/plot/color/BLACK
+        NodeId methodId = new NodeId(2, "Plotter/PLOTTER_FU/SET_PLOT_CAPABILITY");//NodeId.parse("ns=1;s=Plotter/PLOTTER_FU/SET_CAPABILITIES");
         callMethod(methodId, new Variant[]{new Variant(value)}).whenCompleteAsync((s, t) -> System.out.println("S: " + s + ", T: " + t));
     }
 
     public String readValue() {
         if (client != null) {
             try {
-                //http://factory-in-a-box.fiab/capabilities/plot/color/BLACK
-                //client.connect().get();
-                List<NodeId> nodeIdList = ImmutableList.of(new NodeId(1, "Plotter/PLOTTER_FU/CAPABILITIES/CAPABILITY1/TYPE"));
+                List<NodeId> nodeIdList = ImmutableList.of(new NodeId(2, "TestPlotter/Plotting_FU/CAPABILITIES/CAPABILITY/TYPE"));
                 CompletableFuture<DataValue> dataValues = client.readValue(1000.0d, TimestampsToReturn.Both, nodeIdList.get(0));
                 return dataValues.get(1000L, TimeUnit.MILLISECONDS).getValue().getValue().toString();
             } catch (InterruptedException | ExecutionException | TimeoutException e) {

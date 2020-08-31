@@ -3,27 +3,27 @@ package fiab.core.capabilities.basicmachine.events;
 import fiab.core.capabilities.BasicMachineStates;
 
 public class MachineStatusUpdateEvent extends MachineUpdateEvent {
-	
-	protected BasicMachineStates status;
-	
-	public MachineStatusUpdateEvent(String machineId, String parameterName, String message, BasicMachineStates status) {
-		super(machineId, parameterName, message);
-		this.status = status;
-	}
-	
-	public BasicMachineStates  getStatus() {
-		return status;
-	}
 
-	@Override
-	public Object getValue() {
-		return status;
-	}
+    protected BasicMachineStates status;
 
-	@Override
-	public String toString() {
-		return "MachineStatusUpdateEvent [status=" + status + ", machineId=" + machineId + "]";
-	}
-	
+    public MachineStatusUpdateEvent(String machineId, String parameterName, String message, BasicMachineStates status) {
+        super(machineId, parameterName, message);
+        this.status = status;
+    }
+
+    public BasicMachineStates getStatus() {
+        return status;
+    }
+
+    @Override
+    public Object getValue() {
+        return status;
+    }
+
+    @Override
+    public String toString() {
+        return "MachineStatusUpdateEvent [status=" + status + ", machineId=" + machineId + "]";
+    }
+
 
 }

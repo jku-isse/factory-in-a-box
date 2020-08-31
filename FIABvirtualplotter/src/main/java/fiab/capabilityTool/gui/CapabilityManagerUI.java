@@ -14,12 +14,15 @@ import fiab.capabilityTool.opcua.PlotCapability;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.Objects;
+import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class CapabilityManagerUI extends AbstractActor {
@@ -33,14 +36,17 @@ public class CapabilityManagerUI extends AbstractActor {
     private JFrame frame;
     private JPanel buttonPanel;
 
+    private Map<String, ActorRef> activeConnections;
+
     public static Props props(String title) {
         return Props.create(CapabilityManagerUI.class, title);
     }
 
     public CapabilityManagerUI(String title) throws HeadlessException {
-        //TODO first init client then UI
         this.title = title;
-        client = context().actorOf(CapabilityManagerClient.props("opc.tcp://192.168.0.38:4840"));
+        client = context().actorOf(CapabilityManagerClient.props("opc.tcp://localhost:4840/milo"));
+        activeConnections = new HashMap<>();
+        SwingUtilities.invokeLater(() -> showGUI(title));
         try {
             pathToJsonFile = Objects.requireNonNull(getClass().getClassLoader()
                     .getResource("plotterCapabilityExample.json")).toURI().toURL();
@@ -62,9 +68,7 @@ public class CapabilityManagerUI extends AbstractActor {
     public Receive createReceive() {
         return ReceiveBuilder.create()
                 .match(ReadNotification.class, notification -> {
-                    updateTextArea(notification.getValue());
-                }).match(ClientReadyNotification.class, notification -> {
-                    SwingUtilities.invokeLater(() -> showGUI(title));
+                    //updateTextArea(notification.getValue());
                 })
                 .build();
     }
@@ -76,13 +80,30 @@ public class CapabilityManagerUI extends AbstractActor {
         buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridLayout(3, 0));
         frame.add(buttonPanel, BorderLayout.SOUTH);
-        addTextField();
+        /*addTextField();
         addReadButton();
         addSubmitButton();
-        addWriteButton();
+        addWriteButton();*/
+        addConnectToMachineMenu();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public void addConnectToMachineMenu() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("Machine");
+        JMenuItem connectItem = new JMenuItem();
+        connectItem.setText("Connect new Machine");
+        connectItem.addActionListener(l -> {
+            String url = JOptionPane.showInputDialog("Enter Machine url");
+            //TODO validate
+            ActorRef actorRef = getContext().actorOf(ActiveConnectionPanelActor.props(url));
+            activeConnections.putIfAbsent(url, actorRef);
+        });
+        menu.add(connectItem);
+        menuBar.add(menu);
+        frame.add(menuBar, BorderLayout.NORTH);
     }
 
     public void addTextField() {
