@@ -1,47 +1,52 @@
 package fiab.capabilityTool.opcua;
 
 import akka.actor.AbstractActor;
+import akka.actor.PoisonPill;
 import akka.actor.Props;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
-import com.google.common.collect.ImmutableList;
-import fiab.capabilityTool.gui.msg.ClientReadyNotification;
-import fiab.capabilityTool.gui.msg.ReadNotification;
-import fiab.capabilityTool.gui.msg.ReadRequest;
-import fiab.capabilityTool.gui.msg.WriteRequest;
+import fiab.capabilityTool.opcua.msg.ClientReadyNotification;
+import fiab.capabilityTool.opcua.msg.WriteRequest;
 import fiab.opcua.client.OPCUAClientFactory;
-import fiab.opcua.server.OPCUABase;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
+import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
+import org.eclipse.milo.opcua.sdk.client.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.UaException;
-import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.eclipse.milo.opcua.stack.core.types.structured.CallMethodRequest;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class CapabilityManagerClient extends AbstractActor {
 
+    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+
     private OpcUaClient client;
+    private NodeId setCapabilityMethodNodeId;
 
     public static Props props(String endpointURL) {
         return Props.create(CapabilityManagerClient.class, endpointURL);
     }
 
     public CapabilityManagerClient(String endpointURL) {
-        client = null;
+        this.client = null;
         try {
-            client = new OPCUAClientFactory().createClient(endpointURL);
-            client.connect().get();
-            context().parent().tell(new ClientReadyNotification(), getSelf());
+            this.client = new OPCUAClientFactory().createClient(endpointURL);
+            this.client.connect().get();
+            browseServerNodesRecursively(client.getAddressSpace().browse(Identifiers.RootFolder).get());
+            if (setCapabilityMethodNodeId == null) {
+                log.info("No matching method found, terminating actor for " + endpointURL);
+                getSelf().tell(PoisonPill.getInstance(), self());
+            } else {
+                context().parent().tell(new ClientReadyNotification(endpointURL), getSelf());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -50,51 +55,47 @@ public class CapabilityManagerClient extends AbstractActor {
     @Override
     public Receive createReceive() {
         return ReceiveBuilder.create()
-                .match(ReadRequest.class, request -> {
-                    sender().tell(new ReadNotification(readValue()), self());
-                }).match(WriteRequest.class, request -> {
+                .match(WriteRequest.class, request -> {
                     writeValue(request.getData());
                 })
                 .build();
     }
 
-    public void writeValue(String value) {
-        //NodeId objectId = new NodeId(1, 119);//NodeId.parse("ns=1;i=119");
-        NodeId methodId = new NodeId(1, "Plotter/PLOTTER_FU/SET_PLOT_CAPABILITY");//NodeId.parse("ns=1;s=Plotter/PLOTTER_FU/SET_CAPABILITIES");
-        callMethod(methodId, new Variant[]{new Variant(value)}).whenCompleteAsync((s, t) -> System.out.println("S: " + s + ", T: " + t));
-    }
-
-    public String readValue() {
-        if (client != null) {
-            try {
-                //http://factory-in-a-box.fiab/capabilities/plot/color/BLACK
-                //client.connect().get();
-                List<NodeId> nodeIdList = ImmutableList.of(new NodeId(1, "Plotter/PLOTTER_FU/CAPABILITIES/CAPABILITY1/TYPE"));
-                CompletableFuture<DataValue> dataValues = client.readValue(1000.0d, TimestampsToReturn.Both, nodeIdList.get(0));
-                return dataValues.get(1000L, TimeUnit.MILLISECONDS).getValue().getValue().toString();
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                e.printStackTrace();
-                return "Not implemented";
+    private void browseServerNodesRecursively(List<Node> nodes) throws ExecutionException, InterruptedException {
+        for (Node node : nodes) {
+            browseServerNodesRecursively(client.getAddressSpace().browse(node.getNodeId().get()).get());
+            if (Objects.requireNonNull(node.getBrowseName().get().getName()).contains("SET_PLOT_CAPABILITY")) {
+                if (node instanceof UaMethodNode) {
+                    log.info("Found set capability method node: " + node.getNodeId().get());
+                    setCapabilityMethodNodeId = node.getNodeId().get();
+                }
             }
         }
-        return "Client is null";
+    }
+
+    public void writeValue(String value) {
+        callMethod(setCapabilityMethodNodeId, new Variant[]{new Variant(value)}).whenCompleteAsync((s, t) -> {
+            if (t == null) {
+                log.info("Changed capability to " + s);
+            } else {
+                log.info("Could not change capability, " + t);
+            }
+        });
     }
 
     protected CompletableFuture<String> callMethod(NodeId methodId, Variant[] inputArgs) {
-
         CallMethodRequest request = new CallMethodRequest(
-                new NodeId(1, 324), methodId, inputArgs);
+                new NodeId(1, 321), methodId, inputArgs);
 
         return client.call(request).thenCompose(result -> {
             StatusCode statusCode = result.getStatusCode();
-
             if (statusCode.isGood()) {
                 String value = (String) (result.getOutputArguments())[0].getValue();
                 return CompletableFuture.completedFuture(value);
             } else {
                 StatusCode[] inputArgumentResults = result.getInputArgumentResults();
                 for (int i = 0; i < inputArgumentResults.length; i++) {
-                    System.out.printf("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
+                    log.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
                 }
 
                 CompletableFuture<String> f = new CompletableFuture<>();
@@ -103,5 +104,4 @@ public class CapabilityManagerClient extends AbstractActor {
             }
         });
     }
-
 }

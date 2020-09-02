@@ -1,0 +1,4 @@
+{
+  "endpointUrl": "opc.tcp://192.168.0.37:4840",
+  "plotCapability": "http://factory-in-a-box.fiab/capabilities/plot/color/GREEN"
+}

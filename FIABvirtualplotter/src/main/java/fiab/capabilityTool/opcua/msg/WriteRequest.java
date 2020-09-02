@@ -1,4 +1,4 @@
-package fiab.capabilityTool.gui.msg;
+package fiab.capabilityTool.opcua.msg;
 
 public class WriteRequest {
 
