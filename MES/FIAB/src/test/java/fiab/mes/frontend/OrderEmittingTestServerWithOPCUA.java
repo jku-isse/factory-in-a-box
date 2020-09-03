@@ -139,7 +139,8 @@ public class OrderEmittingTestServerWithOPCUA {
 				    CountDownLatch count = new CountDownLatch(4);
 				    while(count.getCount() > 0) {
 				    	String oid = "P"+String.valueOf(count.getCount()+"-");
-				    	OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleBlackStepProcess(oid));				
+				    	//OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleBlackStepProcess(oid));
+						OrderProcess op1 = new OrderProcess(ProduceProcess.getSequential4ColorProcess(oid));
 						RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, getRef());
 				    	orderEntryActor.tell(req, getRef());
 				    	
@@ -242,8 +243,8 @@ public class OrderEmittingTestServerWithOPCUA {
 		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
 		urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 TT1 north plotter
 		urlsToBrowse.add("opc.tcp://192.168.0.32:4840"); //Pos32 TT2 north plotter
-		urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos31 TT1 south plotter
-		urlsToBrowse.add("opc.tcp://192.168.0.38:4840"); //Pos32 TT2 south plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos37 TT1 south plotter
+		urlsToBrowse.add("opc.tcp://192.168.0.38:4840"); //Pos38 TT2 south plotter
 		urlsToBrowse.add("opc.tcp://192.168.0.35:4840");	// POS EAST 35/ outputstation				
 		urlsToBrowse.add("opc.tcp://192.168.0.21:4842/milo");	// POS 21 TT2
 		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT1	

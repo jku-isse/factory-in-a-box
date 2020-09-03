@@ -22,7 +22,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     //private final int timeForNinetyDeg = 1325;
     private final int ratio = 3;
     private final int rightAngleDeg = 90;
-    private final int NORTH_ANGLE = rightAngleDeg * TurnTableOrientation.NORTH.getNumericValue() * ratio;
+    //private final int NORTH_ANGLE = rightAngleDeg * TurnTableOrientation.NORTH.getNumericValue() * ratio;
     private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio + 10;
     private final int SOUTH_ANGLE = rightAngleDeg * TurnTableOrientation.SOUTH.getNumericValue() * ratio - 20;
     private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 30; //correction

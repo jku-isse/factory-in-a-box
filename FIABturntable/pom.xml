@@ -118,7 +118,7 @@
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
-            <artifactId>original-FIABhandshake</artifactId>
+            <artifactId>FIABhandshake</artifactId>
             <version>1.0.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
