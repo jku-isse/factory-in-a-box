@@ -32,7 +32,7 @@ public class WiringUtils {
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
 			objectMapper.writeValue(
-				    new FileOutputStream(machinePrefix+FILE), wireMap);
+				    new FileOutputStream(machinePrefix+FILE + "Updated"), wireMap);
 		} catch (IOException e) {			
 			e.printStackTrace();
 		}

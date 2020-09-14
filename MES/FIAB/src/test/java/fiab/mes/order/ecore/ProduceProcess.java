@@ -120,7 +120,8 @@ public class ProduceProcess {
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
 		p.setDisplayName("ProcessTemplate4Plotters");
 		p.setID("ProcessTemplate4Plotters");
-		EcoreProcessUtils.addProcessvariables(p, "Image1", "Image2", "Image3", "Image4");
+		EcoreProcessUtils.addProcessvariables(p, "Image1", "Image2", "Image3", "demo");
+		//EcoreProcessUtils.addProcessvariables(p, "demo", "demo", "demo", "demo");
 		EcoreProcessUtils.mapCapInputToProcessVar(p.getVariables(), s1,s2,s3,s4);
 		
 		p.getSteps().add(s1);

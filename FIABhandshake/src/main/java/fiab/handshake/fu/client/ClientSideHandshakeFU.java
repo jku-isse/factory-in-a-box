@@ -104,18 +104,19 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		path = path +"/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
 		UaFolderNode capability1 = base.generateFolder(capabilitiesFolder, path,
 				"CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
-		
-		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
+		String capabilityPath = path+"/CAPABILITY";
+		base.generateStringVariableNode(capability1, capabilityPath,  OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
 				new String(IOStationCapability.HANDSHAKE_CAPABILITY_URI));
-		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
+		base.generateStringVariableNode(capability1, capabilityPath,  OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
 				new String(capInstId));
-		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
+		base.generateStringVariableNode(capability1, capabilityPath,  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
 				new String(isProvided ? OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED : OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_REQUIRED));
-		
+		UaFolderNode wirings = base.generateFolder(capability1, capabilityPath,
+				"WIRINGS",  "WIRINGS");
 		// add wiring method
-		wiringNodes = WiringExposingUtils.createWiringInfoFolder(base, handshakeNode, path);
+		wiringNodes = WiringExposingUtils.createWiringInfoFolder(base, wirings, capabilityPath + "/WIRINGS");
 		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode nWire = base.createPartialMethodNode(path, OPCUACapabilitiesAndWiringInfoBrowsenames.OPCUA_WIRING_REQUEST, "Request stop");		
-		base.addMethodNode(handshakeNode, nWire, new WiringRequest(nWire, this)); 
+		base.addMethodNode(capability1, nWire, new WiringRequest(nWire, this));
 	}
 	
 	@Override

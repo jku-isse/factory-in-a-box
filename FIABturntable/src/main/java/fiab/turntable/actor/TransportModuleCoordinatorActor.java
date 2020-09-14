@@ -18,6 +18,7 @@ import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.turntable.conveying.ConveyorStates;
 import fiab.turntable.conveying.ConveyorStatusUpdateEvent;

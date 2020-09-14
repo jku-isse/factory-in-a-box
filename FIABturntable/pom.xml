@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>factory.in.a.box</groupId>
     <artifactId>FIABturntable</artifactId>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.0.8-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -119,7 +119,7 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABhandshake</artifactId>
-            <version>1.0.3-SNAPSHOT</version>
+            <version>1.0.4-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -190,10 +190,10 @@
                         <phase>validate</phase>
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
-                            <artifactId>original-FIABhandshake</artifactId>
-                            <version>1.0.3-SNAPSHOT</version>
+                            <artifactId>FIABhandshake</artifactId>
+                            <version>1.0.4-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABhandshake-1.0.4-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>

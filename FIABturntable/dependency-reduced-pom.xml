@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>factory.in.a.box</groupId>
   <artifactId>FIABturntable</artifactId>
-  <version>1.0.7-SNAPSHOT</version>
+  <version>1.0.8-SNAPSHOT</version>
   <build>
     <resources>
       <resource>
@@ -92,10 +92,10 @@
             </goals>
             <configuration>
               <groupId>factory.in.a.box</groupId>
-              <artifactId>original-FIABhandshake</artifactId>
-              <version>1.0.3-SNAPSHOT</version>
+              <artifactId>FIABhandshake</artifactId>
+              <version>1.0.4-SNAPSHOT</version>
               <packaging>jar</packaging>
-              <file>${project.basedir}/../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar</file>
+              <file>${project.basedir}/../libs/FIABhandshake-1.0.4-SNAPSHOT.jar</file>
             </configuration>
           </execution>
         </executions>

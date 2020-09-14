@@ -127,11 +127,11 @@ public class OPCUATurntableRootActor extends AbstractActor {
 
         // there is always a west, south, north, client
         HandshakeFU westFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, false, exposeInternalControl);
-        handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT,
-                westFU);
+        handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, westFU);
+
         HandshakeFU southFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, false, exposeInternalControl);
-        handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT,
-                southFU);
+        handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, southFU);
+
         HandshakeFU northFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, false, exposeInternalControl);
         handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT,
                 northFU);
