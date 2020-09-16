@@ -8,7 +8,7 @@ import java.net.URISyntaxException;
 
 //import fiab.capabilityTool.gui.CapabilityManagerUI;
 
-//http://factory-in-a-box.fiab/capabilities/plot/color/BLACK -> Black capability
+//http://factory-in-a-box.fiab/capabilities/plot/color/BLACK -> for example Black capability
 public class CapabilityManagerApplication {
 
     public static void main(String[] args) {
