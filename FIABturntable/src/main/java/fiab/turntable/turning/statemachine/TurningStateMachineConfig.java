@@ -1,7 +1,7 @@
-package fiab.turntable.turning;
+package fiab.turntable.turning.statemachine;
 
-import static fiab.turntable.turning.TurningStates.*;
-import static fiab.turntable.turning.TurningTriggers.*;
+import static fiab.turntable.turning.statemachine.TurningStates.*;
+import static fiab.turntable.turning.statemachine.TurningTriggers.*;
 
 import com.github.oxo42.stateless4j.StateMachineConfig;
 

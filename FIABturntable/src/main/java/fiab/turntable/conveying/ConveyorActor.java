@@ -6,6 +6,7 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
 import fiab.turntable.actor.IntraMachineEventBus;
+import fiab.turntable.conveying.statemachine.ConveyorTriggers;
 import hardware.ConveyorHardware;
 import hardware.lego.LegoConveyorHardware;
 import hardware.mock.ConveyorMockHardware;

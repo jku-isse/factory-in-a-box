@@ -9,13 +9,11 @@ import com.github.oxo42.stateless4j.StateMachine;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
 import fiab.turntable.actor.IntraMachineEventBus;
-import hardware.ConveyorHardware;
-import hardware.lego.LegoConveyorHardware;
-import hardware.mock.ConveyorMockHardware;
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.SensorPort;
+import fiab.turntable.conveying.statemachine.ConveyorStateMachineConfig;
+import fiab.turntable.conveying.statemachine.ConveyorStates;
+import fiab.turntable.conveying.statemachine.ConveyorTriggers;
 
-import static fiab.turntable.conveying.ConveyorStates.STOPPED;
+import static fiab.turntable.conveying.statemachine.ConveyorStates.STOPPED;
 
 import java.time.Duration;
 
@@ -35,7 +33,7 @@ public class BaseBehaviorConveyorActor extends AbstractActor {
     public BaseBehaviorConveyorActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
         this.publishEP = publishEP;
         this.intraEventBus = intraEventBus;
-        this.tsm = new StateMachine<>(STOPPED, new ConveyorStateMachineConfig());    
+        this.tsm = new StateMachine<>(STOPPED, new ConveyorStateMachineConfig());
     }
 
     

@@ -5,13 +5,14 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.StatePublisher;
 import fiab.turntable.actor.IntraMachineEventBus;
+import fiab.turntable.turning.statemachine.TurningStates;
 import hardware.TurningHardware;
 import hardware.lego.LegoTurningHardware;
 import hardware.mock.TurningMockHardware;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
 
-import static fiab.turntable.turning.TurningTriggers.*;
+import static fiab.turntable.turning.statemachine.TurningTriggers.*;
 
 import java.time.Duration;
 

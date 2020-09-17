@@ -1,4 +1,4 @@
-package fiab.turntable.turning;
+package fiab.turntable.turning.statemachine;
 
 public enum TurningStates {
     IDLE(0), STARTING(1), EXECUTING(2), COMPLETING(3), RESETTING(4), COMPLETE(5),

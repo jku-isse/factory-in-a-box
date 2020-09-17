@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.turntable.conveying.ConveyorTriggers;
+import fiab.turntable.conveying.statemachine.ConveyorTriggers;
 
 public class ConveyingStop extends AbstractMethodInvocationHandler {
 

@@ -8,17 +8,13 @@ import com.github.oxo42.stateless4j.StateMachine;
 
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
-import fiab.core.capabilities.basicmachine.BasicMachineRequests;
 import fiab.turntable.actor.IntraMachineEventBus;
-import fiab.turntable.conveying.BaseBehaviorConveyorActor;
-import hardware.TurningHardware;
-import hardware.lego.LegoTurningHardware;
-import hardware.mock.TurningMockHardware;
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.SensorPort;
+import fiab.turntable.turning.statemachine.TurningStateMachineConfig;
+import fiab.turntable.turning.statemachine.TurningStates;
+import fiab.turntable.turning.statemachine.TurningTriggers;
 
-import static fiab.turntable.turning.TurningStates.STOPPED;
-import static fiab.turntable.turning.TurningTriggers.*;
+import static fiab.turntable.turning.statemachine.TurningStates.STOPPED;
+import static fiab.turntable.turning.statemachine.TurningTriggers.*;
 
 import java.time.Duration;
 

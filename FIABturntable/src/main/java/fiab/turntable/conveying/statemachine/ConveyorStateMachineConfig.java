@@ -1,7 +1,7 @@
-package fiab.turntable.conveying;
+package fiab.turntable.conveying.statemachine;
 
-import static fiab.turntable.conveying.ConveyorStates.*;
-import static fiab.turntable.conveying.ConveyorTriggers.*;
+import static fiab.turntable.conveying.statemachine.ConveyorStates.*;
+import static fiab.turntable.conveying.statemachine.ConveyorTriggers.*;
 
 import com.github.oxo42.stateless4j.StateMachineConfig;
 

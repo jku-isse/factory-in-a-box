@@ -1,4 +1,4 @@
-package fiab.turntable.turning;
+package fiab.turntable.turning.statemachine;
 
 public enum TurningTriggers {
 

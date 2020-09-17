@@ -1,4 +1,4 @@
-package fiab.turntable.conveying;
+package fiab.turntable.conveying.statemachine;
 
 /**
  * Triggers to advance through the state machine

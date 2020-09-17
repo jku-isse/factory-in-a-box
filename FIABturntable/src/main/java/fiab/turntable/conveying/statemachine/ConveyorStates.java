@@ -1,4 +1,4 @@
-package fiab.turntable.conveying;
+package fiab.turntable.conveying.statemachine;
 
 /**
  * The States according to the diagram
