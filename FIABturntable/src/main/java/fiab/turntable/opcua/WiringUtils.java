@@ -31,8 +31,8 @@ public class WiringUtils {
 	public static void writeWiringInfoToFileSystem(HashMap<String, WiringInfo> wireMap, String machinePrefix) {
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
-			objectMapper.writeValue(
-				    new FileOutputStream(machinePrefix+FILE + "Updated"), wireMap);
+			objectMapper.writerWithDefaultPrettyPrinter().writeValue(
+				    new FileOutputStream(machinePrefix+"Updated"+FILE), wireMap);
 		} catch (IOException e) {			
 			e.printStackTrace();
 		}
