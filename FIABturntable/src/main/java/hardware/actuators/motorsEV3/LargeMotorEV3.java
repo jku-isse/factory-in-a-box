@@ -16,6 +16,7 @@ public class LargeMotorEV3 extends Motor {
     public LargeMotorEV3(Port motorPort) {
         super();
         this.largeRegulatedMotor = new EV3LargeRegulatedMotor(motorPort);
+        this.largeRegulatedMotor.setAcceleration(5000);     //6000 is default value, but this may make rotation smoother
         largeRegulatedMotor.resetTachoCount();
     }
 
@@ -25,8 +26,8 @@ public class LargeMotorEV3 extends Motor {
     @Override
     public void forward() {
         super.forward();
-        largeRegulatedMotor.hold();
-        //largeRegulatedMotor.brake();
+        //largeRegulatedMotor.hold();
+        largeRegulatedMotor.brake();
         largeRegulatedMotor.forward();
     }
 
@@ -36,8 +37,8 @@ public class LargeMotorEV3 extends Motor {
     @Override
     public void backward() {
         super.backward();
-        largeRegulatedMotor.hold();
-        //largeRegulatedMotor.brake();
+        //largeRegulatedMotor.hold();  //Should only be used when turning to a position setpoint (position_sp)
+        largeRegulatedMotor.brake();   //Use this for run-forever/run-direct
         largeRegulatedMotor.backward();
     }
 
@@ -52,7 +53,7 @@ public class LargeMotorEV3 extends Motor {
     public void rotateTo(int angle) {
         super.rotateTo(angle);
         largeRegulatedMotor.hold();
-        largeRegulatedMotor.rotateTo(angle, true);
+        largeRegulatedMotor.rotateTo(angle, true);  //immediateReturn prevents blocking
     }
 
     @Override
@@ -66,8 +67,8 @@ public class LargeMotorEV3 extends Motor {
     @Override
     public void stop() {
         super.stop();
-        largeRegulatedMotor.stop();
         largeRegulatedMotor.hold();
+        largeRegulatedMotor.stop();
     }
 
     /**
@@ -88,7 +89,7 @@ public class LargeMotorEV3 extends Motor {
 
     @Override
     public void resetTachoCount() {
-        largeRegulatedMotor.resetTachoCount();
         largeRegulatedMotor.hold();
+        largeRegulatedMotor.resetTachoCount();
     }
 }

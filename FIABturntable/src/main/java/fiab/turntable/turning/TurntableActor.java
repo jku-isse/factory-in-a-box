@@ -26,7 +26,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     //private final int NORTH_ANGLE = rightAngleDeg * TurnTableOrientation.NORTH.getNumericValue() * ratio;
     private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio + 10;
     private final int SOUTH_ANGLE = rightAngleDeg * TurnTableOrientation.SOUTH.getNumericValue() * ratio - 20;
-    private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 30; //correction
+    private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 30; //corrections
 
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
