@@ -20,7 +20,6 @@ import akka.pattern.Patterns;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
@@ -78,13 +77,13 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
                 return;
             }
             Actor model = generateActor(req.getInfo());
-            spawnNewIOStationActor(req.getInfo(), model, nodeIds);
+            spawnNewTransportModuleActor(req.getInfo(), model, nodeIds);
         } catch(Exception e) {
             log.error("Error obtaining info from OPCUA for spawning actor with error: "+e.getMessage());
         }
     }
 
-    private void spawnNewIOStationActor(CapabilityImplInfo info, Actor model, TransportModuleOPCUAnodes nodeIds) {
+    private void spawnNewTransportModuleActor(CapabilityImplInfo info, Actor model, TransportModuleOPCUAnodes nodeIds) {
         final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         AbstractCapability capability = TransportModuleCapability.getTransportCapability();
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
