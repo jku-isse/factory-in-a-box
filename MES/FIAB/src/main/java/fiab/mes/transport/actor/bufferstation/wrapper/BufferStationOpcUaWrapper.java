@@ -4,6 +4,8 @@ import akka.actor.ActorRef;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.buffer.BufferStationCapability;
+import fiab.mes.transport.actor.bufferstation.msg.BufferStatusUpdateEvent;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -25,7 +27,6 @@ public class BufferStationOpcUaWrapper extends AbstractOPCUAWrapper implements B
         this.intraMachineBus = intraMachineBus;
         this.loadMethod = loadMethod;
         this.unloadMethod = unloadMethod;
-
     }
 
     @Override
@@ -37,9 +38,9 @@ public class BufferStationOpcUaWrapper extends AbstractOPCUAWrapper implements B
             String stateAsString = value.getValue().getValue().toString();
             //System.out.println(stateAsString);
             try {
-                BasicMachineStates state = BasicMachineStates.valueOf(stateAsString);
+                BufferStationCapability.BufferStationStates state = BufferStationCapability.BufferStationStates.valueOf(stateAsString);
                 if (this.intraMachineBus != null) {
-                    intraMachineBus.publish(new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "TransportModule published new State", state));
+                    intraMachineBus.publish(new BufferStatusUpdateEvent("", BufferStationCapability.STATE_VAR_NAME, state));
                 }
             } catch (java.lang.IllegalArgumentException e) {
                 logger.error("Received Unknown State: " + e.getMessage());

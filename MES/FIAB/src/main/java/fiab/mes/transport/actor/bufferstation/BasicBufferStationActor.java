@@ -12,11 +12,13 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import fiab.core.capabilities.buffer.BufferStationCapability;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.machine.msg.GenericMachineRequests.Reset;
 import fiab.mes.machine.msg.GenericMachineRequests.Stop;
+import fiab.mes.transport.actor.bufferstation.msg.BufferStatusUpdateEvent;
 import fiab.mes.transport.actor.bufferstation.msg.LoadRequest;
 import fiab.mes.transport.actor.bufferstation.msg.UnloadRequest;
 import fiab.mes.transport.actor.bufferstation.wrapper.BufferStationWrapperInterface;
@@ -34,17 +36,17 @@ import java.util.Optional;
 public class BasicBufferStationActor extends AbstractActor {
 
 
-    private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     protected ActorSelection eventBusByRef;
     protected final AkkaActorBackedCoreModelAbstractActor machineId;
     protected AbstractCapability cap; //capability as turntable, but switch to buffer
     protected IntraMachineEventBus intraBus;
-    protected BasicMachineStates currentState;
+    protected BufferStationCapability.BufferStationStates currentState;
     protected BufferStationWrapperInterface hal;
     private MachineUpdateEvent lastMUE;
     protected String orderId = null;
 
-    private HistoryTracker externalHistory;
+    private final HistoryTracker externalHistory;
 
     public static Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, IntraMachineEventBus intraBus, BufferStationWrapperInterface hal) {
         return Props.create(BasicBufferStationActor.class, () -> new BasicBufferStationActor(machineEventBus, cap, modelActor, intraBus, hal));
@@ -56,6 +58,7 @@ public class BasicBufferStationActor extends AbstractActor {
         this.eventBusByRef = machineEventBus;
         this.intraBus = intraBus;
         this.hal = hal;
+        this.externalHistory = new HistoryTracker(machineId.getId());
         init();
     }
 
@@ -70,18 +73,19 @@ public class BasicBufferStationActor extends AbstractActor {
         return receiveBuilder()
                 .match(LoadRequest.class, req -> {
                     log.info(String.format("Received LoadRequest for order %s", req.getOrderId()));
-                    if (currentState.equals(BasicMachineStates.IDLE)) {
+                    if (currentState.equals(BufferStationCapability.BufferStationStates.IDLE_EMPTY)) {
                         processLoadRequest(req);
                     } else {
                         String msg = String.format("Received TransportModuleRequest %s in incompatible local state %s", req.getOrderId(), this.currentState);
                         log.warning(msg);
-                        getSender().tell(new MachineInWrongStateResponse(machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, this.currentState, req, BasicMachineStates.IDLE), self());
+                        //getSender().tell(new MachineInWrongStateResponse(machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, this.currentState, req, BasicMachineStates.IDLE), self());
                     }
                 })
                 .match(UnloadRequest.class, req -> {
                     log.info(String.format("Received UnloadRequest for order %s", req.getOrderId()));
+                    //TODO
                 })
-                .match(MachineStatusUpdateEvent.class, msg -> {
+                .match(BufferStatusUpdateEvent.class, msg -> {
                     processMachineUpdateEvent(msg);
                 })
                 .match(MachineHistoryRequest.class, req -> {
@@ -90,14 +94,14 @@ public class BasicBufferStationActor extends AbstractActor {
                 })
                 .match(Stop.class, req -> {
                     log.info(String.format("TransportModule %s received StopRequest", machineId.getId()));
-                    setAndPublishSensedState(BasicMachineStates.STOPPING);
+                    setAndPublishSensedState(BufferStationCapability.BufferStationStates.STOPPING);
                     hal.stop();
                 })
                 .match(Reset.class, req -> {
-                    if (currentState.equals(BasicMachineStates.COMPLETE)
-                            || currentState.equals(BasicMachineStates.STOPPED) ) {
+                    if (currentState.equals(BufferStationCapability.BufferStationStates.COMPLETE)
+                            || currentState.equals(BufferStationCapability.BufferStationStates.STOPPED)) {
                         log.info(String.format("TransportModule %s received ResetRequest in suitable state", machineId.getId()));
-                        setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
+                        setAndPublishSensedState(BufferStationCapability.BufferStationStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
                         hal.reset();
                     } else {
                         log.warning(String.format("TransportModule %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
@@ -105,8 +109,8 @@ public class BasicBufferStationActor extends AbstractActor {
                 })
                 .match(MachineDisconnectedEvent.class, req -> {
                     log.warning(String.format("Lost connection to machine in state: %s, sending disconnected event and shutting down actor", this.currentState));
-                    if (!currentState.equals(BasicMachineStates.STOPPED)) {
-                        setAndPublishSensedState(BasicMachineStates.STOPPED);
+                    if (!currentState.equals(BufferStationCapability.BufferStationStates.STOPPED)) {
+                        setAndPublishSensedState(BufferStationCapability.BufferStationStates.STOPPED);
                     }
                     eventBusByRef.tell(new MachineDisconnectedEvent(machineId), self());
                     getContext().stop(getSelf());
@@ -115,14 +119,14 @@ public class BasicBufferStationActor extends AbstractActor {
     }
 
     private void processLoadRequest(LoadRequest request) {
-        setAndPublishSensedState(BasicMachineStates.STARTING);
+        setAndPublishSensedState(BufferStationCapability.BufferStationStates.STARTING);
         orderId = request.getOrderId();
         hal.load(orderId);
     }
 
-    private void processMachineUpdateEvent(MachineStatusUpdateEvent mue) {
+    private void processMachineUpdateEvent(BufferStatusUpdateEvent mue) {
         if (mue.getParameterName().equals(OPCUABasicMachineBrowsenames.STATE_VAR_NAME)) {
-            BasicMachineStates newState = mue.getStatus();
+            BufferStationCapability.BufferStationStates newState = mue.getStatus();
             setAndPublishSensedState(newState);
             switch (newState) {
                 case COMPLETE:
@@ -132,7 +136,9 @@ public class BasicBufferStationActor extends AbstractActor {
                     break;
                 case EXECUTE: // for now we guess to have obtained the pallet for given order, --> this would need to be confirmed by the sub actor representing the turntable
                     break;
-                case IDLE:
+                case IDLE_EMPTY:
+                    break;
+                case IDLE_LOADED:
                     break;
                 case RESETTING:
                     break;
@@ -149,13 +155,13 @@ public class BasicBufferStationActor extends AbstractActor {
 
     }
 
-    private void setAndPublishSensedState(BasicMachineStates newState) {
+    private void setAndPublishSensedState(BufferStationCapability.BufferStationStates newState) {
         String order = orderId != null ? orderId : "none";
         String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, order);
         log.debug(msg);
         if (currentState != newState) {
             this.currentState = newState;
-            MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
+            MachineUpdateEvent mue = new BufferStatusUpdateEvent(machineId.getId(), BufferStationCapability.STATE_VAR_NAME, newState);
             tellEventBus(mue);
         }
     }

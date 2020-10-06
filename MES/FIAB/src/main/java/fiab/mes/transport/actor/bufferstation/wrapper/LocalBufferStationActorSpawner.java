@@ -54,7 +54,7 @@ public class LocalBufferStationActorSpawner extends AbstractActor {
                 .match(CapabilityCentricActorSpawnerInterface.SpawnRequest.class, req -> {
                     log.info(String.format("Received CapabilityImplementationInfos for Cap: %s on %s", req.getInfo().getCapabilityURI(), req.getInfo().getEndpointUrl()));
                     discovery = getSender();
-                    //retrieveMethodAndVariableNodeIds(req);
+                    retrieveMethodAndVariableNodeIds(req);
                 })
                 .match(MachineConnectedEvent.class, req -> {
                     machine.tell(req, getSelf());
@@ -70,7 +70,7 @@ public class LocalBufferStationActorSpawner extends AbstractActor {
     private void retrieveMethodAndVariableNodeIds(CapabilityCentricActorSpawnerInterface.SpawnRequest req) {
         // check if input or output station:
         String uri = req.getInfo().getCapabilityURI();
-        if (!uri.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI)) {
+        if (!uri.equalsIgnoreCase(BufferStationWellKnownCapabilityIdentifiers.BUFFER_CAPABILITY_URI)) {
             log.error("Called with nonsupported Capability: " + uri);
             return;
         }
