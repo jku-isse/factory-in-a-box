@@ -17,7 +17,7 @@ public class LargeMotorEV3 extends Motor {
         super();
         this.largeRegulatedMotor = new EV3LargeRegulatedMotor(motorPort);
         this.largeRegulatedMotor.setAcceleration(5000);     //6000 is default value, but this may make rotation smoother
-        largeRegulatedMotor.resetTachoCount();
+        //largeRegulatedMotor.resetTachoCount();
     }
 
     /**

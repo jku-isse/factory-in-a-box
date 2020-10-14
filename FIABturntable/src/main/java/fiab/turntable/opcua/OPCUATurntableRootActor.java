@@ -20,6 +20,7 @@ import fiab.opcua.server.OPCUABase;
 import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
 import fiab.turntable.actor.*;
 import fiab.turntable.conveying.fu.opcua.ConveyingFU;
+import fiab.turntable.opcua.methods.OPCUATurntableHardwareInfo;
 import fiab.turntable.opcua.methods.Reset;
 import fiab.turntable.opcua.methods.Stop;
 import fiab.turntable.opcua.methods.TransportRequest;
@@ -31,8 +32,7 @@ import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 
 public class OPCUATurntableRootActor extends AbstractActor {
 
@@ -47,11 +47,11 @@ public class OPCUATurntableRootActor extends AbstractActor {
 
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
-    static public Props props(String machineName,int portOffset, boolean exposeInternalControl) {
+    static public Props props(String machineName, int portOffset, boolean exposeInternalControl) {
         return Props.create(OPCUATurntableRootActor.class, () -> new OPCUATurntableRootActor(machineName, "", portOffset, exposeInternalControl));
     }
 
-    static public Props props(String machineName, String wiringFilePath,int portOffset, boolean exposeInternalControl) {
+    static public Props props(String machineName, String wiringFilePath, int portOffset, boolean exposeInternalControl) {
         return Props.create(OPCUATurntableRootActor.class, () -> new OPCUATurntableRootActor(machineName, wiringFilePath, portOffset, exposeInternalControl));
     }
 
@@ -97,30 +97,21 @@ public class OPCUATurntableRootActor extends AbstractActor {
             PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
             opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
         }
-        //OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
+
         UaFolderNode root = opcuaBase.prepareRootNode();
         UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "Turntable_FU");
         String fuPrefix = machineName + "/" + "Turntable_FU";
 
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         intraEventBus.subscribe(getSelf(), new SubscriptionClassifier("TurntableRoot", "*"));
-//       ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
-//                context().actorOf(TurntableActor.props(intraEventBus, null)),
-//                context().actorOf(ConveyorActor.props(intraEventBus, null))), "TurntableCoordinator");
-//        ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
-        //ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
-
 
         if (!exposeInternalControl) {
             TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
             ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
             ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
-                    //context().actorOf(TurntableActor.props(intraEventBus, null), "TurntableFU"),
-                    //context().actorOf(ConveyorActor.props(intraEventBus, null), "ConveyingFU")),
                     turningFU.getActor(),
                     conveyorFU.getActor()), "TurntableCoordinator");
             ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
-            //ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
         } else {
             ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");
             TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null);
@@ -129,6 +120,9 @@ public class OPCUATurntableRootActor extends AbstractActor {
 
         setupTurntableCapabilities(opcuaBase, ttNode, fuPrefix);
         setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, ttWrapper);
+
+        //Add hardware info
+        context().actorOf(OPCUATurntableHardwareInfo.props(opcuaBase, ttNode, fuPrefix));
 
         // there is always a west, south, north, client
         HandshakeFU westFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, false, exposeInternalControl);
@@ -162,9 +156,9 @@ public class OPCUATurntableRootActor extends AbstractActor {
 
     private void loadWiringFromFile() {
         String path;
-        if(wiringFilePath.equals("")){
+        if (wiringFilePath.equals("")) {
             path = machineName;
-        }else{
+        } else {
             path = wiringFilePath;
         }
         Optional<HashMap<String, WiringInfo>> optInfo = WiringUtils.loadWiringInfoFromFileSystem(path);
@@ -182,11 +176,11 @@ public class OPCUATurntableRootActor extends AbstractActor {
         });
     }
 
-    private void writeWiringToFile(){
+    private void writeWiringToFile() {
         HashMap<String, WiringInfo> wiringMap = new HashMap<>();
         for (String key : handshakeFUs.keySet()) {
             if (handshakeFUs.get(key) instanceof ClientSideHandshakeFU) {
-                if(((ClientSideHandshakeFU) handshakeFUs.get(key)).getCurrentWiringInfo() == null){
+                if (((ClientSideHandshakeFU) handshakeFUs.get(key)).getCurrentWiringInfo() == null) {
                     continue; //Skip if there is no current wiringInfo available
                 }
                 wiringMap.put(key, ((ClientSideHandshakeFU) handshakeFUs.get(key)).getCurrentWiringInfo());
