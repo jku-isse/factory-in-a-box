@@ -15,11 +15,17 @@ public class ConveyorMockMotor extends MockMotor {
     private ScheduledFuture unloadingTask;
     private long delay;
 
-    public ConveyorMockMotor(MockSensor sensorLoading, MockSensor sensorUnloading, int speed, long delay) {
+    public ConveyorMockMotor(int speed, long delay) {
         super(speed);
-        this.sensorLoading = sensorLoading;
-        this.sensorUnloading = sensorUnloading;
         this.delay = delay;
+    }
+
+    public void setSensorLoading(MockSensor sensorLoading) {
+        this.sensorLoading = sensorLoading;
+    }
+
+    public void setSensorUnloading(MockSensor sensorUnloading) {
+        this.sensorUnloading = sensorUnloading;
     }
 
     @Override

@@ -1,4 +1,5 @@
 import akka.actor.ActorSystem;
+
 import fiab.turntable.opcua.OPCUATurntableRootActor;
 
 public class TurnTableApplication {

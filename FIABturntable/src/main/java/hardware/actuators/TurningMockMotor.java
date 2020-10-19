@@ -15,14 +15,17 @@ public class TurningMockMotor extends MockMotor {
     private ScheduledThreadPoolExecutor executor;
     private ScheduledFuture timerTask;
 
-    public TurningMockMotor(MockSensor sensorHoming, int speed) {
+    public TurningMockMotor(int speed) {
         super(speed);
-        this.sensorHoming = sensorHoming;
         this.delay = speed * 10;     //simulate time for turning, assuming speed >= 100 (1s) and speed <= 500 (5s)
         isTurningForward = false;
         isTurningBackward = false;
-        sensorHoming.setDetectedInput(false);
         executor = new ScheduledThreadPoolExecutor(2);
+    }
+
+    public void setSensorHoming(MockSensor sensorHoming) {
+        this.sensorHoming = sensorHoming;
+        sensorHoming.setDetectedInput(false);
     }
 
     @Override

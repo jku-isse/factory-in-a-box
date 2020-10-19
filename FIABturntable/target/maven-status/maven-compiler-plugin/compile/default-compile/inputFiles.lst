@@ -2,6 +2,7 @@ C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\hardware\sensors\sen
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\hardware\actuators\TurningMockMotor.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\conveying\statemachine\ConveyorStates.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\opcua\WiringUtils.java
+C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\hardware\config\HardwareConfig.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\hardware\lego\LegoConveyorHardware.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\hardware\actuators\ConveyorMockMotor.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\conveying\ConveyorStatusUpdateEvent.java
@@ -9,7 +10,6 @@ C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\turni
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\hardware\sensors\Sensor.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\conveying\statemachine\ConveyorStateMachineConfig.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\conveying\fu\opcua\methods\ConveyingStop.java
-C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\opcua\methods\OPCUATurntableHardwareInfo.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\opcua\methods\TransportRequest.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\conveying\fu\opcua\ConveyingFU.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\turning\fu\opcua\methods\TurningStop.java
@@ -41,6 +41,7 @@ C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\hardware\mock\Turnin
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\hardware\actuators\Motor.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\actor\NoOpTransportModuleCoordinator.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\conveying\fu\opcua\methods\ConveyingLoad.java
+C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\opcua\methods\OPCUATurntableHardwareMonitor.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\turning\statemachine\TurningStates.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\hardware\TurningHardware.java
 C:\Users\Mario\factory-in-a-box\FIABturntable\src\main\java\fiab\turntable\actor\TransportModuleCoordinatorActor.java

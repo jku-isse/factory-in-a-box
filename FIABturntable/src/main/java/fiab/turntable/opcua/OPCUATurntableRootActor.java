@@ -5,6 +5,7 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
@@ -20,12 +21,13 @@ import fiab.opcua.server.OPCUABase;
 import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
 import fiab.turntable.actor.*;
 import fiab.turntable.conveying.fu.opcua.ConveyingFU;
-import fiab.turntable.opcua.methods.OPCUATurntableHardwareInfo;
+import fiab.turntable.opcua.methods.OPCUATurntableHardwareMonitor;
 import fiab.turntable.opcua.methods.Reset;
 import fiab.turntable.opcua.methods.Stop;
 import fiab.turntable.opcua.methods.TransportRequest;
 import fiab.turntable.turning.fu.opcua.TurningFU;
 
+import hardware.config.HardwareConfig;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
@@ -104,25 +106,25 @@ public class OPCUATurntableRootActor extends AbstractActor {
 
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         intraEventBus.subscribe(getSelf(), new SubscriptionClassifier("TurntableRoot", "*"));
-
+        HardwareConfig hardwareConfig = new HardwareConfig();
         if (!exposeInternalControl) {
-            TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
-            ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
+            TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus, hardwareConfig);
+            ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus, hardwareConfig);
             ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
                     turningFU.getActor(),
                     conveyorFU.getActor()), "TurntableCoordinator");
             ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
         } else {
             ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");
-            TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null);
-            ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null);
+            TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null, hardwareConfig);
+            ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null, hardwareConfig);
         }
 
         setupTurntableCapabilities(opcuaBase, ttNode, fuPrefix);
         setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, ttWrapper);
 
         //Add hardware info
-        context().actorOf(OPCUATurntableHardwareInfo.props(opcuaBase, ttNode, fuPrefix));
+        context().actorOf(OPCUATurntableHardwareMonitor.props(opcuaBase, ttNode, fuPrefix, hardwareConfig));
 
         // there is always a west, south, north, client
         HandshakeFU westFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(), TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, false, exposeInternalControl);

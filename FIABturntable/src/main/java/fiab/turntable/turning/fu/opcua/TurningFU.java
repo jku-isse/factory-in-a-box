@@ -1,5 +1,6 @@
 package fiab.turntable.turning.fu.opcua;
 
+import hardware.config.HardwareConfig;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
@@ -33,36 +34,36 @@ public class TurningFU implements StatePublisher{
 	private org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode status = null;
 
 
-	public TurningFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl,  IntraMachineEventBus intraEventBus) {
+	public TurningFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl, IntraMachineEventBus intraEventBus, HardwareConfig hardwareConfig) {
 		this.base = base;
 		this.rootNode = root;
 
 		this.context = context;
 		this.fuPrefix = fuPrefix;
 
-		setupOPCUANodeSet(exposeInternalControl, intraEventBus);
+		setupOPCUANodeSet(exposeInternalControl, intraEventBus, hardwareConfig);
 	}
 
 
-	private void setupOPCUANodeSet(boolean exposeInternalControl,  IntraMachineEventBus intraEventBus) {
+	private void setupOPCUANodeSet(boolean exposeInternalControl,  IntraMachineEventBus intraEventBus, HardwareConfig hardwareConfig) {
 		String path = fuPrefix + "/TURNING_FU";
-		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "TURNING_FU");	
+		UaFolderNode turningFolder = base.generateFolder(rootNode, fuPrefix, "TURNING_FU");
 
-		turningActor = context.actorOf(TurntableActor.props(intraEventBus, this), "TurningFU");
+		turningActor = context.actorOf(TurntableActor.props(intraEventBus, this, hardwareConfig), "TurningFU");
 
-		status = base.generateStringVariableNode(handshakeNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, TurningStates.STOPPED);
+		status = base.generateStringVariableNode(turningFolder, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, TurningStates.STOPPED);
 
 		if (exposeInternalControl) {
 			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, TurningTriggers.RESET.toString(), "Requests reset");		
-			base.addMethodNode(handshakeNode, n1, new TurningReset(n1, turningActor)); 		
+			base.addMethodNode(turningFolder, n1, new TurningReset(n1, turningActor));
 			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, TurningTriggers.STOP.toString(), "Requests stop");		
-			base.addMethodNode(handshakeNode, n2, new TurningStop(n2, turningActor));
+			base.addMethodNode(turningFolder, n2, new TurningStop(n2, turningActor));
 			org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n3 = base.createPartialMethodNode(path, "RequestTurn", "Requests turning");		
-			base.addMethodNode(handshakeNode, n3, new TurningRequest(n3, turningActor));
+			base.addMethodNode(turningFolder, n3, new TurningRequest(n3, turningActor));
 		}
 
 		// add capabilities 
-		UaFolderNode capabilitiesFolder = base.generateFolder(handshakeNode, path, new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
+		UaFolderNode capabilitiesFolder = base.generateFolder(turningFolder, path, new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
 		path = path +"/"+OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
 		UaFolderNode capability1 = base.generateFolder(capabilitiesFolder, path,
 				"CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
@@ -73,7 +74,19 @@ public class TurningFU implements StatePublisher{
 				new String("DefaultTurningCapability"));
 		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
 				new String(OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED));
+
+		addOpcUaHardwareRefs(turningFolder, path);
+
 	}
+
+	private void addOpcUaHardwareRefs(UaFolderNode turningFolder, String path) {
+		UaFolderNode hardwareFolder = base.generateFolder(turningFolder, path, "Hardware");
+		UaFolderNode turningMotor = base.generateFolder(hardwareFolder, path, "TurningMotor");
+		base.generateStringVariableNode(turningMotor, path + "/Hardware/TurningMotor", "Ref", "Hardware/Elements/MotorD");
+		UaFolderNode homingSensor = base.generateFolder(hardwareFolder, path, "HomingSensor");
+		base.generateStringVariableNode(homingSensor, path + "/Hardware/TurningMotor", "Ref", "Hardware/Elements/Sensor4");
+	}
+
 
 	public ActorRef getActor() {
 		return turningActor;

@@ -1,5 +1,6 @@
 fiab\turntable\StartupUtil.class
 fiab\turntable\turning\BaseBehaviorTurntableActor.class
+hardware\config\HardwareConfig.class
 fiab\turntable\conveying\BaseBehaviorConveyorActor$4.class
 fiab\turntable\turning\BaseBehaviorTurntableActor$2.class
 hardware\lego\LegoConveyorHardware.class
@@ -37,9 +38,11 @@ fiab\turntable\actor\NoOpTransportModuleCoordinator.class
 fiab\turntable\actor\TransportModuleCoordinatorActor$HandshakeEndpointInfo.class
 fiab\turntable\conveying\BaseBehaviorConveyorActor$1.class
 fiab\turntable\opcua\methods\Reset.class
+fiab\turntable\opcua\methods\OPCUATurntableHardwareMonitor.class
 fiab\turntable\actor\NoOpTransportModuleCoordinator$HandshakeEndpointInfo.class
 fiab\turntable\conveying\statemachine\ConveyorTriggers.class
 fiab\turntable\actor\TransportModuleCoordinatorActor$2.class
+fiab\turntable\opcua\methods\OPCUATurntableHardwareMonitor$HardwareIdentifiers.class
 hardware\actuators\motorsEV3\LargeMotorEV3.class
 fiab\turntable\turning\fu\opcua\methods\TurningReset.class
 hardware\mock\ConveyorMockHardware.class
@@ -54,6 +57,7 @@ hardware\actuators\Motor.class
 fiab\turntable\turning\fu\opcua\TurningFU.class
 fiab\turntable\conveying\BaseBehaviorConveyorActor$2.class
 hardware\actuators\MockMotor.class
+fiab\turntable\opcua\methods\OPCUATurntableHardwareMonitor$PlcPortType.class
 fiab\turntable\opcua\WiringUtils.class
 hardware\sensors\Sensor.class
 fiab\turntable\turning\fu\opcua\methods\TurningStop.class
@@ -63,7 +67,6 @@ fiab\turntable\turning\TurnRequest.class
 fiab\turntable\turning\TurnTableOrientation.class
 fiab\turntable\opcua\OPCUATurntableRootActor.class
 fiab\turntable\conveying\BaseBehaviorConveyorActor$3.class
-fiab\turntable\opcua\methods\OPCUATurntableHardwareInfo$PlcPortType.class
 fiab\turntable\turning\BaseBehaviorTurntableActor$1.class
 TurnTableApplication.class
 fiab\turntable\actor\TransportModuleCoordinatorActor$1.class
@@ -71,8 +74,6 @@ fiab\turntable\conveying\statemachine\ConveyorStateMachineConfig.class
 hardware\TurningHardware.class
 fiab\turntable\conveying\fu\opcua\methods\ConveyingLoad.class
 fiab\turntable\opcua\WiringUtils$1.class
-fiab\turntable\opcua\methods\OPCUATurntableHardwareInfo$HardwareIdentifiers.class
 fiab\turntable\turning\fu\opcua\methods\TurningRequest.class
-fiab\turntable\opcua\methods\OPCUATurntableHardwareInfo.class
 fiab\turntable\turning\BaseBehaviorTurntableActor$4.class
 hardware\sensors\sensorsEV3\TouchSensorEV3.class

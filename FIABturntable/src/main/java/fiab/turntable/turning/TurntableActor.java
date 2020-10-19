@@ -7,10 +7,12 @@ import fiab.core.capabilities.StatePublisher;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.turning.statemachine.TurningStates;
 import hardware.TurningHardware;
+import hardware.config.HardwareConfig;
 import hardware.lego.LegoTurningHardware;
 import hardware.mock.TurningMockHardware;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
+import org.w3c.dom.html.HTMLAreaElement;
 
 import static fiab.turntable.turning.statemachine.TurningTriggers.*;
 
@@ -33,23 +35,33 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     private TurningHardware turningHardware;
     protected TurnTableOrientation orientation;
 
-    public static Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
-        return Props.create(TurntableActor.class, () -> new TurntableActor(intraEventBus, publishEP));
+    public static Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareConfig hardwareConfig) {
+        return Props.create(TurntableActor.class, () -> new TurntableActor(intraEventBus, publishEP, hardwareConfig));
     }
 
-    public TurntableActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
+    public TurntableActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareConfig hardwareConfig) {
         super(intraEventBus, publishEP);
         this.orientation = TurnTableOrientation.NORTH;
         Runtime.getRuntime().addShutdownHook(new Thread(this::motorStop));
-        initHardware();
+        initHardware(hardwareConfig);
     }
 
-    private void initHardware() {
-        if (DEBUG) {
-            turningHardware = new TurningMockHardware(200);
+    private void initHardware(HardwareConfig hardwareConfig) {
+
+        /*if (DEBUG) {
+            if (hardwareConfig.getMotorD().isPresent() && hardwareConfig.getSensor4().isPresent()) {
+                turningHardware = new TurningMockHardware(hardwareConfig.getMotorD().get(), hardwareConfig.getSensor4().get());
+            }
         } else {
-            turningHardware = new LegoTurningHardware(MotorPort.D, SensorPort.S4);
-            turningHardware.getTurningMotor().setSpeed(200);
+            if (hardwareConfig.getMotorD().isPresent() && hardwareConfig.getSensor4().isPresent()) {
+                turningHardware = new LegoTurningHardware(hardwareConfig.getMotorD().get(), hardwareConfig.getSensor4().get());
+                turningHardware.getTurningMotor().setSpeed(200);
+            }
+        }*/
+        if(hardwareConfig.getTurningHardware().isPresent()){
+            turningHardware = hardwareConfig.getTurningHardware().get();
+        }else{
+            throw new RuntimeException("TurningHardware was not properly initialized!");
         }
     }
 
@@ -194,11 +206,11 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     private void checkTurningPositionReached(TurnTableOrientation orientation) {
         if (this.tsm.isInState(TurningStates.EXECUTING) && this.orientation == orientation
                 && isRotationFinished(orientation)) {
-                        log.info("Turning Position reached");
-                        if(orientation == TurnTableOrientation.NORTH){
-                            resetTachoCount();
-                        }
-                        completing();
+            log.info("Turning Position reached");
+            if (orientation == TurnTableOrientation.NORTH) {
+                resetTachoCount();
+            }
+            completing();
         } else {
             //TODO notify if stuck here and state is execute
             context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
