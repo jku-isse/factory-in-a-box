@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>factory.in.a.box</groupId>
 	<artifactId>FIABiostation</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<name>Virtual IO Station</name>
 	<description>Mimicks a real IO Station at OPC UA and handshake level</description>
 	<properties>

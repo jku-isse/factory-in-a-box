@@ -50,8 +50,8 @@ public class ConveyingFU implements StatePublisher {
     private void setupOPCUANodeSet(boolean exposeInternalControl, IntraMachineEventBus intraEventBus, HardwareInfo hardwareInfo) {
         String path = fuPrefix + "/CONVEYING_FU";
         UaFolderNode conveyorFolder = base.generateFolder(rootNode, fuPrefix, "CONVEYING_FU");
-
-        conveyingActor = context.actorOf(ConveyorActor.props(intraEventBus, this, hardwareInfo), "TT1-ConveyingFU");
+        String machineName = fuPrefix.split("/")[0];
+        conveyingActor = context.actorOf(ConveyorActor.props(intraEventBus, this, hardwareInfo), "TT-ConveyingFU");
 
         status = base.generateStringVariableNode(conveyorFolder, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, ConveyorStates.STOPPED);
 
@@ -78,17 +78,14 @@ public class ConveyingFU implements StatePublisher {
         base.generateStringVariableNode(capability1, path + "/CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
                 new String(OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED));
 
-        addOpcUaHardwareRefs(conveyorFolder, path);
+        addOpcUaHardwareRefs(conveyorFolder, path, machineName);
     }
 
-    private void addOpcUaHardwareRefs(UaFolderNode conveyorFolder, String path) {
+    private void addOpcUaHardwareRefs(UaFolderNode conveyorFolder, String path, String machineName) {
         UaFolderNode hardwareFolder = base.generateFolder(conveyorFolder, path, "Hardware");
-        UaFolderNode conveyorMotor = base.generateFolder(hardwareFolder, path, "ConveyorMotor");
-        base.generateStringVariableNode(conveyorMotor, path + "/Hardware/ConveyorMotor", "Ref", "Hardware/Elements/MotorA");
-        UaFolderNode loadingSensor = base.generateFolder(hardwareFolder, path, "LoadingSensor");
-        base.generateStringVariableNode(loadingSensor, path + "/Hardware/LoadingSensor", "Ref", "Hardware/Elements/Sensor2");
-        UaFolderNode unloadingSensor = base.generateFolder(hardwareFolder, path, "UnloadingSensor");
-        base.generateStringVariableNode(unloadingSensor, path + "/Hardware/UnloadingSensor", "Ref", "Hardware/Elements/Sensor3");
+        base.generateStringVariableNode(hardwareFolder, path + "/Hardware/ConveyorMotor", "ConveyorMotor", machineName + "/Hardware/Elements/MotorA");
+        base.generateStringVariableNode(hardwareFolder, path + "/Hardware/LoadingSensor", "LoadingSensor", machineName + "/Hardware/Elements/Sensor2");
+        base.generateStringVariableNode(hardwareFolder, path + "/Hardware/UnloadingSensor", "UnloadingSensor", machineName + "/Hardware/Elements/Sensor3");
     }
 
     public ActorRef getActor() {

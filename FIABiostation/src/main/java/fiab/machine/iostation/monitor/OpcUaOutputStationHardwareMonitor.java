@@ -18,8 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class OpcUaInputOutputStationHardwareMonitor extends AbstractActor {
-
+public class OpcUaOutputStationHardwareMonitor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     protected enum HardwareIdentifiers {LARGE_REGULATED_MOTOR, MEDIUM_REGULATED_MOTOR, TOUCH_SENSOR, COLOR_SENSOR}
@@ -29,18 +28,18 @@ public class OpcUaInputOutputStationHardwareMonitor extends AbstractActor {
     private final String pathToHardwareElements;
     private final String pathToPlcPortElements;
 
-    private final Map<String, HardwareIdentifiers> hardwareElements;
-    private final Map<String, PlcPortType> plcPortElements;
+    private final Map<String, OpcUaInputStationHardwareMonitor.HardwareIdentifiers> hardwareElements;
+    private final Map<String, OpcUaInputStationHardwareMonitor.PlcPortType> plcPortElements;
     private final Map<String, String> hardwareLinks;
     private final Map<String, Motor> connectedMotors;
     private final Map<String, Sensor> connectedSensors;
     private final HardwareInfo hardwareInfo;
 
     public static Props props(OPCUABase opcuaBase, UaFolderNode ioNode, String fuPrefix, HardwareInfo hardwareInfo) {
-        return Props.create(OpcUaInputOutputStationHardwareMonitor.class, () -> new OpcUaInputOutputStationHardwareMonitor(opcuaBase, ioNode, fuPrefix, hardwareInfo));
+        return Props.create(OpcUaInputStationHardwareMonitor.class, () -> new OpcUaInputStationHardwareMonitor(opcuaBase, ioNode, fuPrefix, hardwareInfo));
     }
 
-    public OpcUaInputOutputStationHardwareMonitor(OPCUABase opcuaBase, UaFolderNode ioNode, String fuPrefix, HardwareInfo hardwareInfo) {
+    public OpcUaOutputStationHardwareMonitor(OPCUABase opcuaBase, UaFolderNode ioNode, String fuPrefix, HardwareInfo hardwareInfo) {
         this.pathToHardwareElements = fuPrefix + "/Hardware/Elements/";
         this.pathToPlcPortElements = fuPrefix + "Hardware/Elements/PLC/";
         this.hardwareInfo = hardwareInfo;
@@ -59,38 +58,27 @@ public class OpcUaInputOutputStationHardwareMonitor extends AbstractActor {
     }
 
     public void initHardwareElements() {
-        hardwareElements.put("MotorA", HardwareIdentifiers.MEDIUM_REGULATED_MOTOR);
-        hardwareElements.put("MotorD", HardwareIdentifiers.LARGE_REGULATED_MOTOR);
-        hardwareElements.put("Sensor2", HardwareIdentifiers.TOUCH_SENSOR);
-        hardwareElements.put("Sensor3", HardwareIdentifiers.COLOR_SENSOR);
-        hardwareElements.put("Sensor4", HardwareIdentifiers.TOUCH_SENSOR);
+        hardwareElements.put("MotorA", OpcUaInputStationHardwareMonitor.HardwareIdentifiers.LARGE_REGULATED_MOTOR);
+        hardwareElements.put("Sensor1", OpcUaInputStationHardwareMonitor.HardwareIdentifiers.COLOR_SENSOR);
     }
 
     private void initPlcPortElements() {
-        plcPortElements.put("Port1", PlcPortType.SENSOR_PORT);
-        plcPortElements.put("Port2", PlcPortType.SENSOR_PORT);
-        plcPortElements.put("Port3", PlcPortType.SENSOR_PORT);
-        plcPortElements.put("Port4", PlcPortType.SENSOR_PORT);
-        plcPortElements.put("PortA", PlcPortType.MOTOR_PORT);
-        plcPortElements.put("PortB", PlcPortType.MOTOR_PORT);
-        plcPortElements.put("PortC", PlcPortType.MOTOR_PORT);
-        plcPortElements.put("PortD", PlcPortType.MOTOR_PORT);
+        plcPortElements.put("Port1", OpcUaInputStationHardwareMonitor.PlcPortType.SENSOR_PORT);
+        plcPortElements.put("Port2", OpcUaInputStationHardwareMonitor.PlcPortType.SENSOR_PORT);
+        plcPortElements.put("Port3", OpcUaInputStationHardwareMonitor.PlcPortType.SENSOR_PORT);
+        plcPortElements.put("Port4", OpcUaInputStationHardwareMonitor.PlcPortType.SENSOR_PORT);
+        plcPortElements.put("PortA", OpcUaInputStationHardwareMonitor.PlcPortType.MOTOR_PORT);
+        plcPortElements.put("PortB", OpcUaInputStationHardwareMonitor.PlcPortType.MOTOR_PORT);
+        plcPortElements.put("PortC", OpcUaInputStationHardwareMonitor.PlcPortType.MOTOR_PORT);
+        plcPortElements.put("PortD", OpcUaInputStationHardwareMonitor.PlcPortType.MOTOR_PORT);
     }
 
     private void initHardwareLinks() {
-        hardwareLinks.put(pathToPlcPortElements + "Port2", pathToHardwareElements + "Sensor2");
-        hardwareLinks.put(pathToPlcPortElements + "Port3", pathToHardwareElements + "Sensor3");
-        hardwareLinks.put(pathToPlcPortElements + "Port4", pathToHardwareElements + "Sensor4");
-        hardwareLinks.put(pathToPlcPortElements + "PortA", pathToHardwareElements + "MotorA");
-        hardwareLinks.put(pathToPlcPortElements + "PortD", pathToHardwareElements + "MotorD");
+        hardwareLinks.put(pathToPlcPortElements + "Port1", pathToHardwareElements + "Sensor1");
     }
 
     private void linkElementsToConnectedHardware() {
-        if (hardwareInfo.getMotorA().isPresent()) connectedMotors.put("MotorA", hardwareInfo.getMotorA().get());
-        if (hardwareInfo.getMotorD().isPresent()) connectedMotors.put("MotorD", hardwareInfo.getMotorD().get());
-        if (hardwareInfo.getSensor2().isPresent()) connectedSensors.put("Sensor2", hardwareInfo.getSensor2().get());
-        if (hardwareInfo.getSensor3().isPresent()) connectedSensors.put("Sensor3", hardwareInfo.getSensor3().get());
-        if (hardwareInfo.getSensor4().isPresent()) connectedSensors.put("Sensor4", hardwareInfo.getSensor4().get());
+        if (hardwareInfo.getSensor1().isPresent()) connectedSensors.put("Sensor1", hardwareInfo.getSensor1().get());
     }
 
     private void setupTurntableHardware(OPCUABase opcuaBase, UaFolderNode ioNode, String path) {
@@ -122,7 +110,7 @@ public class OpcUaInputOutputStationHardwareMonitor extends AbstractActor {
         }
     }
 
-    private void addHardwareElement(OPCUABase opcuaBase, UaFolderNode elementsFolder, String path, String elementName, HardwareIdentifiers identifiers) {
+    private void addHardwareElement(OPCUABase opcuaBase, UaFolderNode elementsFolder, String path, String elementName, OpcUaInputStationHardwareMonitor.HardwareIdentifiers identifiers) {
         path = path + "/" + elementName;
         UaFolderNode elementFolder = opcuaBase.generateFolder(elementsFolder, path, elementName);
         UaVariableNode status = opcuaBase.generateStringVariableNode(elementFolder, path + "/Status", "Status", "Undefined");
@@ -130,7 +118,7 @@ public class OpcUaInputOutputStationHardwareMonitor extends AbstractActor {
         UaVariableNode value = opcuaBase.generateStringVariableNode(elementFolder, path + "/Value", "Value", "Undefined");
         Optional<String> assignedPort = hardwareLinks.values().stream().filter(elem -> elem.contains(elementName)).findFirst();
         log.info("Found Port " + assignedPort + " for " + elementName);
-        if (assignedPort.isPresent() && (identifiers.equals(HardwareIdentifiers.COLOR_SENSOR) || identifiers.equals(HardwareIdentifiers.TOUCH_SENSOR))) {
+        if (assignedPort.isPresent() && (identifiers.equals(OpcUaInputStationHardwareMonitor.HardwareIdentifiers.COLOR_SENSOR) || identifiers.equals(OpcUaInputStationHardwareMonitor.HardwareIdentifiers.TOUCH_SENSOR))) {
             Optional<Sensor> sensor = getSensorInstanceForPort(elementName);
             log.info("Found Sensor " + sensor + " for " + elementName);
             if (sensor.isPresent()) {
@@ -141,8 +129,8 @@ public class OpcUaInputOutputStationHardwareMonitor extends AbstractActor {
             } else {
                 status.setValue(new DataValue(new Variant("Could not initialize Sensor")));
             }
-        } else if (assignedPort.isPresent() && (identifiers.equals(HardwareIdentifiers.LARGE_REGULATED_MOTOR)
-                || identifiers.equals(HardwareIdentifiers.MEDIUM_REGULATED_MOTOR))) {
+        } else if (assignedPort.isPresent() && (identifiers.equals(OpcUaInputStationHardwareMonitor.HardwareIdentifiers.LARGE_REGULATED_MOTOR)
+                || identifiers.equals(OpcUaInputStationHardwareMonitor.HardwareIdentifiers.MEDIUM_REGULATED_MOTOR))) {
             Optional<Motor> motor = getMotorInstanceForPort(elementName);
             log.info("Found Motor " + motor + " for " + elementName);
             if (motor.isPresent()) {
@@ -166,7 +154,7 @@ public class OpcUaInputOutputStationHardwareMonitor extends AbstractActor {
         }
     }
 
-    private void addPlcPort(OPCUABase opcuaBase, UaFolderNode plcFolder, String path, String portName, PlcPortType portIdentifier) {
+    private void addPlcPort(OPCUABase opcuaBase, UaFolderNode plcFolder, String path, String portName, OpcUaInputStationHardwareMonitor.PlcPortType portIdentifier) {
         path = path + "/" + portName;
         UaFolderNode folderNode = opcuaBase.generateFolder(plcFolder, path, portName);
         opcuaBase.generateStringVariableNode(folderNode, path + "/Type", "Type", portIdentifier.name());
@@ -189,7 +177,7 @@ public class OpcUaInputOutputStationHardwareMonitor extends AbstractActor {
     }
 
     @Override
-    public Receive createReceive() {
+    public AbstractActor.Receive createReceive() {
         //Does not receive messages
         return receiveBuilder().build();
     }

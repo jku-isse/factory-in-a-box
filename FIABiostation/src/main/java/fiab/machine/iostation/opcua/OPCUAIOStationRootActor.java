@@ -4,7 +4,8 @@ import java.time.Duration;
 
 import config.HardwareInfo;
 import config.MachineType;
-import fiab.machine.iostation.monitor.OpcUaInputOutputStationHardwareMonitor;
+import fiab.machine.iostation.monitor.OpcUaInputStationHardwareMonitor;
+import fiab.machine.iostation.monitor.OpcUaOutputStationHardwareMonitor;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
@@ -90,10 +91,12 @@ public class OPCUAIOStationRootActor extends AbstractActor {
         HardwareInfo hardwareInfo;
         if (isInputStation) {
             hardwareInfo = new HardwareInfo(MachineType.INPUTSTATION);
+            context().actorOf(OpcUaInputStationHardwareMonitor.props(opcuaBase, ioNode, fuPrefix, hardwareInfo));
         } else {
             hardwareInfo = new HardwareInfo(MachineType.OUTPUTSTATION);
+            context().actorOf(OpcUaOutputStationHardwareMonitor.props(opcuaBase, ioNode, fuPrefix, hardwareInfo));
         }
-        context().actorOf(OpcUaInputOutputStationHardwareMonitor.props(opcuaBase, ioNode, fuPrefix, hardwareInfo));
+
         CapabilityExposingUtils.setupCapabilities(opcuaBase, ioNode, fuPrefix, new CapabilityImplementationMetadata("DefaultStation",
                 isInputStation ? IOStationCapability.INPUTSTATION_CAPABILITY_URI : IOStationCapability.OUTPUTSTATION_CAPABILITY_URI,
                 ProvOrReq.PROVIDED));
