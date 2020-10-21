@@ -1,6 +1,6 @@
 package fiab.turntable.turning.fu.opcua;
 
-import hardware.config.HardwareConfig;
+import config.HardwareInfo;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
@@ -34,22 +34,22 @@ public class TurningFU implements StatePublisher{
 	private org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode status = null;
 
 
-	public TurningFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl, IntraMachineEventBus intraEventBus, HardwareConfig hardwareConfig) {
+	public TurningFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context, boolean exposeInternalControl, IntraMachineEventBus intraEventBus, HardwareInfo hardwareInfo) {
 		this.base = base;
 		this.rootNode = root;
 
 		this.context = context;
 		this.fuPrefix = fuPrefix;
 
-		setupOPCUANodeSet(exposeInternalControl, intraEventBus, hardwareConfig);
+		setupOPCUANodeSet(exposeInternalControl, intraEventBus, hardwareInfo);
 	}
 
 
-	private void setupOPCUANodeSet(boolean exposeInternalControl,  IntraMachineEventBus intraEventBus, HardwareConfig hardwareConfig) {
+	private void setupOPCUANodeSet(boolean exposeInternalControl,  IntraMachineEventBus intraEventBus, HardwareInfo hardwareInfo) {
 		String path = fuPrefix + "/TURNING_FU";
 		UaFolderNode turningFolder = base.generateFolder(rootNode, fuPrefix, "TURNING_FU");
 
-		turningActor = context.actorOf(TurntableActor.props(intraEventBus, this, hardwareConfig), "TurningFU");
+		turningActor = context.actorOf(TurntableActor.props(intraEventBus, this, hardwareInfo), "TurningFU");
 
 		status = base.generateStringVariableNode(turningFolder, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, TurningStates.STOPPED);
 

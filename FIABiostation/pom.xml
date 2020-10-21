@@ -54,6 +54,11 @@
 			<artifactId>FIABhandshake</artifactId>
 			<version>1.0.3-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>factory.in.a.box</groupId>
+			<artifactId>FIABhardware</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -112,6 +117,21 @@
 							<version>1.0.3-SNAPSHOT</version>
 							<packaging>jar</packaging>
 							<file>${project.basedir}/../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar
+							</file>
+						</configuration>
+					</execution>
+					<execution>
+						<id>install-jar-lib-4</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<phase>validate</phase>
+						<configuration>
+							<groupId>factory.in.a.box</groupId>
+							<artifactId>FIABhardware</artifactId>
+							<version>1.0.0-SNAPSHOT</version>
+							<packaging>jar</packaging>
+							<file>${project.basedir}/../libs/FIABhardware-1.0.0-SNAPSHOT.jar
 							</file>
 						</configuration>
 					</execution>

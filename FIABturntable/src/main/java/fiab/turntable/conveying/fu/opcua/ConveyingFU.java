@@ -1,6 +1,6 @@
 package fiab.turntable.conveying.fu.opcua;
 
-import hardware.config.HardwareConfig;
+import config.HardwareInfo;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
@@ -36,22 +36,22 @@ public class ConveyingFU implements StatePublisher {
 
 
     public ConveyingFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorContext context,
-                       boolean exposeInternalControl, IntraMachineEventBus intraEventBus, HardwareConfig hardwareConfig) {
+                       boolean exposeInternalControl, IntraMachineEventBus intraEventBus, HardwareInfo hardwareInfo) {
         this.base = base;
         this.rootNode = root;
 
         this.context = context;
         this.fuPrefix = fuPrefix;
 
-        setupOPCUANodeSet(exposeInternalControl, intraEventBus, hardwareConfig);
+        setupOPCUANodeSet(exposeInternalControl, intraEventBus, hardwareInfo);
     }
 
 
-    private void setupOPCUANodeSet(boolean exposeInternalControl, IntraMachineEventBus intraEventBus, HardwareConfig hardwareConfig) {
+    private void setupOPCUANodeSet(boolean exposeInternalControl, IntraMachineEventBus intraEventBus, HardwareInfo hardwareInfo) {
         String path = fuPrefix + "/CONVEYING_FU";
         UaFolderNode conveyorFolder = base.generateFolder(rootNode, fuPrefix, "CONVEYING_FU");
 
-        conveyingActor = context.actorOf(ConveyorActor.props(intraEventBus, this, hardwareConfig), "TT1-ConveyingFU");
+        conveyingActor = context.actorOf(ConveyorActor.props(intraEventBus, this, hardwareInfo), "TT1-ConveyingFU");
 
         status = base.generateStringVariableNode(conveyorFolder, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, ConveyorStates.STOPPED);
 

@@ -7,12 +7,7 @@ import fiab.core.capabilities.StatePublisher;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.turning.statemachine.TurningStates;
 import hardware.TurningHardware;
-import hardware.config.HardwareConfig;
-import hardware.lego.LegoTurningHardware;
-import hardware.mock.TurningMockHardware;
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.SensorPort;
-import org.w3c.dom.html.HTMLAreaElement;
+import config.HardwareInfo;
 
 import static fiab.turntable.turning.statemachine.TurningTriggers.*;
 
@@ -35,18 +30,18 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     private TurningHardware turningHardware;
     protected TurnTableOrientation orientation;
 
-    public static Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareConfig hardwareConfig) {
-        return Props.create(TurntableActor.class, () -> new TurntableActor(intraEventBus, publishEP, hardwareConfig));
+    public static Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareInfo hardwareInfo) {
+        return Props.create(TurntableActor.class, () -> new TurntableActor(intraEventBus, publishEP, hardwareInfo));
     }
 
-    public TurntableActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareConfig hardwareConfig) {
+    public TurntableActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareInfo hardwareInfo) {
         super(intraEventBus, publishEP);
         this.orientation = TurnTableOrientation.NORTH;
         Runtime.getRuntime().addShutdownHook(new Thread(this::motorStop));
-        initHardware(hardwareConfig);
+        initHardware(hardwareInfo);
     }
 
-    private void initHardware(HardwareConfig hardwareConfig) {
+    private void initHardware(HardwareInfo hardwareInfo) {
 
         /*if (DEBUG) {
             if (hardwareConfig.getMotorD().isPresent() && hardwareConfig.getSensor4().isPresent()) {
@@ -58,8 +53,8 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
                 turningHardware.getTurningMotor().setSpeed(200);
             }
         }*/
-        if(hardwareConfig.getTurningHardware().isPresent()){
-            turningHardware = hardwareConfig.getTurningHardware().get();
+        if(hardwareInfo.getTurningHardware().isPresent()){
+            turningHardware = hardwareInfo.getTurningHardware().get();
         }else{
             throw new RuntimeException("TurningHardware was not properly initialized!");
         }
