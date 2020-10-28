@@ -59,7 +59,6 @@ public class OpcUaInputStationHardwareMonitor extends AbstractActor {
     }
 
     public void initHardwareElements() {
-        hardwareElements.put("MotorA", HardwareIdentifiers.LARGE_REGULATED_MOTOR);
         hardwareElements.put("Sensor1", HardwareIdentifiers.COLOR_SENSOR);
     }
 
@@ -76,11 +75,9 @@ public class OpcUaInputStationHardwareMonitor extends AbstractActor {
 
     private void initHardwareLinks() {
         hardwareLinks.put(pathToPlcPortElements + "Port1", pathToHardwareElements + "Sensor1");
-        hardwareLinks.put(pathToPlcPortElements + "PortA", pathToHardwareElements + "MotorA");
     }
 
     private void linkElementsToConnectedHardware() {
-        if (hardwareInfo.getMotorA().isPresent()) connectedMotors.put("MotorA", hardwareInfo.getMotorA().get());
         if (hardwareInfo.getSensor1().isPresent()) connectedSensors.put("Sensor1", hardwareInfo.getSensor1().get());
     }
 
@@ -127,6 +124,7 @@ public class OpcUaInputStationHardwareMonitor extends AbstractActor {
             if (sensor.isPresent()) {
                 status.setValue(new DataValue(new Variant("OK")));
                 getContext().getSystem().getScheduler().schedule(Duration.ZERO, Duration.ofSeconds(3), () -> {
+                    log.info("Updating sensor value to: " + sensor.get().hasDetectedInput());
                     value.setValue(new DataValue(new Variant(String.valueOf(sensor.get().hasDetectedInput()))));
                 }, getContext().getDispatcher());
             } else {

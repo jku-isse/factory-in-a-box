@@ -9,6 +9,7 @@ mock\MockTurningHardware.class
 config\HardwareInfo$1.class
 config\MachineType.class
 hardware\ConveyorHardware.class
+actuators\InputStationMockMotor.class
 mock\MockInputStationHardware.class
 actuators\motorsEV3\MediumMotorEV3.class
 sensors\Sensor.class

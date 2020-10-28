@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  * errors in the construction.
  */
 public class MockMotor extends Motor {
-    
+
     private int motorSpeed;
 
     protected ScheduledExecutorService executorService;
@@ -20,7 +20,7 @@ public class MockMotor extends Motor {
 
     public MockMotor(int speed) {
         super();
-        executorService = new ScheduledThreadPoolExecutor(1);
+        executorService = new ScheduledThreadPoolExecutor(3);
         motorSpeed = speed;
     }
 
@@ -35,6 +35,9 @@ public class MockMotor extends Motor {
     @Override
     public void forward() {
         super.forward();
+        if (backwardTask != null) {
+            backwardTask.cancel(true);
+        }
         forwardTask = executorService.scheduleAtFixedRate(
                 () -> System.out.println("===| Moving forward with speed: " + motorSpeed),
                 0, 1000, TimeUnit.MILLISECONDS);
@@ -43,6 +46,9 @@ public class MockMotor extends Motor {
     @Override
     public void backward() {
         super.backward();
+        if (forwardTask != null) {
+            forwardTask.cancel(true);
+        }
         backwardTask = executorService.scheduleAtFixedRate(
                 () -> System.out.println("===| Moving backward with speed: " + motorSpeed),
                 0, 1000, TimeUnit.MILLISECONDS);

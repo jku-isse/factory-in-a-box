@@ -123,7 +123,7 @@ public class OpcUaOutputStationHardwareMonitor extends AbstractActor {
             log.info("Found Sensor " + sensor + " for " + elementName);
             if (sensor.isPresent()) {
                 status.setValue(new DataValue(new Variant("OK")));
-                getContext().getSystem().getScheduler().schedule(Duration.ZERO, Duration.ofSeconds(3), () -> {
+                getContext().getSystem().getScheduler().schedule(Duration.ZERO, Duration.ofSeconds(2), () -> {
                     value.setValue(new DataValue(new Variant(String.valueOf(sensor.get().hasDetectedInput()))));
                 }, getContext().getDispatcher());
             } else {

@@ -1,10 +1,7 @@
 package config;
 
-import actuators.MockMotor;
+import actuators.*;
 import hardware.*;
-import actuators.ConveyorMockMotor;
-import actuators.Motor;
-import actuators.TurningMockMotor;
 import actuators.motorsEV3.LargeMotorEV3;
 import actuators.motorsEV3.MediumMotorEV3;
 import lego.LegoConveyorHardware;
@@ -65,7 +62,7 @@ public class HardwareInfo {
 
     private void initInputStationHardware() {
         if (DEBUG) {
-            this.motorA = new MockMotor(300);
+            this.motorA = new InputStationMockMotor();
             this.sensor1 = new MockSensor();
             this.inputStationHardware = new MockInputStationHardware(motorA, sensor1);
         } else {
