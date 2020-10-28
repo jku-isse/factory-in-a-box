@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +54,7 @@ public class CapabilityManagerActor extends AbstractActor {
     private Map<String, String> getCapabilitiesFromDir() {
         Map<String, String> endPointCapabilityMap = null;
         try {
-            List<Path> filePaths = Files.list(Path.of(dirPath)).collect(Collectors.toList());
+            List<Path> filePaths = Files.list(Paths.get(dirPath)).collect(Collectors.toList());
             endPointCapabilityMap = new HashMap<>();
             for (Path path : filePaths) {
                 AbstractMap.SimpleEntry<String, String> entry = parseJsonFileAsCapabilityEntry(path);
@@ -71,7 +72,7 @@ public class CapabilityManagerActor extends AbstractActor {
         ObjectMapper mapper = new ObjectMapper();
         PlotCapability plotCapability;
         try {
-            String jsonContent = Files.readString(capabilityFilePath);
+            String jsonContent = new String(Files.readAllBytes(capabilityFilePath));
             plotCapability = mapper.readValue(jsonContent, PlotCapability.class);
             return new AbstractMap.SimpleEntry<>(plotCapability.endpointUrl, plotCapability.plotCapability);
         } catch (IOException e) {
