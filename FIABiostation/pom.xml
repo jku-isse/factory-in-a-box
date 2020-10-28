@@ -42,7 +42,7 @@
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABopcuabase</artifactId>
-			<version>1.0.2-SNAPSHOT</version>
+			<version>1.0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABhandshake</artifactId>
-			<version>1.0.3-SNAPSHOT</version>
+			<version>1.0.4-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>
