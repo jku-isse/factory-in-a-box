@@ -1,0 +1,7 @@
+*.prefs
+*.class
+*.lst
+*.cnf
+*.conf
+*.project
+*.classpath
