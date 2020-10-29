@@ -42,7 +42,7 @@
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABopcuabase</artifactId>
-			<version>1.0.2-SNAPSHOT</version>
+			<version>1.0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABhandshake</artifactId>
-			<version>1.0.3-SNAPSHOT</version>
+			<version>1.0.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
@@ -101,7 +101,7 @@
 							<artifactId>FIABopcuabase</artifactId>
 							<version>1.0.2-SNAPSHOT</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/original-FIABopcuabase-1.0.2-SNAPSHOT.jar
+							<file>${project.basedir}/../libs/FIABopcuabase-1.0.3-SNAPSHOT.jar
 							</file>
 						</configuration>
 					</execution>
@@ -116,7 +116,7 @@
 							<artifactId>FIABhandshake</artifactId>
 							<version>1.0.3-SNAPSHOT</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar
+							<file>${project.basedir}/../libs/FIABhandshake-1.0.4-SNAPSHOT.jar
 							</file>
 						</configuration>
 					</execution>

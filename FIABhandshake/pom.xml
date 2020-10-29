@@ -83,7 +83,7 @@
                             <artifactId>FIABopcuabase</artifactId>
                             <version>1.0.3-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABopcuabase-1.0.3-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABopcuabase-1.0.3-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
