@@ -6,10 +6,12 @@ import actuators.motorsEV3.LargeMotorEV3;
 import actuators.motorsEV3.MediumMotorEV3;
 import lego.LegoConveyorHardware;
 import lego.LegoInputStationHardware;
+import lego.LegoPlotterHardware;
 import lego.LegoTurningHardware;
 import mock.MockConveyorHardware;
 import mock.MockInputStationHardware;
 import mock.MockOutputStationHardware;
+import mock.MockPlotterHardware;
 import mock.MockTurningHardware;
 import sensors.MockSensor;
 import sensors.Sensor;
@@ -17,7 +19,6 @@ import sensors.sensorsEV3.ColorSensorEV3;
 import sensors.sensorsEV3.TouchSensorEV3;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Optional;
 
@@ -107,8 +108,33 @@ public class HardwareInfo {
     }
 
     private void initPlotterHardware() {
-        //TODO
-        throw new NotImplementedException();
+        if(DEBUG) {
+        	this.motorA = new ConveyorMockMotor(100, 200);
+        	this.motorB = new MockMotor(200);   //MotorX (forward/backward)
+        	this.motorC = new MockMotor(200);	//MotorY (left/right)
+        	this.motorD = new MockMotor(100);	//PenMotor
+        	
+        	this.sensor1 = new MockSensor();
+        	this.sensor2 = new MockSensor();
+        	this.sensor3 = new MockSensor();
+        	this.sensor4 = new MockSensor();
+        	
+        	this.conveyorHardware = new MockConveyorHardware(motorA, sensor2, sensor1);
+        	this.plotterHardware = new MockPlotterHardware(motorB, motorC, motorD, sensor3, sensor4);
+        }else {
+        	this.motorA = new LargeMotorEV3(MotorPort.A);
+        	this.motorB = new LargeMotorEV3(MotorPort.B);
+        	this.motorC = new LargeMotorEV3(MotorPort.C);
+        	this.motorD = new MediumMotorEV3(MotorPort.D);
+        	
+        	this.sensor1 = new ColorSensorEV3(SensorPort.S1);
+        	this.sensor2 = new TouchSensorEV3(SensorPort.S2);
+        	this.sensor3 = new TouchSensorEV3(SensorPort.S3);
+        	this.sensor4 = new TouchSensorEV3(SensorPort.S4);
+        	
+        	this.conveyorHardware = new LegoConveyorHardware(motorA, sensor2, sensor3);
+        	this.plotterHardware = new LegoPlotterHardware(motorB, motorC, motorD, sensor3, sensor4);
+        }
     }
 
     public Optional<Motor> getMotorA() {

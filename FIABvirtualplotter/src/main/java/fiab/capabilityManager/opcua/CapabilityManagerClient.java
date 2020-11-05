@@ -79,6 +79,7 @@ public class CapabilityManagerClient extends AbstractActor {
                 log.info("Changed capability to " + s);
             } else {
                 log.info("Could not change capability, " + t);
+                t.printStackTrace();
             }
         });
     }

@@ -1,4 +1,4 @@
-package fiab.capabilityManager.gui.msg;
+package fiab.capabilityManager.opcua.msg;
 
 public class ConnectionRequest {
 

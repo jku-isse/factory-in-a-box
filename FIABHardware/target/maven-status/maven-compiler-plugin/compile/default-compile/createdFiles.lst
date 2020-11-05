@@ -1,9 +1,11 @@
+mock\MockPlotterHardware.class
 config\HardwareInfo.class
 lego\LegoOutputStationHardware.class
 actuators\motorsEV3\LargeMotorEV3.class
 actuators\MockMotor.class
 hardware\OutputStationHardware.class
 sensors\sensorsEV3\TouchSensorEV3.class
+lego\LegoPlotterHardware.class
 sensors\MockSensor.class
 mock\MockTurningHardware.class
 config\HardwareInfo$1.class
