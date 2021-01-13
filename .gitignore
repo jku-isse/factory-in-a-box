@@ -5,3 +5,4 @@
 *.conf
 *.project
 *.classpath
+*.class
