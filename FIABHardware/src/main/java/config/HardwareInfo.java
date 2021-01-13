@@ -109,9 +109,9 @@ public class HardwareInfo {
 
     private void initPlotterHardware() {
         if(DEBUG) {
-        	this.motorA = new ConveyorMockMotor(100, 200);
-        	this.motorB = new MockMotor(200);   //MotorX (forward/backward)
-        	this.motorC = new MockMotor(200);	//MotorY (left/right)
+        	this.motorA = new ConveyorMockMotor(100, 2000);
+        	this.motorB = new PlotXMockMotor();   //MotorX (forward/backward)
+        	this.motorC = new PlotYMockMotor();	//MotorY (left/right)
         	this.motorD = new MockMotor(100);	//PenMotor
         	
         	this.sensor1 = new MockSensor();

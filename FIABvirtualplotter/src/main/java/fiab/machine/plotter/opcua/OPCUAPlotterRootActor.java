@@ -32,6 +32,7 @@ import config.MachineType;
 
 public class OPCUAPlotterRootActor extends AbstractActor {
 
+	private boolean exposeInternalControl;
     private String machineName = "Plotter";
     static final String NAMESPACE_URI = "urn:factory-in-a-box";
     private UaVariableNode status = null;
@@ -80,8 +81,15 @@ public class OPCUAPlotterRootActor extends AbstractActor {
 
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         intraEventBus.subscribe(getSelf(), new fiab.machine.plotter.SubscriptionClassifier("Plotter Module", "*"));
-        plotterCoordinator = context().actorOf(VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus), machineName);
+        HardwareInfo hardwareInfo = new HardwareInfo(MachineType.PLOTTER);
+        	
+        //PlotFu plotFu = new PlotFu();
+        //ConveyorFu conveyorFu = new ConveyorFu(opcuaBase, root, machineName, context(), exposeInternalControl, intraEventBus, hardwareInfo);    
+        //PlotFu plotFu = new PlotFu(opcuaBase, root, machineName , context(), exposeInternalControl, intraEventBus, hardwareInfo, color);
+        
+        plotterCoordinator = context().actorOf(VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus, hardwareInfo), machineName);
         plotterCoordinator.tell(PlotterMessageTypes.SubscribeState, getSelf());
+        
         
         UaFolderNode plotHardwareNode = opcuaBase.generateFolder(plotterNode, fuPrefix, "Hardware");
         opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PlotXMotor", machineName +"/Hardware/Elements/MotorB");
@@ -90,7 +98,7 @@ public class OPCUAPlotterRootActor extends AbstractActor {
         opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "HomingXSensor", machineName +"/Hardware/Elements/Sensor4");
         opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "HomingYSensor", machineName +"/Hardware/Elements/Sensor3");
         
-        HardwareInfo hardwareInfo = new HardwareInfo(MachineType.PLOTTER);
+        
         context().actorOf(OPCUAPlotterHardwareMonitor.props(opcuaBase, root, machineName, hardwareInfo));
         
         UaFolderNode conveyorNode = opcuaBase.generateFolder(root, machineName, "Conveyor_FU");
