@@ -1,6 +1,6 @@
 package fiab.machine.plotter;
 
-import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 
 public class MachineCapabilityUpdateEvent  extends MachineUpdateEvent {
     /**

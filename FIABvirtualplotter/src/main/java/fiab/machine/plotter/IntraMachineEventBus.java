@@ -2,7 +2,7 @@ package fiab.machine.plotter;
 
 import akka.actor.ActorRef;
 import akka.event.japi.ScanningEventBus;
-import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
 
 public class IntraMachineEventBus extends ScanningEventBus<MachineEvent, ActorRef, SubscriptionClassifier> {
 

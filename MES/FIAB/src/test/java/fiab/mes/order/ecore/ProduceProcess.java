@@ -9,8 +9,8 @@ import ProcessCore.AbstractCapability;
 import ProcessCore.CapabilityInvocation;
 import ProcessCore.ProcessCoreFactory;
 import ProcessCore.XmlRoot;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.capabilities.plotting.EcoreProcessUtils;
 
 public class ProduceProcess {

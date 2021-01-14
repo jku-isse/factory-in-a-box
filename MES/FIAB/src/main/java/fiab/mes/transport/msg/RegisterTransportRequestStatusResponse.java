@@ -1,6 +1,6 @@
 package fiab.mes.transport.msg;
 
-import fiab.core.capabilities.events.TimedEvent;
+import main.java.fiab.core.capabilities.events.TimedEvent;
 
 public class RegisterTransportRequestStatusResponse extends TimedEvent{
 

@@ -1,6 +1,6 @@
 package fiab.mes.machine.msg;
 
-import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
 
 public class MachineErrorResponse extends MachineEvent {
 

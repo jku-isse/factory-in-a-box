@@ -1,6 +1,5 @@
 package fiab.mes.machine.actor.plotter.wrapper;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -28,11 +27,10 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.pattern.Patterns;
-import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import main.java.fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.machine.plotter.IntraMachineEventBus;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;

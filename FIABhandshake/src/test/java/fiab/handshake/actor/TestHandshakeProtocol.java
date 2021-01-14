@@ -12,11 +12,9 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.CallingThreadDispatcher;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.handshake.HandshakeCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.handshake.actor.ClientHandshakeActor;
-import fiab.handshake.actor.ServerSideHandshakeActor;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 
 public class TestHandshakeProtocol { 
 

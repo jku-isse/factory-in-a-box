@@ -2,6 +2,8 @@ package fiab.mes.mockactors.plotter;
 
 import java.time.Duration;
 
+import config.HardwareInfo;
+import config.MachineType;
 import org.junit.AfterClass;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,17 +18,16 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import fiab.core.capabilities.events.TimedEvent;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import main.java.fiab.core.capabilities.BasicMachineStates;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import main.java.fiab.core.capabilities.events.TimedEvent;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import main.java.fiab.core.capabilities.handshake.IOStationCapability;
+import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.machine.plotter.SubscriptionClassifier;
 import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -81,7 +82,7 @@ public class TestBasicMachineActorWithTransport {
 				
 				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 				//intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
-				ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper1");
+				ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus, new HardwareInfo(MachineType.PLOTTER)), "MachineWrapper1");	//TODO Check if we can do without HardwareInfo
 				ActorSelection serverSide = system.actorSelection("/user/MachineWrapper1/ServerSideHandshakeMock");
 				PlottingMachineWrapperInterface wrapperDelegate = new MockPlottingMachineWrapperDelegate(machineWrapper);
 				machine = system.actorOf(BasicMachineActor.props(eventBusByRef, cap, modelActor, wrapperDelegate, intraEventBus));

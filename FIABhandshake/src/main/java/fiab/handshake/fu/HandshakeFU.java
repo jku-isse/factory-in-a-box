@@ -1,7 +1,7 @@
 package fiab.handshake.fu;
 
 import akka.actor.ActorRef;
-import fiab.core.capabilities.wiring.WiringInfo;
+import main.java.fiab.core.capabilities.wiring.WiringInfo;
 
 public interface HandshakeFU {
 

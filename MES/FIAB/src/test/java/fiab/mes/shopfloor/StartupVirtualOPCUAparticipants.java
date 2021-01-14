@@ -1,9 +1,7 @@
 package fiab.mes.shopfloor;
 
-import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.machine.plotter.opcua.StartupUtil;
-import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
-import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 
 public class StartupVirtualOPCUAparticipants {
 

@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.core.capabilities.plotting.PlotterMessageTypes;
+import main.java.fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;
 
 public class MockPlottingMachineWrapperDelegate implements PlottingMachineWrapperInterface {

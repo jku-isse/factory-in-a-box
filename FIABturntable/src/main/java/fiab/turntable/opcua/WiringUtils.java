@@ -3,7 +3,7 @@ package fiab.turntable.opcua;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import fiab.core.capabilities.wiring.WiringInfo;
+import main.java.fiab.core.capabilities.wiring.WiringInfo;
 
 import java.io.File;
 import java.io.FileOutputStream;

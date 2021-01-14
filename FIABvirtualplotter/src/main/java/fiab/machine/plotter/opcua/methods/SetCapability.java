@@ -1,12 +1,9 @@
 package fiab.machine.plotter.opcua.methods;
 
 import akka.actor.ActorRef;
-import com.google.common.reflect.AbstractInvocationHandler;
-import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
-import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import fiab.core.capabilities.plotting.PlotterMessageTypes;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import main.java.fiab.core.capabilities.BasicMachineStates;
+import main.java.fiab.core.capabilities.plotting.PlotterMessageTypes;
+import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.machine.plotter.MachineCapabilityUpdateEvent;
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
@@ -19,7 +16,6 @@ import org.eclipse.milo.opcua.stack.core.types.structured.Argument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 

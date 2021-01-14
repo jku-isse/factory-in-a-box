@@ -10,7 +10,7 @@ import ProcessCore.CapabilityInvocation;
 import ProcessCore.ParallelBranches;
 import ProcessCore.ProcessCoreFactory;
 import ProcessCore.ProcessStep;
-import fiab.core.capabilities.ComparableCapability;
+import main.java.fiab.core.capabilities.ComparableCapability;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 

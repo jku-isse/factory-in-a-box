@@ -3,7 +3,7 @@ package fiab.turntable.turning;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.core.capabilities.StatePublisher;
+import main.java.fiab.core.capabilities.StatePublisher;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.turning.statemachine.TurningStates;
 import hardware.TurningHardware;

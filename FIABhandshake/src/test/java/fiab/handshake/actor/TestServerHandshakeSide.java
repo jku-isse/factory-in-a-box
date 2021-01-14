@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.handshake.actor.ServerSideHandshakeActor;
-import fiab.core.capabilities.handshake.HandshakeCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 
 public class TestServerHandshakeSide { 
 

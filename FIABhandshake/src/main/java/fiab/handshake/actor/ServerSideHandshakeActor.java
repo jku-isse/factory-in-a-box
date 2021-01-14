@@ -11,11 +11,10 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.StatePublisher;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
+import main.java.fiab.core.capabilities.handshake.IOStationCapability;
+import main.java.fiab.core.capabilities.StatePublisher;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
 
 
 public class ServerSideHandshakeActor extends AbstractActor{

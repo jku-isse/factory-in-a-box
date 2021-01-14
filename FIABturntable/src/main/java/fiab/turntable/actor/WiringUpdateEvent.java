@@ -1,6 +1,6 @@
 package fiab.turntable.actor;
 
-import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.handshake.actor.LocalEndpointStatus;
 
 public class WiringUpdateEvent extends MachineEvent {

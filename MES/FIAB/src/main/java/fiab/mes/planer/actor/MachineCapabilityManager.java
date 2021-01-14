@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
-import fiab.core.capabilities.ComparableCapability;
+import main.java.fiab.core.capabilities.ComparableCapability;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 

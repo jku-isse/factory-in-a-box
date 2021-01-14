@@ -2,7 +2,7 @@ package fiab.mes.order.msg;
 
 import java.time.ZonedDateTime;
 
-import fiab.core.capabilities.events.TimedEvent;
+import main.java.fiab.core.capabilities.events.TimedEvent;
 
 public class OrderEvent extends TimedEvent {
 	

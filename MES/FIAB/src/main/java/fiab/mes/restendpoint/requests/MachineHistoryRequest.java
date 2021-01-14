@@ -5,7 +5,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
 
 public class MachineHistoryRequest {
 	

@@ -11,7 +11,7 @@ import java.util.Set;
 
 import com.google.common.collect.Lists;
 
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import main.java.fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.transport.actor.transportmodule.InternalCapabilityToPositionMapping;
 
 public class HardcodedDefaultTransportRoutingAndMapping implements TransportRoutingInterface, InternalCapabilityToPositionMapping {

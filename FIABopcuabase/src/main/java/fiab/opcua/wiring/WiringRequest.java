@@ -15,7 +15,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.Argument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fiab.core.capabilities.wiring.WiringInfo;
+import main.java.fiab.core.capabilities.wiring.WiringInfo;
 
 public class WiringRequest extends AbstractMethodInvocationHandler {
 	

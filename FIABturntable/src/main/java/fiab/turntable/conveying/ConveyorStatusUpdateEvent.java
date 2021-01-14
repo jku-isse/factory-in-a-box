@@ -1,6 +1,6 @@
 package fiab.turntable.conveying;
 
-import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.turntable.conveying.statemachine.ConveyorStates;
 
 public class ConveyorStatusUpdateEvent extends MachineUpdateEvent {

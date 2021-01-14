@@ -12,11 +12,10 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
 import akka.actor.ActorRef;
-import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import main.java.fiab.core.capabilities.BasicMachineStates;
+import main.java.fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.machine.plotter.IntraMachineEventBus;
-import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
 
 public class PlotterOPCUAWrapper extends AbstractOPCUAWrapper implements PlottingMachineWrapperInterface {

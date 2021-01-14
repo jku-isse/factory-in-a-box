@@ -1,6 +1,6 @@
 package fiab.mes.transport.msg;
 
-import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
 
 public class TransportSystemStatusMessage extends MachineEvent {
 	

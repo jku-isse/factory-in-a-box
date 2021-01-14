@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import akka.http.javadsl.model.sse.ServerSentEvent;
-import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.mes.machine.msg.MachineEventWrapper;
 import fiab.mes.order.OrderProcessWrapper;
 import fiab.mes.order.msg.OrderEvent;

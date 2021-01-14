@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import akka.actor.ActorRef;
-import fiab.core.capabilities.basicmachine.events.MachineEvent;
-import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 
 public class HistoryTracker {

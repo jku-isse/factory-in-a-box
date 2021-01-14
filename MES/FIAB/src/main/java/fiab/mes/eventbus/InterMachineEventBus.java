@@ -2,7 +2,7 @@ package fiab.mes.eventbus;
 
 import akka.actor.ActorRef;
 import akka.event.japi.ScanningEventBus;
-import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
 
 public class InterMachineEventBus extends ScanningEventBus<MachineEvent, ActorRef, MESSubscriptionClassifier> {
 

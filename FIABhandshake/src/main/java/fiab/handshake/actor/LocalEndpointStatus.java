@@ -1,8 +1,8 @@
 package fiab.handshake.actor;
 
 import akka.actor.ActorRef;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 
 
 public abstract class LocalEndpointStatus {

@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
-import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import fiab.core.capabilities.StatePublisher;
-import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
+import main.java.fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import main.java.fiab.core.capabilities.StatePublisher;
+import main.java.fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.opcua.server.OPCUABase;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.conveying.ConveyorActor;

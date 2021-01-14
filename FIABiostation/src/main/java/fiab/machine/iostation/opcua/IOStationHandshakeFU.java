@@ -4,7 +4,7 @@ import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
-import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
+import main.java.fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.machine.iostation.IOStationServerHandshakeActor;
 import fiab.opcua.server.OPCUABase;

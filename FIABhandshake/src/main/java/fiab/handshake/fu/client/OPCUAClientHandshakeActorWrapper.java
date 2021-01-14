@@ -4,9 +4,6 @@ import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
@@ -33,8 +30,8 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.core.capabilities.handshake.IOStationCapability;
+import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import main.java.fiab.core.capabilities.handshake.IOStationCapability;
 
 public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 
