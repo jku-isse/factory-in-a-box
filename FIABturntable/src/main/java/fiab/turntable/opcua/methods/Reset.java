@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import main.java.fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 
 public class Reset extends AbstractMethodInvocationHandler {
 

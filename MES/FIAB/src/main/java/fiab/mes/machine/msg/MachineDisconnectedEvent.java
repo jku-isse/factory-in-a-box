@@ -1,7 +1,7 @@
   
 package fiab.mes.machine.msg;
 
-import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 
 public class MachineDisconnectedEvent extends MachineEvent {

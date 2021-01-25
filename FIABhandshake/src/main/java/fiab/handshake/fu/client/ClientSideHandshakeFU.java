@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import main.java.fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.handshake.fu.HandshakeFU;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
@@ -18,10 +18,10 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
-import main.java.fiab.core.capabilities.StatePublisher;
-import main.java.fiab.core.capabilities.handshake.IOStationCapability;
-import main.java.fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
-import main.java.fiab.core.capabilities.wiring.WiringInfo;
+import fiab.core.capabilities.StatePublisher;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
+import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.opcua.CapabilityImplInfo;

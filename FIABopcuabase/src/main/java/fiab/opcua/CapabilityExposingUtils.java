@@ -5,7 +5,7 @@ import java.util.stream.IntStream;
 
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 
-import main.java.fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
+import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.opcua.server.OPCUABase;
 
 public class CapabilityExposingUtils {

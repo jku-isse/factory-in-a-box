@@ -34,7 +34,7 @@ import akka.http.javadsl.server.directives.RouteAdapter;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Source;
 import akka.util.Timeout;
-import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.mes.auth.Authenticator;
 import fiab.mes.auth.Authenticator.Credentials;
 import fiab.mes.auth.Authenticator.User;

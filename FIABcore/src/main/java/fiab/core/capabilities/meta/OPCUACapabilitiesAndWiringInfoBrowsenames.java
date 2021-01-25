@@ -1,4 +1,4 @@
-package main.java.fiab.core.capabilities.meta;
+package fiab.core.capabilities.meta;
 
 public interface OPCUACapabilitiesAndWiringInfoBrowsenames {
 	public static final String CAPABILITIES = "CAPABILITIES", 

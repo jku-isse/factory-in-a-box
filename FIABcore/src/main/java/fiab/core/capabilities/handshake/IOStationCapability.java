@@ -1,8 +1,8 @@
-package main.java.fiab.core.capabilities.handshake;
+package fiab.core.capabilities.handshake;
 
 import ProcessCore.AbstractCapability;
-import main.java.fiab.core.capabilities.ComparableCapability;
-import main.java.fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.ComparableCapability;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 
 public interface IOStationCapability extends HandshakeCapability, OPCUABasicMachineBrowsenames {
 

@@ -1,4 +1,4 @@
-package main.java.fiab.core.capabilities.wiring;
+package fiab.core.capabilities.wiring;
 
 public class WiringInfo {
 	public WiringInfo() {

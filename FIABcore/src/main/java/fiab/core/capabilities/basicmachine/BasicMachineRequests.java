@@ -1,4 +1,4 @@
-package main.java.fiab.core.capabilities.basicmachine;
+package fiab.core.capabilities.basicmachine;
 
 public class BasicMachineRequests {
 

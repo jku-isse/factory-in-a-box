@@ -1,8 +1,8 @@
-package main.java.fiab.core.capabilities.transport;
+package fiab.core.capabilities.transport;
 
 import ProcessCore.AbstractCapability;
-import main.java.fiab.core.capabilities.ComparableCapability;
-import main.java.fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.ComparableCapability;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 
 public interface TransportModuleCapability extends OPCUABasicMachineBrowsenames {
 

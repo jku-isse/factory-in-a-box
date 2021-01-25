@@ -1,8 +1,8 @@
 package fiab.mes.machine.msg;
 
-import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent;
-import main.java.fiab.core.capabilities.basicmachine.events.MachineEvent.MachineEventType;
-import main.java.fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import fiab.core.capabilities.basicmachine.events.MachineEvent.MachineEventType;
+import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 

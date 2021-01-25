@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import main.java.fiab.core.capabilities.BasicMachineStates;
-import main.java.fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import main.java.fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import main.java.fiab.core.capabilities.transport.TransportModuleCapability;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.planer.actor.MachineCapabilityManager;

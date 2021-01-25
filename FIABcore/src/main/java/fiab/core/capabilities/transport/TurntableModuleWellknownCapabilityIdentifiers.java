@@ -1,4 +1,4 @@
-package main.java.fiab.core.capabilities.transport;
+package fiab.core.capabilities.transport;
 
 public interface TurntableModuleWellknownCapabilityIdentifiers extends TransportModuleCapability {
 

@@ -7,9 +7,9 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
 import akka.actor.ActorRef;
-import main.java.fiab.core.capabilities.BasicMachineStates;
-import main.java.fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import main.java.fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
 import fiab.turntable.actor.InternalTransportModuleRequest;
 import fiab.turntable.actor.IntraMachineEventBus;

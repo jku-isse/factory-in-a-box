@@ -1,10 +1,10 @@
-package main.java.fiab.core.capabilities.basicmachine.events;
+package fiab.core.capabilities.basicmachine.events;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import main.java.fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.BasicMachineStates;
 
 public class MachineInWrongStateResponse extends MachineStatusUpdateEvent {
 

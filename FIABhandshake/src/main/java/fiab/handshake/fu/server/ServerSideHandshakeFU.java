@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
-import main.java.fiab.core.capabilities.StatePublisher;
-import main.java.fiab.core.capabilities.handshake.HandshakeCapability;
-import main.java.fiab.core.capabilities.handshake.IOStationCapability;
-import main.java.fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
-import main.java.fiab.core.capabilities.wiring.WiringInfo;
+import fiab.core.capabilities.StatePublisher;
+import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
+import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
 import fiab.handshake.fu.HandshakeFU;

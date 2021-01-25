@@ -1,9 +1,9 @@
 package fiab.machine.plotter.opcua.methods;
 
 import akka.actor.ActorRef;
-import main.java.fiab.core.capabilities.BasicMachineStates;
-import main.java.fiab.core.capabilities.plotting.PlotterMessageTypes;
-import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.plotting.PlotterMessageTypes;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.machine.plotter.MachineCapabilityUpdateEvent;
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;

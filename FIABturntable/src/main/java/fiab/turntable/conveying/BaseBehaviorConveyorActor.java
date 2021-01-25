@@ -6,8 +6,8 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.github.oxo42.stateless4j.StateMachine;
 
-import main.java.fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import main.java.fiab.core.capabilities.StatePublisher;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.StatePublisher;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.conveying.statemachine.ConveyorStateMachineConfig;
 import fiab.turntable.conveying.statemachine.ConveyorStates;

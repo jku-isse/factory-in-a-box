@@ -1,10 +1,10 @@
-package main.java.fiab.core.capabilities.plotting;
+package fiab.core.capabilities.plotting;
 
 import ProcessCore.AbstractCapability;
 import ProcessCore.Parameter;
 import ProcessCore.ProcessCoreFactory;
-import main.java.fiab.core.capabilities.ComparableCapability;
-import main.java.fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.ComparableCapability;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 
 public interface WellknownPlotterCapability extends OPCUABasicMachineBrowsenames {
 

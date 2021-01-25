@@ -1,6 +1,6 @@
 package fiab.machine.plotter.opcua;
 
-import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 
 public class ExampleStartupPlotter {
 

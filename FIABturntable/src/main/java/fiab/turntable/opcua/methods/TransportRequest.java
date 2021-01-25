@@ -17,8 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import main.java.fiab.core.capabilities.BasicMachineStates;
-import main.java.fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.turntable.actor.InternalTransportModuleRequest;
 
 public class TransportRequest extends AbstractMethodInvocationHandler {

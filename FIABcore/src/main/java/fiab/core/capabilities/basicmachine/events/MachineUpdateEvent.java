@@ -1,4 +1,4 @@
-package main.java.fiab.core.capabilities.basicmachine.events;
+package fiab.core.capabilities.basicmachine.events;
 
 public abstract class MachineUpdateEvent extends MachineEvent {
 	

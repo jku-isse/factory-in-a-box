@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import main.java.fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.handshake.HandshakeCapability;
 
 import java.time.Duration;
 

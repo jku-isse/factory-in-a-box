@@ -1,4 +1,4 @@
-package main.java.fiab.core.capabilities;
+package fiab.core.capabilities;
 
 public interface OPCUABasicMachineBrowsenames {
 	public static final String STATE_VAR_NAME = "STATE";

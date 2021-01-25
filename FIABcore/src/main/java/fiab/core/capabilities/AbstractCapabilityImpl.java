@@ -1,6 +1,6 @@
 /**
  */
-package main.java.fiab.core.capabilities;
+package fiab.core.capabilities;
 
 import ProcessCore.AbstractCapability;
 import ProcessCore.Parameter;

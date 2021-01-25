@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import main.java.fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.handshake.IOStationCapability;
 
 import static akka.pattern.Patterns.ask;
 

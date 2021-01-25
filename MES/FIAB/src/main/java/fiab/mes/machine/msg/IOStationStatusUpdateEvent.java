@@ -1,8 +1,8 @@
 package fiab.mes.machine.msg;
 
-import main.java.fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
-import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import main.java.fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.IOStationCapability;
 
 public class IOStationStatusUpdateEvent extends MachineUpdateEvent {
 	

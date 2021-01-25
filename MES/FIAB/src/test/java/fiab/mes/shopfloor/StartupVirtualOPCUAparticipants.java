@@ -1,6 +1,6 @@
 package fiab.mes.shopfloor;
 
-import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.machine.plotter.opcua.StartupUtil;
 
 public class StartupVirtualOPCUAparticipants {

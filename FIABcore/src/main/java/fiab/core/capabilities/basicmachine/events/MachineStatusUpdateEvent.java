@@ -1,6 +1,6 @@
-package main.java.fiab.core.capabilities.basicmachine.events;
+package fiab.core.capabilities.basicmachine.events;
 
-import main.java.fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.BasicMachineStates;
 
 public class MachineStatusUpdateEvent extends MachineUpdateEvent {
 

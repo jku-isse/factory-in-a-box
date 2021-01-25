@@ -12,11 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import main.java.fiab.core.capabilities.BasicMachineStates;
-import main.java.fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
-import main.java.fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import main.java.fiab.core.capabilities.plotting.PlotterMessageTypes;
-import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.plotting.PlotterMessageTypes;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import static akka.pattern.Patterns.ask;
 
 import java.time.Duration;

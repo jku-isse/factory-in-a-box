@@ -2,7 +2,7 @@ package fiab.machine.plotter.opcua;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import main.java.fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 
 public class StartupUtil {
 

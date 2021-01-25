@@ -4,8 +4,8 @@ import java.time.Duration;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import main.java.fiab.core.capabilities.StatePublisher;
-import main.java.fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.StatePublisher;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.handshake.actor.ServerSideHandshakeActor;
 
 public class IOStationServerHandshakeActor extends ServerSideHandshakeActor{
