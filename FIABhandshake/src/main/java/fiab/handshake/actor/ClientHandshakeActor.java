@@ -107,18 +107,29 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 			log.warning("Unexpected Message received: " + msg.toString());
 		}).build();
 	}
-	
-	private void receiveClientMessage(HSClientMessage msg) {
 
+	private void receiveClientMessage(HSClientMessage msg) {
 		IOStationCapability.ClientMessageTypes body = msg.getBody();
 		switch (body) {
 		case Reset:
 			reset(); // prepare for next round
 			break;
 		case Start:
-			Span span = getTracingFactory().createNewTrace("Handshake", "Start");
-			start(""); // engage in handshake: subscribe to state updates
-			span.start();
+			try {
+				if (msg.getHeader().isEmpty()) {
+					tracingFactory.createNewTrace("ClientHandshake: Start");
+					tracingFactory.startNewConSpan("Handshake: Start Received");
+					start(); // engage in handshake: subscribe to state updates
+				} else {
+
+					tracingFactory.startConSpan(msg, "Handshake: Start Received");
+					start();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
 			break;
 		case Complete:
 			if (currentState.equals(ClientSideStates.EXECUTE)) // only if we are in state executing, otherwise complete
@@ -156,8 +167,6 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 	}
 
-	
-
 	private void publishNewState(ClientSideStates newState) {
 		currentState = newState;
 		machineWrapper.tell(newState, getSelf());
@@ -184,9 +193,10 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		}, context().system().dispatcher());
 	}
 
-	private void start(String header) {
+	private void start() {
 		if (currentState.equals(ClientSideStates.IDLE)) {
 			publishNewState(ClientSideStates.STARTING);
+			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(), body)
 			serverSide.tell(IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates, getSelf()); // subscribe for
 																										// updates
 			publishNewState(ClientSideStates.INITIATING);

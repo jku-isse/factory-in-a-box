@@ -7,6 +7,7 @@ import fiab.tracing.actor.messages.ExtensibleMessage;
 
 public class HSClientMessage extends ExtensibleMessage<IOStationCapability.ClientMessageTypes> {
 	private final ClientMessageTypes body;
+	
 
 	public HSClientMessage(String header, ClientMessageTypes body) {
 		super(header);

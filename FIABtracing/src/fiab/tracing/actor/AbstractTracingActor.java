@@ -8,7 +8,12 @@ import fiab.tracing.config.Util;
 import fiab.tracing.factory.TracingFactory;
 
 public abstract class AbstractTracingActor extends AbstractActor {
-	private final TracingFactory tracingFactory;
+
+	protected final TracingFactory tracingFactory;
+
+	static {
+
+	}
 
 	public AbstractTracingActor() {
 		Injector injector = Guice.createInjector(Util.getConfig());
