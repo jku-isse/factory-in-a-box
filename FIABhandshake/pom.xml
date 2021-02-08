@@ -60,6 +60,11 @@
 			<version>5.7.0-M1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+				<version>5.7.0-M1</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.eclipse.milo/sdk-client -->
 		<dependency>
 			<groupId>org.eclipse.milo</groupId>
