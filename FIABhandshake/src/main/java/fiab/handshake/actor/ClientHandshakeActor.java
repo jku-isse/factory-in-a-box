@@ -10,6 +10,7 @@ import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.handshake.actor.messages.HSClientMessage;
 import fiab.handshake.actor.messages.HSServerMessage;
+import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.tracing.actor.AbstractTracingActor;
 import fiab.tracing.actor.messages.ExtensibleMessage;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
@@ -50,60 +51,24 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 	@Override
 	public Receive createReceive() {
-		return receiveBuilder().match(IOStationCapability.ClientMessageTypes.class, msg -> { // commands from parent FU
-			//
-			receiveClientMessage(new HSClientMessage("", msg));
+		return receiveBuilder().match(IOStationCapability.ClientMessageTypes.class, rsp -> { // commands from parent FU
+			receiveClientMessage(new HSClientMessage("", rsp));
 
-		}).match(HSClientMessage.class, msg -> { // command from parent FU with Tracing Info
+		}).match(HSClientMessage.class, msg -> { // command from parent FU with tracing info
 			receiveClientMessage(msg);
 
-		}).match(IOStationCapability.ServerMessageTypes.class, resp -> { // responses to requests
-			receiveServerMessage(new HSServerMessage("", resp));
-		}).match(HSServerMessage.class, rsp -> { // response to requests with tracing
-			receiveServerMessage(rsp);
+		}).match(IOStationCapability.ServerMessageTypes.class, rsp -> { // responses to requests
+			receiveServerMessage(new HSServerMessage("", rsp));
 
-		}).match(ServerSideStates.class, msg -> { // state event updates
-			log.info(String.format("Received %s from %s in local state %s", msg, getSender(), currentState));
-			if (getSender().equals(serverSide)) {
-				remoteState = msg;
-				switch (msg) {
-				case IDLE_EMPTY: // fallthrough
-				case IDLE_LOADED:
-					if (currentState.equals(ClientSideStates.STARTING)
-							|| currentState.equals(ClientSideStates.INITIATING))
-						requestInitiateHandover();
-					break;
-				case COMPLETE: // fallthrough, if serverside is done, we can do the same
-				case COMPLETING:
-					// onlfy if in executing
-					if (currentState.equals(ClientSideStates.EXECUTE))
-						complete();
-					break;
-				case EXECUTE: // if server side is executing, we can do the same if we are in ready
-					if (currentState.equals(ClientSideStates.READY))
-						receiveStartOkResponse();
-					break;
-				case READY_EMPTY: // fallthrough
-				case READY_LOADED:
-					if (currentState.equals(ClientSideStates.READY)) {
-						requestStartHandover();
-					}
-					break;
-				case STOPPED: // fallthrough
-				case STOPPING: // if we are in any state that would not expect a stop, then we also need to
-								// stop/abort
-					if (// currentState.equals(ClientSide.Initiating) ||
-						// currentState.equals(ClientSide.Initiated) || //the server might not be ready
-						// yet, thus we need to wait, not stop
-					currentState.equals(ClientSideStates.READY) || currentState.equals(ClientSideStates.EXECUTE))
-						stop();
-					break;
-				default:
-					break;
-				}
-			} else {
-				log.warning(String.format("Received %s to unexpected sender %s", msg, getSender()));
-			}
+		}).match(HSServerMessage.class, msg -> { // response to requests with tracing info
+			receiveServerMessage(msg);
+
+		}).match(ServerSideStates.class, rsp -> { // state event updates
+			receiveServerSideState(new HSServerSideStateMessage("", rsp));
+
+		}).match(HSServerSideStateMessage.class, msg -> {// state event updates with tracing info
+			receiveServerSideState(msg);
+
 		}).matchAny(msg -> {
 			log.warning("Unexpected Message received: " + msg.toString());
 		}).build();
@@ -115,12 +80,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		switch (body) {
 		case Reset:
 			try {
-				if (msg.getHeader().isEmpty()) {
-					tracingFactory.createNewTrace("ClientHandshake: Reset");
-					tracingFactory.startProducerSpan("Client-Handshake: Resetting");
-				} else
-					tracingFactory.startProducerSpan(msg, "Client-Handshake: Resetting");
-
+				tracingFactory.startProducerSpan(msg, "Client-Handshake: Reset Received");
 				reset(); // prepare for next round
 
 			} catch (Exception e) {
@@ -132,11 +92,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 			break;
 		case Start:
 			try {
-				if (msg.getHeader().isEmpty())
-					tracingFactory.startConsumerSpan("Client-Handshake: Start Received");
-				else
-					tracingFactory.startConsumerSpan(msg, "Client-Handshake: Start Received");
-
+				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Start Received");
 				start(); // engage in handshake: subscribe to state updates
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -148,10 +104,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 			if (currentState.equals(ClientSideStates.EXECUTE)) // only if we are in state executing, otherwise complete
 																// makes no sense
 				try {
-					if (msg.getHeader().isEmpty()) {
-						tracingFactory.startProducerSpan("Client-Handshake: Complete Received");
-					} else
-						tracingFactory.startProducerSpan(msg, "Client-Handshake: Complete Received");
+					tracingFactory.startProducerSpan(msg, "Client-Handshake: Complete Received");
 					complete(); // handshake can be wrapped up
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -161,10 +114,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 			break;
 		case Stop:
 			try {
-				if (msg.getHeader().isEmpty()) {
-					tracingFactory.startProducerSpan("Client-Handshake: Stop Received");
-				} else
-					tracingFactory.startProducerSpan(msg, "Client-Handshake: Stop Received");
+				tracingFactory.startProducerSpan(msg, "Client-Handshake: Stop Received");
 				stop(); // error or external stop, otherwise autostopping upon completion
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -179,24 +129,141 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	}
 
 	private void receiveServerMessage(HSServerMessage msg) {
-		IOStationCapability.ServerMessageTypes resp = msg.getBody();
+		IOStationCapability.ServerMessageTypes body = msg.getBody();
 
-		switch (resp) {
+		switch (body) {
 		case NotOkResponseInitHandover:
-			stop();
+			try {
+				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Not Ok Response Init Handover received");
+				stop();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
 			break;
 		case NotOkResponseStartHandover:
-			stop();
+			try {
+				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Not Ok Response Start Handover received");
+				stop();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
 			break;
 		case OkResponseInitHandover:
-			receiveInitiateOkResponse();
+			try {
+				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Ok Response Init Handover received");
+				receiveInitiateOkResponse();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
 			break;
 		case OkResponseStartHandover:
-			receiveStartOkResponse();
+			try {
+				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Ok Response Start Handover received");
+				receiveStartOkResponse();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
 			break;
 		default:
-			log.warning("Unexpected ServerSide MessageType received: " + resp.toString());
+			log.warning("Unexpected ServerSide MessageType received: " + body.toString());
 			break;
+		}
+
+	}
+
+	private void receiveServerSideState(HSServerSideStateMessage msg) {
+		ServerSideStates body = msg.getBody();
+
+		log.info(String.format("Received %s from %s in local state %s", body, getSender(), currentState));
+		if (getSender().equals(serverSide)) {
+			remoteState = body;
+			switch (body) {
+			case IDLE_EMPTY: // fallthrough
+			case IDLE_LOADED:
+				if (currentState.equals(ClientSideStates.STARTING) || currentState.equals(ClientSideStates.INITIATING))
+					try {
+						tracingFactory.startConsumerSpan(msg,
+								"Client-Handshake: Server Side State: Idle Empty/Loaded received");
+						requestInitiateHandover();
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						tracingFactory.finishCurrentSpan();
+					}
+
+				break;
+			case COMPLETE: // fallthrough, if serverside is done, we can do the same
+			case COMPLETING:
+				// onlfy if in executing
+				if (currentState.equals(ClientSideStates.EXECUTE))
+					try {
+						tracingFactory.startConsumerSpan(msg,
+								"Client-Handshake: Server Side State: Complete/Completing received");
+						complete();
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						tracingFactory.finishCurrentSpan();
+					}
+				break;
+			case EXECUTE: // if server side is executing, we can do the same if we are in ready
+				if (currentState.equals(ClientSideStates.READY)) {
+					try {
+						tracingFactory.startConsumerSpan(msg, "Client-Handshake: Server Side State: Execute received");
+						receiveStartOkResponse();
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						tracingFactory.finishCurrentSpan();
+					}
+				}
+				break;
+			case READY_EMPTY: // fallthrough
+			case READY_LOADED:
+				if (currentState.equals(ClientSideStates.READY)) {
+					try {
+						tracingFactory.startConsumerSpan(msg,
+								"Client-Handshake: Server Side State: Ready Empty/Loaded received");
+						requestStartHandover();
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						tracingFactory.finishCurrentSpan();
+					}
+				}
+				break;
+			case STOPPED: // fallthrough
+			case STOPPING: // if we are in any state that would not expect a stop, then we also need to
+							// stop/abort
+				if (// currentState.equals(ClientSide.Initiating) ||
+					// currentState.equals(ClientSide.Initiated) || //the server might not be ready
+					// yet, thus we need to wait, not stop
+				currentState.equals(ClientSideStates.READY) || currentState.equals(ClientSideStates.EXECUTE)) {
+					try {
+						tracingFactory.startConsumerSpan(msg,
+								"Client-Handshake: Server Side State: Stopped/Stopping received");
+						stop();
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						tracingFactory.finishCurrentSpan();
+					}
+
+				}
+				break;
+			default:
+				break;
+			}
+		} else {
+			log.warning(String.format("Received %s to unexpected sender %s", body, getSender()));
 		}
 
 	}
@@ -244,7 +311,10 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	}
 
 	private void requestInitiateHandover() {
-		getSender().tell(IOStationCapability.ServerMessageTypes.RequestInitiateHandover, self);
+		HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+				IOStationCapability.ServerMessageTypes.RequestInitiateHandover);
+		tracingFactory.injectMsg(msg);
+		getSender().tell(msg, self);
 		retryInit();
 	}
 
@@ -271,7 +341,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 						|| remoteState.equals(ServerSideStates.READY_LOADED)) {
 					// only of remote point is ready, and we are also still ready (as this is
 					// triggered some time in the future)
-					if (currentState.equals(ClientSideStates.READY))
+					if (currentState.equals(ClientSideStates.READY))						
 						requestStartHandover();
 				} else {
 					log.info(String.format("Server %s in last known state %s not yet ready for RequestStartHandover",
@@ -285,7 +355,12 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void requestStartHandover() {
 		if (currentState.equals(ClientSideStates.READY)) {
 			log.info(String.format("Requesting StartHandover from remote %s", serverSide));
-			serverSide.tell(IOStationCapability.ServerMessageTypes.RequestStartHandover, self);
+
+			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+					IOStationCapability.ServerMessageTypes.RequestStartHandover);
+			tracingFactory.injectMsg(msg);
+			serverSide.tell(msg, self);
+
 			retryStartHandover();
 		} else {
 			log.warning("was requested invalid command 'StartHandover' in state: " + currentState);
@@ -312,15 +387,10 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void complete() {
 		publishNewState(ClientSideStates.COMPLETING);
 		if (serverSide != null) {
-			if (tracingFactory.getCurrentSpan() != null) {
-				HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
-						IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates);
-				tracingFactory.injectMsg(msg);
-				serverSide.tell(msg, self);
-			} else {
-				serverSide.tell(IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates, self);
-			}
-
+			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+					IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates);
+			tracingFactory.injectMsg(msg);
+			serverSide.tell(msg, self);
 		}
 		context().system().scheduler().scheduleOnce(Duration.ofMillis(1000), new Runnable() {
 			@Override
