@@ -25,7 +25,7 @@ public class Test {
 	public static void main(String[] args) {
 		
 		
-		new Test().testInjection();
+		new Test().start();
 
 	}
 
@@ -85,7 +85,9 @@ public class Test {
 		injector.inject(tracing.currentTraceContext().get(), msg);
 
 		Extractor<ExtensibleMessage<Object>> extractor = tracing.propagation().extractor(new TestGetter<>());
-		Span span = tracing.tracer().nextSpan(extractor.extract(msg));
+		
+		
+		Span span = tracing.tracer().newChild(extractor.extract(msg).context());
 
 
 		span.start();

@@ -15,7 +15,6 @@ public class B3Setter<T> implements Setter<ExtensibleMessage<T>, String> {
 	@Override
 	public void put(ExtensibleMessage<T> request, String key, String value) {
 		map.put(key, value);
-		request.setHeader(value);
 	}
 
 }

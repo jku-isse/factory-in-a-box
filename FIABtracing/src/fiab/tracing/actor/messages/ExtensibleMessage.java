@@ -9,4 +9,12 @@ public abstract class ExtensibleMessage<T> {
 
 	public abstract T getBody();
 
+	public String getHeader() {
+		return header;
+	}
+
+	public void setHeader(String header) {
+		this.header = header;
+	}
+
 }
