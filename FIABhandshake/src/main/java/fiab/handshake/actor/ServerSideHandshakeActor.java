@@ -102,7 +102,7 @@ public class ServerSideHandshakeActor extends AbstractTracingActor{
 		case SubscribeToStateUpdates:
 			try {
 				
-				tracingFactory.startConsumerSpan(msg, "Handshake-Sever: Subscribe to State Updates Received");
+				tracingFactory.startConsumerSpan(msg, "Server-Handshake: Subscribe to State Updates Received");
 				if (getSender() != context().system().deadLetters()) {
 					subscribers.add(getSender());
 					//TODO implement current state messages
@@ -118,7 +118,7 @@ public class ServerSideHandshakeActor extends AbstractTracingActor{
 			break;
 		case UnsubscribeToStateUpdates:
 			try {
-				tracingFactory.startConsumerSpan(msg, "Handshake-Sever: Unsubscribe to State Updates Received");
+				tracingFactory.startConsumerSpan(msg, "Server-Handshake: Unsubscribe to State Updates Received");
 				subscribers.remove(getSender());
 			}catch (Exception e) {
 				e.printStackTrace();

@@ -23,10 +23,6 @@ public class ZipkinFactory implements TracingFactory {
 	private ScopedSpan scope;
 	private Span currentSpan;
 
-	static {
-
-	}
-
 	public ZipkinFactory() {
 		sender = URLConnectionSender.create("http://localhost:9411/api/v2/spans");
 		handler = AsyncZipkinSpanHandler.create(sender).toBuilder().alwaysReportSpans(true).build();
@@ -36,12 +32,7 @@ public class ZipkinFactory implements TracingFactory {
 
 		if (injector == null)
 			injector = tracing.propagation().injector(new B3Setter<>());
-	}
-
-	@Override
-	public void createNewTrace(String traceName) {
-		if (scope == null)
-			scope = createNewScope(traceName, "Zipkin TestScope");
+		scope = createNewScope("Default", "Default");
 	}
 
 	private ScopedSpan createNewScope(String traceName, String scopeName) {
@@ -54,8 +45,7 @@ public class ZipkinFactory implements TracingFactory {
 	public void finishCurrentSpan() {
 		try {
 			currentSpan.finish();
-			printSpanFinished();
-			currentSpan = null;
+			printSpanFinished();			
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 		}
@@ -65,26 +55,32 @@ public class ZipkinFactory implements TracingFactory {
 	@Override
 	public void startProducerSpan(String spanName) {
 		currentSpan = tracing.tracer().nextSpan().name(spanName).kind(Kind.PRODUCER).start();
-		printSpanStarted();
 	}
 
 	@Override
 	public void startConsumerSpan(String spanName) {
 		currentSpan = tracing.tracer().newChild(scope.context()).kind(Kind.CONSUMER).name(spanName).start();
-		printSpanStarted();
 	}
 
 	@Override
 	public void startProducerSpan(ExtensibleMessage<? extends Object> msg, String spanName) {
-		currentSpan = tracing.tracer().nextSpan(extractor.extract((ExtensibleMessage<Object>) msg)).name(spanName)
-				.kind(Kind.PRODUCER).start();
+		if (msg.getHeader().isEmpty())
+			startProducerSpan(spanName);
+		else {
+			currentSpan = tracing.tracer().nextSpan(extractor.extract((ExtensibleMessage<Object>) msg)).name(spanName)
+					.kind(Kind.PRODUCER).start();
+		}
 		printSpanStarted();
 	}
 
 	@Override
 	public void startConsumerSpan(ExtensibleMessage<? extends Object> msg, String spanName) {
-		currentSpan = tracing.tracer().nextSpan(extractor.extract((ExtensibleMessage<Object>) msg)).name(spanName)
-				.kind(Kind.CONSUMER).start();
+		if (msg.getHeader().isEmpty())
+			startConsumerSpan(spanName);
+		else {
+			currentSpan = tracing.tracer().nextSpan(extractor.extract((ExtensibleMessage<Object>) msg)).name(spanName)
+					.kind(Kind.CONSUMER).start();
+		}
 		printSpanStarted();
 	}
 
