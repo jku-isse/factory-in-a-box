@@ -14,4 +14,9 @@ public class ZipkinUtil {
 
 		return sb.toString();
 	}
+
+	public static void printSpan(Span span) {
+		System.out.println("Span ID: " + span.context().spanIdString() + " Trace ID: " + span.context().traceIdString()
+				+ " Parent ID: " + span.context().parentIdString());
+	}
 }

@@ -13,11 +13,14 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.StatePublisher;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
+import fiab.handshake.actor.messages.HSServerMessage;
+import fiab.tracing.actor.AbstractTracingActor;
 
 
-public class ServerSideHandshakeActor extends AbstractActor{
+public class ServerSideHandshakeActor extends AbstractTracingActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);	
 	protected boolean isLoaded = false; //assume at bootup that no pallet is loaded
@@ -48,42 +51,11 @@ public class ServerSideHandshakeActor extends AbstractActor{
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(IOStationCapability.ServerMessageTypes.class, msg -> {
-					log.info(String.format("Received %s from %s", msg, getSender()));
-					switch(msg) {					
-					case Complete:
-						if (currentState.equals(ServerSideStates.EXECUTE)) {
-							complete();
-						}
-						break;
-					case RequestInitiateHandover:					
-						initHandover();
-						break;
-					case RequestStartHandover:
-						startHandover();
-						break;
-					case Reset:
-						if (currentState.equals(ServerSideStates.STOPPED) || currentState.equals(ServerSideStates.COMPLETE)) {
-							reset();
-						}
-						break;
-					case Stop:
-						stop();
-						break;
-					case SubscribeToStateUpdates:
-						if (getSender() != context().system().deadLetters()) {
-							subscribers.add(getSender());
-							getSender().tell(currentState, getSelf()); // update subscriber with current state
-						} else {
-							publishNewState(currentState);
-						}
-						break;
-					case UnsubscribeToStateUpdates:
-						subscribers.remove(getSender());
-						break;
-					default:
-						break;
-					}
+				.match(IOStationCapability.ServerMessageTypes.class, body -> {
+					receiveServerMessage(new HSServerMessage("", body));
+				})
+				.match(HSServerMessage.class, msg ->{
+					receiveServerMessage(msg);
 				})
 				.match(StateOverrideRequests.class, req -> {
 					log.info(String.format("Received %s from %s", req, getSender()));
@@ -101,6 +73,64 @@ public class ServerSideHandshakeActor extends AbstractActor{
 				.matchAny(msg -> { 
 					log.warning(String.format("Unexpected Message received <%s> from %s", msg.toString(), getSender() )); })
 		        .build();
+	}
+
+	private void receiveServerMessage(HSServerMessage msg) {		
+		IOStationCapability.ServerMessageTypes body = msg.getBody();
+		
+		log.info(String.format("Received %s from %s", body, getSender()));
+		switch(body) {					
+		case Complete:
+			if (currentState.equals(ServerSideStates.EXECUTE)) {
+				complete();
+			}
+			break;
+		case RequestInitiateHandover:					
+			initHandover();
+			break;
+		case RequestStartHandover:
+			startHandover();
+			break;
+		case Reset:
+			if (currentState.equals(ServerSideStates.STOPPED) || currentState.equals(ServerSideStates.COMPLETE)) {
+				reset();
+			}
+			break;
+		case Stop:
+			stop();
+			break;
+		case SubscribeToStateUpdates:
+			try {
+				
+				tracingFactory.startConsumerSpan(msg, "Handshake-Sever: Subscribe to State Updates Received");
+				if (getSender() != context().system().deadLetters()) {
+					subscribers.add(getSender());
+					//TODO implement current state messages
+					getSender().tell(currentState, getSelf()); // update subscriber with current state
+				} else {
+					publishNewState(currentState);
+				}
+			}catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}			
+			break;
+		case UnsubscribeToStateUpdates:
+			try {
+				tracingFactory.startConsumerSpan(msg, "Handshake-Sever: Unsubscribe to State Updates Received");
+				subscribers.remove(getSender());
+			}catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}				
+		
+			break;
+		default:
+			break;
+		}
+		
 	}
 
 	protected void publishNewState(ServerSideStates newState) {
