@@ -24,7 +24,6 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
-import fiab.mes.DefaultShopfloorInfrastructure;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.ShopfloorStartup;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;

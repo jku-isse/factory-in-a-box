@@ -1,0 +1,35 @@
+apply plugin: 'java'
+
+group 'factory.in.a.box'
+version '1.0.3-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    maven { url "https://jitpack.io" }
+    mavenCentral()
+    flatDir {
+        dirs '../libs'
+    }
+}
+
+dependencies{
+    compile "org.eclipse.milo:stack-core:0.3.7"
+    compile "org.eclipse.milo:sdk-server:0.3.7"
+    compile "org.eclipse.milo:sdk-core:0.3.7"
+    compile "org.eclipse.milo:sdk-client:0.3.7"
+    compile "org.projectlombok:lombok:1.18.12"
+    compile name: 'FIABcore-1.0.1-SNAPSHOT'
+
+}
+
+//Jar
+jar {
+    manifest {
+        attributes("Implementation-Title": project.name,
+                "Implementation-Version": version)
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}

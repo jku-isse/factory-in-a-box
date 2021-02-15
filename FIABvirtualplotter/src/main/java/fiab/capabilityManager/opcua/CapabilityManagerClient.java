@@ -12,6 +12,7 @@ import fiab.opcua.client.OPCUAClientFactory;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaMethodNode;
+import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
@@ -30,6 +31,7 @@ public class CapabilityManagerClient extends AbstractActor {
 
     private OpcUaClient client;
     private NodeId setCapabilityMethodNodeId;
+    private NodeId plotFuNodeId;
 
     public static Props props(String endpointURL) {
         return Props.create(CapabilityManagerClient.class, endpointURL);
@@ -69,6 +71,9 @@ public class CapabilityManagerClient extends AbstractActor {
                     log.info("Found set capability method node: " + node.getNodeId().get());
                     setCapabilityMethodNodeId = node.getNodeId().get();
                 }
+            } else if (Objects.requireNonNull(node.getBrowseName().get().getName()).equalsIgnoreCase("PLOTTER_FU")) {
+                    log.info("Found Plotter_FU node: " + node.getNodeId().get());
+                    plotFuNodeId = node.getNodeId().get();
             }
         }
     }
@@ -79,18 +84,19 @@ public class CapabilityManagerClient extends AbstractActor {
                 log.info("Changed capability to " + s);
             } else {
                 log.info("Could not change capability, " + t);
+                t.printStackTrace();
             }
         });
     }
 
     protected CompletableFuture<String> callMethod(NodeId methodId, Variant[] inputArgs) {
-        CallMethodRequest request = new CallMethodRequest(
-                new NodeId(1, 321), methodId, inputArgs);
+        CallMethodRequest request = new CallMethodRequest(plotFuNodeId, methodId, inputArgs);
 
         return client.call(request).thenCompose(result -> {
             StatusCode statusCode = result.getStatusCode();
             if (statusCode.isGood()) {
                 String value = (String) (result.getOutputArguments())[0].getValue();
+                log.info("Received result: " + value);
                 return CompletableFuture.completedFuture(value);
             } else {
                 StatusCode[] inputArgumentResults = result.getInputArgumentResults();

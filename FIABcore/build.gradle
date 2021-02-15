@@ -1,0 +1,32 @@
+apply plugin: 'java'
+
+group 'factory.in.a.box'
+version '1.0.1-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    maven { url "https://jitpack.io" }
+    mavenCentral()
+    flatDir {
+        dirs '../libs'
+    }
+}
+
+dependencies{
+    compile "org.eclipse.emf:org.eclipse.emf.ecore:2.19.0"
+    compile "org.eclipse.emf:org.eclipse.emf.ecore.xmi:2.16.0"
+    compile "org.eclipse.emf:org.eclipse.emf.common:2.12.0"
+    compile name: "coremodel-1.0.0"
+}
+
+//Jar
+jar {
+    manifest {
+        attributes("Implementation-Title": project.name,
+                "Implementation-Version": version)
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}

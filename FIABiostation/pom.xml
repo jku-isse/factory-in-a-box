@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>factory.in.a.box</groupId>
 	<artifactId>FIABiostation</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<name>Virtual IO Station</name>
 	<description>Mimicks a real IO Station at OPC UA and handshake level</description>
 	<properties>
@@ -54,6 +54,11 @@
 			<artifactId>FIABhandshake</artifactId>
 			<version>1.0.4-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>factory.in.a.box</groupId>
+			<artifactId>FIABhardware</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -65,7 +70,7 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<plugin>
+			<!--plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
 				<version>2.5.2</version>
@@ -96,7 +101,7 @@
 							<artifactId>FIABopcuabase</artifactId>
 							<version>1.0.2-SNAPSHOT</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/original-FIABopcuabase-1.0.2-SNAPSHOT.jar
+							<file>${project.basedir}/../libs/FIABopcuabase-1.0.3-SNAPSHOT.jar
 							</file>
 						</configuration>
 					</execution>
@@ -111,12 +116,27 @@
 							<artifactId>FIABhandshake</artifactId>
 							<version>1.0.3-SNAPSHOT</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar
+							<file>${project.basedir}/../libs/FIABhandshake-1.0.4-SNAPSHOT.jar
+							</file>
+						</configuration>
+					</execution>
+					<execution>
+						<id>install-jar-lib-4</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<phase>validate</phase>
+						<configuration>
+							<groupId>factory.in.a.box</groupId>
+							<artifactId>FIABhardware</artifactId>
+							<version>1.0.0-SNAPSHOT</version>
+							<packaging>jar</packaging>
+							<file>${project.basedir}/../libs/FIABhardware-1.0.0-SNAPSHOT.jar
 							</file>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin-->
 			<!--plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>

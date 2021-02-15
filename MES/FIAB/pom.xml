@@ -8,6 +8,8 @@
     <properties>
         <akka.version>2.5.25</akka.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
     <repositories>
         <repository>
@@ -21,23 +23,12 @@
             <artifactId>akka-actor_2.12</artifactId>
             <version>${akka.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-testkit_2.12</artifactId>
-            <version>${akka.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
+
+        <!--dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-commons</artifactId>
             <version>1.5.2</version>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http_2.12</artifactId>
@@ -84,11 +75,69 @@
             <version>1.7.28</version>
         </dependency>
         <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-testkit_2.12</artifactId>
+            <version>${akka.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.28</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.7.0-M1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.7.0-M1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.7.0-M1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit</groupId>
+            <artifactId>junit-bom</artifactId>
+            <version>5.7.0-M1</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-commons</artifactId>
+            <version>1.7.0-M1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>1.7.0-M1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>sax</groupId>
+            <artifactId>sax</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.w3c</groupId>
+            <artifactId>dom</artifactId>
+            <version>2.3.0-jaxb-1.0.6</version>
+        </dependency>
+
         <!--dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-testkit_2.12</artifactId>
@@ -152,12 +201,7 @@
             <artifactId>stateless4j</artifactId>
             <version>2.5.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.7.0-M1</version>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -173,7 +217,7 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABopcuabase</artifactId>
-            <version>1.0.1-SNAPSHOT</version>
+            <version>1.0.2-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -185,7 +229,7 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABiostation</artifactId>
-            <version>1.0.1-SNAPSHOT</version>
+            <version>1.0.2-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -197,20 +241,22 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABturntable</artifactId>
-            <version>1.0.5-SNAPSHOT</version>
+            <version>1.0.9-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-			<groupId>at.pro2future</groupId>
-			<artifactId>CoreModel</artifactId>
-			<version>1.0.0</version>
-			<scope>compile</scope>
-		</dependency>
+            <groupId>at.pro2future</groupId>
+            <artifactId>CoreModel</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
+
         <plugins>
-            <plugin>
+
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
                 <version>2.5.2</version>
@@ -240,7 +286,7 @@
                             <artifactId>FIABopcuabase</artifactId>
                             <version>1.0.2-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../../libs/original-FIABopcuabase-1.0.2-SNAPSHOT.jar</file>
+                            <file>${project.basedir}/../../libs/FIABopcuabase-1.0.3-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>
@@ -254,7 +300,7 @@
                             <artifactId>FIABhandshake</artifactId>
                             <version>1.0.3-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar</file>
+                            <file>${project.basedir}/../../libs/FIABhandshake-1.0.4-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>
@@ -266,9 +312,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABturntable</artifactId>
-                            <version>1.0.5-SNAPSHOT</version>
+                            <version>1.0.9-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../../libs/original-FIABturntable-1.0.5-SNAPSHOT.jar</file>
+                            <file>${project.basedir}/../../libs/original-FIABturntable-1.0.9-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>
@@ -280,9 +326,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABiostation</artifactId>
-                            <version>1.0.1-SNAPSHOT</version>
+                            <version>1.0.2-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../../libs/original-FIABiostation-1.0.1-SNAPSHOT.jar</file>
+                            <file>${project.basedir}/../../libs/original-FIABiostation-1.0.2-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>
@@ -315,16 +361,16 @@
 						</configuration>
 					</execution>
                 </executions>
-            </plugin>
-            <plugin>
+            </plugin -->
+            <!--plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
-            </plugin>
-            <plugin>
+            </plugin-->
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.0</version>
@@ -360,46 +406,46 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin-->
 
         </plugins>
-        <pluginManagement>
-            <plugins>
-                <!--This plugin's configuration is used to store Eclipse m2e settings
-                    only. It has no influence on the Maven build itself. -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>
-                                            org.apache.maven.plugins
-                                        </groupId>
-                                        <artifactId>
-                                            maven-install-plugin
-                                        </artifactId>
-                                        <versionRange>
-                                            [2.4,)
-                                        </versionRange>
-                                        <goals>
-                                            <goal>install-file</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <execute>
-                                            <runOnIncremental>false</runOnIncremental>
-                                        </execute>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+        <!--pluginManagement>
+            <plugins -->
+        <!--This plugin's configuration is used to store Eclipse m2e settings
+            only. It has no influence on the Maven build itself. -->
+        <!-- plugin>
+            <groupId>org.eclipse.m2e</groupId>
+            <artifactId>lifecycle-mapping</artifactId>
+            <version>1.0.0</version>
+            <configuration>
+                <lifecycleMappingMetadata>
+                    <pluginExecutions>
+                        <pluginExecution>
+                            <pluginExecutionFilter>
+                                <groupId>
+                                    org.apache.maven.plugins
+                                </groupId>
+                                <artifactId>
+                                    maven-install-plugin
+                                </artifactId>
+                                <versionRange>
+                                    [2.4,)
+                                </versionRange>
+                                <goals>
+                                    <goal>install-file</goal>
+                                </goals>
+                            </pluginExecutionFilter>
+                            <action>
+                                <execute>
+                                    <runOnIncremental>false</runOnIncremental>
+                                </execute>
+                            </action>
+                        </pluginExecution>
+                    </pluginExecutions>
+                </lifecycleMappingMetadata>
+            </configuration>
+        </plugin>
+    </plugins>
+</pluginManagement-->
     </build>
 </project>

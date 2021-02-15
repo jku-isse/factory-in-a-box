@@ -42,7 +42,6 @@
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABcore</artifactId>
             <version>1.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
@@ -53,6 +52,11 @@
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABopcuabase</artifactId>
             <version>1.0.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>factory.in.a.box</groupId>
+            <artifactId>FIABhardware</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
         <dependency>
@@ -78,6 +82,18 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+        </plugins>
+    </build>
+    <!--build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
@@ -92,9 +108,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABopcuabase</artifactId>
-                            <version>1.0.1-SNAPSHOT</version>
+                            <version>1.0.3-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABopcuabase-1.0.2-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABopcuabase-1.0.3-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
@@ -124,49 +140,27 @@
                             <artifactId>FIABhandshake</artifactId>
                             <version>1.0.2-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABhandshake-1.0.3-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABhandshake-1.0.4-SNAPSHOT.jar
+                            </file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-jar-lib-4</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>factory.in.a.box</groupId>
+                            <artifactId>FIABhardware</artifactId>
+                            <version>1.0.0-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/../libs/FIABhardware-1.0.0-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-            <!--plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>reference.conf</resource>
-                                </transformer>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <manifestEntries>
-                                        <Main-Class>fiab.machine.plotter.opcua.ExampleStartupPlotter</Main-Class>
-                                    </manifestEntries>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin-->
         </plugins>
-    </build>
+    </build -->
 </project>
