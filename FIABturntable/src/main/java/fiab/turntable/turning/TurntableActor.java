@@ -208,7 +208,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
             completing();
         } else {
             //TODO notify if stuck here and state is execute
-            context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
+            context().system().scheduler().scheduleOnce(Duration.ofMillis(80),
                     () -> checkTurningPositionReached(orientation)
                     , context().system().dispatcher());
         }
@@ -220,11 +220,11 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
             case NORTH:
                 return sensorHomingHasDetectedInput();    //Casting position from float to int somehow is always pos-1
             case EAST:
-                return getPosition() >= EAST_ANGLE - 5;
+                return getPosition() >= EAST_ANGLE - 2;
             case SOUTH:
-                return getPosition() >= SOUTH_ANGLE - 5;
+                return getPosition() >= SOUTH_ANGLE - 2;
             case WEST:
-                return getPosition() >= WEST_ANGLE - 5;
+                return getPosition() >= WEST_ANGLE - 2;
             default:
                 return false;
         }

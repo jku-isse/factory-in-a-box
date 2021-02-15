@@ -14,6 +14,8 @@ import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
+import config.HardwareInfo;
+import config.MachineType;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
@@ -253,7 +255,7 @@ public class DefaultLayout {
 		fiab.machine.plotter.IntraMachineEventBus intraEventBus = new fiab.machine.plotter.IntraMachineEventBus();
 		final AbstractCapability cap = colorCap;
 		final Actor modelActor = getDefaultMachineActor(ipid);
-		ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper"+ipid);
+		ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus, new HardwareInfo(MachineType.PLOTTER)), "MachineWrapper"+ipid);	//TODO check if we can avoid passing hardwareinfo
 		ActorSelection serverSide = system.actorSelection("/user/MachineWrapper"+ipid+"/ServerSideHandshakeMock");
 		Thread.sleep(1000);
 		ActorRef serverSideRef = serverSide.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();

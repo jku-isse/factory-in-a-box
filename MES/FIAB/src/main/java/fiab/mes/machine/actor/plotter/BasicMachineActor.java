@@ -29,7 +29,6 @@ import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.machine.plotter.SubscriptionClassifier;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.plotter.wrapper.PlottingMachineWrapperInterface;

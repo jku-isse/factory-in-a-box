@@ -2,6 +2,8 @@ package fiab.mes.mockactors.plotter;
 
 import java.time.Duration;
 
+import config.HardwareInfo;
+import config.MachineType;
 import org.junit.AfterClass;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +28,6 @@ import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColor
 import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.machine.plotter.SubscriptionClassifier;
 import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -81,7 +82,7 @@ public class TestBasicMachineActorWithTransport {
 				
 				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 				//intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
-				ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper1");
+				ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus, new HardwareInfo(MachineType.PLOTTER)), "MachineWrapper1");	//TODO Check if we can do without HardwareInfo
 				ActorSelection serverSide = system.actorSelection("/user/MachineWrapper1/ServerSideHandshakeMock");
 				PlottingMachineWrapperInterface wrapperDelegate = new MockPlottingMachineWrapperDelegate(machineWrapper);
 				machine = system.actorOf(BasicMachineActor.props(eventBusByRef, cap, modelActor, wrapperDelegate, intraEventBus));

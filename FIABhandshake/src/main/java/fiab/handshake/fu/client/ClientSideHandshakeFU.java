@@ -24,7 +24,6 @@ import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
-import fiab.handshake.fu.client.OPCUAClientHandshakeActorWrapper;
 import fiab.opcua.CapabilityImplInfo;
 //import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.methods.Complete;

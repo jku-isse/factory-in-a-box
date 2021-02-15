@@ -15,8 +15,6 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.handshake.actor.ClientHandshakeActor;
-import fiab.handshake.actor.ServerSideHandshakeActor;
 
 public class TestHandshakeProtocol { 
 
