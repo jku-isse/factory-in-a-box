@@ -25,8 +25,6 @@ import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
-import fiab.mes.planer.msg.PlanerStatusMessage;
-import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.actor.transportsystem.TransportModuleUsageTracker.TransportModuleOrderMappingStatus;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;

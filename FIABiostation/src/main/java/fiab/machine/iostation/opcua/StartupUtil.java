@@ -15,7 +15,7 @@ public class StartupUtil {
 	
 	private static void startup(int portOffset, String name, boolean isInputStation) {
 		ActorSystem system = ActorSystem.create("SYSTEM_"+name);		
-		ActorRef actor = isInputStation ? system.actorOf(OPCUAIOStationRootActor.propsForInputStation(name, portOffset, true), name) :
-										system.actorOf(OPCUAIOStationRootActor.propsForOutputStation(name, portOffset, true), name);
+		ActorRef actor = isInputStation ? system.actorOf(OPCUAIOStationRootActor.propsForInputStation(name, portOffset), name) :
+										system.actorOf(OPCUAIOStationRootActor.propsForOutputStation(name, portOffset), name);
 	}
 }

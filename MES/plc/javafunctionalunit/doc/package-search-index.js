@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"at.pro2future.communication"},{"l":"at.pro2future.controller"},{"l":"at.pro2future.functionalUnit"},{"l":"at.pro2future.helper"},{"l":"at.pro2future.protocols"},{"l":"open62Wrap"}]

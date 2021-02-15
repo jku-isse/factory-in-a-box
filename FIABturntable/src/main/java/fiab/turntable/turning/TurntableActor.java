@@ -5,13 +5,11 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.StatePublisher;
 import fiab.turntable.actor.IntraMachineEventBus;
+import fiab.turntable.turning.statemachine.TurningStates;
 import hardware.TurningHardware;
-import hardware.lego.LegoTurningHardware;
-import hardware.mock.TurningMockHardware;
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.SensorPort;
+import config.HardwareInfo;
 
-import static fiab.turntable.turning.TurningTriggers.*;
+import static fiab.turntable.turning.statemachine.TurningTriggers.*;
 
 import java.time.Duration;
 
@@ -25,30 +23,40 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     //private final int NORTH_ANGLE = rightAngleDeg * TurnTableOrientation.NORTH.getNumericValue() * ratio;
     private final int EAST_ANGLE = rightAngleDeg * TurnTableOrientation.EAST.getNumericValue() * ratio + 10;
     private final int SOUTH_ANGLE = rightAngleDeg * TurnTableOrientation.SOUTH.getNumericValue() * ratio - 20;
-    private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 30; //correction
+    private final int WEST_ANGLE = rightAngleDeg * TurnTableOrientation.WEST.getNumericValue() * ratio - 30; //corrections
 
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     private TurningHardware turningHardware;
     protected TurnTableOrientation orientation;
 
-    public static Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
-        return Props.create(TurntableActor.class, () -> new TurntableActor(intraEventBus, publishEP));
+    public static Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareInfo hardwareInfo) {
+        return Props.create(TurntableActor.class, () -> new TurntableActor(intraEventBus, publishEP, hardwareInfo));
     }
 
-    public TurntableActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
+    public TurntableActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareInfo hardwareInfo) {
         super(intraEventBus, publishEP);
         this.orientation = TurnTableOrientation.NORTH;
         Runtime.getRuntime().addShutdownHook(new Thread(this::motorStop));
-        initHardware();
+        initHardware(hardwareInfo);
     }
 
-    private void initHardware() {
-        if (DEBUG) {
-            turningHardware = new TurningMockHardware(200);
+    private void initHardware(HardwareInfo hardwareInfo) {
+
+        /*if (DEBUG) {
+            if (hardwareConfig.getMotorD().isPresent() && hardwareConfig.getSensor4().isPresent()) {
+                turningHardware = new TurningMockHardware(hardwareConfig.getMotorD().get(), hardwareConfig.getSensor4().get());
+            }
         } else {
-            turningHardware = new LegoTurningHardware(MotorPort.D, SensorPort.S4);
-            turningHardware.getTurningMotor().setSpeed(200);
+            if (hardwareConfig.getMotorD().isPresent() && hardwareConfig.getSensor4().isPresent()) {
+                turningHardware = new LegoTurningHardware(hardwareConfig.getMotorD().get(), hardwareConfig.getSensor4().get());
+                turningHardware.getTurningMotor().setSpeed(200);
+            }
+        }*/
+        if(hardwareInfo.getTurningHardware().isPresent()){
+            turningHardware = hardwareInfo.getTurningHardware().get();
+        }else{
+            throw new RuntimeException("TurningHardware was not properly initialized!");
         }
     }
 
@@ -193,14 +201,14 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     private void checkTurningPositionReached(TurnTableOrientation orientation) {
         if (this.tsm.isInState(TurningStates.EXECUTING) && this.orientation == orientation
                 && isRotationFinished(orientation)) {
-                        log.info("Turning Position reached");
-                        if(orientation == TurnTableOrientation.NORTH){
-                            resetTachoCount();
-                        }
-                        completing();
+            log.info("Turning Position reached");
+            if (orientation == TurnTableOrientation.NORTH) {
+                resetTachoCount();
+            }
+            completing();
         } else {
             //TODO notify if stuck here and state is execute
-            context().system().scheduler().scheduleOnce(Duration.ofMillis(100),
+            context().system().scheduler().scheduleOnce(Duration.ofMillis(80),
                     () -> checkTurningPositionReached(orientation)
                     , context().system().dispatcher());
         }
@@ -216,7 +224,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
             case SOUTH:
                 return getPosition() >= SOUTH_ANGLE - 5;
             case WEST:
-                return getPosition() >= WEST_ANGLE - 5;
+                return getPosition() >= WEST_ANGLE - 5;     //<5 is too close, motor wiggles a bit back and gets stuck in execute
             default:
                 return false;
         }

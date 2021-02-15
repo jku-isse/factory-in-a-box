@@ -1,6 +1,7 @@
 package fiab.turntable.turning;
 
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import fiab.turntable.turning.statemachine.TurningStates;
 
 public class TurntableStatusUpdateEvent extends MachineUpdateEvent {
 	

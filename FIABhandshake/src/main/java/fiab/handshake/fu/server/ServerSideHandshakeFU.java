@@ -67,7 +67,7 @@ public class ServerSideHandshakeFU implements StatePublisher, HandshakeFU {
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "HANDSHAKE_FU_"+capInstId);	
 
 		// add method/variables to opcua
-		status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME, fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates.STOPPED);
+		status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME, HandshakeCapability.ServerSideStates.STOPPED);
 		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, "INIT_HANDOVER", "Requests init");		
 		base.addMethodNode(handshakeNode, n1, new InitHandover(n1, localClient)); 		
 		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, "START_HANDOVER", "Requests start");		

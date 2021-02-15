@@ -27,9 +27,12 @@ import fiab.machine.plotter.opcua.methods.Reset;
 import fiab.machine.plotter.opcua.methods.Stop;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
+import config.HardwareInfo;
+import config.MachineType;
 
 public class OPCUAPlotterRootActor extends AbstractActor {
 
+	private boolean exposeInternalControl;
     private String machineName = "Plotter";
     static final String NAMESPACE_URI = "urn:factory-in-a-box";
     private UaVariableNode status = null;
@@ -73,22 +76,46 @@ public class OPCUAPlotterRootActor extends AbstractActor {
 
         OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
         UaFolderNode root = opcuaBase.prepareRootNode();
-        UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "Plotting_FU");
+        UaFolderNode plotterNode = opcuaBase.generateFolder(root, machineName, "Plotting_FU");
         String fuPrefix = machineName + "/" + "Plotting_FU";
 
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         intraEventBus.subscribe(getSelf(), new fiab.machine.plotter.SubscriptionClassifier("Plotter Module", "*"));
-        plotterCoordinator = context().actorOf(VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus), machineName);
+        HardwareInfo hardwareInfo = new HardwareInfo(MachineType.PLOTTER);
+        	
+        //PlotFu plotFu = new PlotFu();
+        //ConveyorFu conveyorFu = new ConveyorFu(opcuaBase, root, machineName, context(), exposeInternalControl, intraEventBus, hardwareInfo);    
+        //PlotFu plotFu = new PlotFu(opcuaBase, root, machineName , context(), exposeInternalControl, intraEventBus, hardwareInfo, color);
+        
+        plotterCoordinator = context().actorOf(VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus, hardwareInfo), machineName);
         plotterCoordinator.tell(PlotterMessageTypes.SubscribeState, getSelf());
-
-        HandshakeFU defaultHandshakeFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, plotterCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+        
+        
+        UaFolderNode plotHardwareNode = opcuaBase.generateFolder(plotterNode, fuPrefix, "Hardware");
+        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PlotXMotor", machineName +"/Hardware/Elements/MotorB");
+        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PlotYMotor", machineName +"/Hardware/Elements/MotorC");
+        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PenMotor", machineName +"/Hardware/Elements/MotorD");
+        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "HomingXSensor", machineName +"/Hardware/Elements/Sensor4");
+        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "HomingYSensor", machineName +"/Hardware/Elements/Sensor3");
+        
+        
+        context().actorOf(OPCUAPlotterHardwareMonitor.props(opcuaBase, root, machineName, hardwareInfo));
+        
+        UaFolderNode conveyorNode = opcuaBase.generateFolder(root, machineName, "Conveyor_FU");
+        UaFolderNode convHardwareNode = opcuaBase.generateFolder(conveyorNode, machineName + "/Conveyor_FU",  "Hardware");
+        opcuaBase.generateStringVariableNode(convHardwareNode, machineName + "/Conveyor_FU/Hardware", "ConveyorMotor", machineName + "/Hardware/Elements/MotorA");
+        opcuaBase.generateStringVariableNode(convHardwareNode, machineName + "/Conveyor_FU/Hardware", "SensorUnloading", machineName + "/Hardware/Elements/Sensor1");
+        opcuaBase.generateStringVariableNode(convHardwareNode, machineName + "/Conveyor_FU/Hardware", "SensorLoading", machineName + "/Hardware/Elements/Sensor2");
+        
+        
+        UaFolderNode hsNode = opcuaBase.generateFolder(root, machineName, "Handshake_FU");
+        HandshakeFU defaultHandshakeFU = new ServerSideHandshakeFU(opcuaBase, hsNode, fuPrefix + "/Handshake_FU", plotterCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
         //ActorRef serverSide = defaultHandshakeFU.getFUActor();
         //		.setupOPCUANodeSet(plotterWrapper, opcuaBase, ttNode, fuPrefix, getContext());
         //plotterCoordinator.tell(serverSide, getSelf());
 
-
-        setupPlotterCapabilities(opcuaBase, ttNode, fuPrefix, color);
-        setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, plotterCoordinator);
+        setupPlotterCapabilities(opcuaBase, plotterNode, fuPrefix, color);
+        setupOPCUANodeSet(opcuaBase, plotterNode, fuPrefix, plotterCoordinator);
 
         Thread s1 = new Thread(opcuaBase);
         s1.start();

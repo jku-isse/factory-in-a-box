@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 
 import java.time.Duration;
 

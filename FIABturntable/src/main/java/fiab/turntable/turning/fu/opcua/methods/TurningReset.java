@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
-import fiab.turntable.turning.TurningTriggers;
+import fiab.turntable.turning.statemachine.TurningTriggers;
 
 public class TurningReset extends AbstractMethodInvocationHandler {
 

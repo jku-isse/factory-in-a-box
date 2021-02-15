@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.handshake.HandshakeCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
 
 import java.time.Duration;
 

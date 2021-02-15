@@ -111,7 +111,7 @@ public class ProduceProcess {
 		s1.setInvokedCapability(root.getCapabilities().get(0));
 		s2.setInvokedCapability(root.getCapabilities().get(1));		
 		s3.setInvokedCapability(root.getCapabilities().get(2));		
-		s4.setInvokedCapability(root.getCapabilities().get(3));		
+		s4.setInvokedCapability(root.getCapabilities().get(3));
 		s1.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(0).getInputs().get(0)));
 		s2.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(1).getInputs().get(0)));
 		s3.getInputMappings().add(EcoreProcessUtils.getVariableMapping(root.getCapabilities().get(2).getInputs().get(0)));
