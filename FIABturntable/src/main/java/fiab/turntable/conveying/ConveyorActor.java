@@ -8,10 +8,7 @@ import fiab.core.capabilities.StatePublisher;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.conveying.statemachine.ConveyorTriggers;
 import hardware.ConveyorHardware;
-import hardware.lego.LegoConveyorHardware;
-import hardware.mock.ConveyorMockHardware;
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.SensorPort;
+import config.HardwareInfo;
 
 import java.time.Duration;
 
@@ -23,23 +20,31 @@ public class ConveyorActor extends BaseBehaviorConveyorActor {
 
     private ConveyorHardware conveyorHardware;
 
-    static public Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
-        return Props.create(ConveyorActor.class, () -> new ConveyorActor(intraEventBus, publishEP));
+    static public Props props(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareInfo hardwareInfo) {
+        return Props.create(ConveyorActor.class, () -> new ConveyorActor(intraEventBus, publishEP, hardwareInfo));
     }
 
-    public ConveyorActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP) {
-        super(intraEventBus, publishEP);    	
-        initHardware();
+    public ConveyorActor(IntraMachineEventBus intraEventBus, StatePublisher publishEP, HardwareInfo hardwareInfo) {
+        super(intraEventBus, publishEP);
+        initHardware(hardwareInfo);
     }
 
-    private void initHardware() {
-        if (DEBUG) {
-            conveyorHardware = new ConveyorMockHardware(200, 1000);
+    private void initHardware(HardwareInfo hardwareInfo) {
+        /*if (DEBUG) {
+            if (hardwareConfig.getMotorA().isPresent() && hardwareConfig.getSensor2().isPresent() && hardwareConfig.getSensor3().isPresent()) {
+                conveyorHardware = new ConveyorMockHardware(hardwareConfig.getMotorA().get(), hardwareConfig.getSensor2().get(), hardwareConfig.getSensor3().get());
+            }//new ConveyorMockHardware(200, 1000);
         } else {
-            conveyorHardware = new LegoConveyorHardware(MotorPort.A, SensorPort.S2, SensorPort.S3);
+            conveyorHardware = new LegoConveyorHardware(MotorPort.A, SensorPort.S2, SensorPort.S3); //Use config
             conveyorHardware.getConveyorMotor().setSpeed(500);
+        }*/
+        if(hardwareInfo.getConveyorHardware().isPresent()){
+            conveyorHardware = hardwareInfo.getConveyorHardware().get();
+        }else{
+            throw new RuntimeException("ConveyorHardware could not be initialized");
         }
     }
+
 
     private void publishNewState() {
         if (publishEP != null)

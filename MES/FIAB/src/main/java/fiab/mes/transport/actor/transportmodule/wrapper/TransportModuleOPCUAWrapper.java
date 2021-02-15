@@ -10,7 +10,6 @@ import akka.actor.ActorRef;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
 import fiab.turntable.actor.InternalTransportModuleRequest;
 import fiab.turntable.actor.IntraMachineEventBus;

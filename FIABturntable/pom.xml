@@ -5,9 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>factory.in.a.box</groupId>
     <artifactId>FIABturntable</artifactId>
-    <version>1.0.8-SNAPSHOT</version>
+    <version>1.0.9-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
     <repositories>
         <repository>
@@ -20,18 +22,6 @@
         </repository>
     </repositories>
     <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.ev3dev-lang-java</groupId>
-            <artifactId>ev3dev-lang-java</artifactId>
-            <version>2.5.3</version>
-            <scope>compile</scope>
-        </dependency>
         <dependency>
             <groupId>com.github.oxo42</groupId>
             <artifactId>stateless4j</artifactId>
@@ -128,6 +118,18 @@
             <version>1.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>factory.in.a.box</groupId>
+            <artifactId>FIABhardware</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.inject/guice -->
+        <!--dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.0</version>
+        </dependency-->
+
     </dependencies>
     <build>
         <resources>
@@ -139,15 +141,15 @@
             </resource>
         </resources>
         <plugins>
-            <plugin>
+            <!--plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
-            </plugin>
-            <plugin>
+            </plugin-->
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
                 <version>2.5.2</version>
@@ -178,7 +180,7 @@
                             <artifactId>FIABopcuabase</artifactId>
                             <version>1.0.3-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABopcuabase-1.0.3-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABopcuabase-1.0.3-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
@@ -197,6 +199,21 @@
                             </file>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>install-jar-lib-4</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>factory.in.a.box</groupId>
+                            <artifactId>FIABHardware</artifactId>
+                            <version>1.0.0-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/../libs/FIABhardware-1.0.0-SNAPSHOT.jar
+                            </file>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -211,7 +228,7 @@
                         </manifest>
                     </archive>
                 </configuration>
-            </plugin>
+            </plugin-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -249,12 +266,20 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
         </plugins>
-        <pluginManagement>
-            <plugins>
-                <!--This plugin's configuration is used to store Eclipse m2e settings
+        <!--pluginManagement-->
+            <!--plugins>
+                < This plugin's configuration is used to store Eclipse m2e settings
                     only. It has no influence on the Maven build itself. -->
-                <plugin>
+                <!--plugin>
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
                     <version>1.0.0</version>
@@ -286,7 +311,7 @@
                         </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
-            </plugins>
-        </pluginManagement>
+            </plugins-->
+        <!--/pluginManagement-->
     </build>
 </project>

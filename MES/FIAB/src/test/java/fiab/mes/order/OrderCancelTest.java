@@ -3,7 +3,6 @@ package fiab.mes.order;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -19,7 +18,6 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
-import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.MESSubscriptionClassifier;

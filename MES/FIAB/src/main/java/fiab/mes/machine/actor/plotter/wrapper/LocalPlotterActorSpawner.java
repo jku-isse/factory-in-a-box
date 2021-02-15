@@ -1,6 +1,5 @@
 package fiab.mes.machine.actor.plotter.wrapper;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -32,7 +31,6 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.machine.plotter.IntraMachineEventBus;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
