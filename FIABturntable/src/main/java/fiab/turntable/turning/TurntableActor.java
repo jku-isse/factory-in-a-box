@@ -220,11 +220,11 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
             case NORTH:
                 return sensorHomingHasDetectedInput();    //Casting position from float to int somehow is always pos-1
             case EAST:
-                return getPosition() >= EAST_ANGLE - 2;
+                return getPosition() >= EAST_ANGLE - 5;
             case SOUTH:
-                return getPosition() >= SOUTH_ANGLE - 2;
+                return getPosition() >= SOUTH_ANGLE - 5;
             case WEST:
-                return getPosition() >= WEST_ANGLE - 2;
+                return getPosition() >= WEST_ANGLE - 5;     //<5 is too close, motor wiggles a bit back and gets stuck in execute
             default:
                 return false;
         }
