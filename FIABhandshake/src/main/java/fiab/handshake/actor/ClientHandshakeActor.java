@@ -9,6 +9,7 @@ import brave.Span;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.handshake.actor.messages.HSClientMessage;
+import fiab.handshake.actor.messages.HSClientStateMessage;
 import fiab.handshake.actor.messages.HSServerMessage;
 import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.tracing.actor.AbstractTracingActor;
@@ -270,8 +271,16 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 	private void publishNewState(ClientSideStates newState) {
 		currentState = newState;
-		// TODO here messages that are NOT sent to HS server are published
+		
+
+		HSClientStateMessage msg = new HSClientStateMessage(tracingFactory.getCurrentHeader(), newState);
+		tracingFactory.injectMsg(msg);
+
+		//TODO remove when all actors support extensible messages
 		machineWrapper.tell(newState, getSelf());
+		
+		
+		machineWrapper.tell(msg, getSelf());
 		if (publishEP != null)
 			publishEP.setStatusValue(newState.toString());
 	}
@@ -298,19 +307,18 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void start() {
 		if (currentState.equals(ClientSideStates.IDLE)) {
 			publishNewState(ClientSideStates.STARTING);
-			
+
 			tracingFactory.startProducerSpan("");
 			tracingFactory.finishCurrentSpan();
-			
+
 			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates);
 			tracingFactory.injectMsg(msg);// subscribe for
 			// updates
-			
-			
+
 			serverSide.tell(msg, getSelf());
 			publishNewState(ClientSideStates.INITIATING);
-			
+
 		} else {
 			log.warning("was requested invalid command 'Start' in state: " + currentState);
 		}
@@ -347,7 +355,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 						|| remoteState.equals(ServerSideStates.READY_LOADED)) {
 					// only of remote point is ready, and we are also still ready (as this is
 					// triggered some time in the future)
-					if (currentState.equals(ClientSideStates.READY))						
+					if (currentState.equals(ClientSideStates.READY))
 						requestStartHandover();
 				} else {
 					log.info(String.format("Server %s in last known state %s not yet ready for RequestStartHandover",

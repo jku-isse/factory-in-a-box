@@ -74,7 +74,7 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 
 	private void receiveServerMessage(HSServerMessage msg) {
 		IOStationCapability.ServerMessageTypes body = msg.getBody();
-		
+
 		log.info(String.format("Received %s from %s", body, getSender()));
 
 		switch (body) {
@@ -170,18 +170,22 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 
 	protected void publishNewState(ServerSideStates newState) {
 		currentState = newState;
-		// TODO Publishing Messages to other actors
+		HSServerSideStateMessage msg = new HSServerSideStateMessage(tracingFactory.getCurrentHeader(), newState);
+		tracingFactory.injectMsg(msg);
+
 		if (parentActor != null) {
+			//TODO remove when all actors support extensible messages
 			parentActor.tell(newState, self);
+			
+			parentActor.tell(msg, self);
 		}
 		if (publishEP != null) {
 			publishEP.setStatusValue(newState.toString());
 		}
 		// sending extensible message to all subscribers
-		// HSServerSideStateMessage msg = new
-		// HSServerSideStateMessage(tracingFactory.getCurrentHeader(), newState);
-//		subscribers.stream().forEach(sub -> sub.tell(msg, self));
-		subscribers.stream().forEach(sub -> sub.tell(newState, self));
+
+		subscribers.stream().forEach(sub -> sub.tell(msg, self));
+//		subscribers.stream().forEach(sub -> sub.tell(newState, self));
 	}
 
 	private Set<ServerSideStates> loadChangeableStates = Sets.newHashSet(ServerSideStates.COMPLETE,

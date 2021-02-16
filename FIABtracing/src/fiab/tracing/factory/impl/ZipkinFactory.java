@@ -91,16 +91,21 @@ public class ZipkinFactory implements TracingFactory {
 
 	@Override
 	public String getCurrentHeader() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(currentSpan.context().traceIdString());
-		sb.append("-");
-		sb.append(currentSpan.context().spanIdString());
-		sb.append("-");
-		sb.append("d");
-		sb.append("-");
-		sb.append(currentSpan.context().parentIdString());
-		return sb.toString();
+		if(currentSpan == null)
+			return scopedSpanHeader();
+		else
+			return currentSpanHeader();		
 	}
+
+	private String currentSpanHeader() {		
+		return ZipkinUtil.createXB3Header(currentSpan);
+	}
+
+	private String scopedSpanHeader() {
+		return ZipkinUtil.createXB3ScopeHeader(scope);
+	}
+	
+	
 
 	@Override
 	public String getTraceId() {
