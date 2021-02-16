@@ -79,7 +79,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		switch (body) {
 		case Reset:
 			try {
-				tracingFactory.startProducerSpan(msg, "Client-Handshake: Reset Received");
+				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Reset Received");
 				reset(); // prepare for next round
 
 			} catch (Exception e) {
@@ -103,7 +103,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 			if (currentState.equals(ClientSideStates.EXECUTE)) // only if we are in state executing, otherwise complete
 																// makes no sense
 				try {
-					tracingFactory.startProducerSpan(msg, "Client-Handshake: Complete Received");
+					tracingFactory.startConsumerSpan(msg, "Client-Handshake: Complete Received");
 					complete(); // handshake can be wrapped up
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -113,7 +113,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 			break;
 		case Stop:
 			try {
-				tracingFactory.startProducerSpan(msg, "Client-Handshake: Stop Received");
+				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Stop Received");
 				stop(); // error or external stop, otherwise autostopping upon completion
 			} catch (Exception e) {
 				e.printStackTrace();

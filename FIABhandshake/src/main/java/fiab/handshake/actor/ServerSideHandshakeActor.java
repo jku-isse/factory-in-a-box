@@ -6,18 +6,17 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
-import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.StatePublisher;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
+import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.handshake.actor.messages.HSServerMessage;
 import fiab.handshake.actor.messages.HSServerSideStateMessage;
+import fiab.handshake.actor.messages.HSStateOverrideRequestMessage;
 import fiab.tracing.actor.AbstractTracingActor;
 
 public class ServerSideHandshakeActor extends AbstractTracingActor {
@@ -53,23 +52,50 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 	public Receive createReceive() {
 		return receiveBuilder().match(IOStationCapability.ServerMessageTypes.class, body -> {
 			receiveServerMessage(new HSServerMessage("", body));
+			
 		}).match(HSServerMessage.class, msg -> {
 			receiveServerMessage(msg);
+			
 		}).match(StateOverrideRequests.class, req -> {
-			log.info(String.format("Received %s from %s", req, getSender()));
-			switch (req) {
-			case SetLoaded:
-				updateLoadState(true);
-				break;
-			case SetEmpty:
-				updateLoadState(false);
-				break;
-			default:
-				break;
-			}
+			receiveStateOverrideRequest(new HSStateOverrideRequestMessage("", req));
+			
+		}).match(HSStateOverrideRequestMessage.class, msg -> {
+			receiveStateOverrideRequest(msg);
+			
 		}).matchAny(msg -> {
 			log.warning(String.format("Unexpected Message received <%s> from %s", msg.toString(), getSender()));
 		}).build();
+	}
+
+	private void receiveStateOverrideRequest(HSStateOverrideRequestMessage msg) {
+		StateOverrideRequests body = msg.getBody();
+
+		log.info(String.format("Received %s from %s", body, getSender()));
+
+		switch (body) {
+		case SetLoaded:
+			try {
+				tracingFactory.startConsumerSpan(msg, "Server-Handshake: StateOverriderequest SetLoaded received");
+				updateLoadState(true);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
+			break;
+		case SetEmpty:
+			try {
+				tracingFactory.startConsumerSpan(msg, "Server-Handshake: StateOverriderequest SetEmpty received");
+				updateLoadState(false);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
+			break;
+		default:
+			break;
+		}
 	}
 
 	private void receiveServerMessage(HSServerMessage msg) {
@@ -174,9 +200,9 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 		tracingFactory.injectMsg(msg);
 
 		if (parentActor != null) {
-			//TODO remove when all actors support extensible messages
+			// TODO remove when all actors support extensible messages
 			parentActor.tell(newState, self);
-			
+
 			parentActor.tell(msg, self);
 		}
 		if (publishEP != null) {
