@@ -16,15 +16,11 @@ import zipkin2.reporter.brave.ZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 public class Test {
-	
-	
-	TracingFactory fac;
-	
 
-	
+	TracingFactory fac;
+
 	public static void main(String[] args) {
-		
-		
+
 		new Test().start();
 
 	}
@@ -68,7 +64,7 @@ public class Test {
 //	}
 
 	private void testInjection() {
-		 fac = Guice.createInjector(Util.getConfig()).getInstance(TracingFactory.class);
+		fac = Guice.createInjector(Util.getConfig()).getInstance(TracingFactory.class);
 		System.out.println("asdawerdasdf");
 	}
 
@@ -85,10 +81,8 @@ public class Test {
 		injector.inject(tracing.currentTraceContext().get(), msg);
 
 		Extractor<ExtensibleMessage<Object>> extractor = tracing.propagation().extractor(new TestGetter<>());
-		
-		
-		Span span = tracing.tracer().newChild(extractor.extract(msg).context());
 
+		Span span = tracing.tracer().newChild(extractor.extract(msg).context());
 
 		span.start();
 		for (int i = 0; i < 50000; i++) {
@@ -97,11 +91,30 @@ public class Test {
 		span.finish();
 
 		scope.finish();
-		
+
 		System.out.println(span.context().traceIdString());
 		System.out.println(scope.context().traceIdString());
 		tracing.close();
 		handler.close();
 //		sender.close();
+	}
+
+	private void test() {
+		int x = 0;
+		switch (x) {
+		case 4:
+			break;
+		case 1:
+			if (true) {
+				try {
+
+				} catch (Exception e) {
+
+				} finally {
+
+				}
+			}
+			break;
+		}
 	}
 }
