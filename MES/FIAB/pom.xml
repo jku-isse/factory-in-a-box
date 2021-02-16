@@ -223,7 +223,7 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABhandshake</artifactId>
-            <version>1.0.3-SNAPSHOT</version>
+            <version>1.1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -298,9 +298,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABhandshake</artifactId>
-                            <version>1.0.3-SNAPSHOT</version>
+                            <version>1.1.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../../libs/FIABhandshake-1.0.4-SNAPSHOT.jar</file>
+                            <file>${project.basedir}/../../libs/FIABhandshake-1.1.0-SNAPSHOT.jar</file>
                         </configuration>
                     </execution>
                     <execution>

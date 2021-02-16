@@ -5,7 +5,6 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import brave.Span;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.handshake.actor.messages.HSClientMessage;
@@ -13,7 +12,6 @@ import fiab.handshake.actor.messages.HSClientStateMessage;
 import fiab.handshake.actor.messages.HSServerMessage;
 import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.tracing.actor.AbstractTracingActor;
-import fiab.tracing.actor.messages.ExtensibleMessage;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 
@@ -271,15 +269,13 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 	private void publishNewState(ClientSideStates newState) {
 		currentState = newState;
-		
 
 		HSClientStateMessage msg = new HSClientStateMessage(tracingFactory.getCurrentHeader(), newState);
 		tracingFactory.injectMsg(msg);
 
-		//TODO remove when all actors support extensible messages
+		// TODO remove when all actors support extensible messages
 		machineWrapper.tell(newState, getSelf());
-		
-		
+
 		machineWrapper.tell(msg, getSelf());
 		if (publishEP != null)
 			publishEP.setStatusValue(newState.toString());
