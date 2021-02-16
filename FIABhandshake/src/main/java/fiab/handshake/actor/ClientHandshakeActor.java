@@ -298,13 +298,19 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void start() {
 		if (currentState.equals(ClientSideStates.IDLE)) {
 			publishNewState(ClientSideStates.STARTING);
+			
+			tracingFactory.startProducerSpan("");
+			tracingFactory.finishCurrentSpan();
+			
 			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates);
 			tracingFactory.injectMsg(msg);// subscribe for
 			// updates
-
+			
+			
 			serverSide.tell(msg, getSelf());
 			publishNewState(ClientSideStates.INITIATING);
+			
 		} else {
 			log.warning("was requested invalid command 'Start' in state: " + currentState);
 		}
