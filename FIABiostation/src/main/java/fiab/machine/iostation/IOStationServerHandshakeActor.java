@@ -7,6 +7,8 @@ import akka.actor.Props;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.handshake.actor.ServerSideHandshakeActor;
+import fiab.handshake.actor.messages.HSServerSideStateMessage;
+import fiab.tracing.factory.TracingFactory;
 
 public class IOStationServerHandshakeActor extends ServerSideHandshakeActor{
 
@@ -28,7 +30,9 @@ public class IOStationServerHandshakeActor extends ServerSideHandshakeActor{
 //	@Override
 //	protected void publishNewState(ServerSideStates newState) {
 //		currentState = newState;
-//		ImmutableSet.copyOf(subscribers).stream().forEach(sub -> sub.tell(newState, getSelf()));
+//	HSServerSideStateMessage msg = new HSServerSideStateMessage(tracingFactory.getCurrentHeader(), newState);
+//	tracingFactory.inject(msg);
+//		ImmutableSet.copyOf(subscribers).stream().forEach(sub -> sub.tell(msg, getSelf()));
 //	}
 
 	// we accept the usual request but we implement an auto reset, except for an initial reset to become active
