@@ -1,9 +1,8 @@
 package fiab.handshake.actor.messages;
 
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
-import fiab.tracing.actor.messages.ExtensibleMessage;
 
-public class HSServerMessage extends ExtensibleMessage<ServerMessageTypes> {
+public class HSServerMessage extends AbstractHSExtensibleMessage<ServerMessageTypes> {
 	private final ServerMessageTypes body;
 
 	public HSServerMessage(String header,ServerMessageTypes body) {

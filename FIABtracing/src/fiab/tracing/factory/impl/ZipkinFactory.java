@@ -6,7 +6,7 @@ import brave.Span.Kind;
 import brave.Tracing;
 import brave.propagation.TraceContext.Extractor;
 import brave.propagation.TraceContext.Injector;
-import fiab.tracing.actor.messages.ExtensibleMessage;
+import fiab.tracing.actor.messages.AbstractExtensibleMessage;
 import fiab.tracing.factory.TracingFactory;
 import fiab.tracing.util.ZipkinUtil;
 import zipkin2.reporter.brave.AsyncZipkinSpanHandler;
@@ -16,8 +16,8 @@ import zipkin2.reporter.urlconnection.URLConnectionSender;
 public class ZipkinFactory implements TracingFactory {
 	private final URLConnectionSender sender;
 	private final ZipkinSpanHandler handler;
-	private static Extractor<ExtensibleMessage<Object>> extractor;
-	private static Injector<ExtensibleMessage<Object>> injector;
+	private static Extractor<AbstractExtensibleMessage<Object>> extractor;
+	private static Injector<AbstractExtensibleMessage<Object>> injector;
 
 	private Tracing tracing;
 	private ScopedSpan scope;
@@ -45,7 +45,7 @@ public class ZipkinFactory implements TracingFactory {
 	public void finishCurrentSpan() {
 		try {
 			currentSpan.finish();
-			printSpanFinished();			
+			printSpanFinished();
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 		}
@@ -63,49 +63,47 @@ public class ZipkinFactory implements TracingFactory {
 	}
 
 	@Override
-	public void startProducerSpan(ExtensibleMessage<? extends Object> msg, String spanName) {
+	public void startProducerSpan(AbstractExtensibleMessage<? extends Object> msg, String spanName) {
 		if (msg.getHeader().isEmpty())
 			startProducerSpan(spanName);
 		else {
-			currentSpan = tracing.tracer().nextSpan(extractor.extract((ExtensibleMessage<Object>) msg)).name(spanName)
-					.kind(Kind.PRODUCER).start();
+			currentSpan = tracing.tracer().nextSpan(extractor.extract((AbstractExtensibleMessage<Object>) msg))
+					.name(spanName).kind(Kind.PRODUCER).start();
 		}
 		printSpanStarted();
 	}
 
 	@Override
-	public void startConsumerSpan(ExtensibleMessage<? extends Object> msg, String spanName) {
+	public void startConsumerSpan(AbstractExtensibleMessage<? extends Object> msg, String spanName) {
 		if (msg.getHeader().isEmpty())
 			startConsumerSpan(spanName);
 		else {
-			currentSpan = tracing.tracer().nextSpan(extractor.extract((ExtensibleMessage<Object>) msg)).name(spanName)
-					.kind(Kind.CONSUMER).start();
+			currentSpan = tracing.tracer().nextSpan(extractor.extract((AbstractExtensibleMessage<Object>) msg))
+					.name(spanName).kind(Kind.CONSUMER).start();
 		}
 		printSpanStarted();
 	}
 
 	@Override
-	public void injectMsg(ExtensibleMessage<? extends Object> msg) {
-		injector.inject(currentSpan.context(), (ExtensibleMessage<Object>) msg);
+	public void injectMsg(AbstractExtensibleMessage<? extends Object> msg) {
+		injector.inject(currentSpan.context(), (AbstractExtensibleMessage<Object>) msg);
 	}
 
 	@Override
 	public String getCurrentHeader() {
-		if(currentSpan == null)
+		if (currentSpan == null)
 			return scopedSpanHeader();
 		else
-			return currentSpanHeader();		
+			return currentSpanHeader();
 	}
 
-	private String currentSpanHeader() {		
+	private String currentSpanHeader() {
 		return ZipkinUtil.createXB3Header(currentSpan);
 	}
 
 	private String scopedSpanHeader() {
 		return ZipkinUtil.createXB3ScopeHeader(scope);
 	}
-	
-	
 
 	@Override
 	public String getTraceId() {
