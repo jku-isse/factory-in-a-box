@@ -1,8 +1,9 @@
 package fiab.handshake.actor.messages;
 
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.tracing.actor.messages.ExtensibleMessage;
 
-public class HSServerSideStateMessage extends AbstractHSExtensibleMessage<ServerSideStates> {
+public class HSServerSideStateMessage extends ExtensibleMessage<ServerSideStates> {
 	private ServerSideStates body;
 
 	public HSServerSideStateMessage(String header, ServerSideStates body) {

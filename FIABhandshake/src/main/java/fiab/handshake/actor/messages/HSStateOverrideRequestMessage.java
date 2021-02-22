@@ -1,8 +1,9 @@
 package fiab.handshake.actor.messages;
 
 import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
+import fiab.tracing.actor.messages.ExtensibleMessage;
 
-public class HSStateOverrideRequestMessage extends AbstractHSExtensibleMessage<StateOverrideRequests> {
+public class HSStateOverrideRequestMessage extends ExtensibleMessage<StateOverrideRequests> {
 
 	private StateOverrideRequests body;
 

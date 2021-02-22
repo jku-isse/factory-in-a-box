@@ -1,11 +1,20 @@
 package fiab.tracing.actor.messages;
 
-public interface ExtensibleMessage<T> {
+public abstract class ExtensibleMessage<T> {
+	private String header;
 
-	public T getBody();
+	public ExtensibleMessage(String header) {
+		this.header = header;
+	}
 
-	public void setHeader(String header);
+	public abstract T getBody();
 
-	public String getHeader();
+	public void setHeader(String header) {
+		this.header = header;
+	}
+
+	public String getHeader() {
+		return header;
+	}
 
 }
