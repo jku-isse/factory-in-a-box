@@ -15,6 +15,9 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.handshake.actor.messages.HSClientStateMessage;
+import fiab.handshake.actor.messages.HSServerSideStateMessage;
+import fiab.tracing.actor.messages.ExtensibleMessage;
 
 public class TestHandshakeProtocol { 
 
@@ -51,18 +54,23 @@ public class TestHandshakeProtocol {
 				clientSide.tell(HandshakeCapability.ClientMessageTypes.Reset, getRef());
 				serverSide.tell(HandshakeCapability.ServerMessageTypes.Reset, getRef());
 				while (!(serverDone && clientDone)) {
-					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), ClientSideStates.class, ServerSideStates.class);
+					
+					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), HSClientStateMessage.class, HSServerSideStateMessage.class);
+					ExtensibleMessage<Object> exMsg = null;
+					if(msg instanceof ExtensibleMessage<?>)
+						exMsg = (ExtensibleMessage<Object>) msg;
+					
 					logEvent(msg, getLastSender());
-					if (msg.equals(ClientSideStates.IDLE)) {
+					if (exMsg.getBody().equals(ClientSideStates.IDLE)) {
 						clientSide.tell(HandshakeCapability.ClientMessageTypes.Start, getRef());
 					}
-					if (msg.equals(ServerSideStates.EXECUTE)) {
+					if (exMsg.getBody().equals(ServerSideStates.EXECUTE)) {
 						serverSide.tell(HandshakeCapability.ServerMessageTypes.Complete, getRef());
 					}
-					if (msg.equals(ServerSideStates.COMPLETE)) {
+					if (exMsg.getBody().equals(ServerSideStates.COMPLETE)) {
 						serverDone = true;
 					}
-					if (msg.equals(ClientSideStates.COMPLETED)) {
+					if (exMsg.getBody().equals(ClientSideStates.COMPLETED)) {
 						clientDone = true;
 					}
 				}				

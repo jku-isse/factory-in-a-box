@@ -6,7 +6,7 @@ import brave.Span.Kind;
 import brave.Tracing;
 import brave.propagation.TraceContext.Extractor;
 import brave.propagation.TraceContext.Injector;
-import fiab.tracing.actor.messages.ExtensibleMessage;
+import fiab.tracing.actor.messages.TracingHeader;
 import fiab.tracing.factory.TracingFactory;
 import fiab.tracing.util.ZipkinUtil;
 import zipkin2.reporter.brave.AsyncZipkinSpanHandler;
@@ -16,8 +16,8 @@ import zipkin2.reporter.urlconnection.URLConnectionSender;
 public class ZipkinFactory implements TracingFactory {
 	private final URLConnectionSender sender;
 	private final ZipkinSpanHandler handler;
-	private static Extractor<ExtensibleMessage<Object>> extractor;
-	private static Injector<ExtensibleMessage<Object>> injector;
+	private static Extractor<TracingHeader> extractor;
+	private static Injector<TracingHeader> injector;
 
 	private Tracing tracing;
 	private ScopedSpan scope;
@@ -28,10 +28,10 @@ public class ZipkinFactory implements TracingFactory {
 		handler = AsyncZipkinSpanHandler.create(sender).toBuilder().alwaysReportSpans(true).build();
 		tracing = Tracing.newBuilder().localServiceName("FIAB Tracing").addSpanHandler(handler).build();
 		if (extractor == null)
-			extractor = tracing.propagation().extractor(new B3Getter<>());
+			extractor = tracing.propagation().extractor(new B3Getter());
 
 		if (injector == null)
-			injector = tracing.propagation().injector(new B3Setter<>());
+			injector = tracing.propagation().injector(new B3Setter());
 		scope = createNewScope("Default", "Default");
 	}
 
@@ -63,30 +63,32 @@ public class ZipkinFactory implements TracingFactory {
 	}
 
 	@Override
-	public void startProducerSpan(ExtensibleMessage<? extends Object> msg, String spanName) {
+	public void startProducerSpan(TracingHeader msg, String spanName) {
 		if (msg.getHeader().isEmpty())
 			startProducerSpan(spanName);
 		else {
-			currentSpan = tracing.tracer().nextSpan(extractor.extract((ExtensibleMessage<Object>) msg)).name(spanName)
-					.kind(Kind.PRODUCER).start();
+			currentSpan = tracing.tracer().nextSpan(extractor.extract(msg)).name(spanName).kind(Kind.PRODUCER).start();
 		}
 		printSpanStarted();
 	}
 
 	@Override
-	public void startConsumerSpan(ExtensibleMessage<? extends Object> msg, String spanName) {
+	public void startConsumerSpan(TracingHeader msg, String spanName) {
 		if (msg.getHeader().isEmpty())
 			startConsumerSpan(spanName);
 		else {
-			currentSpan = tracing.tracer().nextSpan(extractor.extract((ExtensibleMessage<Object>) msg)).name(spanName)
-					.kind(Kind.CONSUMER).start();
+			currentSpan = tracing.tracer().nextSpan(extractor.extract(msg)).name(spanName).kind(Kind.CONSUMER).start();
 		}
 		printSpanStarted();
 	}
 
 	@Override
-	public void injectMsg(ExtensibleMessage<? extends Object> msg) {
-		injector.inject(currentSpan.context(), (ExtensibleMessage<Object>) msg);
+	public void injectMsg(TracingHeader msg) {
+		try {
+			injector.inject(currentSpan.context(), msg);
+		} catch (Exception e) {
+			injector.inject(scope.context(), msg);
+		}
 	}
 
 	@Override

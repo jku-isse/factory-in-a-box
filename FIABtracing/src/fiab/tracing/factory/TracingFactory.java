@@ -1,17 +1,17 @@
 package fiab.tracing.factory;
 
-import fiab.tracing.actor.messages.ExtensibleMessage;
+import fiab.tracing.actor.messages.TracingHeader;
 
 public interface TracingFactory {
-	public void injectMsg(ExtensibleMessage<? extends Object> msg);
+	public void injectMsg(TracingHeader msg);
 
 	public void startProducerSpan(String spanName);
 
 	public void startConsumerSpan(String spanName);
 
-	public void startProducerSpan(ExtensibleMessage<? extends Object> msg, String spanName);
+	public void startProducerSpan(TracingHeader msg, String spanName);
 
-	public void startConsumerSpan(ExtensibleMessage<? extends Object> msg, String spanName);
+	public void startConsumerSpan(TracingHeader msg, String spanName);
 
 	public void finishCurrentSpan();
 

@@ -11,9 +11,6 @@ public abstract class AbstractTracingActor extends AbstractActor {
 
 	protected final TracingFactory tracingFactory;
 
-	static {
-
-	}
 
 	public AbstractTracingActor() {
 		Injector injector = Guice.createInjector(Util.getConfig());

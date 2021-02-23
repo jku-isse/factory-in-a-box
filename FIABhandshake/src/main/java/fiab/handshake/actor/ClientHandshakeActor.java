@@ -76,6 +76,8 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void receiveClientMessage(HSClientMessage msg) {
 		IOStationCapability.ClientMessageTypes body = msg.getBody();
 
+		log.info(String.format("Received %s from %s", body, getSender()));
+
 		switch (body) {
 		case Reset:
 			try {
@@ -129,6 +131,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 	private void receiveServerMessage(HSServerMessage msg) {
 		IOStationCapability.ServerMessageTypes body = msg.getBody();
+		log.info(String.format("Received %s from %s", body, getSender()));
 
 		switch (body) {
 		case NotOkResponseInitHandover:
@@ -274,11 +277,13 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		tracingFactory.injectMsg(msg);
 
 		// TODO remove when all actors support extensible messages
-		machineWrapper.tell(newState, getSelf());
+		//machineWrapper.tell(newState, getSelf());
 
 		machineWrapper.tell(msg, getSelf());
 		if (publishEP != null)
 			publishEP.setStatusValue(newState.toString());
+		
+	
 	}
 
 	private void reset() {
@@ -303,9 +308,6 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void start() {
 		if (currentState.equals(ClientSideStates.IDLE)) {
 			publishNewState(ClientSideStates.STARTING);
-
-			tracingFactory.startProducerSpan("");
-			tracingFactory.finishCurrentSpan();
 
 			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates);

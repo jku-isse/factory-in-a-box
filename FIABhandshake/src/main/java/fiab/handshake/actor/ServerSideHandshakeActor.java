@@ -201,7 +201,7 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 
 		if (parentActor != null) {
 			// TODO remove when all actors support extensible messages
-			parentActor.tell(newState, self);
+			//parentActor.tell(newState, self);
 
 			parentActor.tell(msg, self);
 		}
@@ -232,7 +232,6 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 	}
 
 	protected void reset() {
-		;
 		publishNewState(ServerSideStates.RESETTING);
 		context().system().scheduler().scheduleOnce(Duration.ofMillis(1000), new Runnable() {
 			@Override
