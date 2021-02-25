@@ -15,7 +15,7 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.handshake.actor.messages.HSClientStateMessage;
+import fiab.handshake.actor.messages.HSClientSideStateMessage;
 import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.tracing.actor.messages.ExtensibleMessage;
 
@@ -55,7 +55,7 @@ public class TestHandshakeProtocol {
 				serverSide.tell(HandshakeCapability.ServerMessageTypes.Reset, getRef());
 				while (!(serverDone && clientDone)) {
 					
-					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), HSClientStateMessage.class, HSServerSideStateMessage.class);
+					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), HSClientSideStateMessage.class, HSServerSideStateMessage.class);
 					ExtensibleMessage<Object> exMsg = null;
 					if(msg instanceof ExtensibleMessage<?>)
 						exMsg = (ExtensibleMessage<Object>) msg;

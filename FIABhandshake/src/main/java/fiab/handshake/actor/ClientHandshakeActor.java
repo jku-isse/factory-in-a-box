@@ -8,7 +8,7 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.handshake.actor.messages.HSClientMessage;
-import fiab.handshake.actor.messages.HSClientStateMessage;
+import fiab.handshake.actor.messages.HSClientSideStateMessage;
 import fiab.handshake.actor.messages.HSServerMessage;
 import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.tracing.actor.AbstractTracingActor;
@@ -273,7 +273,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void publishNewState(ClientSideStates newState) {
 		currentState = newState;
 
-		HSClientStateMessage msg = new HSClientStateMessage(tracingFactory.getCurrentHeader(), newState);
+		HSClientSideStateMessage msg = new HSClientSideStateMessage(tracingFactory.getCurrentHeader(), newState);
 		tracingFactory.injectMsg(msg);
 
 		// TODO remove when all actors support extensible messages

@@ -19,80 +19,79 @@ import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdenti
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalClientEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalServerEndpointStatus;
+import fiab.handshake.actor.messages.HSClientMessage;
+import fiab.handshake.actor.messages.HSClientSideStateMessage;
+import fiab.handshake.actor.messages.HSServerMessage;
+import fiab.handshake.actor.messages.HSServerSideStateMessage;
 
-public class NoOpTransportModuleCoordinator extends AbstractActor{
+public class NoOpTransportModuleCoordinator extends AbstractActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected ActorRef self;
 	protected BasicMachineStates currentState = BasicMachineStates.UNKNOWN;
 	protected HandshakeEndpointInfo eps;
-	
-	static public Props props() {	    
+
+	static public Props props() {
 		return Props.create(NoOpTransportModuleCoordinator.class, () -> new NoOpTransportModuleCoordinator());
 	}
-	
+
 	public NoOpTransportModuleCoordinator() {
 		self = getSelf();
 		eps = new HandshakeEndpointInfo(self);
 	}
-	
+
 	@Override
 	public Receive createReceive() {
-		return receiveBuilder()
-				.match(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.class, msg -> {
-					log.warning("Not supposed to get message of type: "+ msg.toString());
-				})
-				.match(LocalClientEndpointStatus.class, les -> {
-						this.eps.addOrReplace(les);						
-				})
-				.match(LocalServerEndpointStatus.class, les -> {
-						this.eps.addOrReplace(les);						
-				})
-				.match(InternalTransportModuleRequest.class, req -> {
-					log.warning("Not supposed to get message of type: "+ req.toString());
-				})
-				.match(ServerSideStates.class, state -> {
-					// ignoring events from Handshake FUs
-				})
-				.match(ClientSideStates.class, state -> {										
-					// ignoring events from Handshake FUs
-				})				
-				.build();
+		return receiveBuilder().match(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.class, msg -> {
+			log.warning("Not supposed to get message of type: " + msg.toString());
+		}).match(LocalClientEndpointStatus.class, les -> {
+			this.eps.addOrReplace(les);
+		}).match(LocalServerEndpointStatus.class, les -> {
+			this.eps.addOrReplace(les);
+		}).match(InternalTransportModuleRequest.class, req -> {
+			log.warning("Not supposed to get message of type: " + req.toString());
+		}).match(HSServerSideStateMessage.class, state -> {
+			// ignoring events from Handshake FUs
+		}).match(HSClientSideStateMessage.class, state -> {
+			// ignoring events from Handshake FUs
+		}).build();
 	}
-	
+
 	private static class HandshakeEndpointInfo {
 		protected Map<String, LocalEndpointStatus> handshakeEPs = new HashMap<>();
-		
+
 		ActorRef self;
+
 		protected HandshakeEndpointInfo(ActorRef self) {
 			this.self = self;
 		}
-		
+
 //		public HandshakeEndpointInfo(Map<String,LocalEndpointStatus> handshakeEPs) {
 //			this.handshakeEPs = handshakeEPs;
 //		}
-		
-		public Optional<LocalEndpointStatus> getHandshakeEP(String capabilityId) {			
+
+		public Optional<LocalEndpointStatus> getHandshakeEP(String capabilityId) {
 			if (capabilityId != null && handshakeEPs.containsKey(capabilityId))
 				return Optional.ofNullable(handshakeEPs.get(capabilityId));
 			else
 				return Optional.empty();
-		}			
-		
+		}
+
 		public void addOrReplace(LocalEndpointStatus les) {
 			handshakeEPs.put(les.getCapabilityId(), les);
 		}
-		
+
 		public void tellAllEPsToStop() {
-			handshakeEPs.values().stream()
-				.forEach(les -> {
-					if (les.isProvidedCapability()) { 					// if server use server msg
-						les.getActor().tell(ServerMessageTypes.Stop, self);
-					} else {
-						les.getActor().tell(ClientMessageTypes.Stop, self);
-					}			
-				});
+			handshakeEPs.values().stream().forEach(les -> {
+				if (les.isProvidedCapability()) { // if server use server msg
+					HSServerMessage msg = new HSServerMessage("", ServerMessageTypes.Stop);
+					les.getActor().tell(msg, self);
+				} else {
+					HSClientMessage msg = new HSClientMessage("", ClientMessageTypes.Stop);
+					les.getActor().tell(msg, self);
+				}
+			});
 		}
-		
+
 	}
 }

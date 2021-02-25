@@ -1,23 +1,24 @@
 package fiab.turntable.conveying;
 
-import akka.actor.AbstractActor;
-import akka.actor.Props;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
-import com.github.oxo42.stateless4j.StateMachine;
-
-import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import fiab.core.capabilities.StatePublisher;
-import fiab.turntable.actor.IntraMachineEventBus;
-import fiab.turntable.conveying.statemachine.ConveyorStateMachineConfig;
-import fiab.turntable.conveying.statemachine.ConveyorStates;
-import fiab.turntable.conveying.statemachine.ConveyorTriggers;
-
 import static fiab.turntable.conveying.statemachine.ConveyorStates.STOPPED;
 
 import java.time.Duration;
 
-public class BaseBehaviorConveyorActor extends AbstractActor {
+import com.github.oxo42.stateless4j.StateMachine;
+
+import akka.actor.Props;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.StatePublisher;
+import fiab.tracing.actor.AbstractTracingActor;
+import fiab.turntable.actor.IntraMachineEventBus;
+import fiab.turntable.actor.messages.ConveyorTriggerMessage;
+import fiab.turntable.conveying.statemachine.ConveyorStateMachineConfig;
+import fiab.turntable.conveying.statemachine.ConveyorStates;
+import fiab.turntable.conveying.statemachine.ConveyorTriggers;
+
+public class BaseBehaviorConveyorActor extends AbstractTracingActor {
 
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
@@ -41,36 +42,13 @@ public class BaseBehaviorConveyorActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+        		.match(ConveyorTriggerMessage.class, msg->{
+        			receiveConveyorTrigger(msg);
+        			
+        		})
                 .match(ConveyorTriggers.class, trigger -> {
-                    if (tsm.canFire(trigger)) {
-                        switch (trigger) {
-                            case LOAD:
-                                tsm.fire(trigger);
-                                publishNewState(); // loading now
-                                loadingToFullyOccupied();
-                                break;
-                            case RESET:
-                                tsm.fire(trigger);
-                                publishNewState(); //now in resetting
-                                reset();
-                                break;
-                            case STOP:
-                                tsm.fire(ConveyorTriggers.STOP);
-                                publishNewState(); // now in stopping
-                                stop();
-                                break;
-                            case UNLOAD:
-                                tsm.fire(trigger);
-                                publishNewState(); // unloading now
-                                unloadingToIdle();
-                                break;
-                            default: // all others are internal triggers
-                                log.warning(String.format("Received internal transition trigger %s as an external request, ignoring", trigger));
-                                break;
-                        }
-                    } else {
-                        log.warning(String.format("Received request %s in unsuitable state %s", trigger, tsm.getState().toString()));
-                    }
+                	receiveConveyorTrigger(new ConveyorTriggerMessage("", trigger));
+                   
                 })
                 .matchAny(msg -> {
                     log.warning("Unexpected Message received: " + msg.toString());
@@ -78,11 +56,60 @@ public class BaseBehaviorConveyorActor extends AbstractActor {
                 .build();
     }
 
-    private void publishNewState() {
+    private void receiveConveyorTrigger(ConveyorTriggerMessage msg) {
+    	ConveyorTriggers trigger = msg.getBody();
+    	try {
+    		tracingFactory.startConsumerSpan(msg, "Conveyor Actor: Trigger "+trigger.toString()+" received"); 		
+    		
+    		 if (tsm.canFire(trigger)) {
+                 switch (trigger) {
+                     case LOAD:
+                         tsm.fire(trigger);
+                         publishNewState(); // loading now
+                         loadingToFullyOccupied();
+                         break;
+                     case RESET:
+                         tsm.fire(trigger);
+                         publishNewState(); //now in resetting
+                         reset();
+                         break;
+                     case STOP:
+                         tsm.fire(ConveyorTriggers.STOP);
+                         publishNewState(); // now in stopping
+                         stop();
+                         break;
+                     case UNLOAD:
+                         tsm.fire(trigger);
+                         publishNewState(); // unloading now
+                         unloadingToIdle();
+                         break;
+                     default: // all others are internal triggers
+                         log.warning(String.format("Received internal transition trigger %s as an external request, ignoring", trigger));
+                         break;
+                 }
+             } else {
+                 log.warning(String.format("Received request %s in unsuitable state %s", trigger, tsm.getState().toString()));
+             }
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			tracingFactory.finishCurrentSpan();
+		}
+    	
+    	
+		
+	}
+
+	private void publishNewState() {
         if (publishEP != null)
             publishEP.setStatusValue(tsm.getState().toString());
         if (intraEventBus != null) {
-            intraEventBus.publish(new ConveyorStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", tsm.getState()));
+        	ConveyorStatusUpdateEvent event = new ConveyorStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", tsm.getState());
+        	event.setHeader(tracingFactory.getCurrentHeader());
+        	tracingFactory.injectMsg(event);
+        	
+            intraEventBus.publish(event);
         }
     }
 

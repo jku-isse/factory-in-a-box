@@ -50,7 +50,11 @@ public class ConveyorActor extends BaseBehaviorConveyorActor {
         if (publishEP != null)
             publishEP.setStatusValue(tsm.getState().toString());
         if (intraEventBus != null) {
-            intraEventBus.publish(new ConveyorStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", tsm.getState()));
+        	ConveyorStatusUpdateEvent event = new ConveyorStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", tsm.getState());
+        	event.setHeader(tracingFactory.getCurrentHeader());
+        	tracingFactory.injectMsg(event);        	
+        	
+            intraEventBus.publish(event);
         }
     }
 
