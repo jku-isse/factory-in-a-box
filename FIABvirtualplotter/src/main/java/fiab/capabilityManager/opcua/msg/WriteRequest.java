@@ -1,14 +1,28 @@
 package fiab.capabilityManager.opcua.msg;
 
-public class WriteRequest {
+import fiab.tracing.actor.messages.TracingHeader;
 
-    private final String data;
+public class WriteRequest implements TracingHeader {
 
-    public WriteRequest(String data) {
-        this.data = data;
-    }
+	private final String data;
+	private String header;
 
-    public String getData() {
-        return data;
-    }
+	public WriteRequest(String data, String header) {
+		this.data = data;
+		this.header = header;
+	}
+
+	public String getData() {
+		return data;
+	}
+
+	@Override
+	public void setHeader(String header) {
+		this.header = header;
+	}
+
+	@Override
+	public String getHeader() {
+		return header;
+	}
 }

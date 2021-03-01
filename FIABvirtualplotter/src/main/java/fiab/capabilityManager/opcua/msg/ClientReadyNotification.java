@@ -1,14 +1,29 @@
 package fiab.capabilityManager.opcua.msg;
 
-public class ClientReadyNotification {
+import fiab.tracing.actor.messages.TracingHeader;
 
-    private final String endpointUrl;
+public class ClientReadyNotification implements TracingHeader {
 
-    public ClientReadyNotification(String endpointUrl) {
-        this.endpointUrl = endpointUrl;
-    }
+	private final String endpointUrl;
+	private String header;
 
-    public String getEndpointUrl() {
-        return endpointUrl;
-    }
+	public ClientReadyNotification(String endpointUrl, String header) {
+		this.endpointUrl = endpointUrl;
+		this.header = header;
+	}
+
+	public String getEndpointUrl() {
+		return endpointUrl;
+	}
+
+	@Override
+	public void setHeader(String header) {
+		this.header = header;
+
+	}
+
+	@Override
+	public String getHeader() {
+		return header;
+	}
 }

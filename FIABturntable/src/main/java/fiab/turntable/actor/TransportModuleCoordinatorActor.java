@@ -87,18 +87,33 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 			receiveTTModuleWellknownCapabilityIdentifier(msg);
 
 		}).match(LocalEndpointStatus.LocalClientEndpointStatus.class, les -> {
-			if (!epNonUpdateableStates.contains(currentState)) {
-				this.eps.addOrReplace(les);
-				this.intraEventBus.publish(new WiringUpdateEvent(self.path().name(), les));
-			} else {
-				log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
+			try {
+				tracingFactory.startConsumerSpan(les, "TransportCoordinator: Local Client Endpoint Status received");
+				if (!epNonUpdateableStates.contains(currentState)) {
+					this.eps.addOrReplace(les);
+					this.intraEventBus.publish(new WiringUpdateEvent(self.path().name(), les));
+				} else {
+					log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
 			}
 		}).match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {
-			if (!epNonUpdateableStates.contains(currentState)) {
-				this.eps.addOrReplace(les);
-			} else {
-				log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
+			try {
+				tracingFactory.startConsumerSpan(les, "TransportCoordinator: Local Server Endpoint Status received");
+				if (!epNonUpdateableStates.contains(currentState)) {
+					this.eps.addOrReplace(les);
+				} else {
+					log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
 			}
+			
 		}).match(InternalTransportModuleRequest.class, req -> {
 			receiveInternalTransportModuleRequest(req);
 
@@ -118,54 +133,39 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 			receiveTurntableStatusUpdateEvent(state);
 
 		}).match(ConveyorStatusUpdateEvent.class, state -> {
-			receiveConveyorStatusUpdateEvent(state);			
-			
+			receiveConveyorStatusUpdateEvent(state);
+
 		}).build();
 	}
 
-	
-
 	private void receiveTTModuleWellknownCapabilityIdentifier(TTModuleWellknwonCapabilityIdentifierMessage msg) {
 		TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes ident = msg.getBody();
-
-		switch (ident) {
-		case Reset:
-			try {
-				tracingFactory.startConsumerSpan(msg, "TransportCoordinator: Simple Message Reset received");
+		try {
+			tracingFactory.startConsumerSpan(msg,
+					"TransportCoordinator: Simple Message " + ident.toString() + " received");
+			switch (ident) {
+			case Reset:
 				if (currentState.equals(BasicMachineStates.STOPPED) || currentState.equals(BasicMachineStates.COMPLETE))
 					reset();
 				else
 					log.warning("Wrapper told to reset in wrong state " + currentState);
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case Stop:
-			try {
-				tracingFactory.startConsumerSpan(msg, "TransportCoordinator: Simple Message Stop received");
+				break;
+			case Stop:
 				stop();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case SubscribeState:
-			try {
-				tracingFactory.startConsumerSpan(msg, "TransportCoordinator: Simple Message SubscribeState received");
+				break;
+			case SubscribeState:
 				doPublishState = true;
 				setAndPublishState(currentState);
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
+				break;
+			default:
+				break;
 			}
-			break;
-		default:
-			break;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracingFactory.finishCurrentSpan();
 		}
+
 	}
 
 	private void receiveInternalTransportModuleRequest(InternalTransportModuleRequest req) {
@@ -322,15 +322,15 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 	private void receiveConveyorStatusUpdateEvent(ConveyorStatusUpdateEvent state) {
 		convFUState = state.getStatus();
 		try {
-			tracingFactory.startConsumerSpan(state, "TransportCoordinator: Conveyor Status Update Event" + state.toString() + " received");
-			
-			
+			tracingFactory.startConsumerSpan(state,
+					"TransportCoordinator: Conveyor Status Update Event" + state.toString() + " received");
+
 			if (state.getStatus().equals(ConveyorStates.FULLY_OCCUPIED)
 					&& exeSubState.equals(InternalProcess.CONVEYING_SOURCE)) {
 				Optional<LocalEndpointStatus> fromEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdFrom());
 				fromEP.ifPresent(ep -> {
 					sendComplete(ep);
-					
+
 				});
 				turnToDestination();
 			} else if (state.getStatus().equals(ConveyorStates.IDLE)
@@ -345,27 +345,27 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 				// position again to counter drifting
 				finalizeTransport();
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
-		}finally {
+		} finally {
 			tracingFactory.finishCurrentSpan();
 		}
-		
+
 	}
+
 	private void sendComplete(LocalEndpointStatus ep) {
 		if (ep.isProvidedCapability()) {
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
-					ServerMessageTypes.Complete);
+			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(), ServerMessageTypes.Complete);
 			tracingFactory.injectMsg(msg);
 			ep.getActor().tell(msg, self);
 		} else {
-			HSClientMessage msg = new HSClientMessage(tracingFactory.getCurrentHeader(),
-					ClientMessageTypes.Complete);
+			HSClientMessage msg = new HSClientMessage(tracingFactory.getCurrentHeader(), ClientMessageTypes.Complete);
 			tracingFactory.injectMsg(msg);
 			ep.getActor().tell(msg, self);
-		}		
+		}
 	}
+
 	private Set<BasicMachineStates> epNonUpdateableStates = Sets.immutableEnumSet(BasicMachineStates.STARTING,
 			BasicMachineStates.EXECUTE, BasicMachineStates.COMPLETING);
 
@@ -513,8 +513,8 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 
 	private void turnToDestination() {
 		TurningTriggerMessage msg = new TurningTriggerMessage(tracingFactory.getCurrentHeader(), TurningTriggers.RESET);
-		tracingFactory.injectMsg(msg);		
-		
+		tracingFactory.injectMsg(msg);
+
 		turntableFU.tell(msg, self); // set the turntable to home position again to counter drifting
 		log.info("Starting to Turn to Destination");
 		Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdTo());

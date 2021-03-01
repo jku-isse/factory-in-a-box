@@ -3,7 +3,6 @@ package fiab.machine.plotter;
 import java.time.Duration;
 
 import actuators.Motor;
-import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
@@ -13,17 +12,21 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
+import fiab.handshake.actor.messages.HSServerMessage;
+import fiab.handshake.actor.messages.HSServerSideStateMessage;
+import fiab.machine.plotter.messages.PlotterMessage;
+import fiab.tracing.actor.AbstractTracingActor;
 import hardware.ConveyorHardware;
 import hardware.PlotterHardware;
 import sensors.Sensor;
 
-public class VirtualPlotterCoordinatorActor extends AbstractActor {
+public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected IntraMachineEventBus intraEventBus;
@@ -81,8 +84,35 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 	}
 
 	public Receive createReceive() {
-		return receiveBuilder().match(PlotterMessageTypes.class, msg -> {
-			switch (msg) {
+		return receiveBuilder().match(PlotterMessage.class, msg -> {
+			receivePlotterMessage(msg);
+
+		}).match(PlotterMessageTypes.class, msg -> {
+			receivePlotterMessage(new PlotterMessage("", msg));
+
+		}).match(HSServerSideStateMessage.class, msg -> {// state event updates
+			receiveHSServerSideMessage(msg);
+
+		}).match(ServerSideStates.class, msg -> { // state event updates
+			receiveHSServerSideMessage(new HSServerSideStateMessage("", msg));
+
+		}).match(ActorRef.class, lateBoundHandshake -> {
+			setServerHandshakeActor(lateBoundHandshake); // wont be called when serverhandshake announces itself to its
+															// parentActor, and parentActor is set to this actor
+		}).match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {
+			setServerHandshakeActor(les.getActor());
+		}).matchAny(msg -> {
+			log.warning("Unexpected Message received: " + msg.toString());
+		}).build();
+	}
+
+	private void receivePlotterMessage(PlotterMessage msg) {
+		PlotterMessageTypes type = msg.getBody();
+
+		try {
+			tracingFactory.startConsumerSpan(msg,
+					"Virtual Plotter Coordinator Actor: Plotter Message " + type.toString() + " received");
+			switch (type) {
 			case SubscribeState:
 				doPublishState = true;
 				setAndPublishState(currentState); // we publish the current state
@@ -92,9 +122,12 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 					plot();
 				else
 					log.warning("VirtualPlotterCoordinatorActor told to plot in wrong state " + currentState);
-				sender().tell(new MachineInWrongStateResponse("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME,
-						"Machine not in state to plot", currentState, PlotterMessageTypes.Plot,
-						BasicMachineStates.IDLE), self);
+				MachineInWrongStateResponse resp = new MachineInWrongStateResponse("",
+						OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Machine not in state to plot", currentState,
+						PlotterMessageTypes.Plot, BasicMachineStates.IDLE);
+				resp.setHeader(tracingFactory.getCurrentHeader());
+				tracingFactory.injectMsg(resp);
+				sender().tell(resp, self);
 				break;
 			case Reset:
 				if (currentState.equals(BasicMachineStates.STOPPED))
@@ -111,11 +144,25 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 			default:
 				break;
 			}
-		}).match(ServerSideStates.class, msg -> { // state event updates
-			log.info(String.format("Received %s from %s", msg, getSender()));
-			// if (getSender().equals(serverSide)) {
-			handshakeStatus = msg;
-			switch (msg) {
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracingFactory.finishCurrentSpan();
+		}
+
+	}
+
+	private void receiveHSServerSideMessage(HSServerSideStateMessage msg) {
+		log.info(String.format("Received %s from %s", msg, getSender()));
+		// if (getSender().equals(serverSide)) {
+		ServerSideStates state = msg.getBody();
+		handshakeStatus = state;
+
+		try {
+			tracingFactory.startConsumerSpan(msg,
+					"Virtual Plotter Coordinator: Handshake Server Side State " + state.toString() + " received");
+			switch (state) {
 			case COMPLETE: // handshake complete, thus un/loading done
 				if (currentState.equals(BasicMachineStates.STARTING)) { // pallet is now loaded
 					// transitionStartingToExecute();
@@ -141,14 +188,13 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 			// log.warning(String.format("Received %s from unexpected sender %s", msg,
 			// getSender()));
 			// }
-		}).match(ActorRef.class, lateBoundHandshake -> {
-			setServerHandshakeActor(lateBoundHandshake); // wont be called when serverhandshake announces itself to its
-															// parentActor, and parentActor is set to this actor
-		}).match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {
-			setServerHandshakeActor(les.getActor());
-		}).matchAny(msg -> {
-			log.warning("Unexpected Message received: " + msg.toString());
-		}).build();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracingFactory.finishCurrentSpan();
+		}
+
 	}
 
 	private void setServerHandshakeActor(ActorRef serverSide) {
@@ -159,7 +205,10 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 	}
 
 	private void updateCapability(String newCapability) {
-		intraEventBus.publish(new MachineCapabilityUpdateEvent("", "Plot_Capability", newCapability));
+		MachineCapabilityUpdateEvent event = new MachineCapabilityUpdateEvent("", "Plot_Capability", newCapability);
+		event.setHeader(tracingFactory.getCurrentHeader());
+		tracingFactory.injectMsg(event);
+		intraEventBus.publish(event);
 	}
 
 	private void setAndPublishState(BasicMachineStates newState) {
@@ -167,8 +216,12 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 		// this.machineId.getId(), this.currentState, newState));
 		this.currentState = newState;
 		if (doPublishState) {
-			intraEventBus.publish(
-					new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState));
+			MachineStatusUpdateEvent event = new MachineStatusUpdateEvent("",
+					OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState);
+			event.setHeader(tracingFactory.getCurrentHeader());
+			tracingFactory.injectMsg(event);
+
+			intraEventBus.publish(event);
 		}
 	}
 
@@ -202,7 +255,11 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 		conveyorMotor.stop();
 		plotXMotor.stop();
 		plotYMotor.stop();
-		serverSide.tell(IOStationCapability.ServerMessageTypes.Stop, getSelf());
+
+		HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+				IOStationCapability.ServerMessageTypes.Stop);
+		tracingFactory.injectMsg(msg);
+		serverSide.tell(msg, getSelf());
 		context().system().scheduler().scheduleOnce(Duration.ofMillis(1000), new Runnable() {
 			@Override
 			public void run() {
@@ -220,10 +277,16 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 
 	private void plot() {
 		setAndPublishState(BasicMachineStates.STARTING);
-		sender().tell(new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", currentState),
-				self);
+		MachineStatusUpdateEvent event = new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME,
+				"", currentState);
+		event.setHeader(tracingFactory.getCurrentHeader());
+		tracingFactory.injectMsg(event);
+		sender().tell(event, self);
 		// now here we also enable pallet to be loaded onto machine
-		serverSide.tell(HandshakeCapability.ServerMessageTypes.Reset, self);
+		HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+				HandshakeCapability.ServerMessageTypes.Reset);
+		tracingFactory.injectMsg(msg);
+		serverSide.tell(msg, self);
 	}
 
 	private void load() {
@@ -309,7 +372,10 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 
 	private void finishProduction() {
 		setAndPublishState(BasicMachineStates.COMPLETING);
-		serverSide.tell(IOStationCapability.ServerMessageTypes.Reset, self); // now again do a handshake and unload,
+		
+		HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(), IOStationCapability.ServerMessageTypes.Reset);
+		tracingFactory.injectMsg(msg);		
+		serverSide.tell(msg, self); // now again do a handshake and unload,
 		/*
 		 * context().system().scheduler().scheduleOnce(Duration.ofMillis(3000), new
 		 * Runnable() {
@@ -346,7 +412,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 		context().system().scheduler().scheduleOnce(Duration.ofSeconds(1), () -> {
 			reset(); // we automatically reset
 		}, context().dispatcher());
-		
+
 	}
 
 }

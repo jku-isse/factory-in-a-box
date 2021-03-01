@@ -1,16 +1,16 @@
 package fiab.machine.plotter.opcua;
 
-import fiab.machine.plotter.MachineCapabilityUpdateEvent;
-import fiab.machine.plotter.opcua.methods.SetCapability;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
-import akka.actor.AbstractActor;
+import akka.actor.AbstractActor.Receive;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import config.HardwareInfo;
+import config.MachineType;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
@@ -21,143 +21,175 @@ import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColor
 import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.machine.plotter.IntraMachineEventBus;
+import fiab.machine.plotter.MachineCapabilityUpdateEvent;
 import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
+import fiab.machine.plotter.messages.PlotterMessage;
 import fiab.machine.plotter.opcua.methods.PlotRequest;
 import fiab.machine.plotter.opcua.methods.Reset;
+import fiab.machine.plotter.opcua.methods.SetCapability;
 import fiab.machine.plotter.opcua.methods.Stop;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
-import config.HardwareInfo;
-import config.MachineType;
+import fiab.tracing.actor.AbstractTracingActor;
 
-public class OPCUAPlotterRootActor extends AbstractActor {
+public class OPCUAPlotterRootActor extends AbstractTracingActor {
 
 	private boolean exposeInternalControl;
-    private String machineName = "Plotter";
-    static final String NAMESPACE_URI = "urn:factory-in-a-box";
-    private UaVariableNode status = null;
-    private UaVariableNode capability = null;
-    private ActorRef plotterCoordinator;
-    private SupportedColors color;
-    private int portOffset;
+	private String machineName = "Plotter";
+	static final String NAMESPACE_URI = "urn:factory-in-a-box";
+	private UaVariableNode status = null;
+	private UaVariableNode capability = null;
+	private ActorRef plotterCoordinator;
+	private SupportedColors color;
+	private int portOffset;
 
-    static public Props props(String machineName, int portOffset, SupportedColors color) {
-        return Props.create(OPCUAPlotterRootActor.class, () -> new OPCUAPlotterRootActor(machineName, portOffset, color));
-    }
+	static public Props props(String machineName, int portOffset, SupportedColors color) {
+		return Props.create(OPCUAPlotterRootActor.class,
+				() -> new OPCUAPlotterRootActor(machineName, portOffset, color));
+	}
 
-    public OPCUAPlotterRootActor(String machineName, int portOffset, SupportedColors color) {
-        try {
-            this.machineName = machineName;
-            this.color = color;
-            this.portOffset = portOffset;
-            init();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
+	public OPCUAPlotterRootActor(String machineName, int portOffset, SupportedColors color) {
+		try {
+			this.machineName = machineName;
+			this.color = color;
+			this.portOffset = portOffset;
+			init();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
 
-    @Override
-    public Receive createReceive() {
+	@Override
+	public Receive createReceive() {
+		return receiveBuilder().match(MachineCapabilityUpdateEvent.class, req -> {
+			try {
+				tracingFactory.startConsumerSpan(req,
+						"OPCUA Plotter Root Actor: Machine Capability Update Event received");
+				setPlotCapability(req.getValue().toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
+		}).match(MachineStatusUpdateEvent.class, req -> {
+			try {
+				tracingFactory.startConsumerSpan(req, "OPCUA Plotter Root Actor: Machine Status Update Event received");
+				setStatusValue(req.getStatus().toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
+		}).build();
+	}
 
-        return receiveBuilder()
-                .match(MachineCapabilityUpdateEvent.class, req -> {
-                    setPlotCapability(req.getValue().toString());
-                })
-                .match(MachineStatusUpdateEvent.class, req -> {
-                    setStatusValue(req.getStatus().toString());
-                })
-                .build();
-    }
+	private void init() throws Exception {
+		NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
 
+		OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
+		UaFolderNode root = opcuaBase.prepareRootNode();
+		UaFolderNode plotterNode = opcuaBase.generateFolder(root, machineName, "Plotting_FU");
+		String fuPrefix = machineName + "/" + "Plotting_FU";
 
-    private void init() throws Exception {
-        NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
+		IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
+		intraEventBus.subscribe(getSelf(), new fiab.machine.plotter.SubscriptionClassifier("Plotter Module", "*"));
+		HardwareInfo hardwareInfo = new HardwareInfo(MachineType.PLOTTER);
 
-        OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
-        UaFolderNode root = opcuaBase.prepareRootNode();
-        UaFolderNode plotterNode = opcuaBase.generateFolder(root, machineName, "Plotting_FU");
-        String fuPrefix = machineName + "/" + "Plotting_FU";
+		// PlotFu plotFu = new PlotFu();
+		// ConveyorFu conveyorFu = new ConveyorFu(opcuaBase, root, machineName,
+		// context(), exposeInternalControl, intraEventBus, hardwareInfo);
+		// PlotFu plotFu = new PlotFu(opcuaBase, root, machineName , context(),
+		// exposeInternalControl, intraEventBus, hardwareInfo, color);
 
-        IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
-        intraEventBus.subscribe(getSelf(), new fiab.machine.plotter.SubscriptionClassifier("Plotter Module", "*"));
-        HardwareInfo hardwareInfo = new HardwareInfo(MachineType.PLOTTER);
-        	
-        //PlotFu plotFu = new PlotFu();
-        //ConveyorFu conveyorFu = new ConveyorFu(opcuaBase, root, machineName, context(), exposeInternalControl, intraEventBus, hardwareInfo);    
-        //PlotFu plotFu = new PlotFu(opcuaBase, root, machineName , context(), exposeInternalControl, intraEventBus, hardwareInfo, color);
-        
-        plotterCoordinator = context().actorOf(VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus, hardwareInfo), machineName);
-        plotterCoordinator.tell(PlotterMessageTypes.SubscribeState, getSelf());
-        
-        
-        UaFolderNode plotHardwareNode = opcuaBase.generateFolder(plotterNode, fuPrefix, "Hardware");
-        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PlotXMotor", machineName +"/Hardware/Elements/MotorB");
-        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PlotYMotor", machineName +"/Hardware/Elements/MotorC");
-        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PenMotor", machineName +"/Hardware/Elements/MotorD");
-        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "HomingXSensor", machineName +"/Hardware/Elements/Sensor4");
-        opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "HomingYSensor", machineName +"/Hardware/Elements/Sensor3");
-        
-        
-        context().actorOf(OPCUAPlotterHardwareMonitor.props(opcuaBase, root, machineName, hardwareInfo));
-        
-        UaFolderNode conveyorNode = opcuaBase.generateFolder(root, machineName, "Conveyor_FU");
-        UaFolderNode convHardwareNode = opcuaBase.generateFolder(conveyorNode, machineName + "/Conveyor_FU",  "Hardware");
-        opcuaBase.generateStringVariableNode(convHardwareNode, machineName + "/Conveyor_FU/Hardware", "ConveyorMotor", machineName + "/Hardware/Elements/MotorA");
-        opcuaBase.generateStringVariableNode(convHardwareNode, machineName + "/Conveyor_FU/Hardware", "SensorUnloading", machineName + "/Hardware/Elements/Sensor1");
-        opcuaBase.generateStringVariableNode(convHardwareNode, machineName + "/Conveyor_FU/Hardware", "SensorLoading", machineName + "/Hardware/Elements/Sensor2");
-        
-        
-        UaFolderNode hsNode = opcuaBase.generateFolder(root, machineName, "Handshake_FU");
-        HandshakeFU defaultHandshakeFU = new ServerSideHandshakeFU(opcuaBase, hsNode, fuPrefix + "/Handshake_FU", plotterCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
-        //ActorRef serverSide = defaultHandshakeFU.getFUActor();
-        //		.setupOPCUANodeSet(plotterWrapper, opcuaBase, ttNode, fuPrefix, getContext());
-        //plotterCoordinator.tell(serverSide, getSelf());
+		plotterCoordinator = context().actorOf(
+				VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus, hardwareInfo), machineName);
+		plotterCoordinator.tell(
+				new PlotterMessage(tracingFactory.getCurrentHeader(), PlotterMessageTypes.SubscribeState), getSelf());
 
-        setupPlotterCapabilities(opcuaBase, plotterNode, fuPrefix, color);
-        setupOPCUANodeSet(opcuaBase, plotterNode, fuPrefix, plotterCoordinator);
+		UaFolderNode plotHardwareNode = opcuaBase.generateFolder(plotterNode, fuPrefix, "Hardware");
+		opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PlotXMotor",
+				machineName + "/Hardware/Elements/MotorB");
+		opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PlotYMotor",
+				machineName + "/Hardware/Elements/MotorC");
+		opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PenMotor",
+				machineName + "/Hardware/Elements/MotorD");
+		opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "HomingXSensor",
+				machineName + "/Hardware/Elements/Sensor4");
+		opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "HomingYSensor",
+				machineName + "/Hardware/Elements/Sensor3");
 
-        Thread s1 = new Thread(opcuaBase);
-        s1.start();
-    }
+		context().actorOf(OPCUAPlotterHardwareMonitor.props(opcuaBase, root, machineName, hardwareInfo));
 
+		UaFolderNode conveyorNode = opcuaBase.generateFolder(root, machineName, "Conveyor_FU");
+		UaFolderNode convHardwareNode = opcuaBase.generateFolder(conveyorNode, machineName + "/Conveyor_FU",
+				"Hardware");
+		opcuaBase.generateStringVariableNode(convHardwareNode, machineName + "/Conveyor_FU/Hardware", "ConveyorMotor",
+				machineName + "/Hardware/Elements/MotorA");
+		opcuaBase.generateStringVariableNode(convHardwareNode, machineName + "/Conveyor_FU/Hardware", "SensorUnloading",
+				machineName + "/Hardware/Elements/Sensor1");
+		opcuaBase.generateStringVariableNode(convHardwareNode, machineName + "/Conveyor_FU/Hardware", "SensorLoading",
+				machineName + "/Hardware/Elements/Sensor2");
 
-    private void setupOPCUANodeSet(OPCUABase opcuaBase, UaFolderNode ttNode, String path, ActorRef plotterActor) {
-        //TODO rename ttNode
-        UaMethodNode n1 = opcuaBase.createPartialMethodNode(path, PlotterMessageTypes.Reset.toString(), "Requests reset");
-        opcuaBase.addMethodNode(ttNode, n1, new Reset(n1, plotterActor));
-        UaMethodNode n2 = opcuaBase.createPartialMethodNode(path, PlotterMessageTypes.Stop.toString(), "Requests stop");
-        opcuaBase.addMethodNode(ttNode, n2, new Stop(n2, plotterActor));
-        UaMethodNode n3 = opcuaBase.createPartialMethodNode(path, PlotterMessageTypes.Plot.toString(), "Requests plot");
-        opcuaBase.addMethodNode(ttNode, n3, new PlotRequest(n3, plotterActor));
-        UaMethodNode n4 = opcuaBase.createPartialMethodNode(path, PlotterMessageTypes.SetCapability.toString(), "Sets Plotting Capability");
-        opcuaBase.addMethodNode(ttNode, n4, new SetCapability(n2, plotterActor));
-        status = opcuaBase.generateStringVariableNode(ttNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, BasicMachineStates.UNKNOWN);
-    }
+		UaFolderNode hsNode = opcuaBase.generateFolder(root, machineName, "Handshake_FU");
+		HandshakeFU defaultHandshakeFU = new ServerSideHandshakeFU(opcuaBase, hsNode, fuPrefix + "/Handshake_FU",
+				plotterCoordinator, getContext(), "DefaultServerSideHandshake",
+				OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+		// ActorRef serverSide = defaultHandshakeFU.getFUActor();
+		// .setupOPCUANodeSet(plotterWrapper, opcuaBase, ttNode, fuPrefix,
+		// getContext());
+		// plotterCoordinator.tell(serverSide, getSelf());
 
-    private void setupPlotterCapabilities(OPCUABase opcuaBase, UaFolderNode ttNode, String path, SupportedColors color) {
-        // add capabilities
-        UaFolderNode capabilitiesFolder = opcuaBase.generateFolder(ttNode, path, new String(OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
-        path = path + "/" + OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
-        UaFolderNode capability1 = opcuaBase.generateFolder(capabilitiesFolder, path,
-                "CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
-        capability = opcuaBase.generateStringVariableNode(capability1, path + "/CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
-                WellknownPlotterCapability.generatePlottingCapabilityURI(color));
-        opcuaBase.generateStringVariableNode(capability1, path + "/CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
-                "DefaultPlotterCapabilityInstance");
-        opcuaBase.generateStringVariableNode(capability1, path + "/CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
-                OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED);
-    }
+		setupPlotterCapabilities(opcuaBase, plotterNode, fuPrefix, color);
+		setupOPCUANodeSet(opcuaBase, plotterNode, fuPrefix, plotterCoordinator);
 
-    private void setStatusValue(String newStatus) {
-        if (status != null) {
-            status.setValue(new DataValue(new Variant(newStatus)));
-        }
-    }
+		Thread s1 = new Thread(opcuaBase);
+		s1.start();
+	}
 
-    private void setPlotCapability(String newCapability) {
-        if (capability != null) {
-            capability.setValue(new DataValue(new Variant(newCapability)));
-        }
-    }
+	private void setupOPCUANodeSet(OPCUABase opcuaBase, UaFolderNode ttNode, String path, ActorRef plotterActor) {
+		// TODO rename ttNode
+		UaMethodNode n1 = opcuaBase.createPartialMethodNode(path, PlotterMessageTypes.Reset.toString(),
+				"Requests reset");
+		opcuaBase.addMethodNode(ttNode, n1, new Reset(n1, plotterActor));
+		UaMethodNode n2 = opcuaBase.createPartialMethodNode(path, PlotterMessageTypes.Stop.toString(), "Requests stop");
+		opcuaBase.addMethodNode(ttNode, n2, new Stop(n2, plotterActor));
+		UaMethodNode n3 = opcuaBase.createPartialMethodNode(path, PlotterMessageTypes.Plot.toString(), "Requests plot");
+		opcuaBase.addMethodNode(ttNode, n3, new PlotRequest(n3, plotterActor));
+		UaMethodNode n4 = opcuaBase.createPartialMethodNode(path, PlotterMessageTypes.SetCapability.toString(),
+				"Sets Plotting Capability");
+		opcuaBase.addMethodNode(ttNode, n4, new SetCapability(n2, plotterActor));
+		status = opcuaBase.generateStringVariableNode(ttNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME,
+				BasicMachineStates.UNKNOWN);
+	}
+
+	private void setupPlotterCapabilities(OPCUABase opcuaBase, UaFolderNode ttNode, String path,
+			SupportedColors color) {
+		// add capabilities
+		UaFolderNode capabilitiesFolder = opcuaBase.generateFolder(ttNode, path,
+				new String(OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
+		path = path + "/" + OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
+		UaFolderNode capability1 = opcuaBase.generateFolder(capabilitiesFolder, path, "CAPABILITY",
+				OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
+		capability = opcuaBase.generateStringVariableNode(capability1, path + "/CAPABILITY",
+				OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
+				WellknownPlotterCapability.generatePlottingCapabilityURI(color));
+		opcuaBase.generateStringVariableNode(capability1, path + "/CAPABILITY",
+				OPCUACapabilitiesAndWiringInfoBrowsenames.ID, "DefaultPlotterCapabilityInstance");
+		opcuaBase.generateStringVariableNode(capability1, path + "/CAPABILITY",
+				OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
+				OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED);
+	}
+
+	private void setStatusValue(String newStatus) {
+		if (status != null) {
+			status.setValue(new DataValue(new Variant(newStatus)));
+		}
+	}
+
+	private void setPlotCapability(String newCapability) {
+		if (capability != null) {
+			capability.setValue(new DataValue(new Variant(newCapability)));
+		}
+	}
 }

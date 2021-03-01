@@ -1,16 +1,5 @@
 package fiab.capabilityManager.tool;
 
-import akka.actor.AbstractActor;
-import akka.actor.Props;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
-import akka.japi.pf.ReceiveBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import fiab.capabilityManager.opcua.CapabilityManagerClient;
-import fiab.capabilityManager.opcua.PlotCapability;
-import fiab.capabilityManager.opcua.msg.ClientReadyNotification;
-import fiab.capabilityManager.opcua.msg.WriteRequest;
-
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -22,64 +11,89 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class CapabilityManagerActor extends AbstractActor {
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+import akka.actor.AbstractActor.Receive;
+import akka.actor.Props;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+import akka.japi.pf.ReceiveBuilder;
+import fiab.capabilityManager.opcua.CapabilityManagerClient;
+import fiab.capabilityManager.opcua.PlotCapability;
+import fiab.capabilityManager.opcua.msg.ClientReadyNotification;
+import fiab.capabilityManager.opcua.msg.WriteRequest;
+import fiab.tracing.actor.AbstractTracingActor;
 
-    private final URI dirPath;
-    private final Map<String, String> urlCapabilitiesMap;
+public class CapabilityManagerActor extends AbstractTracingActor {
 
-    public static Props props(URI dirPath) {
-        return Props.create(CapabilityManagerActor.class, dirPath);
-    }
+	private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
-    public CapabilityManagerActor(URI dirPath) {
-        this.dirPath = dirPath;
-        urlCapabilitiesMap = getCapabilitiesFromDir();
-        urlCapabilitiesMap.forEach((url, capability) -> context().actorOf(CapabilityManagerClient.props(url)));
-    }
+	private final URI dirPath;
+	private final Map<String, String> urlCapabilitiesMap;
 
-    @Override
-    public Receive createReceive() {
-        return new ReceiveBuilder()
-                .match(ClientReadyNotification.class, notification -> {
-                    String url = notification.getEndpointUrl();
-                    if (urlCapabilitiesMap.containsKey(url)) {
-                        String capability = urlCapabilitiesMap.get(url);
-                        sender().tell(new WriteRequest(capability), self());
-                    }
-                }).build();
-    }
+	public static Props props(URI dirPath) {
+		return Props.create(CapabilityManagerActor.class, dirPath);
+	}
 
-    private Map<String, String> getCapabilitiesFromDir() {
-        Map<String, String> endPointCapabilityMap = null;
-        try {
-            List<Path> filePaths = Files.list(Paths.get(dirPath)).collect(Collectors.toList());
-            endPointCapabilityMap = new HashMap<>();
-            for (Path path : filePaths) {
-                AbstractMap.SimpleEntry<String, String> entry = parseJsonFileAsCapabilityEntry(path);
-                if (entry != null) {
-                    endPointCapabilityMap.put(entry.getKey(), entry.getValue());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return endPointCapabilityMap;
-    }
+	public CapabilityManagerActor(URI dirPath) {
+		this.dirPath = dirPath;
+		urlCapabilitiesMap = getCapabilitiesFromDir();
+		urlCapabilitiesMap.forEach((url, capability) -> context().actorOf(CapabilityManagerClient.props(url)));
+	}
 
-    private AbstractMap.SimpleEntry<String, String> parseJsonFileAsCapabilityEntry(Path capabilityFilePath) {
-        ObjectMapper mapper = new ObjectMapper();
-        PlotCapability plotCapability;
-        try {
-            String jsonContent = new String(Files.readAllBytes(capabilityFilePath));
-            plotCapability = mapper.readValue(jsonContent, PlotCapability.class);
-            return new AbstractMap.SimpleEntry<>(plotCapability.endpointUrl, plotCapability.plotCapability);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+	@Override
+	public Receive createReceive() {
+		return new ReceiveBuilder().match(ClientReadyNotification.class, notification -> {
+			try {
+				tracingFactory.startConsumerSpan(notification,
+						"Capability Manager Actor: Client ready Notification received");
 
+				String url = notification.getEndpointUrl();
+				if (urlCapabilitiesMap.containsKey(url)) {
+					String capability = urlCapabilitiesMap.get(url);
+
+					WriteRequest req = new WriteRequest(capability, tracingFactory.getCurrentHeader());
+					tracingFactory.injectMsg(req);
+
+					sender().tell(req, self());
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracingFactory.finishCurrentSpan();
+			}
+
+		}).build();
+	}
+
+	private Map<String, String> getCapabilitiesFromDir() {
+		Map<String, String> endPointCapabilityMap = null;
+		try {
+			List<Path> filePaths = Files.list(Paths.get(dirPath)).collect(Collectors.toList());
+			endPointCapabilityMap = new HashMap<>();
+			for (Path path : filePaths) {
+				AbstractMap.SimpleEntry<String, String> entry = parseJsonFileAsCapabilityEntry(path);
+				if (entry != null) {
+					endPointCapabilityMap.put(entry.getKey(), entry.getValue());
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return endPointCapabilityMap;
+	}
+
+	private AbstractMap.SimpleEntry<String, String> parseJsonFileAsCapabilityEntry(Path capabilityFilePath) {
+		ObjectMapper mapper = new ObjectMapper();
+		PlotCapability plotCapability;
+		try {
+			String jsonContent = new String(Files.readAllBytes(capabilityFilePath));
+			plotCapability = mapper.readValue(jsonContent, PlotCapability.class);
+			return new AbstractMap.SimpleEntry<>(plotCapability.endpointUrl, plotCapability.plotCapability);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 }
