@@ -13,7 +13,6 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import actuators.Motor;
 import akka.actor.AbstractActor;
 import akka.actor.Props;
-import akka.actor.AbstractActor.Receive;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import config.HardwareInfo;

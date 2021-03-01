@@ -6,7 +6,6 @@ import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
-import akka.actor.AbstractActor.Receive;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import config.HardwareInfo;

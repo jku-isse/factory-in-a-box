@@ -14,7 +14,6 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import config.HardwareInfo;
 import config.MachineType;
-import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
 import fiab.core.capabilities.handshake.IOStationCapability;
@@ -78,10 +77,10 @@ public class OPCUAIOStationRootActor extends AbstractTracingActor {
 	public Receive createReceive() {
 		return receiveBuilder().match(ServerSideStates.class, req -> {
 			receiveServerSideState(new HSServerSideStateMessage("", req));
-
+			
 		}).match(HSServerSideStateMessage.class, msg -> {
 			receiveServerSideState(msg);
-
+			
 		}).match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {// ignore
 		}).build();
 	}
@@ -89,65 +88,43 @@ public class OPCUAIOStationRootActor extends AbstractTracingActor {
 	public void receiveServerSideState(HSServerSideStateMessage msg) {
 		ServerSideStates state = msg.getBody();
 
-		switch (state) {
-		case RESETTING:
-			try {
-				tracingFactory.startConsumerSpan(msg, "OPCUAIOStation Root: Server Side Resetting received");
+		try {
+			tracingFactory.startConsumerSpan(msg, "OPCUAIOStation Root: Server Side " + state.toString() + " received");
+			switch (state) {
+			case RESETTING:
 				if (isInputStation)
 					waitForPalletReset();
-			} catch (Exception e) {
-
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case COMPLETING:
-		case COMPLETE:
-			try {
-				tracingFactory.startConsumerSpan(msg, "OPCUAIOStation Root: Server Side Complete/Completing received");
+				break;
+			case COMPLETING:
+			case COMPLETE:
 				if (isInputStation && !isUnloading) {
 					isUnloading = true;
 					startPalletHandover();
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case STOPPING:
-			try {
-				tracingFactory.startConsumerSpan(msg, "OPCUAIOStation Root: Server Side Stopping received");
+				break;
+			case STOPPING:
 				if (isInputStation) {
 					inputStationHardware.getReleaseMotor().stop();
 					isUnloading = false;
 				}
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case EXECUTE:
-			if (!isInputStation) {
-				try {
-					tracingFactory.startConsumerSpan(msg, "OPCUAIOStation Root: Server Side Execute received");
+				break;
+			case EXECUTE:
+				if (!isInputStation) {
 					if (outputStationHardware.getPalletSensor() instanceof MockSensor) {
 						log.info("Setting mock sensor value to simulate pallet to true");
 						((MockSensor) outputStationHardware.getPalletSensor()).setDetectedInput(true);
 					}
 					finishOutputStationHandover();
-				} catch (Exception e) {
-					e.printStackTrace();
-				} finally {
-					tracingFactory.finishCurrentSpan();
 				}
+				break;
+			default:
+				currentState = state;
+				setStatusValue(currentState.toString());
 			}
-			break;
-		default:
-			currentState = state;
-			setStatusValue(currentState.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracingFactory.finishCurrentSpan();
 		}
 	}
 

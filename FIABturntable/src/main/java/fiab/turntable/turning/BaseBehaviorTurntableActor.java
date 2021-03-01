@@ -1,11 +1,17 @@
 package fiab.turntable.turning;
 
-import akka.actor.AbstractActor;
+import static fiab.turntable.turning.statemachine.TurningStates.STOPPED;
+import static fiab.turntable.turning.statemachine.TurningTriggers.RESET;
+import static fiab.turntable.turning.statemachine.TurningTriggers.STOP;
+import static fiab.turntable.turning.statemachine.TurningTriggers.TURN_TO;
+
+import java.time.Duration;
+
+import com.github.oxo42.stateless4j.StateMachine;
+
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.github.oxo42.stateless4j.StateMachine;
-
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
 import fiab.tracing.actor.AbstractTracingActor;
@@ -14,11 +20,6 @@ import fiab.turntable.actor.messages.TurningTriggerMessage;
 import fiab.turntable.turning.statemachine.TurningStateMachineConfig;
 import fiab.turntable.turning.statemachine.TurningStates;
 import fiab.turntable.turning.statemachine.TurningTriggers;
-
-import static fiab.turntable.turning.statemachine.TurningStates.STOPPED;
-import static fiab.turntable.turning.statemachine.TurningTriggers.*;
-
-import java.time.Duration;
 
 public class BaseBehaviorTurntableActor extends AbstractTracingActor {
 

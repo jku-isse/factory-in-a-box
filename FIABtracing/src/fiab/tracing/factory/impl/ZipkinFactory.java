@@ -18,9 +18,9 @@ public class ZipkinFactory implements TracingFactory {
 	private final ZipkinSpanHandler handler;
 	private static Extractor<TracingHeader> extractor;
 	private static Injector<TracingHeader> injector;
+	private static ScopedSpan scope;
 
 	private Tracing tracing;
-	private ScopedSpan scope;
 	private Span currentSpan;
 
 	public ZipkinFactory() {
@@ -32,7 +32,13 @@ public class ZipkinFactory implements TracingFactory {
 
 		if (injector == null)
 			injector = tracing.propagation().injector(new B3Setter());
-		scope = createNewScope("Default", "Default");
+		scope = createNewScopeOrGetCurrentScope();
+	}
+
+	private ScopedSpan createNewScopeOrGetCurrentScope() {
+		if (scope == null)
+			return createNewScope("Default", "Default");
+		return scope;
 	}
 
 	private ScopedSpan createNewScope(String traceName, String scopeName) {

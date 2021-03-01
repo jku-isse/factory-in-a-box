@@ -14,7 +14,10 @@ public class FactoryConfig extends AbstractModule {
 	}
 
 	private void configureTracingFactoryBinding() {
+		
 		bind(TracingFactory.class).toInstance(new ZipkinFactory());
 	}
+	
+	
 
 }

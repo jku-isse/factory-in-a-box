@@ -52,16 +52,16 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 	public Receive createReceive() {
 		return receiveBuilder().match(IOStationCapability.ServerMessageTypes.class, body -> {
 			receiveServerMessage(new HSServerMessage("", body));
-			
+
 		}).match(HSServerMessage.class, msg -> {
 			receiveServerMessage(msg);
-			
+
 		}).match(StateOverrideRequests.class, req -> {
 			receiveStateOverrideRequest(new HSStateOverrideRequestMessage("", req));
-			
+
 		}).match(HSStateOverrideRequestMessage.class, msg -> {
 			receiveStateOverrideRequest(msg);
-			
+
 		}).matchAny(msg -> {
 			log.warning(String.format("Unexpected Message received <%s> from %s", msg.toString(), getSender()));
 		}).build();
@@ -71,31 +71,25 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 		StateOverrideRequests body = msg.getBody();
 
 		log.info(String.format("Received %s from %s", body, getSender()));
-
-		switch (body) {
-		case SetLoaded:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Server-Handshake: StateOverriderequest SetLoaded received");
+		try {
+			tracingFactory.startConsumerSpan(msg,
+					"Server-Handshake: StateOverriderequest: " + body.toString() + " received");
+			switch (body) {
+			case SetLoaded:
 				updateLoadState(true);
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case SetEmpty:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Server-Handshake: StateOverriderequest SetEmpty received");
+				break;
+			case SetEmpty:
 				updateLoadState(false);
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
+				break;
+			default:
+				break;
 			}
-			break;
-		default:
-			break;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracingFactory.finishCurrentSpan();
 		}
+
 	}
 
 	private void receiveServerMessage(HSServerMessage msg) {
@@ -103,95 +97,47 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 
 		log.info(String.format("Received %s from %s", body, getSender()));
 
-		switch (body) {
-		case Complete:
-			if (currentState.equals(ServerSideStates.EXECUTE)) {
-				try {
-					tracingFactory.startConsumerSpan(msg, "Server-Handshake: Complete received");
+		try {
+			tracingFactory.startConsumerSpan(msg,
+					"Server-Handshake: StateOverriderequest: " + body.toString() + " received");
+			switch (body) {
+			case Complete:
+				if (currentState.equals(ServerSideStates.EXECUTE))
 					complete();
-				} catch (Exception e) {
-					e.printStackTrace();
-				} finally {
-					tracingFactory.finishCurrentSpan();
-				}
-			}
-			break;
-		case RequestInitiateHandover:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Server-Handshake: Request Initiate Handover received");
+				break;
+			case RequestInitiateHandover:
 				initHandover();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case RequestStartHandover:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Server-Handshake: Request Start Handover received");
+				break;
+			case RequestStartHandover:
 				startHandover();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case Reset:
-			if (currentState.equals(ServerSideStates.STOPPED) || currentState.equals(ServerSideStates.COMPLETE)) {
-				try {
-					tracingFactory.startConsumerSpan(msg, "Server-Handshake: Reset received");
+				break;
+			case Reset:
+				if (currentState.equals(ServerSideStates.STOPPED) || currentState.equals(ServerSideStates.COMPLETE))
 					reset();
-				} catch (Exception e) {
-					e.printStackTrace();
-				} finally {
-					tracingFactory.finishCurrentSpan();
-				}
-			}
-			break;
-		case Stop:
-			if (currentState.equals(ServerSideStates.STOPPED) || currentState.equals(ServerSideStates.COMPLETE)) {
-				try {
-					tracingFactory.startConsumerSpan(msg, "Server-Handshake: Stop received");
+				break;
+			case Stop:
+				if (currentState.equals(ServerSideStates.STOPPED) || currentState.equals(ServerSideStates.COMPLETE))
 					stop();
-				} catch (Exception e) {
-					e.printStackTrace();
-				} finally {
-					tracingFactory.finishCurrentSpan();
-				}
-			}
-			break;
-		case SubscribeToStateUpdates:
-			try {
-
-				tracingFactory.startConsumerSpan(msg, "Server-Handshake: Subscribe to State Updates Received");
+				break;
+			case SubscribeToStateUpdates:
 				if (getSender() != context().system().deadLetters()) {
 					subscribers.add(getSender());
-					// TODO implement current state messages
 					getSender().tell(currentState, getSelf()); // update subscriber with current state
 				} else {
 					publishNewState(currentState);
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case UnsubscribeToStateUpdates:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Server-Handshake: Unsubscribe to State Updates Received");
+				break;
+			case UnsubscribeToStateUpdates:
 				subscribers.remove(getSender());
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
+				break;
+			default:
+				break;
 			}
-
-			break;
-		default:
-			break;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracingFactory.finishCurrentSpan();
 		}
-
 	}
 
 	protected void publishNewState(ServerSideStates newState) {
@@ -200,18 +146,13 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 		tracingFactory.injectMsg(msg);
 
 		if (parentActor != null) {
-			// TODO remove when all actors support extensible messages
-			//parentActor.tell(newState, self);
-
 			parentActor.tell(msg, self);
 		}
 		if (publishEP != null) {
 			publishEP.setStatusValue(newState.toString());
 		}
 		// sending extensible message to all subscribers
-
 		subscribers.stream().forEach(sub -> sub.tell(msg, self));
-//		subscribers.stream().forEach(sub -> sub.tell(newState, self));
 	}
 
 	private Set<ServerSideStates> loadChangeableStates = Sets.newHashSet(ServerSideStates.COMPLETE,

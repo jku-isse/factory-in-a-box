@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABcore</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
@@ -57,6 +57,11 @@
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABhardware</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>factory.in.a.box</groupId>
+			<artifactId>FIABtracing</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
@@ -70,7 +75,7 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<!--plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
 				<version>2.5.2</version>
@@ -84,9 +89,9 @@
 						<configuration>
 							<groupId>factory.in.a.box</groupId>
 							<artifactId>FIABcore</artifactId>
-							<version>1.0.1-SNAPSHOT</version>
+							<version>1.1.0-SNAPSHOT</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/FIABcore-1.0.1-SNAPSHOT.jar
+							<file>${project.basedir}/../libs/FIABcore-1.1.0-SNAPSHOT.jar
 							</file>
 						</configuration>
 					</execution>
@@ -135,8 +140,23 @@
 							</file>
 						</configuration>
 					</execution>
+					<execution>
+						<id>install-jar-lib-5</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<phase>validate</phase>
+						<configuration>
+							<groupId>factory.in.a.box</groupId>
+							<artifactId>FIABtracing</artifactId>
+							<version>1.0.0-SNAPSHOT</version>
+							<packaging>jar</packaging>
+							<file>${project.basedir}/../libs/FIABtracing-1.0.0-SNAPSHOT.jar
+							</file>
+						</configuration>
+					</execution>
 				</executions>
-			</plugin-->
+			</plugin>
 			<!--plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>

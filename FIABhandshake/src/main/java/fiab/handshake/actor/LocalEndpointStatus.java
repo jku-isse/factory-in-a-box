@@ -24,10 +24,15 @@ public abstract class LocalEndpointStatus implements TracingHeader {
 	}
 
 	public LocalEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
+		this(actor, isProvidedCapability, capabilityId, "");
+	}
+
+	public LocalEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId, String header) {
 		super();
 		this.actor = actor;
 		this.isProvidedCapability = isProvidedCapability;
 		this.capabilityId = capabilityId;
+		this.header = header;
 	}
 
 	@Override

@@ -7,8 +7,6 @@ import akka.actor.Props;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.handshake.actor.ServerSideHandshakeActor;
-import fiab.handshake.actor.messages.HSServerSideStateMessage;
-import fiab.tracing.factory.TracingFactory;
 
 public class IOStationServerHandshakeActor extends ServerSideHandshakeActor{
 

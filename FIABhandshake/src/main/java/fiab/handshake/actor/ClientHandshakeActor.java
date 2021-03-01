@@ -77,55 +77,31 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		IOStationCapability.ClientMessageTypes body = msg.getBody();
 
 		log.info(String.format("Received %s from %s", body, getSender()));
-
-		switch (body) {
-		case Reset:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Reset Received");
+		try {
+			tracingFactory.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");
+			switch (body) {
+			case Reset:
 				reset(); // prepare for next round
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-
-			break;
-		case Start:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Start Received");
+				break;
+			case Start:
 				start(); // engage in handshake: subscribe to state updates
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case Complete:
-			if (currentState.equals(ClientSideStates.EXECUTE)) // only if we are in state executing, otherwise complete
-																// makes no sense
-				try {
-					tracingFactory.startConsumerSpan(msg, "Client-Handshake: Complete Received");
+				break;
+			case Complete:
+				if (currentState.equals(ClientSideStates.EXECUTE)) // only if we are in state executing, otherwise
+																	// complete
+																	// makes no sense
 					complete(); // handshake can be wrapped up
-				} catch (Exception e) {
-					e.printStackTrace();
-				} finally {
-					tracingFactory.finishCurrentSpan();
-				}
-			break;
-		case Stop:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Stop Received");
+				break;
+			case Stop:
 				stop(); // error or external stop, otherwise autostopping upon completion
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
+				break;
+			default:
+				break;
 			}
-
-			break;
-		default:
-			break;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracingFactory.finishCurrentSpan();
 		}
 	}
 
@@ -133,50 +109,31 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		IOStationCapability.ServerMessageTypes body = msg.getBody();
 		log.info(String.format("Received %s from %s", body, getSender()));
 
-		switch (body) {
-		case NotOkResponseInitHandover:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Not Ok Response Init Handover received");
+		try {
+			tracingFactory.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " received");
+			switch (body) {
+			case NotOkResponseInitHandover:
 				stop();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case NotOkResponseStartHandover:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Not Ok Response Start Handover received");
+				break;
+			case NotOkResponseStartHandover:
 				stop();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case OkResponseInitHandover:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Ok Response Init Handover received");
+				break;
+			case OkResponseInitHandover:
 				receiveInitiateOkResponse();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
-			}
-			break;
-		case OkResponseStartHandover:
-			try {
-				tracingFactory.startConsumerSpan(msg, "Client-Handshake: Ok Response Start Handover received");
+
+				break;
+			case OkResponseStartHandover:
 				receiveStartOkResponse();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracingFactory.finishCurrentSpan();
+
+				break;
+			default:
+				log.warning("Unexpected ServerSide MessageType received: " + body.toString());
+				break;
 			}
-			break;
-		default:
-			log.warning("Unexpected ServerSide MessageType received: " + body.toString());
-			break;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracingFactory.finishCurrentSpan();
 		}
 
 	}
@@ -185,87 +142,53 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		ServerSideStates body = msg.getBody();
 
 		log.info(String.format("Received %s from %s in local state %s", body, getSender(), currentState));
-		if (getSender().equals(serverSide)) {
-			remoteState = body;
-			switch (body) {
-			case IDLE_EMPTY: // fallthrough
-			case IDLE_LOADED:
-				if (currentState.equals(ClientSideStates.STARTING) || currentState.equals(ClientSideStates.INITIATING))
-					try {
-						tracingFactory.startConsumerSpan(msg,
-								"Client-Handshake: Server Side State: Idle Empty/Loaded received");
+		try {
+			tracingFactory.startConsumerSpan(msg,
+					"Client-Handshake: Server Side State: " + body.toString() + " received");
+			if (getSender().equals(serverSide)) {
+				remoteState = body;
+				switch (body) {
+				case IDLE_EMPTY: // fallthrough
+				case IDLE_LOADED:
+					if (currentState.equals(ClientSideStates.STARTING)
+							|| currentState.equals(ClientSideStates.INITIATING))
 						requestInitiateHandover();
-					} catch (Exception e) {
-						e.printStackTrace();
-					} finally {
-						tracingFactory.finishCurrentSpan();
-					}
-
-				break;
-			case COMPLETE: // fallthrough, if serverside is done, we can do the same
-			case COMPLETING:
-				// onlfy if in executing
-				if (currentState.equals(ClientSideStates.EXECUTE))
-					try {
-						tracingFactory.startConsumerSpan(msg,
-								"Client-Handshake: Server Side State: Complete/Completing received");
+					break;
+				case COMPLETE: // fallthrough, if serverside is done, we can do the same
+				case COMPLETING:
+					// onlfy if in executing
+					if (currentState.equals(ClientSideStates.EXECUTE))
 						complete();
-					} catch (Exception e) {
-						e.printStackTrace();
-					} finally {
-						tracingFactory.finishCurrentSpan();
-					}
-				break;
-			case EXECUTE: // if server side is executing, we can do the same if we are in ready
-				if (currentState.equals(ClientSideStates.READY)) {
-					try {
-						tracingFactory.startConsumerSpan(msg, "Client-Handshake: Server Side State: Execute received");
+					break;
+				case EXECUTE: // if server side is executing, we can do the same if we are in ready
+					if (currentState.equals(ClientSideStates.READY))
 						receiveStartOkResponse();
-					} catch (Exception e) {
-						e.printStackTrace();
-					} finally {
-						tracingFactory.finishCurrentSpan();
-					}
-				}
-				break;
-			case READY_EMPTY: // fallthrough
-			case READY_LOADED:
-				if (currentState.equals(ClientSideStates.READY)) {
-					try {
-						tracingFactory.startConsumerSpan(msg,
-								"Client-Handshake: Server Side State: Ready Empty/Loaded received");
+					break;
+				case READY_EMPTY: // fallthrough
+				case READY_LOADED:
+					if (currentState.equals(ClientSideStates.READY))
 						requestStartHandover();
-					} catch (Exception e) {
-						e.printStackTrace();
-					} finally {
-						tracingFactory.finishCurrentSpan();
-					}
-				}
-				break;
-			case STOPPED: // fallthrough
-			case STOPPING: // if we are in any state that would not expect a stop, then we also need to
-							// stop/abort
-				if (// currentState.equals(ClientSide.Initiating) ||
-					// currentState.equals(ClientSide.Initiated) || //the server might not be ready
-					// yet, thus we need to wait, not stop
-				currentState.equals(ClientSideStates.READY) || currentState.equals(ClientSideStates.EXECUTE)) {
-					try {
-						tracingFactory.startConsumerSpan(msg,
-								"Client-Handshake: Server Side State: Stopped/Stopping received");
+					break;
+				case STOPPED: // fallthrough
+				case STOPPING: // if we are in any state that would not expect a stop, then we also need to
+								// stop/abort
+					if (// currentState.equals(ClientSide.Initiating) ||
+						// currentState.equals(ClientSide.Initiated) || //the server might not be ready
+						// yet, thus we need to wait, not stop
+					currentState.equals(ClientSideStates.READY) || currentState.equals(ClientSideStates.EXECUTE))
 						stop();
-					} catch (Exception e) {
-						e.printStackTrace();
-					} finally {
-						tracingFactory.finishCurrentSpan();
-					}
-
+					break;
+				default:
+					break;
 				}
-				break;
-			default:
-				break;
+			} else {
+				log.warning(String.format("Received %s to unexpected sender %s", body, getSender()));
 			}
-		} else {
-			log.warning(String.format("Received %s to unexpected sender %s", body, getSender()));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracingFactory.finishCurrentSpan();
 		}
 
 	}
@@ -276,14 +199,10 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		HSClientSideStateMessage msg = new HSClientSideStateMessage(tracingFactory.getCurrentHeader(), newState);
 		tracingFactory.injectMsg(msg);
 
-		// TODO remove when all actors support extensible messages
-		//machineWrapper.tell(newState, getSelf());
-
 		machineWrapper.tell(msg, getSelf());
 		if (publishEP != null)
 			publishEP.setStatusValue(newState.toString());
-		
-	
+
 	}
 
 	private void reset() {

@@ -21,14 +21,13 @@ public abstract class TimedEvent implements TracingHeader {
 	public TimedEvent(String header) {
 		this();
 		this.header = header;
-		
+
 	}
 
 	public TimedEvent(ZonedDateTime timestamp, String header) {
 		this.timestamp = timestamp;
 		this.header = header;
 	}
-	
 
 	public ZonedDateTime getTimestamp() {
 		return timestamp;
