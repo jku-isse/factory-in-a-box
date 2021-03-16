@@ -67,7 +67,7 @@ public class BaseBehaviorTurntableActor extends AbstractTracingActor {
 	private void receiveTurningTrigger(TurningTriggerMessage msg) {
 		TurningTriggers trigger = msg.getBody();
 		try {
-			tracingFactory.startConsumerSpan(msg, "Turning Actor: Trigger " + trigger.toString() + " received");
+			tracer.startConsumerSpan(msg, "Turning Actor: Trigger " + trigger.toString() + " received");
 			switch (trigger) {
 			case STOP:
 				if (tsm.canFire(STOP)) {
@@ -90,7 +90,7 @@ public class BaseBehaviorTurntableActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 		
 
@@ -102,8 +102,8 @@ public class BaseBehaviorTurntableActor extends AbstractTracingActor {
 		if (intraEventBus != null) {
 			TurntableStatusUpdateEvent event = new TurntableStatusUpdateEvent("",
 					OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", tsm.getState());
-			event.setHeader(tracingFactory.getCurrentHeader());
-			tracingFactory.injectMsg(event);
+			event.setHeader(tracer.getCurrentHeader());
+			tracer.injectMsg(event);
 
 			intraEventBus.publish(event);
 		}

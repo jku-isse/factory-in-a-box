@@ -88,36 +88,36 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 			receiveTTModuleWellknownCapabilityIdentifier(new TTModuleWellknwonCapabilityIdentifierMessage("", req));
 		}).match(MachineStatusUpdateEvent.class, req -> {
 			try {
-				tracingFactory.startConsumerSpan(req,
+				tracer.startConsumerSpan(req,
 						"OPCUA Turntable Root Actor: Machine Status Update Event received");
 				setStatusValue(req.getStatus().toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				tracingFactory.finishCurrentSpan();
+				tracer.finishCurrentSpan();
 			}
 
 		}).match(InternalTransportModuleRequest.class, req -> {
 			// forward to return response directly into method call back
 			try {
-				tracingFactory.startConsumerSpan(req,
+				tracer.startConsumerSpan(req,
 						"OPCUA Turntable Root Actor: Internal Transport Module Request received");
 				if (ttWrapper != null)
 					ttWrapper.forward(req, getContext());
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				tracingFactory.finishCurrentSpan();
+				tracer.finishCurrentSpan();
 			}
 
 		}).match(WiringUpdateEvent.class, req -> {
 			try {
-				tracingFactory.startConsumerSpan(req, "OPCUA Turntable Root Actor: Wiring Update Event received");
+				tracer.startConsumerSpan(req, "OPCUA Turntable Root Actor: Wiring Update Event received");
 				writeWiringToFile();
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				tracingFactory.finishCurrentSpan();
+				tracer.finishCurrentSpan();
 			}
 
 		}).build();
@@ -126,18 +126,18 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 	private void receiveTTModuleWellknownCapabilityIdentifier(TTModuleWellknwonCapabilityIdentifierMessage msg) {
 
 		try {
-			tracingFactory.startConsumerSpan(msg,
+			tracer.startConsumerSpan(msg,
 					"OPCUA Turntable Root Actor: TT Module Wellknow Capability Identifier received");
 			if (ttWrapper != null) {
 				TTModuleWellknwonCapabilityIdentifierMessage newMsg = new TTModuleWellknwonCapabilityIdentifierMessage(
-						tracingFactory.getCurrentHeader(), msg.getBody());
-				tracingFactory.injectMsg(newMsg);
+						tracer.getCurrentHeader(), msg.getBody());
+				tracer.injectMsg(newMsg);
 				ttWrapper.tell(newMsg, getSelf());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 
 	}
@@ -169,7 +169,7 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 					TransportModuleCoordinatorActor.props(intraEventBus, turningFU.getActor(), conveyorFU.getActor()),
 					"TurntableCoordinator");
 			ttWrapper.tell(
-					new TTModuleWellknwonCapabilityIdentifierMessage(tracingFactory.getCurrentHeader(),
+					new TTModuleWellknwonCapabilityIdentifierMessage(tracer.getCurrentHeader(),
 							TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState),
 					getSelf());
 		} else {

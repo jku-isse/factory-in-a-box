@@ -9,17 +9,16 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.basicmachine.events.MachineEvent.MachineEventType;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
+import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.MachineConnectedEvent;
@@ -35,8 +34,9 @@ import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse.ResponseType;
 import fiab.mes.transport.msg.TransportModuleRequest;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
+import fiab.tracing.actor.AbstractTracingActor;
 
-public class TransportSystemCoordinatorActor extends AbstractActor {
+public class TransportSystemCoordinatorActor extends AbstractTracingActor{
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	public static final String WELLKNOWN_LOOKUP_NAME = "TransportSystemCoordinatorActor";
@@ -83,8 +83,15 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	public Receive createReceive() {
 		return receiveBuilder()
 				.match(RegisterTransportRequest.class, req -> {
-					log.info(String.format("Received Transport Request %s -> %s", req.getSource().getId(), req.getDestination().getId()));
-					handleNewIncomingRequest(req); // Message to register transport among machines (including input and output station)
+					try {
+						tracer.startConsumerSpan(req, "Transport System Coordinator Actor: Register Transport Request received");
+						log.info(String.format("Received Transport Request %s -> %s", req.getSource().getId(), req.getDestination().getId()));
+						handleNewIncomingRequest(req); // Message to register transport among machines (including input and output station)
+					} catch (Exception e) {
+						e.printStackTrace();
+					}finally {
+						tracer.finishCurrentSpan();
+					}					
 				})
 				// available transport systems
 				.match(MachineConnectedEvent.class, machineEvent -> {
@@ -98,7 +105,14 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					handleMachineUpdateEvent(machineEvent);
 				})
 				.match(CancelTransportRequest.class, req -> {
-					handleCancelTransportRequest(req);
+					try {
+						tracer.startConsumerSpan(req, "Transport System Coordinator Actor: Register Transport Request received");
+						handleCancelTransportRequest(req);						
+					} catch (Exception e) {
+						e.printStackTrace();
+					}finally {
+						tracer.finishCurrentSpan();
+					}	
 				})
 				.match(MachineHistoryRequest.class, req -> {
 		        	log.info(String.format("Machine %s received MachineHistoryRequest", WELLKNOWN_LOOKUP_NAME));
@@ -210,7 +224,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					Optional<AkkaActorBackedCoreModelAbstractActor> act1_3 = dns.getActorForPosition(route.get(1));					
 					if (act1_3.isPresent()) {
 						tmrRoot = act1_3.map(actor -> { if (tmut.isTransportModule(actor)) { // must be a turntable
-							return new TransportModuleRequest(actor, route.get(0), route.get(2), rtr.getOrderId(), incrementalId.getAndIncrement()+""); 
+							return new TransportModuleRequest(actor, route.get(0), route.get(2), rtr.getOrderId(), incrementalId.getAndIncrement()+"",tracer.getCurrentHeader()); 
 						} else {
 							// this should not be possible, perhaps we don't know about that turntable yet, thus we cant contact it, thus an error
 							String msg = String.format("Unable to establish transport module for Position %s for request %s", route.get(1), rtr.getOrderId());
@@ -243,7 +257,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					
 					final Optional<TransportModuleRequest> tmr1_4 = act1_4.map(actor -> { 
 						if (tmut.isTransportModule(actor)) { // must be a turntable
-							return new TransportModuleRequest(actor, route.get(0), route.get(2), rtr.getOrderId(), incrementalId.getAndIncrement()+""); 
+							return new TransportModuleRequest(actor, route.get(0), route.get(2), rtr.getOrderId(), incrementalId.getAndIncrement()+"",tracer.getCurrentHeader()); 
 						} else {
 							// this should not be possible, perhaps we don't know about that turntable yet, thus we cant contact it, thus an error
 							String msg = String.format("Unable to establish transport module for Position %s for request %s", route.get(1), rtr.getOrderId());
@@ -255,7 +269,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					if (tmr1_4.isPresent()) {
 						tmrRoot = act2_4.map(actor -> { 
 							if (tmut.isTransportModule(actor)) { // from turntable at pos1 to turntable at pos2
-								return new TransportModuleRequest(actor, route.get(1), route.get(3), rtr.getOrderId(), incrementalId.getAndIncrement()+"", tmr1_4.get()); 
+								return new TransportModuleRequest(actor, route.get(1), route.get(3), rtr.getOrderId(), incrementalId.getAndIncrement()+"", tmr1_4.get(),tracer.getCurrentHeader()); 
 							} else {
 								// this should not be possible, perhaps we don't know about that turntable yet, thus we cant contact it, thus an error
 								String msg = String.format("Unable to establish transport module for Position %s for request %s", route.get(2), rtr.getOrderId());

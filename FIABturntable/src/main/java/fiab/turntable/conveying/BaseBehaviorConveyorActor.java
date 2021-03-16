@@ -59,7 +59,7 @@ public class BaseBehaviorConveyorActor extends AbstractTracingActor {
     private void receiveConveyorTrigger(ConveyorTriggerMessage msg) {
     	ConveyorTriggers trigger = msg.getBody();
     	try {
-    		tracingFactory.startConsumerSpan(msg, "Conveyor Actor: Trigger "+trigger.toString()+" received"); 		
+    		tracer.startConsumerSpan(msg, "Conveyor Actor: Trigger "+trigger.toString()+" received"); 		
     		
     		 if (tsm.canFire(trigger)) {
                  switch (trigger) {
@@ -94,7 +94,7 @@ public class BaseBehaviorConveyorActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
     	
     	
@@ -106,8 +106,8 @@ public class BaseBehaviorConveyorActor extends AbstractTracingActor {
             publishEP.setStatusValue(tsm.getState().toString());
         if (intraEventBus != null) {
         	ConveyorStatusUpdateEvent event = new ConveyorStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", tsm.getState());
-        	event.setHeader(tracingFactory.getCurrentHeader());
-        	tracingFactory.injectMsg(event);
+        	event.setHeader(tracer.getCurrentHeader());
+        	tracer.injectMsg(event);
         	
             intraEventBus.publish(event);
         }

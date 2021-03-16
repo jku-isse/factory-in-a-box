@@ -1,4 +1,4 @@
-package fiab.tracing.factory.impl;
+package fiab.tracing.impl;
 
 import java.util.HashMap;
 

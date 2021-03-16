@@ -44,22 +44,22 @@ public class CapabilityManagerActor extends AbstractTracingActor {
 	public Receive createReceive() {
 		return new ReceiveBuilder().match(ClientReadyNotification.class, notification -> {
 			try {
-				tracingFactory.startConsumerSpan(notification,
+				tracer.startConsumerSpan(notification,
 						"Capability Manager Actor: Client ready Notification received");
 
 				String url = notification.getEndpointUrl();
 				if (urlCapabilitiesMap.containsKey(url)) {
 					String capability = urlCapabilitiesMap.get(url);
 
-					WriteRequest req = new WriteRequest(capability, tracingFactory.getCurrentHeader());
-					tracingFactory.injectMsg(req);
+					WriteRequest req = new WriteRequest(capability, tracer.getCurrentHeader());
+					tracer.injectMsg(req);
 
 					sender().tell(req, self());
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				tracingFactory.finishCurrentSpan();
+				tracer.finishCurrentSpan();
 			}
 
 		}).build();

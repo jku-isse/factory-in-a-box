@@ -1,9 +1,9 @@
-package fiab.tracing.factory;
+package fiab.tracing;
 
 import fiab.tracing.actor.messages.TracingHeader;
 
-public interface TracingFactory {
-	public void injectMsg(TracingHeader msg);
+public interface Traceability {
+	public void initWithServiceName(String name);
 
 	public void startProducerSpan(String spanName);
 
@@ -15,9 +15,9 @@ public interface TracingFactory {
 
 	public void finishCurrentSpan();
 
-	public String getCurrentHeader();
+	public void injectMsg(TracingHeader msg);
 
-	public String getTraceId();
+	public String getCurrentHeader();
 
 	public Object getCurrentSpan();
 

@@ -89,7 +89,7 @@ public class OPCUAIOStationRootActor extends AbstractTracingActor {
 		ServerSideStates state = msg.getBody();
 
 		try {
-			tracingFactory.startConsumerSpan(msg, "OPCUAIOStation Root: Server Side " + state.toString() + " received");
+			tracer.startConsumerSpan(msg, "OPCUAIOStation Root: Server Side " + state.toString() + " received");
 			switch (state) {
 			case RESETTING:
 				if (isInputStation)
@@ -124,7 +124,7 @@ public class OPCUAIOStationRootActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 	}
 
@@ -156,9 +156,9 @@ public class OPCUAIOStationRootActor extends AbstractTracingActor {
 		if (!inputStationHardware.getPalletSensor().hasDetectedInput()) {
 			inputStationHardware.getReleaseMotor().stop(); // pallet has been unloaded
 
-			HSStateOverrideRequestMessage msg = new HSStateOverrideRequestMessage(tracingFactory.getCurrentHeader(),
+			HSStateOverrideRequestMessage msg = new HSStateOverrideRequestMessage(tracer.getCurrentHeader(),
 					StateOverrideRequests.SetEmpty);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 
 			fu.getFUActor().tell(msg, self);
 			completePalletHandover();
@@ -242,9 +242,9 @@ public class OPCUAIOStationRootActor extends AbstractTracingActor {
 	private void waitForPalletReset() {
 		context().system().scheduler().scheduleOnce(Duration.ofMillis(200), () -> {
 			if (inputStationHardware.getPalletSensor().hasDetectedInput()) {
-				HSStateOverrideRequestMessage msg = new HSStateOverrideRequestMessage(tracingFactory.getCurrentHeader(),
+				HSStateOverrideRequestMessage msg = new HSStateOverrideRequestMessage(tracer.getCurrentHeader(),
 						StateOverrideRequests.SetLoaded);
-				tracingFactory.injectMsg(msg);
+				tracer.injectMsg(msg);
 
 				fu.getFUActor().tell(msg, self);
 				currentState = ServerSideStates.IDLE_LOADED;

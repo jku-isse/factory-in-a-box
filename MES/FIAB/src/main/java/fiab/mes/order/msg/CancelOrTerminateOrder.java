@@ -1,9 +1,13 @@
 package fiab.mes.order.msg;
 
-public class CancelOrTerminateOrder {
-	protected String stepId;	
+import fiab.tracing.actor.messages.TracingHeader;
+
+public class CancelOrTerminateOrder implements TracingHeader {
+	private String header;
+
+	protected String stepId;
 	protected String rootOrderId;
-	
+
 	public String getStepId() {
 		return stepId;
 	}
@@ -12,8 +16,6 @@ public class CancelOrTerminateOrder {
 		this.stepId = stepId;
 	}
 
-	
-	
 	public String getRootOrderId() {
 		return rootOrderId;
 	}
@@ -24,14 +26,27 @@ public class CancelOrTerminateOrder {
 
 	// cancel all steps for that order, regardless of stepId
 	public CancelOrTerminateOrder(String orderId) {
-		super();
-		this.stepId = null;
-		this.rootOrderId = orderId;
-	}	
-	
+		this(orderId, orderId, "");
+	}
+
 	public CancelOrTerminateOrder(String stepId, String rootOrderId) {
+		this(stepId, rootOrderId, "");
+	}
+
+	public CancelOrTerminateOrder(String stepId, String rootOrderId, String header) {
 		super();
 		this.stepId = stepId;
 		this.rootOrderId = rootOrderId;
+		this.header = header;
+	}
+
+	@Override
+	public void setHeader(String header) {
+		this.header = header;
+	}
+
+	@Override
+	public String getHeader() {
+		return header;
 	}
 }

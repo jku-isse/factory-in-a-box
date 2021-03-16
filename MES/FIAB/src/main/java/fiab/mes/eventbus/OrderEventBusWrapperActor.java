@@ -1,12 +1,13 @@
 package fiab.mes.eventbus;
 
-import akka.actor.AbstractActor;
+import akka.actor.AbstractActor.Receive;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.order.msg.OrderEvent;
+import fiab.tracing.actor.AbstractTracingActor;
 
-public class OrderEventBusWrapperActor extends AbstractActor {
+public class OrderEventBusWrapperActor extends AbstractTracingActor {
 	
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	
@@ -36,9 +37,16 @@ public class OrderEventBusWrapperActor extends AbstractActor {
 						oeb.unsubscribe(msg.getSubscriber(), msg.getSubscriptionClassifier());
 					}
 				}) 
-				.match(OrderEvent.class, oe -> {
-					log.debug("Received Publish Event: "+oe.toString() );
-					oeb.publish(oe);
+				.match(OrderEvent.class, event -> {
+					log.debug("Received Publish Event: "+event.toString() );
+					try {
+						tracer.startConsumerSpan(event, "Order Event Bus Wrapper: Order Event received");								
+						oeb.publish(event);					
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						tracer.finishCurrentSpan();
+					}					
 				})
 		.build();
 	}

@@ -1,4 +1,4 @@
-package fiab.tracing.factory.impl;
+package fiab.tracing.impl;
 
 import brave.propagation.Propagation.Getter;
 import fiab.tracing.actor.messages.TracingHeader;

@@ -78,7 +78,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 		log.info(String.format("Received %s from %s", body, getSender()));
 		try {
-			tracingFactory.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");
+			tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");
 			switch (body) {
 			case Reset:
 				reset(); // prepare for next round
@@ -101,7 +101,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 	}
 
@@ -110,7 +110,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		log.info(String.format("Received %s from %s", body, getSender()));
 
 		try {
-			tracingFactory.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " received");
+			tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " received");
 			switch (body) {
 			case NotOkResponseInitHandover:
 				stop();
@@ -133,7 +133,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 
 	}
@@ -143,7 +143,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 		log.info(String.format("Received %s from %s in local state %s", body, getSender(), currentState));
 		try {
-			tracingFactory.startConsumerSpan(msg,
+			tracer.startConsumerSpan(msg,
 					"Client-Handshake: Server Side State: " + body.toString() + " received");
 			if (getSender().equals(serverSide)) {
 				remoteState = body;
@@ -188,7 +188,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 
 	}
@@ -196,8 +196,8 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void publishNewState(ClientSideStates newState) {
 		currentState = newState;
 
-		HSClientSideStateMessage msg = new HSClientSideStateMessage(tracingFactory.getCurrentHeader(), newState);
-		tracingFactory.injectMsg(msg);
+		HSClientSideStateMessage msg = new HSClientSideStateMessage(tracer.getCurrentHeader(), newState);
+		tracer.injectMsg(msg);
 
 		machineWrapper.tell(msg, getSelf());
 		if (publishEP != null)
@@ -228,9 +228,9 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		if (currentState.equals(ClientSideStates.IDLE)) {
 			publishNewState(ClientSideStates.STARTING);
 
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates);
-			tracingFactory.injectMsg(msg);// subscribe for
+			tracer.injectMsg(msg);// subscribe for
 			// updates
 
 			serverSide.tell(msg, getSelf());
@@ -242,9 +242,9 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	}
 
 	private void requestInitiateHandover() {
-		HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+		HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 				IOStationCapability.ServerMessageTypes.RequestInitiateHandover);
-		tracingFactory.injectMsg(msg);
+		tracer.injectMsg(msg);
 		getSender().tell(msg, self);
 		retryInit();
 	}
@@ -287,9 +287,9 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		if (currentState.equals(ClientSideStates.READY)) {
 			log.info(String.format("Requesting StartHandover from remote %s", serverSide));
 
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.RequestStartHandover);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 			serverSide.tell(msg, self);
 
 			retryStartHandover();
@@ -318,9 +318,9 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void complete() {
 		publishNewState(ClientSideStates.COMPLETING);
 		if (serverSide != null) {
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 			serverSide.tell(msg, self);
 		}
 		context().system().scheduler().scheduleOnce(Duration.ofMillis(1000), new Runnable() {
@@ -334,9 +334,9 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private void stop() {
 		publishNewState(ClientSideStates.STOPPING);
 		if (serverSide != null) {
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 			serverSide.tell(msg, self);
 		}
 		context().system().scheduler().scheduleOnce(Duration.ofMillis(1000), new Runnable() {

@@ -48,8 +48,8 @@ public class CapabilityManagerClient extends AbstractTracingActor {
 				getSelf().tell(PoisonPill.getInstance(), self());
 			} else {				
 				ClientReadyNotification notification = new ClientReadyNotification(endpointURL,
-						tracingFactory.getCurrentHeader());
-				tracingFactory.injectMsg(notification);
+						tracer.getCurrentHeader());
+				tracer.injectMsg(notification);
 				context().parent().tell(notification, getSelf());
 			}
 		} catch (Exception e) {
@@ -61,12 +61,12 @@ public class CapabilityManagerClient extends AbstractTracingActor {
 	public Receive createReceive() {
 		return ReceiveBuilder.create().match(WriteRequest.class, request -> {
 			try {
-				tracingFactory.startConsumerSpan(request, "Capability Manager Client: Write Request received");
+				tracer.startConsumerSpan(request, "Capability Manager Client: Write Request received");
 				writeValue(request.getData());
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				tracingFactory.finishCurrentSpan();
+				tracer.finishCurrentSpan();
 			}
 		}).build();
 	}

@@ -1,24 +1,25 @@
 package fiab.tracing.actor;
 
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import akka.actor.AbstractActor;
-import fiab.tracing.config.Util;
-import fiab.tracing.factory.TracingFactory;
+import fiab.tracing.Traceability;
+import fiab.tracing.extension.TracingExtension;
 
 public abstract class AbstractTracingActor extends AbstractActor {
 
-	protected final TracingFactory tracingFactory;
-
+	protected final Traceability tracer;
+	protected Injector injector;
 
 	public AbstractTracingActor() {
-		Injector injector = Guice.createInjector(Util.getConfig());
-		tracingFactory = injector.getInstance(TracingFactory.class);
+		super();
+		injector = TracingExtension.getProvider().get(getContext().getSystem()).getInjector();
+		tracer = injector.getInstance(Traceability.class);
+		tracer.initWithServiceName(getSelf().path().name());
 	}
 
-	public TracingFactory getTracingFactory() {
-		return tracingFactory;
+	public Traceability getTracingFactory() {
+		return tracer;
 	}
 
 }

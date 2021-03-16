@@ -63,22 +63,22 @@ public class OPCUAPlotterRootActor extends AbstractTracingActor {
 	public Receive createReceive() {
 		return receiveBuilder().match(MachineCapabilityUpdateEvent.class, req -> {
 			try {
-				tracingFactory.startConsumerSpan(req,
+				tracer.startConsumerSpan(req,
 						"OPCUA Plotter Root Actor: Machine Capability Update Event received");
 				setPlotCapability(req.getValue().toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				tracingFactory.finishCurrentSpan();
+				tracer.finishCurrentSpan();
 			}
 		}).match(MachineStatusUpdateEvent.class, req -> {
 			try {
-				tracingFactory.startConsumerSpan(req, "OPCUA Plotter Root Actor: Machine Status Update Event received");
+				tracer.startConsumerSpan(req, "OPCUA Plotter Root Actor: Machine Status Update Event received");
 				setStatusValue(req.getStatus().toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				tracingFactory.finishCurrentSpan();
+				tracer.finishCurrentSpan();
 			}
 		}).build();
 	}
@@ -104,7 +104,7 @@ public class OPCUAPlotterRootActor extends AbstractTracingActor {
 		plotterCoordinator = context().actorOf(
 				VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus, hardwareInfo), machineName);
 		plotterCoordinator.tell(
-				new PlotterMessage(tracingFactory.getCurrentHeader(), PlotterMessageTypes.SubscribeState), getSelf());
+				new PlotterMessage(tracer.getCurrentHeader(), PlotterMessageTypes.SubscribeState), getSelf());
 
 		UaFolderNode plotHardwareNode = opcuaBase.generateFolder(plotterNode, fuPrefix, "Hardware");
 		opcuaBase.generateStringVariableNode(plotHardwareNode, fuPrefix + "/Hardware", "PlotXMotor",

@@ -110,7 +110,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		PlotterMessageTypes type = msg.getBody();
 
 		try {
-			tracingFactory.startConsumerSpan(msg,
+			tracer.startConsumerSpan(msg,
 					"Virtual Plotter Coordinator Actor: Plotter Message " + type.toString() + " received");
 			switch (type) {
 			case SubscribeState:
@@ -125,8 +125,8 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 				MachineInWrongStateResponse resp = new MachineInWrongStateResponse("",
 						OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Machine not in state to plot", currentState,
 						PlotterMessageTypes.Plot, BasicMachineStates.IDLE);
-				resp.setHeader(tracingFactory.getCurrentHeader());
-				tracingFactory.injectMsg(resp);
+				resp.setHeader(tracer.getCurrentHeader());
+				tracer.injectMsg(resp);
 				sender().tell(resp, self);
 				break;
 			case Reset:
@@ -148,7 +148,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 
 	}
@@ -160,7 +160,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		handshakeStatus = state;
 
 		try {
-			tracingFactory.startConsumerSpan(msg,
+			tracer.startConsumerSpan(msg,
 					"Virtual Plotter Coordinator: Handshake Server Side State " + state.toString() + " received");
 			switch (state) {
 			case COMPLETE: // handshake complete, thus un/loading done
@@ -192,7 +192,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 
 	}
@@ -206,8 +206,8 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 
 	private void updateCapability(String newCapability) {
 		MachineCapabilityUpdateEvent event = new MachineCapabilityUpdateEvent("", "Plot_Capability", newCapability);
-		event.setHeader(tracingFactory.getCurrentHeader());
-		tracingFactory.injectMsg(event);
+		event.setHeader(tracer.getCurrentHeader());
+		tracer.injectMsg(event);
 		intraEventBus.publish(event);
 	}
 
@@ -218,8 +218,8 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		if (doPublishState) {
 			MachineStatusUpdateEvent event = new MachineStatusUpdateEvent("",
 					OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState);
-			event.setHeader(tracingFactory.getCurrentHeader());
-			tracingFactory.injectMsg(event);
+			event.setHeader(tracer.getCurrentHeader());
+			tracer.injectMsg(event);
 
 			intraEventBus.publish(event);
 		}
@@ -256,9 +256,9 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		plotXMotor.stop();
 		plotYMotor.stop();
 
-		HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+		HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 				IOStationCapability.ServerMessageTypes.Stop);
-		tracingFactory.injectMsg(msg);
+		tracer.injectMsg(msg);
 		serverSide.tell(msg, getSelf());
 		context().system().scheduler().scheduleOnce(Duration.ofMillis(1000), new Runnable() {
 			@Override
@@ -279,13 +279,13 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		setAndPublishState(BasicMachineStates.STARTING);
 		MachineStatusUpdateEvent event = new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME,
 				"", currentState);
-		event.setHeader(tracingFactory.getCurrentHeader());
-		tracingFactory.injectMsg(event);
+		event.setHeader(tracer.getCurrentHeader());
+		tracer.injectMsg(event);
 		sender().tell(event, self);
 		// now here we also enable pallet to be loaded onto machine
-		HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+		HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 				HandshakeCapability.ServerMessageTypes.Reset);
-		tracingFactory.injectMsg(msg);
+		tracer.injectMsg(msg);
 		serverSide.tell(msg, self);
 	}
 
@@ -373,8 +373,8 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 	private void finishProduction() {
 		setAndPublishState(BasicMachineStates.COMPLETING);
 		
-		HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(), IOStationCapability.ServerMessageTypes.Reset);
-		tracingFactory.injectMsg(msg);		
+		HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(), IOStationCapability.ServerMessageTypes.Reset);
+		tracer.injectMsg(msg);		
 		serverSide.tell(msg, self); // now again do a handshake and unload,
 		/*
 		 * context().system().scheduler().scheduleOnce(Duration.ofMillis(3000), new

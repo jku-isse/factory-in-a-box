@@ -15,7 +15,6 @@ import ProcessCore.CapabilityInvocation;
 import ProcessCore.Parameter;
 import ProcessCore.ProcessStep;
 import ProcessCore.VariableMapping;
-import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
@@ -42,9 +41,9 @@ import fiab.mes.order.msg.ProcessRequestException;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.restendpoint.requests.MachineHistoryRequest;
+import fiab.tracing.actor.AbstractTracingActor;
 
-
-public class BasicMachineActor extends AbstractActor{
+public class BasicMachineActor extends AbstractTracingActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected ActorSelection eventBusByRef;
@@ -53,21 +52,24 @@ public class BasicMachineActor extends AbstractActor{
 	protected BasicMachineStates currentState;
 	protected PlottingMachineWrapperInterface hal;
 	protected IntraMachineEventBus intraBus;
-	
+
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	private String lastOrder;
 	private ActorRef self;
 	protected RegisterProcessStepRequest reservedForOrder = null;
-	
-	protected HistoryTracker externalHistory=null;
-	//private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
-	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
-	
-	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {	    
-		return Props.create(BasicMachineActor.class, () -> new BasicMachineActor(machineEventBus, cap, modelActor, hal, intraBus));
+
+	protected HistoryTracker externalHistory = null;
+	// private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
+	// private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
+
+	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor,
+			PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {
+		return Props.create(BasicMachineActor.class,
+				() -> new BasicMachineActor(machineEventBus, cap, modelActor, hal, intraBus));
 	}
-	
-	public BasicMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {
+
+	public BasicMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor,
+			PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {
 		this.cap = cap;
 		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;
@@ -78,63 +80,103 @@ public class BasicMachineActor extends AbstractActor{
 		init();
 
 	}
-	
+
 	@Override
 	public Receive createReceive() {
-		return receiveBuilder()
-		        .match(RegisterProcessStepRequest.class, registerReq -> {
-		        	log.info(String.format("Received RegisterProcessStepRequest for order %s and step %s", registerReq.getRootOrderId(), registerReq.getProcessStepId()));
-		        	registerRequest(registerReq);
-		        } )
-		        .match(LockForOrder.class, lockReq -> {
-		        	log.info("received LockForOrder msg "+lockReq.getStepId()+", current state: "+currentState);
-		        	plotUponLockForOrder(lockReq);
-		        })
-		        .match(CancelOrTerminateOrder.class, cto -> {
-		        	handleOrderCancelRequest(cto);
-		        })
-		        .match(Stop.class, req -> {
-		        	log.info(String.format("Machine %s received StopRequest", machineId.getId()));
-		        	setAndPublishSensedState(BasicMachineStates.STOPPING);
-		        	hal.stop();
-		        })
-		        .match(Reset.class, req -> {
-		         	if (currentState.equals(BasicMachineStates.COMPLETE) 
-		        			|| currentState.equals(BasicMachineStates.STOPPED) ) {
-		        		log.info(String.format("Machine %s received ResetRequest in suitable state", machineId.getId()));
-		        		setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
-		        		reset();
-		        	} else {
-		        		log.warning(String.format("Machine %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
-		        	}
-		        })
-		        .match(MachineStatusUpdateEvent.class, mue -> {
-		        	processMachineUpdateEvent(mue);
-		        })
-		        .match(MachineHistoryRequest.class, req -> {
-		        	log.info(String.format("Machine %s received MachineHistoryRequest", machineId.getId()));
-		        	externalHistory.sendHistoryResponseTo(req, getSender(), self);
-		        })
-		        .match(MachineDisconnectedEvent.class, req -> {					
-		        	log.warning(String.format("Lost connection to machine in state: %s, sending disconnected event and shutting down actor", this.currentState));		        	
-					eventBusByRef.tell(new MachineDisconnectedEvent(machineId), self());					
-				})
-		        .build();
+		return receiveBuilder().match(RegisterProcessStepRequest.class, registerReq -> {
+			try {
+				tracer.startConsumerSpan(registerReq,
+						"Basic Machine Actor: Register Process Step Request received");
+				log.info(String.format("Received RegisterProcessStepRequest for order %s and step %s",
+						registerReq.getRootOrderId(), registerReq.getProcessStepId()));
+				registerRequest(registerReq);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracer.finishCurrentSpan();
+			}
+		}).match(LockForOrder.class, lockReq -> {
+			try {
+				tracer.startConsumerSpan(lockReq,
+						"Basic Machine Actor: " + lockReq.toString() + " Request received");
+				log.info("received LockForOrder msg " + lockReq.getStepId() + ", current state: " + currentState);
+				plotUponLockForOrder(lockReq);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracer.finishCurrentSpan();
+			}
+		}).match(CancelOrTerminateOrder.class, cto -> {
+			try {
+				tracer.startConsumerSpan(cto, "Basic Machine Actor: Canel Or Terminate Order Request received");
+				handleOrderCancelRequest(cto);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracer.finishCurrentSpan();
+			}
+		}).match(Stop.class, req -> {
+			try {
+				tracer.startConsumerSpan(req, "Basic Machine Actor: " + req.toString() + " Request received");
+				log.info(String.format("Machine %s received StopRequest", machineId.getId()));
+				setAndPublishSensedState(BasicMachineStates.STOPPING);
+				hal.stop();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracer.finishCurrentSpan();
+			}
+		}).match(Reset.class, req -> {
+			try {
+				tracer.startConsumerSpan(req, "Basic Machine Actor: " + req.toString() + " Request received");
+				if (currentState.equals(BasicMachineStates.COMPLETE)
+						|| currentState.equals(BasicMachineStates.STOPPED)) {
+					log.info(String.format("Machine %s received ResetRequest in suitable state", machineId.getId()));
+					setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same
+																			// (or
+																			// fail, then we need to wait for machine to
+																			// respond)
+					reset();
+				} else {
+					log.warning(String.format(
+							"Machine %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring",
+							machineId.getId()));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracer.finishCurrentSpan();
+			}
+
+		}).match(MachineStatusUpdateEvent.class, mue -> {
+			processMachineUpdateEvent(mue);
+		}).match(MachineHistoryRequest.class, req -> {
+			log.info(String.format("Machine %s received MachineHistoryRequest", machineId.getId()));
+			externalHistory.sendHistoryResponseTo(req, getSender(), self);
+		}).match(MachineDisconnectedEvent.class, req -> {
+			log.warning(String.format(
+					"Lost connection to machine in state: %s, sending disconnected event and shutting down actor",
+					this.currentState));
+			eventBusByRef.tell(new MachineDisconnectedEvent(machineId), self());
+		}).build();
 	}
 
 	private void init() {
-		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self);
-		intraBus.subscribe(self, new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
+		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()),
+				self);
+		intraBus.subscribe(self, new SubscriptionClassifier(machineId.getId(), "*")); // ensure we get all events on
+																						// this bus, but never our own,
+																						// should we happen to
+																						// accidentally publish some
 		hal.subscribeToStatus();
 	}
-	
+
 	private void handleOrderCancelRequest(CancelOrTerminateOrder req) {
 		log.info(String.format("Machine %s received CancelOrderRequest in state %s", machineId.getId(), currentState));
 		// in what ever state, we remove it from the list of orders
-		orders = orders.stream()
-				.filter(rpsr -> !rpsr.getRootOrderId().equals(req.getRootOrderId()))
-				.collect(Collectors.toList());		
-		switch(currentState) {			
+		orders = orders.stream().filter(rpsr -> !rpsr.getRootOrderId().equals(req.getRootOrderId()))
+				.collect(Collectors.toList());
+		switch (currentState) {
 		case EXECUTE: // we just finish the order, hardcancel via a machine stop is available
 			break;
 		case IDLE:
@@ -143,26 +185,26 @@ public class BasicMachineActor extends AbstractActor{
 			if (reservedForOrder.getRootOrderId().equals(req.getRootOrderId())) {
 				reservedForOrder = null;
 				checkIfAvailableForNextOrder();
-			} 
-			break;				
+			}
+			break;
 		case STARTING: // here we might not get the order transported incoming
-		case COMPLETING:			
-        	setAndPublishSensedState(BasicMachineStates.STOPPING);
-        	hal.stop();
+		case COMPLETING:
+			setAndPublishSensedState(BasicMachineStates.STOPPING);
+			hal.stop();
 			// here we might not get the order transported away
 			// thus we stop the machine
 			doAutoResetAfterXseconds();
-			break;										
+			break;
 		}
 	}
-	
+
 	private void processMachineUpdateEvent(MachineStatusUpdateEvent mue) {
 		if (mue.getParameterName().equals(OPCUABasicMachineBrowsenames.STATE_VAR_NAME)) {
 			BasicMachineStates newState = BasicMachineStates.valueOf(mue.getStatus().toString());
 			setAndPublishSensedState(newState);
-			switch(newState) {
-			case COMPLETE:				
-				localReset(); 
+			switch (newState) {
+			case COMPLETE:
+				localReset();
 				doAutoResetAfterXseconds();
 				break;
 			case COMPLETING:
@@ -173,7 +215,7 @@ public class BasicMachineActor extends AbstractActor{
 				checkIfAvailableForNextOrder();
 				break;
 			case RESETTING:
-				localReset(); 
+				localReset();
 				break;
 			case STARTING:
 				break;
@@ -184,145 +226,191 @@ public class BasicMachineActor extends AbstractActor{
 			default:
 				break;
 			}
-		}							
+		}
 	}
-	
+
 	private void localReset() {
 		reservedForOrder = null;
 	}
-	
+
 	private void reset() {
 		localReset();
 		hal.reset();
 	}
-	
+
 	private void setAndPublishSensedState(BasicMachineStates newState) {
-		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState, newState, lastOrder);
+		String msg = String.format("%s sets state from %s to %s (Order: %s)", this.machineId.getId(), this.currentState,
+				newState, lastOrder);
 		log.debug(msg);
 		this.currentState = newState;
-		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
+		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(),
+				OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
+		mue.setHeader(tracer.getCurrentHeader());
+		tracer.injectMsg(mue);
 		tellEventBus(mue);
 	}
-	
+
 	private void registerRequest(RegisterProcessStepRequest registerReq) {
 		try {
 			String ignoredHere = extractInputFromProcessStep(registerReq.getProcessStep());
 			orders.add(registerReq);
-	    	log.info(String.format("Job %s of Order %s registered.", registerReq.getProcessStepId(), registerReq.getRootOrderId()));
-	    	checkIfAvailableForNextOrder();
+			log.info(String.format("Job %s of Order %s registered.", registerReq.getProcessStepId(),
+					registerReq.getRootOrderId()));
+			checkIfAvailableForNextOrder();
 		} catch (ProcessRequestException e) {
-			log.warning("RegisterProcessStepRequest failed due to client error: "+e.getMessage());
-			sender().tell(new ReadyForProcessEvent(registerReq, e), self());
+			log.warning("RegisterProcessStepRequest failed due to client error: " + e.getMessage());
+
+			ReadyForProcessEvent event = new ReadyForProcessEvent(registerReq, e);
+			event.setHeader(tracer.getCurrentHeader());
+			tracer.injectMsg(event);
+
+			sender().tell(event, self());
 		}
-		
+
 	}
-	
+
 	private void checkIfAvailableForNextOrder() {
 		log.debug(String.format("Checking if %s is IDLE: %s", this.machineId.getId(), this.currentState));
-		if (currentState == BasicMachineStates.IDLE && !orders.isEmpty() && reservedForOrder == null) { // if we are idle, tell next order to get ready, this logic is also triggered upon machine signaling completion
+		// if we are idle, tell next order to get ready, this logic is also triggered
+		// upon machine signaling completion
+		if (currentState == BasicMachineStates.IDLE && !orders.isEmpty() && reservedForOrder == null) {
 			RegisterProcessStepRequest ror = orders.remove(0);
 			lastOrder = ror.getRootOrderId();
-			log.info("Ready for next Order: "+ror.getRootOrderId());
-			reservedForOrder = ror; 
-    		ror.getRequestor().tell(new ReadyForProcessEvent(ror), getSelf());
-    	}	
-	}	
-	
+			log.info("Ready for next Order: " + ror.getRootOrderId());
+			reservedForOrder = ror;
+
+			ReadyForProcessEvent event = new ReadyForProcessEvent(ror);
+			event.setHeader(tracer.getCurrentHeader());
+			tracer.injectMsg(event);
+
+			ror.getRequestor().tell(event, getSelf());
+		}
+	}
+
 	private void plotUponLockForOrder(LockForOrder lockReq) {
 		if (currentState == BasicMachineStates.IDLE) {
-    		// we need to extract from the reservedOrder the step, and from the step the input properties		        	
+			// we need to extract from the reservedOrder the step, and from the step the
+			// input properties
 			if (reservedForOrder != null || reservedForOrder.getProcessStepId().equals(lockReq.getStepId())) {
 				String imgName = "demo";
 				try {
 					imgName = extractInputFromProcessStep(reservedForOrder.getProcessStep());
-				} catch (ProcessRequestException e) {					
+				} catch (ProcessRequestException e) {
 					e.printStackTrace();
-					// this should not happen as we check before and only stored the request when there was no exception
+					// this should not happen as we check before and only stored the request when
+					// there was no exception
 				}
-				log.info("Requesting to plot: "+imgName);
-				hal.plot(imgName, lockReq.getRootOrderId()); 
-    		//TODO: here we assume correct invocation order: thus order overtaking will be improved later
+				log.info("Requesting to plot: " + imgName);
+				hal.plot(imgName, lockReq.getRootOrderId());
+				// TODO: here we assume correct invocation order: thus order overtaking will be
+				// improved later
 			} else {
-				log.warning(String.format("No reserved order stored for LockForOrder %s request from %s", lockReq.toString(), sender().path().name()));
-				sender().tell(new ReadyForProcessEvent(new RegisterProcessStepRequest(lockReq.getRootOrderId(), lockReq.getStepId(), null, sender()), false),  self); 
+				log.warning(String.format("No reserved order stored for LockForOrder %s request from %s",
+						lockReq.toString(), sender().path().name()));
+
+				ReadyForProcessEvent event = new ReadyForProcessEvent(
+						new RegisterProcessStepRequest(lockReq.getRootOrderId(), lockReq.getStepId(), null, sender()),
+						false);
+				event.setHeader(tracer.getCurrentHeader());
+				tracer.injectMsg(event);
+
+				sender().tell(event, self);
 				// TODO: this should be a separate message type
-			}			
-    	} else {
-    		String msg = "Received lock for order in non-IDLE state: "+currentState;
-    		log.warning(msg);
-    		sender().tell(new MachineInWrongStateResponse(this.machineId.getId(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, currentState, lockReq, BasicMachineStates.IDLE), self);
-    	}
+			}
+		} else {
+			String msg = "Received lock for order in non-IDLE state: " + currentState;
+			log.warning(msg);
+
+			MachineInWrongStateResponse resp = new MachineInWrongStateResponse(this.machineId.getId(),
+					OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, currentState, lockReq, BasicMachineStates.IDLE);
+			resp.setHeader(tracer.getCurrentHeader());
+			tracer.injectMsg(resp);
+
+			sender().tell(resp, self);
+		}
 	}
-	
+
 	private String extractInputFromProcessStep(ProcessStep p) throws ProcessRequestException {
-		if (p == null) throw new ProcessRequestException(ProcessRequestException.Type.PROCESS_STEP_MISSING, "Provided Process Step is null");
+		if (p == null)
+			throw new ProcessRequestException(ProcessRequestException.Type.PROCESS_STEP_MISSING,
+					"Provided Process Step is null");
 		if (p instanceof CapabilityInvocation && ((CapabilityInvocation) p).getInvokedCapability() != null) {
 			CapabilityInvocation ac = ((CapabilityInvocation) p);
-			if (!(ac.getInvokedCapability().getUri().equals(cap.getUri()))) throw new ProcessRequestException(ProcessRequestException.Type.UNSUPPORTED_CAPABILITY, "Process Step Capability is not supported: "+ac.getInvokedCapability().getUri());
-			EList<VariableMapping> inputs = ac.getInputMappings();			
+			if (!(ac.getInvokedCapability().getUri().equals(cap.getUri())))
+				throw new ProcessRequestException(ProcessRequestException.Type.UNSUPPORTED_CAPABILITY,
+						"Process Step Capability is not supported: " + ac.getInvokedCapability().getUri());
+			EList<VariableMapping> inputs = ac.getInputMappings();
 			if (inputs != null) {
 				Optional<Parameter> optP = inputs.stream()
-						.filter(in -> in.getLhs().getName().equals(WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME) )
-						.map(in -> in.getRhs())
-						.findAny();
+						.filter(in -> in.getLhs().getName()
+								.equals(WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME))
+						.map(in -> in.getRhs()).findAny();
 				if (optP.isPresent()) {
 					if (optP.get().getValue() != null) {
 						try {
-							String param = (String)optP.get().getValue();
+							String param = (String) optP.get().getValue();
 							return param;
 						} catch (Exception e) {
-							throw new ProcessRequestException(ProcessRequestException.Type.INPUT_PARAMS_MISSING_VALUE, "Capability missing value for input with name: "+WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME);
+							throw new ProcessRequestException(ProcessRequestException.Type.INPUT_PARAMS_MISSING_VALUE,
+									"Capability missing value for input with name: "
+											+ WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME);
 						}
-					} else throw new ProcessRequestException(ProcessRequestException.Type.INPUT_PARAM_WRONG_TYPE, "Capability input value cannot be cast to String");
-				} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Capability missing input with name: "+WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME);
-			} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Capability missing any defined inputs");
-		} else throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY, "Process Step is not a capability invocation");
+					} else
+						throw new ProcessRequestException(ProcessRequestException.Type.INPUT_PARAM_WRONG_TYPE,
+								"Capability input value cannot be cast to String");
+				} else
+					throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY,
+							"Capability missing input with name: "
+									+ WellknownPlotterCapability.PLOTTING_CAPABILITY_INPUT_IMAGE_VAR_NAME);
+			} else
+				throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY,
+						"Capability missing any defined inputs");
+		} else
+			throw new ProcessRequestException(ProcessRequestException.Type.STEP_MISSES_CAPABILITY,
+					"Process Step is not a capability invocation");
 	}
-	
+
 	private void tellEventBus(MachineUpdateEvent mue) {
 		externalHistory.add(mue);
 		tellEventBusWithoutAddingToHistory(mue);
-		lastMUE=mue;
-	//	resendLastEvent();
+		lastMUE = mue;
+		// resendLastEvent();
 	}
-	
+
 	private void tellEventBusWithoutAddingToHistory(MachineUpdateEvent mue) {
 		eventBusByRef.tell(mue, self);
 	}
-		
+
 	private MachineUpdateEvent lastMUE;
-	
+
 	private void resendLastEvent() {
-		context().system()
-    	.scheduler()
-    	.scheduleOnce(Duration.ofMillis(1000*10), 
-    			 new Runnable() {
-            @Override
-            public void run() {
-            	tellEventBusWithoutAddingToHistory(lastMUE);
-            }
-          }, context().system().dispatcher());
+		context().system().scheduler().scheduleOnce(Duration.ofMillis(1000 * 10), new Runnable() {
+			@Override
+			public void run() {
+				tellEventBusWithoutAddingToHistory(lastMUE);
+			}
+		}, context().system().dispatcher());
 	}
-	
+
 	private void doAutoResetAfterXseconds() {
-		context().system()
-    	.scheduler()
-    	.scheduleOnce(Duration.ofSeconds(3), 
-    			 new Runnable() {
-            @Override
-            public void run() {
-            	if (currentState.equals(BasicMachineStates.COMPLETE) 
-            			|| currentState.equals(BasicMachineStates.STOPPED) ) {	        		
-            		setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)            		
-            		reset();
-            	} else if (currentState.equals(BasicMachineStates.COMPLETING) 
-            			|| currentState.equals(BasicMachineStates.STOPPING) ) {
-            		// we only recheck later of we are still in states leading to complete or stopped
-            		doAutoResetAfterXseconds() ;          		
-            	} else { // noop             		
-            	}
-            }
-          }, context().system().dispatcher());
+		context().system().scheduler().scheduleOnce(Duration.ofSeconds(3), new Runnable() {
+			@Override
+			public void run() {
+				if (currentState.equals(BasicMachineStates.COMPLETE)
+						|| currentState.equals(BasicMachineStates.STOPPED)) {
+					setAndPublishSensedState(BasicMachineStates.RESETTING); // not sensed, but machine would do the same
+																			// (or fail, then we need to wait for
+																			// machine to respond)
+					reset();
+				} else if (currentState.equals(BasicMachineStates.COMPLETING)
+						|| currentState.equals(BasicMachineStates.STOPPING)) {
+					// we only recheck later of we are still in states leading to complete or
+					// stopped
+					doAutoResetAfterXseconds();
+				} else { // noop
+				}
+			}
+		}, context().system().dispatcher());
 	}
 
 }

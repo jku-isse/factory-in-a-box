@@ -72,7 +72,7 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 
 		log.info(String.format("Received %s from %s", body, getSender()));
 		try {
-			tracingFactory.startConsumerSpan(msg,
+			tracer.startConsumerSpan(msg,
 					"Server-Handshake: StateOverriderequest: " + body.toString() + " received");
 			switch (body) {
 			case SetLoaded:
@@ -87,7 +87,7 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 
 	}
@@ -98,7 +98,7 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 		log.info(String.format("Received %s from %s", body, getSender()));
 
 		try {
-			tracingFactory.startConsumerSpan(msg,
+			tracer.startConsumerSpan(msg,
 					"Server-Handshake: StateOverriderequest: " + body.toString() + " received");
 			switch (body) {
 			case Complete:
@@ -136,14 +136,14 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			tracingFactory.finishCurrentSpan();
+			tracer.finishCurrentSpan();
 		}
 	}
 
 	protected void publishNewState(ServerSideStates newState) {
 		currentState = newState;
-		HSServerSideStateMessage msg = new HSServerSideStateMessage(tracingFactory.getCurrentHeader(), newState);
-		tracingFactory.injectMsg(msg);
+		HSServerSideStateMessage msg = new HSServerSideStateMessage(tracer.getCurrentHeader(), newState);
+		tracer.injectMsg(msg);
 
 		if (parentActor != null) {
 			parentActor.tell(msg, self);
@@ -191,9 +191,9 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 			publishNewState(ServerSideStates.STARTING);
 			log.info(String.format("Responding with OkResponseInitHandover to %s", getSender()));
 
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.OkResponseInitHandover);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 			getSender().tell(msg, self);
 			context().system().scheduler().scheduleOnce(Duration.ofMillis(200), new Runnable() {
 				@Override
@@ -208,16 +208,16 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 			}, context().system().dispatcher());
 		} else if (currentState.equals(ServerSideStates.READY_EMPTY)
 				|| currentState.equals(ServerSideStates.READY_LOADED)) {
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.OkResponseInitHandover);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 			getSender().tell(msg, self); // resending
 		} else {
 			log.warning(String.format("Responding with NotOkResponseInitHandover to %s in state %s", getSender(),
 					currentState));
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 			getSender().tell(msg, self);
 		}
 
@@ -227,21 +227,21 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 		if ((currentState.equals(ServerSideStates.READY_EMPTY) || currentState.equals(ServerSideStates.READY_LOADED))) {
 			publishNewState(ServerSideStates.EXECUTE);
 			log.info(String.format("Responding with OkResponseStartHandover to %s", getSender()));
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.OkResponseStartHandover);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 			getSender().tell(msg, self);
 		} else if (currentState.equals(ServerSideStates.EXECUTE)) { // resending
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.OkResponseStartHandover);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 			getSender().tell(msg, self);
 		} else {
 			log.warning(String.format("Responding with NotOkResponseStartHandover to %s in state %s", getSender(),
 					currentState));
-			HSServerMessage msg = new HSServerMessage(tracingFactory.getCurrentHeader(),
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.NotOkResponseStartHandover);
-			tracingFactory.injectMsg(msg);
+			tracer.injectMsg(msg);
 			getSender().tell(msg, self);
 		}
 		if (doAutoComplete) {

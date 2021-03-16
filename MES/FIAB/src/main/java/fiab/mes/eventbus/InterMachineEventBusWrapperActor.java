@@ -1,12 +1,12 @@
 package fiab.mes.eventbus;
 
-import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import fiab.tracing.actor.AbstractTracingActor;
 
-public class InterMachineEventBusWrapperActor extends AbstractActor {
+public class InterMachineEventBusWrapperActor extends AbstractTracingActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	public static final String WRAPPER_ACTOR_LOOKUP_NAME = "InterMachineEventBusWrapperActor";
@@ -15,6 +15,7 @@ public class InterMachineEventBusWrapperActor extends AbstractActor {
 	public InterMachineEventBusWrapperActor(InterMachineEventBus bus) {
 		meb = bus == null ? new InterMachineEventBus() : bus;
 	}
+	
 
 	public static Props props() {
 		return Props.create(InterMachineEventBusWrapperActor.class, () -> new InterMachineEventBusWrapperActor(null));
@@ -39,9 +40,16 @@ public class InterMachineEventBusWrapperActor extends AbstractActor {
 						meb.unsubscribe(msg.getSubscriber(), msg.getSubscriptionClassifier());
 					}
 				}) 
-				.match(MachineEvent.class, e -> {
-					log.debug("Received Publish Event: "+e.toString() );
-					meb.publish(e);
+				.match(MachineEvent.class, event -> {
+					log.debug("Received Publish Event: "+event.toString() );
+					try {
+						tracer.startConsumerSpan(event, "Inter Machine Event Bus Wrapper: Machine Event "+/*event.toString()+*/" received");								
+						meb.publish(event);						
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						tracer.finishCurrentSpan();
+					}
 				})
 		.build();
 	}

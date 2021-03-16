@@ -21,49 +21,50 @@ import fiab.mes.restendpoint.ActorRestEndpoint;
 
 public class ShopfloorStartup extends AllDirectives {
 
-  
-  public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 
-	  String jsonDiscoveryFile = System.getProperty("jsondiscoveryfile");
-	  int expectedTTs = Integer.parseInt(System.getProperty("expectedTTs", "1"));
-	  ActorSystem system = ActorSystem.create("routes");
+		String jsonDiscoveryFile = System.getProperty("jsondiscoveryfile");
+		int expectedTTs = Integer.parseInt(System.getProperty("expectedTTs", "1"));
+		ActorSystem system = ActorSystem.create("routes");
 
-	  CompletionStage<ServerBinding> binding = startup(jsonDiscoveryFile, expectedTTs, system);
+		CompletionStage<ServerBinding> binding = startup(jsonDiscoveryFile, expectedTTs, system);
 
-	  System.out.println(String.format("Server online at https://localhost:8080/ expecting %s turntables \nPress RETURN to stop...", expectedTTs));
-	  System.in.read(); // let it run until user presses return
+		System.out.println(String.format(
+				"Server online at https://localhost:8080/ expecting %s turntables \nPress RETURN to stop...",
+				expectedTTs));
+		System.in.read(); // let it run until user presses return
 
-	  binding
-	  .thenCompose(ServerBinding::unbind) // trigger unbinding from the port
-	  .thenAccept(unbound -> system.terminate()); // and shutdown when done
-  }
-  
-  public static CompletionStage<ServerBinding> startup(String jsonDiscoveryFile, int expectedTTs, ActorSystem system) {
-	    // boot up server using the route as defined below	    	      
-	    final Http http = Http.get(system);
-	    
-	    HttpsConnectionContext https = HttpsConfigurator.useHttps(system);
-	    http.setDefaultServerHttpContext(https);
-	    
-	    final ActorMaterializer materializer = ActorMaterializer.create(system);
+		binding.thenCompose(ServerBinding::unbind) // trigger unbinding from the port
+				.thenAccept(unbound -> system.terminate()); // and shutdown when done
+	}
 
-	    DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system, expectedTTs);
-	    ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
-	    ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
-	    	    
-	    if (jsonDiscoveryFile != null)
-	    	new ShopfloorConfigurations.JsonFilePersistedDiscovery(jsonDiscoveryFile).triggerDiscoveryMechanism(system);
-	    else {
-	    //new ShopfloorConfigurations.VirtualInputOutputTurntableOnly().triggerDiscoveryMechanism(system);
-	    	new ShopfloorConfigurations.NoDiscovery().triggerDiscoveryMechanism(system);
-	    }
-	    ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
+	public static CompletionStage<ServerBinding> startup(String jsonDiscoveryFile, int expectedTTs,
+			ActorSystem system) {
+		// boot up server using the route as defined below
+		final Http http = Http.get(system);
 
-	    final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
-	    final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
-	        ConnectHttp.toHost("0.0.0.0", 8080), materializer);	    
-	    return binding;
-  }
-  
-  
+		HttpsConnectionContext https = HttpsConfigurator.useHttps(system);
+		http.setDefaultServerHttpContext(https);
+
+		final ActorMaterializer materializer = ActorMaterializer.create(system);
+
+		DefaultShopfloorInfrastructure shopfloor = new DefaultShopfloorInfrastructure(system, expectedTTs);
+		ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
+		ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
+
+		if (jsonDiscoveryFile != null)
+			new ShopfloorConfigurations.JsonFilePersistedDiscovery(jsonDiscoveryFile).triggerDiscoveryMechanism(system);
+		else {
+			// new
+			// ShopfloorConfigurations.VirtualInputOutputTurntableOnly().triggerDiscoveryMechanism(system);
+			new ShopfloorConfigurations.NoDiscovery().triggerDiscoveryMechanism(system);
+		}
+		ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
+
+		final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
+		final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
+				ConnectHttp.toHost("0.0.0.0", 8080), materializer);
+		return binding;
+	}
+
 }

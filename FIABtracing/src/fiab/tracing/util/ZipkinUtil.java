@@ -32,4 +32,9 @@ public class ZipkinUtil {
 		sb.append(span.context().parentIdString());
 		return sb.toString();
 	}
+
+	public static ScopedSpan createDefaultScopedSpan() {
+	
+		return null;
+	}
 }
