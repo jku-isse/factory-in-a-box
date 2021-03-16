@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>factory.in.a.box</groupId>
     <artifactId>FIABturntable</artifactId>
-    <version>1.0.9-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -115,12 +115,17 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABcore</artifactId>
-            <version>1.0.1-SNAPSHOT</version>
+            <version>1.1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABhardware</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+         <dependency>
+            <groupId>factory.in.a.box</groupId>
+            <artifactId>FIABtracing</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.inject/guice -->
@@ -141,15 +146,15 @@
             </resource>
         </resources>
         <plugins>
-            <!--plugin>
+            <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
-            </plugin-->
-            <!--plugin>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
                 <version>2.5.2</version>
@@ -163,9 +168,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABcore</artifactId>
-                            <version>1.0.1-SNAPSHOT</version>
+                            <version>1.1.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/FIABcore-1.0.1-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABcore-1.1.0-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
@@ -214,6 +219,21 @@
                             </file>
                         </configuration>
                     </execution>
+                        <execution>
+                        <id>install-jar-lib-5</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>factory.in.a.box</groupId>
+                            <artifactId>FIABtracing</artifactId>
+                            <version>1.0.0-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>${project.basedir}/../libs/FIABtracing-1.0.0-SNAPSHOT.jar
+                            </file>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -228,7 +248,7 @@
                         </manifest>
                     </archive>
                 </configuration>
-            </plugin-->
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -276,11 +296,11 @@
                 </configuration>
             </plugin>
         </plugins>
-        <!--pluginManagement-->
-            <!--plugins>
-                < This plugin's configuration is used to store Eclipse m2e settings
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse m2e settings
                     only. It has no influence on the Maven build itself. -->
-                <!--plugin>
+                <plugin>
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
                     <version>1.0.0</version>
@@ -312,7 +332,7 @@
                         </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
-            </plugins-->
-        <!--/pluginManagement-->
+            </plugins>
+        </pluginManagement>
     </build>
 </project>

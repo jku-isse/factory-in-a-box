@@ -64,6 +64,7 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 	private boolean exposeInternalControl = true;
 	private WiringNodes wiringNodes;
 	private AsyncReporter<zipkin2.Span> reporter;
+	private WiringInfo currentWiringInfo;
 	
 	public ClientSideHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef ttBaseActor, ActorContext context, String capInstId, boolean isProvided, boolean exposeInternalControl) {
 		this.base = base;
@@ -190,6 +191,9 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 					logger.info("OPCUA Client Endpoints resolved for FU: "+this.capInstId + " at "+optActorCapImplNodeId.get().toParseableString());
 					opcuaWrapper.tell(nodeIds, ActorRef.noSender());
 					WiringExposingUtils.updateWiring(wiringNodes, info.getRemoteCapabilityId(), info.getRemoteEndpointURL(), info.getRemoteNodeId(), info.getRemoteRole());
+					 this.currentWiringInfo = info;
+	                    ttBaseActor.tell(new LocalEndpointStatus.LocalClientEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender());
+	               
 				}
 			} else {
 				String msg = "Could not resolve actor cap impl for nodeId:" +info.getRemoteNodeId();
@@ -225,6 +229,10 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		nodeIds.setCapabilityImplNode(info.getActorNode());
 		return nodeIds;
 	}
+	
+	 public WiringInfo getCurrentWiringInfo() {
+	        return currentWiringInfo;
+	    }
 	
 	private Optional<NodeId> getGrandParentForNodeIdViaBrowse(OpcUaClient client, NodeId nodeIdToSearchFor, NodeId currentNode, NodeId parent) {
 		try {

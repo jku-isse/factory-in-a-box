@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>factory.in.a.box</groupId>
 	<artifactId>FIABopcuabase</artifactId>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<name>FIAB OPC UA Base Classes</name>
 	<description>Provide reusable OPC UA infrastructure classes</description>
 	<properties>
@@ -40,6 +40,17 @@
 			<version>0.3.9-SNAPSHOT-zipkin</version>
 		</dependency>
 		<dependency>
+			<groupId>org.eclipse.milo</groupId>
+			<artifactId>stack-server</artifactId>
+			<version>0.3.9-SNAPSHOT-zipkin</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.milo</groupId>
+			<artifactId>stack-client</artifactId>
+			<version>0.3.9-SNAPSHOT-zipkin</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.18.12</version>
@@ -50,10 +61,18 @@
 			<artifactId>FIABcore</artifactId>
 			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.30</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.68</version>
+		</dependency>
 	</dependencies>
-
-
-<build>
+	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -123,7 +142,7 @@
 					</execution>
 				</executions>
 			</plugin>
-					<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
 				<version>2.5.2</version>
@@ -146,7 +165,7 @@
 					</execution>
 				</executions>
 			</plugin>
-						<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
 				<version>2.5.2</version>
@@ -159,8 +178,8 @@
 						<phase>validate</phase>
 						<configuration>
 							<groupId>org.eclipse.milo</groupId>
-			<artifactId>sdk-server</artifactId>
-			<version>0.3.9-SNAPSHOT-zipkin</version>
+							<artifactId>sdk-server</artifactId>
+							<version>0.3.9-SNAPSHOT-zipkin</version>
 							<packaging>jar</packaging>
 							<file>${project.basedir}/../libs/sdk-server-0.3.9-SNAPSHOT-zipkin.jar
 							</file>
@@ -169,7 +188,7 @@
 					</execution>
 				</executions>
 			</plugin>
-						<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
 				<version>2.5.2</version>
@@ -182,8 +201,8 @@
 						<phase>validate</phase>
 						<configuration>
 							<groupId>org.eclipse.milo</groupId>
-			<artifactId>sdk-core</artifactId>
-			<version>0.3.9-SNAPSHOT-zipkin</version>
+							<artifactId>sdk-core</artifactId>
+							<version>0.3.9-SNAPSHOT-zipkin</version>
 							<packaging>jar</packaging>
 							<file>${project.basedir}/../libs/sdk-core-0.3.9-SNAPSHOT-zipkin.jar
 							</file>
@@ -192,7 +211,7 @@
 					</execution>
 				</executions>
 			</plugin>
-						<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
 				<version>2.5.2</version>
@@ -205,10 +224,56 @@
 						<phase>validate</phase>
 						<configuration>
 							<groupId>org.eclipse.milo</groupId>
-			<artifactId>sdk-client</artifactId>
-			<version>0.3.9-SNAPSHOT-zipkin</version>
+							<artifactId>sdk-client</artifactId>
+							<version>0.3.9-SNAPSHOT-zipkin</version>
 							<packaging>jar</packaging>
 							<file>${project.basedir}/../libs/sdk-client-0.3.9-SNAPSHOT-zipkin.jar
+							</file>
+							<generatePom>true</generatePom>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.5.2</version>
+				<executions>
+					<execution>
+						<id>install-jar-lib-6</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<phase>validate</phase>
+						<configuration>
+							<groupId>org.eclipse.milo</groupId>
+							<artifactId>stack-client</artifactId>
+							<version>0.3.9-SNAPSHOT-zipkin</version>
+							<packaging>jar</packaging>
+							<file>${project.basedir}/../libs/stack-client-0.3.9-SNAPSHOT-zipkin.jar
+							</file>
+							<generatePom>true</generatePom>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.5.2</version>
+				<executions>
+					<execution>
+						<id>install-jar-lib-7</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<phase>validate</phase>
+						<configuration>
+							<groupId>org.eclipse.milo</groupId>
+							<artifactId>stack-server</artifactId>
+							<version>0.3.9-SNAPSHOT-zipkin</version>
+							<packaging>jar</packaging>
+							<file>${project.basedir}/../libs/stack-server-0.3.9-SNAPSHOT-zipkin.jar
 							</file>
 							<generatePom>true</generatePom>
 						</configuration>
