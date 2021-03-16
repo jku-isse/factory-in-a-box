@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.eclipse.milo.opcua.sdk.client.ModifiedOpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.identity.AnonymousProvider;
@@ -15,6 +16,9 @@ import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import zipkin2.reporter.AsyncReporter;
+import zipkin2.reporter.Sender;
+import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -22,7 +26,15 @@ public class OPCUAClientFactory {
 
 	 private final Logger logger = LoggerFactory.getLogger(getClass());
 	
+	public OpcUaClient createTracingClient(String endpointUrl,  AsyncReporter<zipkin2.Span> reporter) throws Exception{
+	    return createClient(endpointUrl, reporter);
+	}
+	
 	public OpcUaClient createClient(String endpointUrl) throws Exception {
+		return createClient(endpointUrl, null);
+	}
+		
+	private OpcUaClient createClient(String endpointUrl, AsyncReporter<zipkin2.Span> reporter) throws Exception {
         Path securityTempDir = Paths.get(System.getProperty("java.io.tmpdir"), "security");
         Files.createDirectories(securityTempDir);
         if (!Files.exists(securityTempDir)) {
@@ -70,8 +82,11 @@ public class OPCUAClientFactory {
             .setIdentityProvider(new AnonymousProvider())
             .setRequestTimeout(uint(5000))
             .build();
-
-        return OpcUaClient.create(config);
+        if (reporter != null) {
+        	return OpcUaClient.create(config);
+        } else {
+        	return ModifiedOpcUaClient.create(config, reporter);	
+        }
     }
 	
 }

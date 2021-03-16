@@ -42,7 +42,7 @@
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABopcuabase</artifactId>
-			<version>1.0.3-SNAPSHOT</version>
+			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
@@ -81,7 +81,7 @@
 				<version>2.5.2</version>
 				<executions>
 					<execution>
-						<id>install-jar-lib-2</id>
+						<id>install-jar-lib</id>
 						<goals>
 							<goal>install-file</goal>
 						</goals>
@@ -96,7 +96,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>install-jar-lib</id>
+						<id>install-jar-lib-2</id>
 						<goals>
 							<goal>install-file</goal>
 						</goals>
@@ -104,9 +104,9 @@
 						<configuration>
 							<groupId>factory.in.a.box</groupId>
 							<artifactId>FIABopcuabase</artifactId>
-							<version>1.0.2-SNAPSHOT</version>
+							<version>1.2.0-SNAPSHOT</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/FIABopcuabase-1.0.3-SNAPSHOT.jar
+							<file>${project.basedir}/../libs/FIABopcuabase-1.2.0-SNAPSHOT.jar
 							</file>
 						</configuration>
 					</execution>

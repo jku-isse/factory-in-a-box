@@ -1,5 +1,7 @@
 package fiab.handshake.fu.client.methods;
 
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession;
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession.B3Header;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.stack.core.UaException;
@@ -12,6 +14,7 @@ import akka.actor.ActorRef;
 import fiab.core.capabilities.handshake.IOStationCapability;
 
 import java.time.Duration;
+import java.util.Optional;
 
 public class Start extends AbstractMethodInvocationHandler {
 
@@ -38,6 +41,12 @@ public class Start extends AbstractMethodInvocationHandler {
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
     	logger.debug("Invoking Start() method of objectId={}", invocationContext.getObjectId());    	
+    	Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+    	if (headerOpt.isPresent()) {
+    		// trace here, for now just a log output
+    		logger.info("Received B3 header: "+headerOpt.get().toString());
+    	}
+    	
     	actor.tell(IOStationCapability.ClientMessageTypes.Start, ActorRef.noSender());
     	return new Variant[0]; 	    	
     }	
