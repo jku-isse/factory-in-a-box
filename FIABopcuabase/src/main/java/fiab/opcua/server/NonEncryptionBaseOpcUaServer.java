@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.eclipse.milo.opcua.sdk.server.ModifiedOpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig;
 import org.eclipse.milo.opcua.sdk.server.identity.CompositeValidator;
@@ -80,7 +81,7 @@ public class NonEncryptionBaseOpcUaServer {
             .setProductUri("urn:eclipse:milo:"+serverName)
             .build();
 
-        server = new OpcUaServer(serverConfig);
+        server = new ModifiedOpcUaServer(serverConfig);
     }
 
     private Set<EndpointConfiguration> createEndpointConfigurations() {
