@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutionException;
 
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.handshake.fu.HandshakeFU;
+
+import org.eclipse.milo.opcua.sdk.client.ModifiedOpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
@@ -38,6 +40,7 @@ import fiab.opcua.wiring.WiringException;
 import fiab.opcua.wiring.WiringNodes;
 import fiab.opcua.wiring.WiringRequest;
 import fiab.opcua.wiring.WiringUpdateInterface;
+import zipkin2.reporter.AsyncReporter;
 
 public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, WiringUpdateInterface{
 
@@ -61,6 +64,7 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 	private ActorRef localClient;
 	private boolean exposeInternalControl = true;
 	private WiringNodes wiringNodes;
+	private AsyncReporter<zipkin2.Span> reporter;
 	
 	public ClientSideHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef ttBaseActor, ActorContext context, String capInstId, boolean isProvided, boolean exposeInternalControl) {
 		this.base = base;
@@ -74,6 +78,18 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		setupOPCUANodeSet();
 	}
 	
+	public ClientSideHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef ttBaseActor, ActorContext context, String capInstId, boolean isProvided, boolean exposeInternalControl, AsyncReporter<zipkin2.Span> reporter) {
+		this.base = base;
+		this.rootNode = root;
+		this.ttBaseActor = ttBaseActor;
+		this.context = context;
+		this.capInstId = capInstId;
+		this.fuPrefix = fuPrefix;
+		this.isProvided = isProvided;
+		this.exposeInternalControl = exposeInternalControl;
+		this.reporter = reporter;
+		setupOPCUANodeSet();
+	}
 	
 	private void setupOPCUANodeSet() {
 		String path = fuPrefix + "/HANDSHAKE_FU_"+capInstId;
@@ -140,8 +156,9 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		if (info.getRemoteEndpointURL().isEmpty()) // unset of wiring, thus done here
 			return;
 		
+		//TODO: switch between tracing and non tracing client
 		try {
-			client = new OPCUAClientFactory().createClient(info.getRemoteEndpointURL());
+			client = new OPCUAClientFactory().createTracingClient(info.getRemoteEndpointURL(), reporter);
 			client.connect().get();
 
 		} catch (Exception e) {

@@ -1,6 +1,8 @@
 package fiab.handshake.fu.server.methods;
 
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession;
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession.B3Header;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
@@ -17,6 +19,7 @@ import fiab.core.capabilities.handshake.IOStationCapability;
 import static akka.pattern.Patterns.ask;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 public class InitHandover extends AbstractMethodInvocationHandler {
@@ -53,7 +56,12 @@ public class InitHandover extends AbstractMethodInvocationHandler {
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {
         
 
-    	logger.debug("Invoking InitHandover() method of objectId={}", invocationContext.getObjectId());    	
+    	logger.debug("Invoking InitHandover() method of objectId={}", invocationContext.getObjectId());   
+    	Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+    	if (headerOpt.isPresent()) {
+    		// trace here, for now just a log output
+    		logger.info("Received B3 header: "+headerOpt.get().toString());
+    	}
     	Object resp;
 		try {
 			resp = ask(actor, IOStationCapability.ServerMessageTypes.RequestInitiateHandover, timeout).toCompletableFuture().get();
