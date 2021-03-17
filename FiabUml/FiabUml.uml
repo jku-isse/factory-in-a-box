@@ -14,7 +14,7 @@
       <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_XX0B8EEeEeuCS5H9TEkXVw"/>
       <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_sjANUEEeEeuCS5H9TEkXVw" value="*"/>
     </ownedAttribute>
-    <ownedAttribute xmi:type="uml:Port" xmi:id="_uo_b8EB6Eeu2cPr2EpmBbQ" name="ClientHandshakeFuRequestTop" type="_lIK-AEEfEeuCS5H9TEkXVw" aggregation="composite">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_uo_b8EB6Eeu2cPr2EpmBbQ" name="ControlClientHandshakeTop" type="_lIK-AEEfEeuCS5H9TEkXVw" aggregation="composite">
       <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_nYsgEFmSEeuO3LbV6wY7Ew" value="*"/>
     </ownedAttribute>
     <ownedAttribute xmi:type="uml:Port" xmi:id="_u8RkUEB6Eeu2cPr2EpmBbQ" name="ClientHandshakeEventNotificationTop" visibility="package" type="_q6mPoEEfEeuCS5H9TEkXVw" aggregation="composite">
@@ -24,10 +24,10 @@
     <ownedAttribute xmi:type="uml:Port" xmi:id="_Ngp_gEEyEeuCS5H9TEkXVw" name="TurningFuRequestTop" type="_EL9ukEESEeuCS5H9TEkXVw" aggregation="composite"/>
     <ownedAttribute xmi:type="uml:Port" xmi:id="_HIDpQEEzEeuCS5H9TEkXVw" name="ConveyorFuNotificationInterfaceTop" type="_ghTo8EEREeuCS5H9TEkXVw" aggregation="composite"/>
     <ownedAttribute xmi:type="uml:Port" xmi:id="_M1wL4EEzEeuCS5H9TEkXVw" name="ConveyorFuRequestInterfaceTop" type="_eW18gEEREeuCS5H9TEkXVw" aggregation="composite"/>
-    <ownedAttribute xmi:type="uml:Port" xmi:id="_JWbRMFmQEeuO3LbV6wY7Ew" name="ServerHandshakeRequestTop" type="_LFwsMEq7EeukFMAnQEhdEg" aggregation="composite">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_JWbRMFmQEeuO3LbV6wY7Ew" name="Port19" type="_LFwsMEq7EeukFMAnQEhdEg" aggregation="composite">
       <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_AyPs0FmUEeuO3LbV6wY7Ew" value="*"/>
     </ownedAttribute>
-    <ownedAttribute xmi:type="uml:Port" xmi:id="_LMmIoFmQEeuO3LbV6wY7Ew" name="ServerHanshakeNotificationTop" type="_OsqhcEq7EeukFMAnQEhdEg" aggregation="composite">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_LMmIoFmQEeuO3LbV6wY7Ew" name="Port20" type="_OsqhcEq7EeukFMAnQEhdEg" aggregation="composite">
       <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BV0T8FmUEeuO3LbV6wY7Ew" value="*"/>
     </ownedAttribute>
     <ownedBehavior xmi:type="uml:StateMachine" xmi:id="_iWP74EESEeuCS5H9TEkXVw" name="TurntableOverallStateMachine">
@@ -50,9 +50,8 @@
         <transition xmi:type="uml:Transition" xmi:id="_6JkAEEESEeuCS5H9TEkXVw" kind="local" source="_rttagEESEeuCS5H9TEkXVw" target="_qv5ucEESEeuCS5H9TEkXVw">
           <trigger xmi:type="uml:Trigger" xmi:id="_4UV8IFmCEeuO3LbV6wY7Ew" name="ExecuteTrigger" event="_RZaYkFmCEeuO3LbV6wY7Ew"/>
         </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_6yzKUEESEeuCS5H9TEkXVw" kind="local" source="_yN3vMIcLEeu_aY47PcXJlg" target="_p22mkEESEeuCS5H9TEkXVw">
+        <transition xmi:type="uml:Transition" xmi:id="_6yzKUEESEeuCS5H9TEkXVw" kind="local" source="_qv5ucEESEeuCS5H9TEkXVw" target="_p22mkEESEeuCS5H9TEkXVw">
           <trigger xmi:type="uml:Trigger" xmi:id="_HpLqQEE8EeuCS5H9TEkXVw" name="CompletingTrigger" event="_ThL9YFmCEeuO3LbV6wY7Ew"/>
-          <trigger xmi:type="uml:Trigger" xmi:id="_UxZzsIcXEeu_aY47PcXJlg" name="ConveyorEmptyCompleteTrigger" event="_9lGsMIcWEeu_aY47PcXJlg"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_7arpsEESEeuCS5H9TEkXVw" kind="local" source="_p22mkEESEeuCS5H9TEkXVw" target="_pAgNYEESEeuCS5H9TEkXVw">
           <trigger xmi:type="uml:Trigger" xmi:id="_QEEL4EE8EeuCS5H9TEkXVw" name="CompleteTrigger" event="_ViuXUFmCEeuO3LbV6wY7Ew"/>
@@ -84,42 +83,6 @@
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_8tfOMEE6EeuCS5H9TEkXVw" source="_m9nIkEESEeuCS5H9TEkXVw" target="_rttagEESEeuCS5H9TEkXVw">
           <trigger xmi:type="uml:Trigger" xmi:id="_Pglg0EE7EeuCS5H9TEkXVw" name="StartingTrigger" event="_PclfgFmCEeuO3LbV6wY7Ew"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_9VlDcIcLEeu_aY47PcXJlg" kind="local" source="_qv5ucEESEeuCS5H9TEkXVw" target="_hZfMAIcLEeu_aY47PcXJlg"/>
-        <transition xmi:type="uml:Transition" xmi:id="_-AxVgIcLEeu_aY47PcXJlg" source="_hZfMAIcLEeu_aY47PcXJlg" target="_l9jNEIcLEeu_aY47PcXJlg">
-          <trigger xmi:type="uml:Trigger" xmi:id="_vOODAIcSEeu_aY47PcXJlg" name="TurningCompleteTrigger" event="_y8wmwIcREeu_aY47PcXJlg"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="__BgZwIcLEeu_aY47PcXJlg" source="_l9jNEIcLEeu_aY47PcXJlg" target="_n8lsoIcLEeu_aY47PcXJlg">
-          <trigger xmi:type="uml:Trigger" xmi:id="_fPzXIIcVEeu_aY47PcXJlg" name="ServerHandshakeExecutingTrigger" event="_3BNToIcREeu_aY47PcXJlg"/>
-          <trigger xmi:type="uml:Trigger" xmi:id="_nKc5gIcVEeu_aY47PcXJlg" name="ClientHandshakeExecutingTrigger" event="_uB4rYIcVEeu_aY47PcXJlg"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="__wEI4IcLEeu_aY47PcXJlg" source="_n8lsoIcLEeu_aY47PcXJlg" target="_qM4UQIcLEeu_aY47PcXJlg">
-          <trigger xmi:type="uml:Trigger" xmi:id="_Z7L4UIcUEeu_aY47PcXJlg" name="ConveyorCompleteTrigger" event="_6T1iAIcREeu_aY47PcXJlg"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_AmGZAIcMEeu_aY47PcXJlg" source="_qM4UQIcLEeu_aY47PcXJlg" target="_v2b9wIcLEeu_aY47PcXJlg">
-          <trigger xmi:type="uml:Trigger" xmi:id="_3dULYIcSEeu_aY47PcXJlg" name="TurningCompleteTrigger" event="_y8wmwIcREeu_aY47PcXJlg"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_BQCt4IcMEeu_aY47PcXJlg" source="_v2b9wIcLEeu_aY47PcXJlg" target="_yN3vMIcLEeu_aY47PcXJlg">
-          <trigger xmi:type="uml:Trigger" xmi:id="_VcoXcIcWEeu_aY47PcXJlg" name="ServerHandshakeExecutingTrigger" event="_3BNToIcREeu_aY47PcXJlg"/>
-          <trigger xmi:type="uml:Trigger" xmi:id="_VcplkIcWEeu_aY47PcXJlg" name="ClientHandshakeExecutingTrigger" event="_uB4rYIcVEeu_aY47PcXJlg"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_Ue8LsIcMEeu_aY47PcXJlg" source="_hZfMAIcLEeu_aY47PcXJlg" target="_snydIEESEeuCS5H9TEkXVw">
-          <trigger xmi:type="uml:Trigger" xmi:id="_8u5BcIcMEeu_aY47PcXJlg" name="StoppingTrigger" event="_mb9ssFl_EeuO3LbV6wY7Ew"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_VgDqcIcMEeu_aY47PcXJlg" source="_l9jNEIcLEeu_aY47PcXJlg" target="_snydIEESEeuCS5H9TEkXVw">
-          <trigger xmi:type="uml:Trigger" xmi:id="_9BTAEIcMEeu_aY47PcXJlg" name="StoppingTrigger" event="_mb9ssFl_EeuO3LbV6wY7Ew"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_WUtagIcMEeu_aY47PcXJlg" source="_n8lsoIcLEeu_aY47PcXJlg" target="_snydIEESEeuCS5H9TEkXVw">
-          <trigger xmi:type="uml:Trigger" xmi:id="_9cnDEIcMEeu_aY47PcXJlg" name="StoppingTrigger" event="_mb9ssFl_EeuO3LbV6wY7Ew"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_XPYTAIcMEeu_aY47PcXJlg" source="_qM4UQIcLEeu_aY47PcXJlg" target="_snydIEESEeuCS5H9TEkXVw">
-          <trigger xmi:type="uml:Trigger" xmi:id="_98cZsIcMEeu_aY47PcXJlg" name="StoppingTrigger" event="_mb9ssFl_EeuO3LbV6wY7Ew"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_ZChroIcMEeu_aY47PcXJlg" source="_v2b9wIcLEeu_aY47PcXJlg" target="_snydIEESEeuCS5H9TEkXVw">
-          <trigger xmi:type="uml:Trigger" xmi:id="_-f324IcMEeu_aY47PcXJlg" name="StoppingTrigger" event="_mb9ssFl_EeuO3LbV6wY7Ew"/>
-        </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_Z2mz8IcMEeu_aY47PcXJlg" source="_yN3vMIcLEeu_aY47PcXJlg" target="_snydIEESEeuCS5H9TEkXVw">
-          <trigger xmi:type="uml:Trigger" xmi:id="_-9rNMIcMEeu_aY47PcXJlg" name="StoppingTrigger" event="_mb9ssFl_EeuO3LbV6wY7Ew"/>
         </transition>
         <subvertex xmi:type="uml:State" xmi:id="_m9nIkEESEeuCS5H9TEkXVw" name="Idle">
           <doActivity xmi:type="uml:Activity" xmi:id="_vadDIEFAEeuCS5H9TEkXVw" name="IdleActivity" node="_TbOtQEFCEeuCS5H9TEkXVw">
@@ -163,47 +126,6 @@
         </subvertex>
         <subvertex xmi:type="uml:Pseudostate" xmi:id="_Ye_CMEEaEeuCS5H9TEkXVw" name="InitialOverall"/>
         <subvertex xmi:type="uml:FinalState" xmi:id="_aw0h8EEaEeuCS5H9TEkXVw" name="FinalOverall"/>
-        <subvertex xmi:type="uml:State" xmi:id="_hZfMAIcLEeu_aY47PcXJlg" name="TurningSource">
-          <doActivity xmi:type="uml:Activity" xmi:id="_LsrHAIcbEeu_aY47PcXJlg" name="StartTurningActivity" node="_1Sim0IcbEeu_aY47PcXJlg">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_1Sim0IcbEeu_aY47PcXJlg" name="BroadcastTurnSourceSignalAction" onPort="_Ngp_gEEyEeuCS5H9TEkXVw" signal="_JqW8AEE1EeuCS5H9TEkXVw"/>
-          </doActivity>
-        </subvertex>
-        <subvertex xmi:type="uml:State" xmi:id="_l9jNEIcLEeu_aY47PcXJlg" name="HandshakeSource">
-          <doActivity xmi:type="uml:Activity" xmi:id="_dM7HIIcaEeu_aY47PcXJlg" name="InitClientHandshakeActivity" node="_qEsmoIchEeu_aY47PcXJlg">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_qEsmoIchEeu_aY47PcXJlg" name="BroadcastSignalAction1" onPort="_uo_b8EB6Eeu2cPr2EpmBbQ" signal="_6cktwEE1EeuCS5H9TEkXVw"/>
-          </doActivity>
-          <entry xmi:type="uml:Activity" xmi:id="_m07fAIchEeu_aY47PcXJlg" name="ResetHandshakeActivity" node="_7Wa00IcbEeu_aY47PcXJlg _nn8iQIcfEeu_aY47PcXJlg">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_7Wa00IcbEeu_aY47PcXJlg" name="BroadcastResetClientHandshakeSignalAction" onPort="_uo_b8EB6Eeu2cPr2EpmBbQ" signal="_434A0EE1EeuCS5H9TEkXVw"/>
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_nn8iQIcfEeu_aY47PcXJlg" name="BroadcastResetServerSignalAction" onPort="_JWbRMFmQEeuO3LbV6wY7Ew" signal="_nTaNsEq7EeukFMAnQEhdEg"/>
-          </entry>
-        </subvertex>
-        <subvertex xmi:type="uml:State" xmi:id="_n8lsoIcLEeu_aY47PcXJlg" name="ConveyingSource">
-          <doActivity xmi:type="uml:Activity" xmi:id="_fqsKEIcaEeu_aY47PcXJlg" name="StartConveyingActivity" node="_xa8NsIccEeu_aY47PcXJlg">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_xa8NsIccEeu_aY47PcXJlg" name="BroadcastLoadSignalAction" onPort="_M1wL4EEzEeuCS5H9TEkXVw" signal="_XCE0wEEZEeuCS5H9TEkXVw"/>
-          </doActivity>
-          <exit xmi:type="uml:Activity" xmi:id="_9m3eYIckEeu_aY47PcXJlg" name="CompleteHandshakeActivity" node="_FdIQAIclEeu_aY47PcXJlg">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_FdIQAIclEeu_aY47PcXJlg" name="BroadcastCompleteClientHandshakeSignalAction" onPort="_uo_b8EB6Eeu2cPr2EpmBbQ" signal="_lp_ZEIclEeu_aY47PcXJlg"/>
-          </exit>
-        </subvertex>
-        <subvertex xmi:type="uml:State" xmi:id="_qM4UQIcLEeu_aY47PcXJlg" name="TurningDestination">
-          <doActivity xmi:type="uml:Activity" xmi:id="_hmcFEIcaEeu_aY47PcXJlg" name="StartTurningActivity" node="_0L7uoIccEeu_aY47PcXJlg">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_0L7uoIccEeu_aY47PcXJlg" name="BroadcastTurnDestinationSignalAction1" onPort="_Ngp_gEEyEeuCS5H9TEkXVw" signal="_JqW8AEE1EeuCS5H9TEkXVw"/>
-          </doActivity>
-          <entry xmi:type="uml:Activity" xmi:id="_Pcg00IcmEeu_aY47PcXJlg" name="ResetTurningActivity" node="_QzWr8IcmEeu_aY47PcXJlg">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_QzWr8IcmEeu_aY47PcXJlg" name="BroadcastSignalAction1" onPort="_Ngp_gEEyEeuCS5H9TEkXVw" signal="_PEHfsEEZEeuCS5H9TEkXVw"/>
-          </entry>
-        </subvertex>
-        <subvertex xmi:type="uml:State" xmi:id="_v2b9wIcLEeu_aY47PcXJlg" name="HandshakeDestination">
-          <doActivity xmi:type="uml:Activity" xmi:id="_-yvnMIcaEeu_aY47PcXJlg" name="ResetHandshakeActivity" node="_bBT8cIcgEeu_aY47PcXJlg _bBZcAIcgEeu_aY47PcXJlg">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_bBT8cIcgEeu_aY47PcXJlg" name="BroadcastResetClientHandshakeSignalAction" onPort="_uo_b8EB6Eeu2cPr2EpmBbQ" signal="_434A0EE1EeuCS5H9TEkXVw"/>
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_bBZcAIcgEeu_aY47PcXJlg" name="BroadcastResetServerSignalAction" onPort="_JWbRMFmQEeuO3LbV6wY7Ew" signal="_nTaNsEq7EeukFMAnQEhdEg"/>
-          </doActivity>
-        </subvertex>
-        <subvertex xmi:type="uml:State" xmi:id="_yN3vMIcLEeu_aY47PcXJlg" name="ConveyingDestination">
-          <doActivity xmi:type="uml:Activity" xmi:id="_JKT38IcbEeu_aY47PcXJlg" name="StartConveyingActivity" node="_9haQQIccEeu_aY47PcXJlg">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_9haQQIccEeu_aY47PcXJlg" name="BroadcastUnloadSignalAction" onPort="_M1wL4EEzEeuCS5H9TEkXVw" signal="_YDWEgEEZEeuCS5H9TEkXVw"/>
-          </doActivity>
-        </subvertex>
       </region>
     </ownedBehavior>
     <packagedElement xmi:type="uml:SignalEvent" xmi:id="_mb9ssFl_EeuO3LbV6wY7Ew" name="StoppingEvent" signal="_CjFBAEEZEeuCS5H9TEkXVw"/>
@@ -215,11 +137,6 @@
     <packagedElement xmi:type="uml:SignalEvent" xmi:id="_ViuXUFmCEeuO3LbV6wY7Ew" name="CompleteEvent" signal="_PC7fAEE8EeuCS5H9TEkXVw"/>
     <packagedElement xmi:type="uml:SignalEvent" xmi:id="_bFHB0FmCEeuO3LbV6wY7Ew" name="ResettingEvent" signal="__SjrcEEYEeuCS5H9TEkXVw"/>
     <packagedElement xmi:type="uml:SignalEvent" xmi:id="_RCqQAFmDEeuO3LbV6wY7Ew" name="ShutdownEvent" signal="_OdTXUFmDEeuO3LbV6wY7Ew"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_y8wmwIcREeu_aY47PcXJlg" name="TurningCompleteEvent" signal="_41k5kEEbEeuCS5H9TEkXVw"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_3BNToIcREeu_aY47PcXJlg" name="ServerHandshakeExecutingEvent" signal="_RQM_wEq8EeukFMAnQEhdEg"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_6T1iAIcREeu_aY47PcXJlg" name="ConveyorFullCompleteEvent" signal="_zFPJQEE0EeuCS5H9TEkXVw"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uB4rYIcVEeu_aY47PcXJlg" name="ClientHandshakeExecutingEvent" signal="_KWuA0EE3EeuCS5H9TEkXVw"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_9lGsMIcWEeu_aY47PcXJlg" name="ConveyorEmptyCompleteEvent" signal="_sM5_gEE0EeuCS5H9TEkXVw"/>
   </packagedElement>
   <packagedElement xmi:type="uml:Component" xmi:id="_Bqzx8EB5Eeu2cPr2EpmBbQ" name="ConveyorFu" classifierBehavior="_I8OjIEETEeuCS5H9TEkXVw">
     <ownedAttribute xmi:type="uml:Port" xmi:id="_v_swMEB6Eeu2cPr2EpmBbQ" name="Port1" type="_eW18gEEREeuCS5H9TEkXVw" aggregation="composite"/>
@@ -513,7 +430,7 @@
         <transition xmi:type="uml:Transition" xmi:id="_pVWyEEkgEeutj956IcOk1g" kind="local" source="_c7VhYEkgEeutj956IcOk1g" target="_d-MFgEkgEeutj956IcOk1g">
           <trigger xmi:type="uml:Trigger" xmi:id="_06z4gEqwEeukFMAnQEhdEg" name="CompletingTrigger" event="_BD--EFmJEeuO3LbV6wY7Ew"/>
         </transition>
-        <transition xmi:type="uml:Transition" xmi:id="_p1AigEkgEeutj956IcOk1g" source="_d-MFgEkgEeutj956IcOk1g" target="_fwa4IEkgEeutj956IcOk1g">
+        <transition xmi:type="uml:Transition" xmi:id="_p1AigEkgEeutj956IcOk1g" kind="local" source="_d-MFgEkgEeutj956IcOk1g" target="_fwa4IEkgEeutj956IcOk1g">
           <trigger xmi:type="uml:Trigger" xmi:id="_CgpcEEqxEeukFMAnQEhdEg" name="CompleteTrigger" event="_C3zFEFmJEeuO3LbV6wY7Ew"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_qrdCUEkgEeutj956IcOk1g" source="_fwa4IEkgEeutj956IcOk1g" target="_g7CRIEkgEeutj956IcOk1g">
@@ -642,7 +559,6 @@
     <nestedClassifier xmi:type="uml:Signal" xmi:id="_6cktwEE1EeuCS5H9TEkXVw" name="InitiateLoadingSignal"/>
     <nestedClassifier xmi:type="uml:Signal" xmi:id="_9ESW4EE1EeuCS5H9TEkXVw" name="InitiateUnloadingSignal"/>
     <nestedClassifier xmi:type="uml:Signal" xmi:id="_bQUQoEE2EeuCS5H9TEkXVw" name="StopSignal"/>
-    <nestedClassifier xmi:type="uml:Signal" xmi:id="_lp_ZEIclEeu_aY47PcXJlg" name="CompleteSignal"/>
   </packagedElement>
   <packagedElement xmi:type="uml:Interface" xmi:id="_q6mPoEEfEeuCS5H9TEkXVw" name="ClientHandshakeFuNotificationInterface">
     <nestedClassifier xmi:type="uml:Signal" xmi:id="_1oSp8EE2EeuCS5H9TEkXVw" name="StoppingReachedSignal"/>
@@ -676,7 +592,6 @@
   <packagedElement xmi:type="uml:Interface" xmi:id="_LFwsMEq7EeukFMAnQEhdEg" name="ServerHandshakeFuRequestInterface">
     <nestedClassifier xmi:type="uml:Signal" xmi:id="_nTaNsEq7EeukFMAnQEhdEg" name="ResetSignal"/>
     <nestedClassifier xmi:type="uml:Signal" xmi:id="_ot-uQEq7EeukFMAnQEhdEg" name="StoppingSignal"/>
-    <nestedClassifier xmi:type="uml:Signal" xmi:id="_om2y0IclEeu_aY47PcXJlg" name="CompleteSignal"/>
   </packagedElement>
   <packagedElement xmi:type="uml:Interface" xmi:id="_OsqhcEq7EeukFMAnQEhdEg" name="ServerHandshakeNotificationInterface">
     <nestedClassifier xmi:type="uml:Signal" xmi:id="_ytxYMEq7EeukFMAnQEhdEg" name="StoppingReachedSignal"/>
@@ -692,7 +607,7 @@
     <nestedClassifier xmi:type="uml:Signal" xmi:id="_THcOMEq8EeukFMAnQEhdEg" name="CompletingReachedSignal"/>
     <nestedClassifier xmi:type="uml:Signal" xmi:id="_UQoD0Eq8EeukFMAnQEhdEg" name="CompletedReachedSignal"/>
   </packagedElement>
-  <packagedElement xmi:type="uml:Component" xmi:id="_oS0i0FmOEeuO3LbV6wY7Ew" name="ServerHandshakeFu" classifierBehavior="_uZQ8oFmOEeuO3LbV6wY7Ew">
+  <packagedElement xmi:type="uml:Component" xmi:id="_oS0i0FmOEeuO3LbV6wY7Ew" name="ServerHandshakeFu">
     <ownedAttribute xmi:type="uml:Port" xmi:id="__qJOkFmOEeuO3LbV6wY7Ew" name="Port26" type="_LFwsMEq7EeukFMAnQEhdEg" aggregation="composite"/>
     <ownedAttribute xmi:type="uml:Port" xmi:id="_CC85AFmPEeuO3LbV6wY7Ew" name="Port27" type="_OsqhcEq7EeukFMAnQEhdEg" aggregation="composite"/>
     <ownedAttribute xmi:type="uml:Port" xmi:id="_kA5BUFmTEeuO3LbV6wY7Ew" name="Port26" type="_NXSrUEE2EeuCS5H9TEkXVw" aggregation="composite"/>
@@ -702,81 +617,82 @@
       <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZQ8o1mOEeuO3LbV6wY7Ew" name="PreparingSignal"/>
       <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZQ8pFmOEeuO3LbV6wY7Ew" name="ReadyEmptySignal"/>
       <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZQ8pVmOEeuO3LbV6wY7Ew" name="CompletingSignal"/>
+      <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZQ8plmOEeuO3LbV6wY7Ew" name="CompletedSignal"/>
       <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZQ8p1mOEeuO3LbV6wY7Ew" name="StoppedSignal"/>
       <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZQ8qFmOEeuO3LbV6wY7Ew" name="ReadyLoadedSignal"/>
       <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZQ8qVmOEeuO3LbV6wY7Ew" name="ShutdownSignal"/>
       <region xmi:type="uml:Region" xmi:id="_uZQ8qlmOEeuO3LbV6wY7Ew" name="ServerSideBehaviour">
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8q1mOEeuO3LbV6wY7Ew" kind="local">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8rFmOEeuO3LbV6wY7Ew" name="IdleLoadedTrigger" event="_uZbUsFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8rFmOEeuO3LbV6wY7Ew" name="IdleLoadedTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8rVmOEeuO3LbV6wY7Ew" kind="local">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8rlmOEeuO3LbV6wY7Ew" name="IdleEmptyTrigger" event="_uZatoFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8rlmOEeuO3LbV6wY7Ew" name="IdleEmptyTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8r1mOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8sFmOEeuO3LbV6wY7Ew" name="ResettingTrigger" event="_uZaGkFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8sFmOEeuO3LbV6wY7Ew" name="ResettingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8sVmOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8slmOEeuO3LbV6wY7Ew" name="ResettingTrigger" event="_uZaGkFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8slmOEeuO3LbV6wY7Ew" name="ResettingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8s1mOEeuO3LbV6wY7Ew" kind="local">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8tFmOEeuO3LbV6wY7Ew" name="CompletedTrigger" event="_uZgNMFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8tFmOEeuO3LbV6wY7Ew" name="CompletedTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8tVmOEeuO3LbV6wY7Ew" kind="local">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8tlmOEeuO3LbV6wY7Ew" name="CompletingTrigger" event="_uZfmIFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8tlmOEeuO3LbV6wY7Ew" name="CompletingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8t1mOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8uFmOEeuO3LbV6wY7Ew" name="ExecuteTrigger" event="_uZe_EFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8uFmOEeuO3LbV6wY7Ew" name="ExecuteTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8uVmOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8ulmOEeuO3LbV6wY7Ew" name="ExecuteTrigger" event="_uZe_EFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8ulmOEeuO3LbV6wY7Ew" name="ExecuteTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8u1mOEeuO3LbV6wY7Ew" kind="local">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8vFmOEeuO3LbV6wY7Ew" name="ReadyLoadedTrigger" event="_uZdJ4FmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8vFmOEeuO3LbV6wY7Ew" name="ReadyLoadedTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8vVmOEeuO3LbV6wY7Ew" kind="local">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8vlmOEeuO3LbV6wY7Ew" name="ReadyEmptyTrigger" event="_uZeYAFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8vlmOEeuO3LbV6wY7Ew" name="ReadyEmptyTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8v1mOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8wFmOEeuO3LbV6wY7Ew" name="PreparingTrigger" event="_uZci0FmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8wFmOEeuO3LbV6wY7Ew" name="PreparingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8wVmOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8wlmOEeuO3LbV6wY7Ew" name="StartingTrigger" event="_uZb7wFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8wlmOEeuO3LbV6wY7Ew" name="StartingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8w1mOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8xFmOEeuO3LbV6wY7Ew" name="StartingTrigger" event="_uZb7wFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8xFmOEeuO3LbV6wY7Ew" name="StartingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8xVmOEeuO3LbV6wY7Ew" kind="local">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8xlmOEeuO3LbV6wY7Ew" name="StoppedTrigger" event="_uZY4cFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8xlmOEeuO3LbV6wY7Ew" name="StoppedTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8x1mOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8yFmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8yFmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8yVmOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8ylmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8ylmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8y1mOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8zFmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8zFmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8zVmOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8zlmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ8zlmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ8z1mOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ80FmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ80FmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ80VmOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ80lmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ80lmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ801mOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ81FmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ81FmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ81VmOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ81lmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ81lmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ811mOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ82FmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ82FmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ82VmOEeuO3LbV6wY7Ew">
-          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ82lmOEeuO3LbV6wY7Ew" name="StoppingTrigger" event="_uZZfgFmOEeuO3LbV6wY7Ew"/>
+          <trigger xmi:type="uml:Trigger" xmi:id="_uZQ82lmOEeuO3LbV6wY7Ew" name="StoppingTrigger"/>
         </transition>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ821mOEeuO3LbV6wY7Ew" kind="local"/>
         <transition xmi:type="uml:Transition" xmi:id="_uZQ83FmOEeuO3LbV6wY7Ew" kind="local">
@@ -784,81 +700,90 @@
         </transition>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ83lmOEeuO3LbV6wY7Ew" name="Starting">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ831mOEeuO3LbV6wY7Ew" name="StartingActivity" node="_uZQ84FmOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ84FmOEeuO3LbV6wY7Ew" name="BroadcastStartingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_HzhC4Eq8EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ84FmOEeuO3LbV6wY7Ew" name="BroadcastStartingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ84VmOEeuO3LbV6wY7Ew" name="IdleLoaded">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ84lmOEeuO3LbV6wY7Ew" name="IdleLoadedActivity" node="_uZQ841mOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ841mOEeuO3LbV6wY7Ew" name="BroadcastIdleLoadedSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_2iu3kEq7EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ841mOEeuO3LbV6wY7Ew" name="BroadcastIdleLoadedSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ85FmOEeuO3LbV6wY7Ew" name="IdleEmpty">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ85VmOEeuO3LbV6wY7Ew" name="IdleEmptyActivity" node="_uZQ85lmOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ85lmOEeuO3LbV6wY7Ew" name="BroadcastIdleEmptySignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_GPay4Eq8EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ85lmOEeuO3LbV6wY7Ew" name="BroadcastIdleEmptySignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ851mOEeuO3LbV6wY7Ew" name="Preparing">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ86FmOEeuO3LbV6wY7Ew" name="PreparingActivity" node="_uZQ86VmOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ86VmOEeuO3LbV6wY7Ew" name="BroadcastPreparingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_JANfgEq8EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ86VmOEeuO3LbV6wY7Ew" name="BroadcastPreparingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ86lmOEeuO3LbV6wY7Ew" name="ReadyLoaded">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ861mOEeuO3LbV6wY7Ew" name="ReadyLoadedActivity" node="_uZQ87FmOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ87FmOEeuO3LbV6wY7Ew" name="BroadcastReadyLoadedSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_NBducEq8EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ87FmOEeuO3LbV6wY7Ew" name="BroadcastReadyLoadedSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ87VmOEeuO3LbV6wY7Ew" name="ReadyEmpty">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ87lmOEeuO3LbV6wY7Ew" name="ReadyEmptyActivity" node="_uZQ871mOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ871mOEeuO3LbV6wY7Ew" name="BroadcastReadyEmptySignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_OPV20Eq8EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ871mOEeuO3LbV6wY7Ew" name="BroadcastReadyEmptySignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ88FmOEeuO3LbV6wY7Ew" name="Execute">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ88VmOEeuO3LbV6wY7Ew" name="ExecuteActivity" node="_uZQ88lmOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ88lmOEeuO3LbV6wY7Ew" name="BroadcastExecuteSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_RQM_wEq8EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ88lmOEeuO3LbV6wY7Ew" name="BroadcastExecuteSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ881mOEeuO3LbV6wY7Ew" name="Completing">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ89FmOEeuO3LbV6wY7Ew" name="CompletingActivity" node="_uZQ89VmOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ89VmOEeuO3LbV6wY7Ew" name="BroadcastCompletingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_THcOMEq8EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ89VmOEeuO3LbV6wY7Ew" name="BroadcastCompletingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ89lmOEeuO3LbV6wY7Ew" name="Completed">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ891mOEeuO3LbV6wY7Ew" name="CompletedActivity" node="_uZQ8-FmOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ8-FmOEeuO3LbV6wY7Ew" name="BroadcastCompletedSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_UQoD0Eq8EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ8-FmOEeuO3LbV6wY7Ew" name="BroadcastCompletedSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ8-VmOEeuO3LbV6wY7Ew" name="Resetting">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ8-lmOEeuO3LbV6wY7Ew" name="ResettingActivity" node="_uZQ8-1mOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ8-1mOEeuO3LbV6wY7Ew" name="BroadcastResettingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_1VDjgEq7EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ8-1mOEeuO3LbV6wY7Ew" name="BroadcastResettingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ8_FmOEeuO3LbV6wY7Ew" name="Stopped">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ8_VmOEeuO3LbV6wY7Ew" name="StoppedActivity" node="_uZQ8_lmOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ8_lmOEeuO3LbV6wY7Ew" name="BroadcastStoppedSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_0QbdwEq7EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ8_lmOEeuO3LbV6wY7Ew" name="BroadcastStoppedSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:State" xmi:id="_uZQ8_1mOEeuO3LbV6wY7Ew" name="Stopping">
           <doActivity xmi:type="uml:Activity" xmi:id="_uZQ9AFmOEeuO3LbV6wY7Ew" name="StoppingActivity" node="_uZQ9AVmOEeuO3LbV6wY7Ew">
-            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ9AVmOEeuO3LbV6wY7Ew" name="BroadcastStoppingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew" signal="_ytxYMEq7EeukFMAnQEhdEg"/>
+            <node xmi:type="uml:BroadcastSignalAction" xmi:id="_uZQ9AVmOEeuO3LbV6wY7Ew" name="BroadcastStoppingSignalAction" onPort="_CC85AFmPEeuO3LbV6wY7Ew"/>
           </doActivity>
         </subvertex>
         <subvertex xmi:type="uml:Pseudostate" xmi:id="_uZQ9AlmOEeuO3LbV6wY7Ew" name="Initial"/>
         <subvertex xmi:type="uml:FinalState" xmi:id="_uZQ9A1mOEeuO3LbV6wY7Ew" name="Shutdown"/>
       </region>
     </ownedBehavior>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZY4cFmOEeuO3LbV6wY7Ew" name="StoppedEvent" signal="_uZQ8p1mOEeuO3LbV6wY7Ew"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZT_8FmOEeuO3LbV6wY7Ew" name="IdleLoadedSignal"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZUnAFmOEeuO3LbV6wY7Ew" name="IdleEmtpySignal"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZVOEFmOEeuO3LbV6wY7Ew" name="PreparingSignal"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZV1IFmOEeuO3LbV6wY7Ew" name="ReadyEmptySignal"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZWcMFmOEeuO3LbV6wY7Ew" name="CompletingSignal"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZXDQFmOEeuO3LbV6wY7Ew" name="CompletedSignal"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZXqUFmOEeuO3LbV6wY7Ew" name="StoppedSignal"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZYRYFmOEeuO3LbV6wY7Ew" name="ReadyLoadedSignal"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_uZYRYVmOEeuO3LbV6wY7Ew" name="ShutdownSignal"/>
+    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZY4cFmOEeuO3LbV6wY7Ew" name="StoppedEvent" signal="_uZXqUFmOEeuO3LbV6wY7Ew"/>
     <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZZfgFmOEeuO3LbV6wY7Ew" name="StoppingEvent" signal="_ot-uQEq7EeukFMAnQEhdEg"/>
     <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZaGkFmOEeuO3LbV6wY7Ew" name="ResettingEvent" signal="_nTaNsEq7EeukFMAnQEhdEg"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZatoFmOEeuO3LbV6wY7Ew" name="IdleEmptyEvent" signal="_uZQ8olmOEeuO3LbV6wY7Ew"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZbUsFmOEeuO3LbV6wY7Ew" name="IdleLoadedEvent" signal="_uZQ8oVmOEeuO3LbV6wY7Ew"/>
+    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZatoFmOEeuO3LbV6wY7Ew" name="IdleEmptyEvent" signal="_uZUnAFmOEeuO3LbV6wY7Ew"/>
+    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZbUsFmOEeuO3LbV6wY7Ew" name="IdleLoadedEvent" signal="_uZT_8FmOEeuO3LbV6wY7Ew"/>
     <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZb7wFmOEeuO3LbV6wY7Ew" name="StartingEvent" signal="_EqAVcFl8EeuO3LbV6wY7Ew"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZci0FmOEeuO3LbV6wY7Ew" name="PreparingEvent" signal="_uZQ8o1mOEeuO3LbV6wY7Ew"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZdJ4FmOEeuO3LbV6wY7Ew" name="ReadyLoadedEvent" signal="_uZQ8qFmOEeuO3LbV6wY7Ew"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZeYAFmOEeuO3LbV6wY7Ew" name="ReadyEmtpyEvent" signal="_uZQ8pFmOEeuO3LbV6wY7Ew"/>
+    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZci0FmOEeuO3LbV6wY7Ew" name="PreparingEvent" signal="_uZVOEFmOEeuO3LbV6wY7Ew"/>
+    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZdJ4FmOEeuO3LbV6wY7Ew" name="ReadyLoadedEvent" signal="_uZYRYFmOEeuO3LbV6wY7Ew"/>
+    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZeYAFmOEeuO3LbV6wY7Ew" name="ReadyEmtpyEvent" signal="_uZV1IFmOEeuO3LbV6wY7Ew"/>
     <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZe_EFmOEeuO3LbV6wY7Ew" name="ExecuteEvent" signal="_HGT_0Fl8EeuO3LbV6wY7Ew"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZfmIFmOEeuO3LbV6wY7Ew" name="CompletingEvent" signal="_uZQ8pVmOEeuO3LbV6wY7Ew"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZgNMFmOEeuO3LbV6wY7Ew" name="CompleteEvent" signal="_om2y0IclEeu_aY47PcXJlg"/>
-    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZg0QFmOEeuO3LbV6wY7Ew" name="ShutdownEvent" signal="_uZQ8qVmOEeuO3LbV6wY7Ew"/>
+    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZfmIFmOEeuO3LbV6wY7Ew" name="CompletingEvent" signal="_uZWcMFmOEeuO3LbV6wY7Ew"/>
+    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZgNMFmOEeuO3LbV6wY7Ew" name="CompleteEvent" signal="_uZXDQFmOEeuO3LbV6wY7Ew"/>
+    <packagedElement xmi:type="uml:SignalEvent" xmi:id="_uZg0QFmOEeuO3LbV6wY7Ew" name="ShutdownEvent" signal="_uZYRYVmOEeuO3LbV6wY7Ew"/>
   </packagedElement>
   <packagedElement xmi:type="uml:Dependency" xmi:id="_NdLEIFmQEeuO3LbV6wY7Ew" client="_JWbRMFmQEeuO3LbV6wY7Ew" supplier="__qJOkFmOEeuO3LbV6wY7Ew"/>
   <packagedElement xmi:type="uml:Dependency" xmi:id="_OSaDAFmQEeuO3LbV6wY7Ew" client="_CC85AFmPEeuO3LbV6wY7Ew" supplier="_LMmIoFmQEeuO3LbV6wY7Ew"/>
