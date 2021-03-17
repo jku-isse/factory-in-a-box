@@ -40,3 +40,6 @@ total required time around 5min
 1.	Close the box.
 
 There is an additional video for showing how the wiring of machines (here turntables) works: https://youtu.be/F8t_qSALybs 
+
+## 4)  UML
+requires Papyrus standalone version equal or later 2020-06 to load the diagrams correctly (at all)
