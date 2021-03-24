@@ -1,5 +1,7 @@
 package fiab.handshake.fu.client.methods;
 
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession;
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession.B3Header;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.stack.core.UaException;
@@ -10,8 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.handshake.actor.messages.HSClientMessage;
 
 import java.time.Duration;
+import java.util.Optional;
 
 public class Reset extends AbstractMethodInvocationHandler {
 
@@ -37,8 +41,16 @@ public class Reset extends AbstractMethodInvocationHandler {
 
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
-    	logger.debug("Invoking Reset() method of objectId={}", invocationContext.getObjectId());    	
-    	actor.tell(IOStationCapability.ClientMessageTypes.Reset, ActorRef.noSender());
+    	logger.debug("Invoking Reset() method of objectId={}", invocationContext.getObjectId());  
+    	Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+		if (headerOpt.isPresent()) {
+			// TODO trace here, for now just a log output
+			logger.info("Received B3 header: " + headerOpt.get().toString());
+		}
+		
+		HSClientMessage msg = new HSClientMessage(headerOpt.get().spanId,
+				IOStationCapability.ClientMessageTypes.Reset);
+		actor.tell(msg, ActorRef.noSender());    	
     	return new Variant[0]; 	    	
     }	
     

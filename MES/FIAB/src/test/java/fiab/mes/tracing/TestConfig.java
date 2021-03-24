@@ -1,4 +1,4 @@
-package fiab.mes.frontend;
+package fiab.mes.tracing;
 
 import com.google.inject.AbstractModule;
 

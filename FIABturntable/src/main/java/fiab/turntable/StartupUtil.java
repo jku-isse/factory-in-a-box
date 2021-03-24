@@ -1,19 +1,29 @@
 package fiab.turntable;
 
 import akka.actor.ActorSystem;
+import fiab.tracing.impl.ZipkinTracing;
+import fiab.tracing.util.Util;
 import fiab.turntable.opcua.OPCUATurntableRootActor;
+import zipkin2.reporter.AsyncReporter;
+import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 public class StartupUtil {
+
 	public static void startupWithExposedInternalControls(int portOffset, String name) {
 		startup(portOffset, name, true);
 	}
-	
+
 	public static void startupWithHiddenInternalControls(int portOffset, String name) {
 		startup(portOffset, name, false);
 	}
-	
+
 	private static void startup(int portOffset, String name, boolean exposeInternalControls) {
-		ActorSystem system = ActorSystem.create("SYSTEM_"+name);		
-        system.actorOf(OPCUATurntableRootActor.props(name, portOffset, exposeInternalControls), "TurntableRoot");
-        }
+		ActorSystem system = ActorSystem.create("SYSTEM_" + name);
+		system.registerExtension(Util.getTracingExtension());
+		
+		AsyncReporter<zipkin2.Span> reporter = AsyncReporter
+				.builder(URLConnectionSender.create(ZipkinTracing.getReportUrl())).build();
+		system.actorOf(OPCUATurntableRootActor.props(name, portOffset, exposeInternalControls, reporter),
+				"TurntableRoot");
+	}
 }

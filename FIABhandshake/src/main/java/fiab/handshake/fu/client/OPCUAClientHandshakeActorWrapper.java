@@ -25,79 +25,96 @@ import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 
 import com.google.common.collect.Lists;
 
-import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.handshake.actor.messages.HSServerMessage;
+import fiab.handshake.actor.messages.HSServerSideStateMessage;
+import fiab.tracing.actor.AbstractTracingActor;
 
-public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
+public class OPCUAClientHandshakeActorWrapper extends AbstractTracingActor {
 
 	private ActorRef localActor;
 	private ActorRef self;
-	
+
 	private ServerHandshakeNodeIds nodeIds;
-	
-	private LoggingAdapter logger = Logging.getLogger(getContext().getSystem(), this);	
+
+	private LoggingAdapter logger = Logging.getLogger(getContext().getSystem(), this);
 	private boolean isSubscribed = false;
 	private boolean hasValidNodeIds = false;
-	
-	static public Props props() {	    
+
+	static public Props props() {
 		return Props.create(OPCUAClientHandshakeActorWrapper.class, () -> new OPCUAClientHandshakeActorWrapper());
 	}
-	
+
 	public OPCUAClientHandshakeActorWrapper() {
-		super();		
+		super();
 		this.self = self();
 	}
 
-
 	@Override
 	public Receive createReceive() {
-		return receiveBuilder()
-				.match(ServerHandshakeNodeIds.class, nodeIds -> {
-					setNewNodeIds(nodeIds);
-				})
-				.match(IOStationCapability.ServerMessageTypes.class, req -> {
-					if (!hasValidNodeIds) {
-						logger.warning("Client Wrapper has no valid nodeids");
-						return;
-					}
-					switch(req) {
-					// local requests, not used here
-					case Complete:
-					case Reset:
-					case Stop:
-					//responses, that we receive from remote and forward locally
-					case NotOkResponseInitHandover:
-					case NotOkResponseStartHandover:
-					case OkResponseInitHandover:
-					case OkResponseStartHandover:
-						break;
-						
-					//from local actor to remote
-					case RequestInitiateHandover:
-						init();
-						break;
-					case RequestStartHandover:
-						start();
-						break;										
-					case SubscribeToStateUpdates:
-						if (!isSubscribed)
-							subscribeToStatus();
-						break;
-					case UnsubscribeToStateUpdates:
-						if (isSubscribed)
-							unsubscribeFromStatus();
-						break;
-					default:
-						break;					
-					}
-				})
-				.match(ActorRef.class, actorRef -> {localActor = actorRef;}) 
-				.build();
+		return receiveBuilder().match(ServerHandshakeNodeIds.class, nodeIds -> {
+			setNewNodeIds(nodeIds);
+		}).match(HSServerMessage.class, msg -> {
+			receiveHSServerMessage(msg);
+		}).match(IOStationCapability.ServerMessageTypes.class, req -> {
+			receiveHSServerMessage(new HSServerMessage("", req));
+		}).match(ActorRef.class, actorRef -> {
+			localActor = actorRef;
+		}).build();
+	}
+
+	private void receiveHSServerMessage(HSServerMessage msg) {
+		IOStationCapability.ServerMessageTypes req = msg.getBody();
+
+		if (!hasValidNodeIds) {
+			logger.warning("Client Wrapper has no valid nodeids");
+			return;
+		}
+
+		try {
+			tracer.startConsumerSpan(msg, "OPCUA CLient Handshake Actor Wrapper: " + req.toString() + " received");
+			switch (req) {
+			// local requests, not used here
+			case Complete:
+			case Reset:
+			case Stop:
+				// responses, that we receive from remote and forward locally
+			case NotOkResponseInitHandover:
+			case NotOkResponseStartHandover:
+			case OkResponseInitHandover:
+			case OkResponseStartHandover:
+				break;
+
+			// from local actor to remote
+			case RequestInitiateHandover:
+				init();
+				break;
+			case RequestStartHandover:
+				start();
+				break;
+			case SubscribeToStateUpdates:
+				if (!isSubscribed)
+					subscribeToStatus();
+				break;
+			case UnsubscribeToStateUpdates:
+				if (isSubscribed)
+					unsubscribeFromStatus();
+				break;
+			default:
+				logger.warning("Received unknown HSServerMessage", req);
+				break;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracer.finishCurrentSpan();
+		}
+
 	}
 
 	private void unsubscribeFromStatus() {
@@ -108,15 +125,14 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 
 	private CompletableFuture<String> callMethod(NodeId methodId) {
 
-		CallMethodRequest request = new CallMethodRequest(
-				nodeIds.getCapabilityImplNode(), methodId, new Variant[]{});
+		CallMethodRequest request = new CallMethodRequest(nodeIds.getCapabilityImplNode(), methodId, new Variant[] {});
 
 		return nodeIds.getClient().call(request).thenCompose(result -> {
 			StatusCode statusCode = result.getStatusCode();
 
-			if (statusCode.isGood()) {								
+			if (statusCode.isGood()) {
 				int len = result.getOutputArguments() != null ? result.getOutputArguments().length : -1;
-				if (len > 0 ) {
+				if (len > 0) {
 					String value = (String) (result.getOutputArguments())[0].getValue();
 					return CompletableFuture.completedFuture(value);
 				} else { // workaround here as FORTE doesn't return result in current i/o station version
@@ -134,7 +150,7 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 			}
 		});
 	}
-	
+
 	private void setNewNodeIds(ServerHandshakeNodeIds nodeIds) {
 //		if (this.nodeIds != null && this.nodeIds.getClient() != null) {
 //			try {
@@ -147,15 +163,20 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 		hasValidNodeIds = true;
 	}
 
-
 	public void init() {
 		callMethod(nodeIds.getInitMethod()).exceptionally(ex -> {
-			logger.warning("Exception Calling Init Method on OPCUA Node: "+nodeIds.getInitMethod().toParseableString() + ex.getMessage());
+			logger.warning("Exception Calling Init Method on OPCUA Node: " + nodeIds.getInitMethod().toParseableString()
+					+ ex.getMessage());
 			ex.printStackTrace();
-			localActor.tell(IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover, self);
-			return IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover.toString();
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
+					IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover);
+			tracer.injectMsg(msg);
+			localActor.tell(msg, self);
+
+			return msg.getBody().toString();
 		}).thenAccept(resp -> {
-			logger.info("Called Init Method successfully on OPCUA Node: "+nodeIds.getInitMethod().toParseableString()+" with result "+resp);
+			logger.info("Called Init Method successfully on OPCUA Node: " + nodeIds.getInitMethod().toParseableString()
+					+ " with result " + resp);
 			IOStationCapability.ServerMessageTypes respMsg = IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover;
 			try {
 				if (resp.equals("OK")) {
@@ -164,91 +185,96 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 					respMsg = IOStationCapability.ServerMessageTypes.valueOf(resp);
 				}
 			} catch (java.lang.IllegalArgumentException e) {
-				logger.error("Received Unknown State: "+e.getMessage());
+				logger.error("Received Unknown State: " + e.getMessage());
 			}
-			localActor.tell(respMsg, self);
+
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(), respMsg);
+			tracer.injectMsg(msg);
+			localActor.tell(msg, self);
 		});
 	}
 
-
 	public void start() {
 		callMethod(nodeIds.getStartMethod()).exceptionally(ex -> {
-			logger.warning("Exception Calling Start Method on OPCUA Node: "+nodeIds.getStartMethod().toParseableString(), ex);
-			localActor.tell(IOStationCapability.ServerMessageTypes.NotOkResponseStartHandover, self);
+			logger.warning(
+					"Exception Calling Start Method on OPCUA Node: " + nodeIds.getStartMethod().toParseableString(),
+					ex);
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
+					IOStationCapability.ServerMessageTypes.NotOkResponseStartHandover);
+			tracer.injectMsg(msg);
+			localActor.tell(msg, self);
 			return IOStationCapability.ServerMessageTypes.NotOkResponseStartHandover.toString();
 		}).thenAccept(resp -> {
-			logger.info("Called Start Method successfully on OPCUA Node: "+nodeIds.getStartMethod().toParseableString()+" with result "+resp);
+			logger.info("Called Start Method successfully on OPCUA Node: "
+					+ nodeIds.getStartMethod().toParseableString() + " with result " + resp);
 			IOStationCapability.ServerMessageTypes respMsg = IOStationCapability.ServerMessageTypes.NotOkResponseStartHandover;
 			try {
 				if (resp.equals("OK")) {
 					respMsg = IOStationCapability.ServerMessageTypes.OkResponseStartHandover;
 				} else {
 					respMsg = IOStationCapability.ServerMessageTypes.valueOf(resp);
-				}		
+				}
 			} catch (java.lang.IllegalArgumentException e) {
-				logger.error("Received Unknown State: "+e.getMessage());
+				logger.error("Received Unknown State: " + e.getMessage());
 			}
-			localActor.tell(respMsg, self);
+			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(), respMsg);
+			tracer.injectMsg(msg);
+			localActor.tell(msg, self);
 		});
 	}
 
 	public void subscribeToStatus() {
-		// from: https://github.com/eclipse/milo/blob/release/0.3.7/milo-examples/client-examples/src/main/java/org/eclipse/milo/examples/client/SubscriptionExample.java
+		// from:
+		// https://github.com/eclipse/milo/blob/release/0.3.7/milo-examples/client-examples/src/main/java/org/eclipse/milo/examples/client/SubscriptionExample.java
 		try {
 			UaSubscription subscription = nodeIds.getClient().getSubscriptionManager().createSubscription(100.0).get();
-			ReadValueId readValueId = new ReadValueId(nodeIds.getStateVar(), AttributeId.Value.uid(), null, QualifiedName.NULL_VALUE);
+			ReadValueId readValueId = new ReadValueId(nodeIds.getStateVar(), AttributeId.Value.uid(), null,
+					QualifiedName.NULL_VALUE);
 			UInteger clientHandle = subscription.nextClientHandle();
-			MonitoringParameters parameters = new MonitoringParameters(
-					clientHandle,
-					100.0,     // sampling interval
-					null,       // filter, null means use default
-					uint(10),   // queue size
-					true        // discard oldest
-					);
-			MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(
-					readValueId,
-					MonitoringMode.Reporting,
-					parameters
-					);
-			BiConsumer<UaMonitoredItem, Integer> onItemCreated =
-					(item, id) -> item.setValueConsumer(this::onStateSubscriptionChange);
+			MonitoringParameters parameters = new MonitoringParameters(clientHandle, 100.0, // sampling interval
+					null, // filter, null means use default
+					uint(10), // queue size
+					true // discard oldest
+			);
+			MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(readValueId, MonitoringMode.Reporting,
+					parameters);
+			BiConsumer<UaMonitoredItem, Integer> onItemCreated = (item, id) -> item
+					.setValueConsumer(this::onStateSubscriptionChange);
 
-					List<UaMonitoredItem> items = subscription.createMonitoredItems(
-							TimestampsToReturn.Both,
-							Lists.newArrayList(request),
-							onItemCreated
-							).get();
-					for (UaMonitoredItem item : items) {
-						if (item.getStatusCode().isGood()) {
-							logger.info("item created for nodeId={}", item.getReadValueId().getNodeId());							
-						} else {
-							logger.warning(
-									"failed to create item for nodeId={} (status={})",
-									item.getReadValueId().getNodeId(), item.getStatusCode());
-						}
-					}
-			isSubscribed = true;			
+			List<UaMonitoredItem> items = subscription
+					.createMonitoredItems(TimestampsToReturn.Both, Lists.newArrayList(request), onItemCreated).get();
+			for (UaMonitoredItem item : items) {
+				if (item.getStatusCode().isGood()) {
+					logger.info("item created for nodeId={}", item.getReadValueId().getNodeId());
+				} else {
+					logger.warning("failed to create item for nodeId={} (status={})", item.getReadValueId().getNodeId(),
+							item.getStatusCode());
+				}
+			}
+			isSubscribed = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	private void onStateSubscriptionChange(UaMonitoredItem item, DataValue value) {
-		logger.info(
-				"subscription value received: item={}, value={}",
-				item.getReadValueId().getNodeId(), value.getValue());
-		if( value.getValue().isNotNull() ) {
+		logger.info("subscription value received: item={}, value={}", item.getReadValueId().getNodeId(),
+				value.getValue());
+		if (value.getValue().isNotNull()) {
 			String stateAsString = value.getValue().getValue().toString();
 			System.out.println(stateAsString);
 			try {
-				ServerSideStates state = ServerSideStates.valueOf(stateAsString);
+				HSServerSideStateMessage msg = new HSServerSideStateMessage(tracer.getCurrentHeader(),
+						ServerSideStates.valueOf(stateAsString));
+				tracer.injectMsg(msg);
+
 				if (this.localActor != null) {
-					localActor.tell(state, self);
+					localActor.tell(msg, self);
 				}
 			} catch (java.lang.IllegalArgumentException e) {
-				logger.error("Received Unknown State: "+e.getMessage());
+				logger.error("Received Unknown State: " + e.getMessage());
 			}
-			
+
 		}
 	}
 }

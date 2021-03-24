@@ -65,12 +65,7 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.7.30</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.68</version>
-		</dependency>
+		</dependency>		
 	</dependencies>
 	<build>
 		<plugins>

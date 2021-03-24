@@ -14,6 +14,7 @@ import zipkin2.reporter.brave.ZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 public class ZipkinTracing implements Traceability {
+	private final static String REPORT_URL = "http://localhost:9411/api/v2/spans";
 	private final static URLConnectionSender sender;
 	private final static ZipkinSpanHandler handler;
 
@@ -25,7 +26,7 @@ public class ZipkinTracing implements Traceability {
 	private Span currentSpan;
 
 	static {
-		sender = URLConnectionSender.create("http://localhost:9411/api/v2/spans");
+		sender = URLConnectionSender.create(REPORT_URL);
 		handler = AsyncZipkinSpanHandler.create(sender).toBuilder().alwaysReportSpans(true).build();
 	}
 
@@ -134,6 +135,10 @@ public class ZipkinTracing implements Traceability {
 	private void printSpanFinished() {
 		System.out.print("Span finished: ");
 		ZipkinUtil.printSpan(currentSpan);
+	}
+	
+	public static String getReportUrl() {
+		return REPORT_URL;
 	}
 
 }

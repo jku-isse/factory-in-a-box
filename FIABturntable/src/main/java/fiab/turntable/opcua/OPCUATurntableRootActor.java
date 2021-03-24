@@ -41,6 +41,8 @@ import fiab.turntable.opcua.methods.Reset;
 import fiab.turntable.opcua.methods.Stop;
 import fiab.turntable.opcua.methods.TransportRequest;
 import fiab.turntable.turning.fu.opcua.TurningFU;
+import zipkin2.Span;
+import zipkin2.reporter.AsyncReporter;
 
 public class OPCUATurntableRootActor extends AbstractTracingActor {
 
@@ -55,25 +57,26 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
-	static public Props props(String machineName, int portOffset, boolean exposeInternalControl) {
+	static public Props props(String machineName, int portOffset, boolean exposeInternalControl,
+			AsyncReporter<zipkin2.Span> reporter) {
 		return Props.create(OPCUATurntableRootActor.class,
-				() -> new OPCUATurntableRootActor(machineName, "", portOffset, exposeInternalControl));
+				() -> new OPCUATurntableRootActor(machineName, "", portOffset, exposeInternalControl, reporter));
 	}
 
-	static public Props props(String machineName, String wiringFilePath, int portOffset,
-			boolean exposeInternalControl) {
-		return Props.create(OPCUATurntableRootActor.class,
-				() -> new OPCUATurntableRootActor(machineName, wiringFilePath, portOffset, exposeInternalControl));
+	static public Props props(String machineName, String wiringFilePath, int portOffset, boolean exposeInternalControl,
+			AsyncReporter<zipkin2.Span> reporter) {
+		return Props.create(OPCUATurntableRootActor.class, () -> new OPCUATurntableRootActor(machineName,
+				wiringFilePath, portOffset, exposeInternalControl, reporter));
 	}
 
 	public OPCUATurntableRootActor(String machineName, String wiringFilePath, int portOffset,
-			boolean exposeInternalControl) {
+			boolean exposeInternalControl, AsyncReporter<zipkin2.Span> reporter) {
 		try {
 			this.wiringFilePath = wiringFilePath;
 			this.machineName = machineName;
 			this.portOffset = portOffset;
 			this.exposeInternalControl = exposeInternalControl;
-			init();
+			init(reporter);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -88,8 +91,7 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 			receiveTTModuleWellknownCapabilityIdentifier(new TTModuleWellknwonCapabilityIdentifierMessage("", req));
 		}).match(MachineStatusUpdateEvent.class, req -> {
 			try {
-				tracer.startConsumerSpan(req,
-						"OPCUA Turntable Root Actor: Machine Status Update Event received");
+				tracer.startConsumerSpan(req, "OPCUA Turntable Root Actor: Machine Status Update Event received");
 				setStatusValue(req.getStatus().toString());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -100,8 +102,7 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 		}).match(InternalTransportModuleRequest.class, req -> {
 			// forward to return response directly into method call back
 			try {
-				tracer.startConsumerSpan(req,
-						"OPCUA Turntable Root Actor: Internal Transport Module Request received");
+				tracer.startConsumerSpan(req, "OPCUA Turntable Root Actor: Internal Transport Module Request received");
 				if (ttWrapper != null)
 					ttWrapper.forward(req, getContext());
 			} catch (Exception e) {
@@ -142,7 +143,7 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 
 	}
 
-	private void init() throws Exception {
+	private void init(AsyncReporter<Span> reporter) throws Exception {
 		OPCUABase opcuaBase;
 		if (System.getProperty("os.name").contains("win")) {
 			NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
@@ -189,17 +190,17 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 		// there is always a west, south, north, client
 		HandshakeFU westFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(),
 				TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, false,
-				exposeInternalControl);
+				exposeInternalControl, reporter);
 		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, westFU);
 
 		HandshakeFU southFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(),
 				TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, false,
-				exposeInternalControl);
+				exposeInternalControl, reporter);
 		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, southFU);
 
 		HandshakeFU northFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(),
 				TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, false,
-				exposeInternalControl);
+				exposeInternalControl, reporter);
 		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, northFU);
 
 		// we can have server and client set up regardless of shopfloor location, TODO:
@@ -212,7 +213,7 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 		// } else { // we have a client here
 		HandshakeFU eastClientFU = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, ttWrapper, getContext(),
 				TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, false,
-				exposeInternalControl);
+				exposeInternalControl, reporter);
 		handshakeFUs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, eastClientFU);
 		// }
 

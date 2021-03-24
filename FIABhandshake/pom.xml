@@ -59,17 +59,7 @@
 			<artifactId>junit-jupiter-api</artifactId>
 			<version>5.7.0-M1</version>
 			<scope>test</scope>
-		</dependency>		
-		<dependency>
-			<groupId>org.eclipse.milo</groupId>
-			<artifactId>sdk-server</artifactId>
-			<version>0.3.9-SNAPSHOT-zipkin</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.milo</groupId>
-			<artifactId>sdk-client</artifactId>
-			<version>0.3.9-SNAPSHOT-zipkin</version>
-		</dependency>
+		</dependency>			
 	</dependencies>
 	<build>
 		<plugins>
@@ -129,38 +119,6 @@
 							<packaging>jar</packaging>
 							<file>${project.basedir}/../libs/FIABtracing-1.0.0-SNAPSHOT.jar
 							</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>install-jar-lib-4</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<phase>validate</phase>
-						<configuration>
-							<groupId>org.eclipse.milo</groupId>
-							<artifactId>sdk-server</artifactId>
-							<version>0.3.9-SNAPSHOT-zipkin</version>
-							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/sdk-server-0.3.9-SNAPSHOT-zipkin.jar
-							</file>
-							<generatePom>true</generatePom>
-						</configuration>
-					</execution>
-					<execution>
-						<id>install-jar-lib-5</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<phase>validate</phase>
-						<configuration>
-							<groupId>org.eclipse.milo</groupId>
-							<artifactId>sdk-client</artifactId>
-							<version>0.3.9-SNAPSHOT-zipkin</version>
-							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/sdk-client-0.3.9-SNAPSHOT-zipkin.jar
-							</file>
-							<generatePom>true</generatePom>
 						</configuration>
 					</execution>
 				</executions>

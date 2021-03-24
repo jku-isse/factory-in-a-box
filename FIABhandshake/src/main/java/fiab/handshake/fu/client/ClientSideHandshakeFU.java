@@ -66,17 +66,17 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 	private AsyncReporter<zipkin2.Span> reporter;
 	private WiringInfo currentWiringInfo;
 	
-	public ClientSideHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef ttBaseActor, ActorContext context, String capInstId, boolean isProvided, boolean exposeInternalControl) {
-		this.base = base;
-		this.rootNode = root;
-		this.ttBaseActor = ttBaseActor;
-		this.context = context;
-		this.capInstId = capInstId;
-		this.fuPrefix = fuPrefix;
-		this.isProvided = isProvided;
-		this.exposeInternalControl = exposeInternalControl;
-		setupOPCUANodeSet();
-	}
+//	public ClientSideHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef ttBaseActor, ActorContext context, String capInstId, boolean isProvided, boolean exposeInternalControl) {
+//		this.base = base;
+//		this.rootNode = root;
+//		this.ttBaseActor = ttBaseActor;
+//		this.context = context;
+//		this.capInstId = capInstId;
+//		this.fuPrefix = fuPrefix;
+//		this.isProvided = isProvided;
+//		this.exposeInternalControl = exposeInternalControl;
+//		setupOPCUANodeSet();
+//	}
 	
 	public ClientSideHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef ttBaseActor, ActorContext context, String capInstId, boolean isProvided, boolean exposeInternalControl, AsyncReporter<zipkin2.Span> reporter) {
 		this.base = base;
@@ -87,7 +87,7 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		this.fuPrefix = fuPrefix;
 		this.isProvided = isProvided;
 		this.exposeInternalControl = exposeInternalControl;
-		this.reporter = reporter;
+		this.reporter = reporter;	
 		setupOPCUANodeSet();
 	}
 	
@@ -100,6 +100,8 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 			opcuaWrapper = context.actorOf(OPCUAClientHandshakeActorWrapper.props(), capInstId+"_OPCUAWrapper");
 			localClient = context.actorOf(ClientHandshakeActor.props(ttBaseActor, opcuaWrapper, this), capInstId);
 			opcuaWrapper.tell(localClient, ActorRef.noSender());
+			
+			//TODO add header information
 			ttBaseActor.tell(new LocalEndpointStatus.LocalClientEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender()); 
 			
 			if (exposeInternalControl) {
@@ -162,7 +164,6 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		try {
 			client = new OPCUAClientFactory().createTracingClient(info.getRemoteEndpointURL(), reporter);
 			client.connect().get();
-
 		} catch (Exception e) {
 			logger.warn(e.getMessage());
 			throw new WiringException("Could not connect to remote endpoint");

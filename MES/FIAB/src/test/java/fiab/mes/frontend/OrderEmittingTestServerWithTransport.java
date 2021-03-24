@@ -59,11 +59,9 @@ public class OrderEmittingTestServerWithTransport {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
-
-		Injector injector = Guice.createInjector(new TestConfig());
-		TracingExtension tracingExt = new TracingExtension(injector);
-		TracingExtension.setProvider(tracingExt);
-		system.registerExtension(new TracingExtension(injector));
+		
+		system.registerExtension(fiab.mes.tracing.Util.getTracingExtension());
+		
 //		final Http http = Http.get(system);
 //		
 //		HttpsConnectionContext https = HttpsConfigurator.useHttps(system);

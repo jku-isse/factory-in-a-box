@@ -23,7 +23,12 @@
 			<artifactId>akka-actor_2.12</artifactId>
 			<version>${akka.version}</version>
 		</dependency>
-
+		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>22.0</version>
+		</dependency>
 		<!--dependency> <groupId>org.junit.platform</groupId> <artifactId>junit-platform-commons</artifactId> 
 			<version>1.5.2</version> </dependency -->
 		<dependency>
@@ -152,26 +157,12 @@
 		<!-- <artifactId>stack-client</artifactId> -->
 		<!-- <version>0.3.3</version> -->
 		<!-- </dependency> -->
-		<dependency>
-			<groupId>org.eclipse.milo</groupId>
-			<artifactId>stack-core</artifactId>
-			<version>0.3.7</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.milo</groupId>
-			<artifactId>sdk-server</artifactId>
-			<version>0.3.7</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.milo</groupId>
-			<artifactId>sdk-core</artifactId>
-			<version>0.3.7</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.milo</groupId>
-			<artifactId>sdk-client</artifactId>
-			<version>0.3.7</version>
-		</dependency>
+		<!-- >dependency> <groupId>org.eclipse.milo</groupId> <artifactId>stack-core</artifactId> 
+			<version>0.3.7</version> </dependency> <dependency> <groupId>org.eclipse.milo</groupId> 
+			<artifactId>sdk-server</artifactId> <version>0.3.7</version> </dependency> 
+			<dependency> <groupId>org.eclipse.milo</groupId> <artifactId>sdk-core</artifactId> 
+			<version>0.3.7</version> </dependency> <dependency> <groupId>org.eclipse.milo</groupId> 
+			<artifactId>sdk-client</artifactId> <version>0.3.7</version> </dependency -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
@@ -210,7 +201,7 @@
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABopcuabase</artifactId>
-			<version>1.0.3-SNAPSHOT</version>
+			<version>1.2.0-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -248,9 +239,8 @@
 			<artifactId>CoreModel</artifactId>
 			<version>1.0.0</version>
 			<scope>compile</scope>
-		</dependency>
+		</dependency>	
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -281,9 +271,9 @@
 						<configuration>
 							<groupId>factory.in.a.box</groupId>
 							<artifactId>FIABopcuabase</artifactId>
-							<version>1.0.3-SNAPSHOT</version>
+							<version>1.2.0-SNAPSHOT</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/../../libs/FIABopcuabase-1.0.3-SNAPSHOT.jar</file>
+							<file>${project.basedir}/../../libs/FIABopcuabase-1.2.0-SNAPSHOT.jar</file>
 						</configuration>
 					</execution>
 					<execution>
