@@ -27,31 +27,7 @@
             <artifactId>stateless4j</artifactId>
             <version>2.5.0</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.milo</groupId>
-            <artifactId>stack-core</artifactId>
-            <version>0.3.7</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.milo</groupId>
-            <artifactId>sdk-server</artifactId>
-            <version>0.3.7</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.milo</groupId>
-            <artifactId>sdk-core</artifactId>
-            <version>0.3.7</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.milo</groupId>
-            <artifactId>sdk-client</artifactId>
-            <version>0.3.7</version>
-            <scope>compile</scope>
-        </dependency>
+        </dependency>    
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor_2.12</artifactId>
@@ -103,7 +79,7 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABopcuabase</artifactId>
-            <version>1.0.3-SNAPSHOT</version>
+            <version>1.2.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -176,9 +152,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABopcuabase</artifactId>
-                            <version>1.0.3-SNAPSHOT</version>
+                            <version>1.2.0-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/FIABopcuabase-1.0.3-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABopcuabase-1.2.0-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>
