@@ -53,18 +53,19 @@ public class InitHandover extends AbstractMethodInvocationHandler {
 
 		logger.debug("Invoking InitHandover() method of objectId={}", invocationContext.getObjectId());
 		Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
-		if (headerOpt.isPresent()) {
-			// TODO trace here, for now just a log output
-			logger.info("Received B3 header: " + headerOpt.get().toString());
-		}
 		Object resp;
-
 		try {
-			HSServerMessage msg = new HSServerMessage(headerOpt.get().spanId,
-					IOStationCapability.ServerMessageTypes.RequestInitiateHandover);
+			HSServerMessage msg;
+			if (headerOpt.isPresent()) {
+				logger.info("Received B3 header: " + headerOpt.get().toString());
+				msg = new HSServerMessage(headerOpt.get().spanId,
+						IOStationCapability.ServerMessageTypes.RequestInitiateHandover);
+			} else {
+				msg = new HSServerMessage("", IOStationCapability.ServerMessageTypes.RequestInitiateHandover);
+			}
 			resp = ask(actor, msg, timeout).toCompletableFuture().get();
 		} catch (InterruptedException | ExecutionException e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage());			
 			resp = IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover;
 		}
 		return new Variant[] { new Variant(resp.toString()) };

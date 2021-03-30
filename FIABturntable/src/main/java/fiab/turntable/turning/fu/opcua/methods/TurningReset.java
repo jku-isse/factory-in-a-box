@@ -1,7 +1,10 @@
 package fiab.turntable.turning.fu.opcua.methods;
 
 import java.time.Duration;
+import java.util.Optional;
 
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession;
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession.B3Header;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.stack.core.UaException;
@@ -11,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.turntable.actor.messages.TurningTriggerMessage;
 import fiab.turntable.turning.statemachine.TurningTriggers;
 
 public class TurningReset extends AbstractMethodInvocationHandler {
@@ -37,8 +41,14 @@ public class TurningReset extends AbstractMethodInvocationHandler {
 
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
-    	logger.debug("Invoking Reset() method of objectId={}", invocationContext.getObjectId());    	
-    	actor.tell(TurningTriggers.RESET, ActorRef.noSender());
+    	logger.debug("Invoking Reset() method of objectId={}", invocationContext.getObjectId());     	
+    	Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+    	TurningTriggerMessage msg;
+    	if(headerOpt.isPresent())
+    		msg = new TurningTriggerMessage(headerOpt.get().spanId, TurningTriggers.RESET);
+    	else
+    		msg = new TurningTriggerMessage("", TurningTriggers.RESET);
+    	actor.tell(msg, ActorRef.noSender());
     	return new Variant[0]; 	    	
     }	
     

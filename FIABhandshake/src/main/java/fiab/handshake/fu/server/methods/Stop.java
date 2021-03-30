@@ -43,12 +43,13 @@ public class Stop extends AbstractMethodInvocationHandler {
 	protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {
 		logger.debug("Invoking Stop() method of objectId={}", invocationContext.getObjectId());
 		Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+		HSServerMessage msg;
 		if (headerOpt.isPresent()) {
-			// TODO trace here, for now just a log output
 			logger.info("Received B3 header: " + headerOpt.get().toString());
+			msg = new HSServerMessage(headerOpt.get().spanId, IOStationCapability.ServerMessageTypes.Stop);
+		} else {
+			msg = new HSServerMessage("", IOStationCapability.ServerMessageTypes.Stop);
 		}
-		HSServerMessage msg = new HSServerMessage(headerOpt.get().spanId, IOStationCapability.ServerMessageTypes.Stop);
-
 		actor.tell(msg, ActorRef.noSender());
 		return new Variant[0];
 	}

@@ -43,13 +43,13 @@ public class Complete extends AbstractMethodInvocationHandler {
 	protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {
 		logger.debug("Invoking Complete() method of objectId={}", invocationContext.getObjectId());
 		Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+		HSClientMessage msg;
 		if (headerOpt.isPresent()) {
-			// TODO trace here, for now just a log output
 			logger.info("Received B3 header: " + headerOpt.get().toString());
+			msg = new HSClientMessage(headerOpt.get().spanId, IOStationCapability.ClientMessageTypes.Complete);
+		} else {
+			msg = new HSClientMessage("", IOStationCapability.ClientMessageTypes.Complete);
 		}
-		
-		HSClientMessage msg = new HSClientMessage(headerOpt.get().spanId,
-				IOStationCapability.ClientMessageTypes.Complete);
 		actor.tell(msg, ActorRef.noSender());
 		return new Variant[0];
 	}

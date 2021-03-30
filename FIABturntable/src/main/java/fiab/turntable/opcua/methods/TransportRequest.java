@@ -3,9 +3,12 @@ package fiab.turntable.opcua.methods;
 import static akka.pattern.Patterns.ask;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession;
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession.B3Header;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
@@ -94,6 +97,14 @@ public class TransportRequest extends AbstractMethodInvocationHandler {
 			String orderId = (String) inputValues[2].getValue();
 			String reqId = (String) inputValues[3].getValue();
 			InternalTransportModuleRequest itmr = new InternalTransportModuleRequest(capIdFrom, capIdTo, orderId, reqId);
+			
+			Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+			if(headerOpt.isPresent()) {
+				logger.info("Received B3 header: " + headerOpt.get().toString());
+				itmr.setHeader(headerOpt.get().spanId);
+			}else {
+				itmr.setHeader("");
+			}
 			
 			resp = ask(actor, itmr, timeout).toCompletableFuture().get();
 			if (resp instanceof MachineStatusUpdateEvent) {

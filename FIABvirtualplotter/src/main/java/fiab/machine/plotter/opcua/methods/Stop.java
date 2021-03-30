@@ -1,5 +1,7 @@
 package fiab.machine.plotter.opcua.methods;
 
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession;
+import org.eclipse.milo.opcua.sdk.server.ModifiedSession.B3Header;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.stack.core.UaException;
@@ -10,8 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
+import fiab.machine.plotter.messages.PlotterMessage;
 
 import java.time.Duration;
+import java.util.Optional;
 
 public class Stop extends AbstractMethodInvocationHandler {
 
@@ -38,7 +42,13 @@ public class Stop extends AbstractMethodInvocationHandler {
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
     	logger.debug("Invoking Stop() method of objectId={}", invocationContext.getObjectId());    	
-    	actor.tell(PlotterMessageTypes.Stop, ActorRef.noSender());
+    	Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+		PlotterMessage msg;
+		if (headerOpt.isPresent())
+			msg = new PlotterMessage(headerOpt.get().spanId, PlotterMessageTypes.Stop);
+		else
+			msg = new PlotterMessage("", PlotterMessageTypes.Stop);
+		actor.tell(msg, ActorRef.noSender());
     	return new Variant[0]; 	    	
     }	
     

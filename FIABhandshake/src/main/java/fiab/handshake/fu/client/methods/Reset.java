@@ -43,14 +43,14 @@ public class Reset extends AbstractMethodInvocationHandler {
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
     	logger.debug("Invoking Reset() method of objectId={}", invocationContext.getObjectId());  
     	Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+    	HSClientMessage msg;
 		if (headerOpt.isPresent()) {
-			// TODO trace here, for now just a log output
 			logger.info("Received B3 header: " + headerOpt.get().toString());
+			msg = new HSClientMessage(headerOpt.get().spanId, IOStationCapability.ClientMessageTypes.Reset);
+		} else {
+			msg = new HSClientMessage("", IOStationCapability.ClientMessageTypes.Reset);
 		}
-		
-		HSClientMessage msg = new HSClientMessage(headerOpt.get().spanId,
-				IOStationCapability.ClientMessageTypes.Reset);
-		actor.tell(msg, ActorRef.noSender());    	
+		actor.tell(msg, ActorRef.noSender()); 	
     	return new Variant[0]; 	    	
     }	
     
