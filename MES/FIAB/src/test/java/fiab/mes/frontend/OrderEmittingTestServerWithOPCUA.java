@@ -60,15 +60,17 @@ public class OrderEmittingTestServerWithOPCUA {
 
 	public static void main(String args[]) {
 		// Dual TT tests:
-		TestTurntableWithIOStations.startupW34toE35();
+//		TestTurntableWithIOStations.startupW34toE35();
+		
 	}
 	
 	
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
+		system.registerExtension(fiab.mes.tracing.Util.getTracingExtension());
 
-		binding = ShopfloorStartup.startup(null, 2, system);		
+		binding = ShopfloorStartup.startup(null, 1, system);		
 		orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	
 		machineEventBus = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		orderEntryActor = system.actorSelection("/user/"+OrderEntryActor.WELLKNOWN_LOOKUP_NAME);//.resolveOne(Timeout.create(Duration.ofSeconds(3)))..;

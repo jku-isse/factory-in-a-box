@@ -3,28 +3,28 @@
 		"localCapabilityId": "WEST_CLIENT",
 		"remoteCapabilityId": "DefaultHandshakeServerSide",
 		"remoteEndpointURL": "opc.tcp://localhost:4840/milo",
-		"remoteNodeId": "ns=2;s=InputStation/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1",
+		"remoteNodeId": "ns=2;s=InputStation1/IOSTATION/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
 		"remoteRole": "RemoteRole1"
 	},
 	"SOUTH_CLIENT": {
 		"localCapabilityId": "SOUTH_CLIENT",
 		"remoteCapabilityId": "DefaultHandshakeServerSide",
 		"remoteEndpointURL": "opc.tcp://localhost:4847/milo",
-		"remoteNodeId": "ns=2;s=VirtualPlotter2/Plotting_FU/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+		"remoteNodeId": "ns=2;s=VirtualPlotter2/Plotting_FU/Handshake_FU/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
 		"remoteRole": "RemoteRole1"
 	},
 	"NORTH_CLIENT": {
 		"localCapabilityId": "NORTH_CLIENT",
 		"remoteCapabilityId": "DefaultHandshakeServerSide",
 		"remoteEndpointURL": "opc.tcp://localhost:4845/milo",
-		"remoteNodeId": "ns=2;s=VirtualPlotter1/Plotting_FU/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+		"remoteNodeId": "ns=2;s=VirtualPlotter1/Plotting_FU/Handshake_FU/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
 		"remoteRole": "RemoteRole1"
 	},
 	"EAST_CLIENT": {
 		"localCapabilityId": "EAST_CLIENT",
 		"remoteCapabilityId": "DefaultHandshakeServerSide",
 		"remoteEndpointURL": "opc.tcp://localhost:4843/milo",
-		"remoteNodeId": "ns=2;s=OutputStation/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1",
+		"remoteNodeId": "ns=2;s=OutputStation1/IOSTATION/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
 		"remoteRole": "RemoteRole1"
 	}
 }

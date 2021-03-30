@@ -8,6 +8,10 @@ import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 public class StartupUtil {
+	private final static AsyncReporter<zipkin2.Span> reporter;
+	static {
+		reporter = AsyncReporter.builder(URLConnectionSender.create(ZipkinTracing.getReportUrl())).build();
+	}
 
 	public static void startupWithExposedInternalControls(int portOffset, String name) {
 		startup(portOffset, name, true);
@@ -20,9 +24,7 @@ public class StartupUtil {
 	private static void startup(int portOffset, String name, boolean exposeInternalControls) {
 		ActorSystem system = ActorSystem.create("SYSTEM_" + name);
 		system.registerExtension(Util.getTracingExtension());
-		
-		AsyncReporter<zipkin2.Span> reporter = AsyncReporter
-				.builder(URLConnectionSender.create(ZipkinTracing.getReportUrl())).build();
+
 		system.actorOf(OPCUATurntableRootActor.props(name, portOffset, exposeInternalControls, reporter),
 				"TurntableRoot");
 	}

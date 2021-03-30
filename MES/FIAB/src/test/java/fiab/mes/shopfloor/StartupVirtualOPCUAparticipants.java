@@ -25,7 +25,7 @@ public class StartupVirtualOPCUAparticipants {
 		// TT1 EAST
 		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(3, "OutputStation1");
 		// TT1 itself - ensure this starts later than the others or has no prior wiring configured
-		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1TracingTest");
+	fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1TracingTest");
 		
 	}
 }

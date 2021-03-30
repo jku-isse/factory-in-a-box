@@ -127,14 +127,15 @@ public class ZipkinTracing implements Traceability {
 	}
 
 	private void printSpanStarted() {
-		System.out.print("New Span started: ");
-		ZipkinUtil.printSpan(currentSpan);
+//		System.out.print("New Span started: ");
+//		ZipkinUtil.printSpan(currentSpan);
 
 	}
+	
 
 	private void printSpanFinished() {
-		System.out.print("Span finished: ");
-		ZipkinUtil.printSpan(currentSpan);
+//		System.out.print("Span finished: ");
+//		ZipkinUtil.printSpan(currentSpan);
 	}
 	
 	public static String getReportUrl() {
