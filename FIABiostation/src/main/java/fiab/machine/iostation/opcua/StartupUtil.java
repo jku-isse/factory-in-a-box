@@ -2,7 +2,7 @@ package fiab.machine.iostation.opcua;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import fiab.tracing.util.Util;
+import fiab.tracing.util.TracingUtil;
 
 public class StartupUtil {
 
@@ -16,7 +16,7 @@ public class StartupUtil {
 	
 	private static void startup(int portOffset, String name, boolean isInputStation) {
 		ActorSystem system = ActorSystem.create("SYSTEM_"+name);	
-		system.registerExtension(Util.getTracingExtension());
+		system.registerExtension(TracingUtil.getTracingExtension());
 		ActorRef actor = isInputStation ? system.actorOf(OPCUAIOStationRootActor.propsForInputStation(name, portOffset), name) :
 										system.actorOf(OPCUAIOStationRootActor.propsForOutputStation(name, portOffset), name);
 	}

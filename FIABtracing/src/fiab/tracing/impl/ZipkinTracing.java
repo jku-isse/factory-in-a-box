@@ -41,12 +41,12 @@ public class ZipkinTracing implements Traceability {
 		scope = createNewScope(localServiceName, "Default");
 	}
 
-	@Override
+	
 	public void startProducerSpan(String spanName) {
 		currentSpan = tracing.tracer().nextSpan().name(spanName).kind(Kind.PRODUCER).start();
 	}
 
-	@Override
+	
 	public void startConsumerSpan(String spanName) {
 		currentSpan = tracing.tracer().newChild(scope.context()).kind(Kind.CONSUMER).name(spanName).start();
 	}
@@ -98,11 +98,7 @@ public class ZipkinTracing implements Traceability {
 		else
 			return currentSpanHeader();
 	}
-
-	@Override
-	public Object getCurrentSpan() {
-		return currentSpan;
-	}
+	
 
 //	@Override
 //	public Span createNewTrace(String traceName, String spanName) {

@@ -39,7 +39,7 @@ class TestTurntableOPCUADiscovery {
 	        ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
 	        int portOffset = 2;
 	        boolean exposeInternalControls = false;
-	        system.actorOf(OPCUATurntableRootActor.props("Turntable1", portOffset, exposeInternalControls), "TurntableRoot");
+	        system.actorOf(OPCUATurntableRootActor.props("Turntable1", portOffset, exposeInternalControls,null), "TurntableRoot");
 	 }
 	
 	private static final Logger logger = LoggerFactory.getLogger(TestTurntableOPCUADiscovery.class);

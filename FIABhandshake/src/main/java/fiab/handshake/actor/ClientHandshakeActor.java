@@ -78,7 +78,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 		log.info(String.format("Received %s from %s", body, getSender()));
 		try {
-			tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");
+			tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");	
 			switch (body) {
 			case Reset:
 				reset(); // prepare for next round

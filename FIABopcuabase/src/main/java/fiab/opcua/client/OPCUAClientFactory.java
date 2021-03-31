@@ -1,5 +1,7 @@
 package fiab.opcua.client;
 
+import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,10 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import zipkin2.reporter.AsyncReporter;
-import zipkin2.reporter.Sender;
-import zipkin2.reporter.urlconnection.URLConnectionSender;
-
-import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class OPCUAClientFactory {
 

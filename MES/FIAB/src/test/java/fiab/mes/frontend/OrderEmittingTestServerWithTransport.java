@@ -60,7 +60,7 @@ public class OrderEmittingTestServerWithTransport {
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
 		
-		system.registerExtension(fiab.mes.tracing.Util.getTracingExtension());
+//		system.registerExtension(fiab.mes.tracing.Util.getTracingExtension());
 		
 //		final Http http = Http.get(system);
 //		

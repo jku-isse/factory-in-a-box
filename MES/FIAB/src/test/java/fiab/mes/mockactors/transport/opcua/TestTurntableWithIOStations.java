@@ -67,7 +67,7 @@ public class TestTurntableWithIOStations {
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
         int portOffset = 2;
         boolean exposeInternalControls = false;
-        system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toS37", portOffset, exposeInternalControls), "TurntableRoot");
+        system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toS37", portOffset, exposeInternalControls,null), "TurntableRoot");
 	}
 	
 	public static void startupW34toN31toS37() {
@@ -77,7 +77,7 @@ public class TestTurntableWithIOStations {
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
         int portOffset = 2;
         boolean exposeInternalControls = false;
-        system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toS37", portOffset, exposeInternalControls), "TurntableRoot");
+        system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toS37", portOffset, exposeInternalControls,null), "TurntableRoot");
 	}
 	
 	public static void startupW34toE35() {
@@ -89,10 +89,10 @@ public class TestTurntableWithIOStations {
 		ActorSystem systemTT1 = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA1");
         int portOffsetTT1 = 2;
         boolean exposeInternalControls = false;
-        systemTT1.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toE21", portOffsetTT1, exposeInternalControls), "TurntableRoot");
+        systemTT1.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toE21", portOffsetTT1, exposeInternalControls,null), "TurntableRoot");
         ActorSystem systemTT2 = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA2");
         int portOffsetTT2 = 3;
-        systemTT2.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW20toN32toE35", portOffsetTT2, exposeInternalControls), "TurntableRoot");
+        systemTT2.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW20toN32toE35", portOffsetTT2, exposeInternalControls,null), "TurntableRoot");
 	
 	}
 	
