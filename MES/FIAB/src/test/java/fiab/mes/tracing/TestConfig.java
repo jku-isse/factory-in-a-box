@@ -3,7 +3,7 @@ package fiab.mes.tracing;
 import com.google.inject.AbstractModule;
 
 import fiab.tracing.Traceability;
-import fiab.tracing.impl.ZipkinTracing;
+import fiab.tracing.impl.zipkin.ZipkinTracing;
 
 public class TestConfig extends AbstractModule {
 

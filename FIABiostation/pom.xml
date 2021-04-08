@@ -38,32 +38,17 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.2.3</version>
-		</dependency>
-		<dependency>
-			<groupId>factory.in.a.box</groupId>
-			<artifactId>FIABopcuabase</artifactId>
-			<version>1.2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>factory.in.a.box</groupId>
-			<artifactId>FIABcore</artifactId>
-			<version>1.1.0-SNAPSHOT</version>
-		</dependency>
+		</dependency>		
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABhandshake</artifactId>
-			<version>1.1.0-SNAPSHOT</version>
+			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABhardware</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>factory.in.a.box</groupId>
-			<artifactId>FIABtracing</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
+		</dependency>		
 	</dependencies>
 	<build>
 		<plugins>
@@ -79,7 +64,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
 				<version>2.5.2</version>
-				<executions>
+				<executions>					
 					<execution>
 						<id>install-jar-lib</id>
 						<goals>
@@ -88,45 +73,15 @@
 						<phase>validate</phase>
 						<configuration>
 							<groupId>factory.in.a.box</groupId>
-							<artifactId>FIABcore</artifactId>
-							<version>1.1.0-SNAPSHOT</version>
+							<artifactId>FIABhandshake</artifactId>
+							<version>1.2.0-SNAPSHOT</version>
 							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/FIABcore-1.1.0-SNAPSHOT.jar
+							<file>${project.basedir}/../libs/FIABhandshake-1.2.0-SNAPSHOT.jar
 							</file>
 						</configuration>
 					</execution>
 					<execution>
 						<id>install-jar-lib-2</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<phase>validate</phase>
-						<configuration>
-							<groupId>factory.in.a.box</groupId>
-							<artifactId>FIABopcuabase</artifactId>
-							<version>1.2.0-SNAPSHOT</version>
-							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/FIABopcuabase-1.2.0-SNAPSHOT.jar
-							</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>install-jar-lib-3</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<phase>validate</phase>
-						<configuration>
-							<groupId>factory.in.a.box</groupId>
-							<artifactId>FIABhandshake</artifactId>
-							<version>1.1.0-SNAPSHOT</version>
-							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/FIABhandshake-1.1.0-SNAPSHOT.jar
-							</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>install-jar-lib-4</id>
 						<goals>
 							<goal>install-file</goal>
 						</goals>
@@ -139,22 +94,7 @@
 							<file>${project.basedir}/../libs/FIABhardware-1.0.0-SNAPSHOT.jar
 							</file>
 						</configuration>
-					</execution>
-					<execution>
-						<id>install-jar-lib-5</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<phase>validate</phase>
-						<configuration>
-							<groupId>factory.in.a.box</groupId>
-							<artifactId>FIABtracing</artifactId>
-							<version>1.0.0-SNAPSHOT</version>
-							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/FIABtracing-1.0.0-SNAPSHOT.jar
-							</file>
-						</configuration>
-					</execution>
+					</execution>					
 				</executions>
 			</plugin>
 			<!--plugin>

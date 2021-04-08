@@ -44,6 +44,7 @@ import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 
 public class OrderEmittingTestServerWithOPCUA {
 	
@@ -68,7 +69,7 @@ public class OrderEmittingTestServerWithOPCUA {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
-		system.registerExtension(fiab.mes.tracing.Util.getTracingExtension());
+		system.registerExtension(fiab.mes.tracing.TestTracingUtil.getTracingExtension());
 
 		binding = ShopfloorStartup.startup(null, 1, system);		
 		orderEventBus = system.actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);	

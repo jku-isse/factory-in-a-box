@@ -2,8 +2,8 @@ package fiab.tracing.actor.messages;
 
 public interface TracingHeader {
 
-	void setHeader(String header);
+	void setTracingHeader(String header);
 
-	String getHeader();
+	String getTracingHeader();
 
 }

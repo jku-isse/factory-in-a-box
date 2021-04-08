@@ -92,7 +92,9 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 				tracer.startConsumerSpan(les, "Transport Module Coordinator: Local Client Endpoint Status received");
 				if (!epNonUpdateableStates.contains(currentState)) {
 					this.eps.addOrReplace(les);
-					this.intraEventBus.publish(new WiringUpdateEvent(self.path().name(), les));
+					WiringUpdateEvent event = new WiringUpdateEvent(self.path().name(), les);
+					event.setTracingHeader(tracer.getCurrentHeader());
+					this.intraEventBus.publish(event);
 				} else {
 					log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
 				}
@@ -170,12 +172,12 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 
 	private void receiveInternalTransportModuleRequest(InternalTransportModuleRequest req) {
 		try {
-			tracer.startConsumerSpan(req, "TransportCoordinator: Internal Transport Module Request received");
+			tracer.startConsumerSpan(req, "Internal Transport Module Request received");
 
 			if (currentState.equals(BasicMachineStates.IDLE)) {
 				MachineStatusUpdateEvent event = new MachineStatusUpdateEvent(self.path().name(),
 						OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", BasicMachineStates.STARTING);
-				event.setHeader(tracer.getCurrentHeader());
+				event.setTracingHeader(tracer.getCurrentHeader());
 				tracer.injectMsg(event);
 
 				sender().tell(event, self);
@@ -190,7 +192,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 				MachineInWrongStateResponse resp = new MachineInWrongStateResponse(getSelf().path().name(),
 						OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Machine is not in correct state", currentState,
 						req, BasicMachineStates.IDLE);
-				resp.setHeader(tracer.getCurrentHeader());
+				resp.setTracingHeader(tracer.getCurrentHeader());
 				tracer.injectMsg(resp);
 
 				sender().tell(resp, self);
@@ -286,8 +288,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 		ttFUState = state.getStatus();
 
 		try {
-			tracer.startConsumerSpan(state,
-					"TransportCoordinator: Turntable Status Update Event" + state.toString() + " received");
+			tracer.startConsumerSpan(state, "Status update: " + state.getStatus().toString() + " received");
 
 			switch (state.getStatus()) {
 			case IDLE:
@@ -376,7 +377,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 		if (doPublishState) {
 			MachineStatusUpdateEvent event = new MachineStatusUpdateEvent(self.path().name(),
 					OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState);
-			event.setHeader(tracer.getCurrentHeader());
+			event.setTracingHeader(tracer.getCurrentHeader());
 			tracer.injectMsg(event);
 			intraEventBus.publish(event);
 		}

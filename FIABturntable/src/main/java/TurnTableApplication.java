@@ -1,6 +1,5 @@
 import akka.actor.ActorSystem;
-import fiab.tracing.impl.ZipkinTracing;
-import fiab.tracing.util.TracingUtil;
+import fiab.tracing.impl.zipkin.ZipkinTracing;
 import fiab.turntable.opcua.OPCUATurntableRootActor;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
@@ -14,7 +13,7 @@ public class TurnTableApplication {
 			System.exit(-1);
 		}
 		ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
-		system.registerExtension(TracingUtil.getTracingExtension());
+		
 
 		AsyncReporter<zipkin2.Span> reporter = AsyncReporter
 				.builder(URLConnectionSender.create(ZipkinTracing.getReportUrl())).build();

@@ -125,7 +125,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 				MachineInWrongStateResponse resp = new MachineInWrongStateResponse("",
 						OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Machine not in state to plot", currentState,
 						PlotterMessageTypes.Plot, BasicMachineStates.IDLE);
-				resp.setHeader(tracer.getCurrentHeader());
+				resp.setTracingHeader(tracer.getCurrentHeader());
 				tracer.injectMsg(resp);
 				sender().tell(resp, self);
 				break;
@@ -206,7 +206,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 
 	private void updateCapability(String newCapability) {
 		MachineCapabilityUpdateEvent event = new MachineCapabilityUpdateEvent("", "Plot_Capability", newCapability);
-		event.setHeader(tracer.getCurrentHeader());
+		event.setTracingHeader(tracer.getCurrentHeader());
 		tracer.injectMsg(event);
 		intraEventBus.publish(event);
 	}
@@ -218,9 +218,8 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		if (doPublishState) {
 			MachineStatusUpdateEvent event = new MachineStatusUpdateEvent("",
 					OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState);
-			event.setHeader(tracer.getCurrentHeader());
+			event.setTracingHeader(tracer.getCurrentHeader());
 			tracer.injectMsg(event);
-
 			intraEventBus.publish(event);
 		}
 	}
@@ -279,7 +278,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		setAndPublishState(BasicMachineStates.STARTING);
 		MachineStatusUpdateEvent event = new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME,
 				"", currentState);
-		event.setHeader(tracer.getCurrentHeader());
+		event.setTracingHeader(tracer.getCurrentHeader());
 		tracer.injectMsg(event);
 		sender().tell(event, self);
 		// now here we also enable pallet to be loaded onto machine

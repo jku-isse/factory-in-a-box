@@ -4,7 +4,7 @@ import fiab.tracing.actor.messages.TracingHeader;
 
 public class InternalTransportModuleRequest implements TracingHeader {
 
-	private String header;
+	private String tracingHeader;
 
 	protected String capabilityInstanceIdFrom;
 	protected String capabilityInstanceIdTo;
@@ -12,12 +12,18 @@ public class InternalTransportModuleRequest implements TracingHeader {
 	protected String requestId;
 
 	public InternalTransportModuleRequest(String capabilityInstanceIdFrom, String capabilityInstanceIdTo,
-			String orderId, String requestId) {
+			String orderId, String requestId, String tracingHeader) {
 		super();
 		this.capabilityInstanceIdFrom = capabilityInstanceIdFrom;
 		this.capabilityInstanceIdTo = capabilityInstanceIdTo;
 		this.orderId = orderId;
 		this.requestId = requestId;
+		this.tracingHeader = tracingHeader;
+	}
+
+	public InternalTransportModuleRequest(String capabilityInstanceIdFrom, String capabilityInstanceIdTo,
+			String orderId, String requestId) {
+		this(capabilityInstanceIdFrom, capabilityInstanceIdTo, orderId, requestId, "");
 	}
 
 	public String getCapabilityInstanceIdFrom() {
@@ -37,13 +43,13 @@ public class InternalTransportModuleRequest implements TracingHeader {
 	}
 
 	@Override
-	public void setHeader(String header) {
-		this.header = header;
+	public void setTracingHeader(String header) {
+		this.tracingHeader = header;
 	}
 
 	@Override
-	public String getHeader() {
-		return header;
+	public String getTracingHeader() {
+		return tracingHeader;
 	}
 
 }

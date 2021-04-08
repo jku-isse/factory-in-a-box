@@ -56,14 +56,14 @@ public class MachineEntryActor extends AbstractTracingActor {
 					machineActors.remove(me.getMachine().getId());
 				})
 				.match(MachineEvent.class, event -> {
-					try {
-						tracer.startConsumerSpan(event, "Machine Entry Actor: Machine Event received");
+//					try {
+//						tracer.startConsumerSpan(event, "Machine Entry Actor: Machine Event received");
 						latestChange.put(event.getMachineId(), event);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}finally {
-						tracer.finishCurrentSpan();
-					}					
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}finally {
+//						tracer.finishCurrentSpan();
+//					}					
 				})
 				.match(GenericMachineRequests.BaseRequest.class, req -> {
 				

@@ -85,11 +85,13 @@ public class BasicTransportModuleActor extends AbstractTracingActor {
 				.match(TransportModuleRequest.class, req -> {
 					try {
 						tracer.startConsumerSpan(req,
-								"Basic Transport Module Actor: Transport Module Request received");
+								"Transport Module Request received");
 
 						log.info(String.format("Received TransportModuleRequest from %s to %s for order %s",
 								req.getPosFrom(), req.getPosTo(), req.getOrderId()));
 						if (currentState.equals(BasicMachineStates.IDLE)) {
+							req.setTracingHeader(tracer.getCurrentHeader());
+							tracer.injectMsg(req);
 							processTransportModuleRequest(req);
 						} else {
 							String msg = String.format(
@@ -100,7 +102,7 @@ public class BasicTransportModuleActor extends AbstractTracingActor {
 							MachineInWrongStateResponse resp = new MachineInWrongStateResponse(machineId.getId(),
 									OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, this.currentState, req,
 									BasicMachineStates.IDLE);
-							resp.setHeader(tracer.getCurrentHeader());
+							resp.setTracingHeader(tracer.getCurrentHeader());
 							tracer.injectMsg(resp);
 							getSender().tell(resp, self());
 						}
@@ -130,7 +132,7 @@ public class BasicTransportModuleActor extends AbstractTracingActor {
 				}).match(Reset.class, req -> {
 					try {
 						tracer.startConsumerSpan(req,
-								"Basic Transport Module Actor: " + req.toString() + " received");
+								"Reset received");
 						if (currentState.equals(BasicMachineStates.COMPLETE)
 								|| currentState.equals(BasicMachineStates.STOPPED)) {
 							log.info(String.format("TransportModule %s received ResetRequest in suitable state",
@@ -180,7 +182,7 @@ public class BasicTransportModuleActor extends AbstractTracingActor {
 		if (capFrom.isPresent() && capTo.isPresent()) {
 			setAndPublishSensedState(BasicMachineStates.STARTING);
 			reservedForTReq = new InternalTransportModuleRequest(capFrom.get(), capTo.get(), req.getOrderId(),
-					req.getRequestId());
+					req.getRequestId(),req.getTracingHeader());
 			hal.transport(reservedForTReq);
 		} else {
 			log.warning(String.format("TransportModuleRequest %s from %s to %s cannt be resolved to local capabilities",
@@ -228,7 +230,7 @@ public class BasicTransportModuleActor extends AbstractTracingActor {
 			this.currentState = newState;
 			MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(),
 					OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
-			mue.setHeader(tracer.getCurrentHeader());
+			mue.setTracingHeader(tracer.getCurrentHeader());
 			tracer.injectMsg(mue);
 			tellEventBus(mue);
 		}

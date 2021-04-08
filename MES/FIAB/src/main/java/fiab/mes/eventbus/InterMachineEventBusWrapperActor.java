@@ -42,14 +42,15 @@ public class InterMachineEventBusWrapperActor extends AbstractTracingActor {
 				}) 
 				.match(MachineEvent.class, event -> {
 					log.debug("Received Publish Event: "+event.toString() );
-					try {
-						tracer.startConsumerSpan(event, "Inter Machine Event Bus Wrapper: Machine Event "+/*event.toString()+*/" received");								
+					//TODO For tracing machine events
+//					try {
+//						tracer.startConsumerSpan(event, "Inter Machine Event Bus Wrapper: Machine Event "+/*event.toString()+*/" received");								
 						meb.publish(event);						
-					} catch (Exception e) {
-						e.printStackTrace();
-					} finally {
-						tracer.finishCurrentSpan();
-					}
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					} finally {
+//						tracer.finishCurrentSpan();
+//					}
 				})
 		.build();
 	}

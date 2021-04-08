@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>factory.in.a.box</groupId>
 	<artifactId>FIABhandshake</artifactId>
-	<version>1.1.0-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<name>Pallet Handover Handshake</name>
 	<description>Server and Client side actors and OPCUA based FUs</description>
 	<properties>
@@ -43,17 +43,7 @@
 			<groupId>factory.in.a.box</groupId>
 			<artifactId>FIABopcuabase</artifactId>
 			<version>1.2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>factory.in.a.box</groupId>
-			<artifactId>FIABcore</artifactId>
-			<version>1.1.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>factory.in.a.box</groupId>
-			<artifactId>FIABtracing</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
+		</dependency>		
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
@@ -90,37 +80,7 @@
 							<file>${project.basedir}/../libs/FIABopcuabase-1.2.0-SNAPSHOT.jar
 							</file>
 						</configuration>
-					</execution>
-					<execution>
-						<id>install-jar-lib-2</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<phase>validate</phase>
-						<configuration>
-							<groupId>factory.in.a.box</groupId>
-							<artifactId>FIABcore</artifactId>
-							<version>1.1.0-SNAPSHOT</version>
-							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/FIABcore-1.1.0-SNAPSHOT.jar
-							</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>install-jar-lib-3</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<phase>validate</phase>
-						<configuration>
-							<groupId>factory.in.a.box</groupId>
-							<artifactId>FIABtracing</artifactId>
-							<version>1.0.0-SNAPSHOT</version>
-							<packaging>jar</packaging>
-							<file>${project.basedir}/../libs/FIABtracing-1.0.0-SNAPSHOT.jar
-							</file>
-						</configuration>
-					</execution>
+					</execution>					
 				</executions>
 			</plugin>
 		</plugins>

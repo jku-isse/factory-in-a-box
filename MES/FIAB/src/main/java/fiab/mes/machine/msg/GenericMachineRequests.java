@@ -23,12 +23,12 @@ public class GenericMachineRequests {
 		}
 
 		@Override
-		public String getHeader() {
+		public String getTracingHeader() {
 			return this.header;
 		}
 
 		@Override
-		public void setHeader(String header) {
+		public void setTracingHeader(String header) {
 			this.header = header;
 		}
 

@@ -274,7 +274,6 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractTracingActor {
 			} catch (java.lang.IllegalArgumentException e) {
 				logger.error("Received Unknown State: " + e.getMessage());
 			}
-
 		}
 	}
 }

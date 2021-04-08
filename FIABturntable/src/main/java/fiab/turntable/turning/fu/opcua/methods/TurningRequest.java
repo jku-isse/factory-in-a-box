@@ -55,9 +55,9 @@ public class TurningRequest extends AbstractMethodInvocationHandler {
 			Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
 			TurnRequest req = new TurnRequest(TurnTableOrientation.createFromInt(pos));
 			if(headerOpt.isPresent())
-				req.setHeader(headerOpt.get().spanId);
+				req.setTracingHeader(headerOpt.get().spanId);
 			else
-				req.setHeader("");
+				req.setTracingHeader("");
 			actor.tell(req, ActorRef.noSender());
 		} catch (Exception e) {
 			logger.error(e.getMessage());

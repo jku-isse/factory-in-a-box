@@ -13,12 +13,18 @@ public class RegisterProcessStepRequest implements TracingHeader {
 
 	public RegisterProcessStepRequest(String rootOrderId, String processStepId, ProcessCore.ProcessStep step,
 			ActorRef requestor) {
+		this(rootOrderId,processStepId,step,requestor,"");
+	}
+	public RegisterProcessStepRequest(String rootOrderId, String processStepId, ProcessCore.ProcessStep step,
+			ActorRef requestor,String header) {
 		super();
 		this.rootOrderId = rootOrderId;
 		this.processStepId = processStepId;
 		this.step = step;
 		this.requestor = requestor;
+		this.header = header;
 	}
+
 
 	public String getRootOrderId() {
 		return rootOrderId;
@@ -53,12 +59,12 @@ public class RegisterProcessStepRequest implements TracingHeader {
 	}
 
 	@Override
-	public void setHeader(String header) {
+	public void setTracingHeader(String header) {
 		this.header = header;
 	}
 
 	@Override
-	public String getHeader() {
+	public String getTracingHeader() {
 		return header;
 	}
 

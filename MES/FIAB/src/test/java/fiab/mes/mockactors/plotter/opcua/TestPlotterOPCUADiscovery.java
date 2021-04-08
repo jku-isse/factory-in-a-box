@@ -34,7 +34,7 @@ import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 class TestPlotterOPCUADiscovery {
 
 	public static void main(String args[]) {
-		StartupUtil.startup(0, "VirtualPlotter1", SupportedColors.BLACK);
+		StartupUtil.startup(0, "VirtualPlotter1", SupportedColors.BLACK,null);
 	}
 	
 	public static String TESTPLOTTER31 = "opc.tcp://localhost:4840/milo";

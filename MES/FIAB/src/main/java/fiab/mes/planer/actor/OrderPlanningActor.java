@@ -105,11 +105,11 @@ public class OrderPlanningActor extends AbstractTracingActor {
 	public Receive createReceive() {
 		return receiveBuilder().match(RegisterProcessRequest.class, rpReq -> {
 			try {
-				tracer.startConsumerSpan(rpReq, "Order Planning Actor: Register Process Request received");
+				tracer.startConsumerSpan(rpReq, "Register Process Request received");
 				log.info("Received Register Order Request: " + rpReq.getRootOrderId());
 				// reqIndex.put(rpReq.getRootOrderId(), rpReq);
 				if (state.equals(PlannerState.FULLY_OPERATIONAL)) {
-					// TODO Order Event tracen?
+					
 					ordMapper.registerOrder(rpReq);
 					scheduleProcess(rpReq.getRootOrderId(), rpReq.getProcess());
 				} else {
@@ -332,7 +332,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 					log.info(String.format("Order %s about to be registered at machine %s", rootOrderId,
 							aa.getValue().getId()));
 					aa.getValue().getAkkaActor().tell(new RegisterProcessStepRequest(rootOrderId,
-							aa.getKey().toString(), aa.getKey(), this.self()), this.self());
+							aa.getKey().toString(), aa.getKey(), this.self(),tracer.getCurrentHeader()), this.self());
 
 				});
 				if (!maOpt.isPresent()) {
@@ -492,7 +492,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 			case SCHEDULED:
 				// waiting for machine to respond, lets cancel this at the machine
 				CancelOrTerminateOrder cot = new CancelOrTerminateOrder(req.getRootOrderId());
-				cot.setHeader(tracer.getCurrentHeader());
+				cot.setTracingHeader(tracer.getCurrentHeader());
 				tracer.injectMsg(cot);
 
 				ordMapper.getRequestedMachineOfOrder(req.getRootOrderId()).ifPresent(machine -> {
@@ -758,7 +758,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 			// reservation
 		} else {
 			ordMapper.markOrderWaitingForTransport(orderId);
-			transportCoordinator.tell(new RegisterTransportRequest(currentLoc.get(), destination, orderId, self), self);
+			transportCoordinator.tell(new RegisterTransportRequest(currentLoc.get(), destination, orderId, self,tracer.getCurrentHeader()), self);
 		}
 
 	}

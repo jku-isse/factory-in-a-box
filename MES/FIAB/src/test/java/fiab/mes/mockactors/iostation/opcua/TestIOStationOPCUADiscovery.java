@@ -36,8 +36,8 @@ import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 class TestIOStationOPCUADiscovery {
 
 	public static void main(String args[]) {
-		StartupUtil.startupInputstation(0, "VirtualInputStation1");
-		StartupUtil.startupOutputstation(1, "VirtualOutputStation1");
+		StartupUtil.startupInputstation(0, "VirtualInputStation1",null);
+		StartupUtil.startupOutputstation(1, "VirtualOutputStation1",null);
 	}
 		
 	private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUADiscovery.class);

@@ -1,19 +1,20 @@
 package fiab.handshake.actor;
 
 import java.time.Duration;
+
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.StatePublisher;
+import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
+import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.handshake.actor.messages.HSClientMessage;
 import fiab.handshake.actor.messages.HSClientSideStateMessage;
 import fiab.handshake.actor.messages.HSServerMessage;
 import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.tracing.actor.AbstractTracingActor;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 
 public class ClientHandshakeActor extends AbstractTracingActor {
 
@@ -78,7 +79,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 		log.info(String.format("Received %s from %s", body, getSender()));
 		try {
-			tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");	
+			tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");
 			switch (body) {
 			case Reset:
 				reset(); // prepare for next round
@@ -87,9 +88,8 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 				start(); // engage in handshake: subscribe to state updates
 				break;
 			case Complete:
-				if (currentState.equals(ClientSideStates.EXECUTE)) // only if we are in state executing, otherwise
-																	// complete
-																	// makes no sense
+				// only if we are in state executing, otherwise complete makes no sense
+				if (currentState.equals(ClientSideStates.EXECUTE))
 					complete(); // handshake can be wrapped up
 				break;
 			case Stop:
@@ -120,11 +120,9 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 				break;
 			case OkResponseInitHandover:
 				receiveInitiateOkResponse();
-
 				break;
 			case OkResponseStartHandover:
 				receiveStartOkResponse();
-
 				break;
 			default:
 				log.warning("Unexpected ServerSide MessageType received: " + body.toString());
@@ -143,8 +141,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 		log.info(String.format("Received %s from %s in local state %s", body, getSender(), currentState));
 		try {
-			tracer.startConsumerSpan(msg,
-					"Client-Handshake: Server Side State: " + body.toString() + " received");
+			tracer.startConsumerSpan(msg, "Client-Handshake: Server Side State: " + body.toString() + " received");
 			if (getSender().equals(serverSide)) {
 				remoteState = body;
 				switch (body) {
@@ -202,7 +199,6 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		machineWrapper.tell(msg, getSelf());
 		if (publishEP != null)
 			publishEP.setStatusValue(newState.toString());
-
 	}
 
 	private void reset() {

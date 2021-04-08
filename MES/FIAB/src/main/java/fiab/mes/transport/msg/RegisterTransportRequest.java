@@ -53,12 +53,12 @@ public class RegisterTransportRequest implements TracingHeader {
 	}
 
 	@Override
-	public void setHeader(String header) {
+	public void setTracingHeader(String header) {
 		this.header = header;
 	}
 
 	@Override
-	public String getHeader() {
+	public String getTracingHeader() {
 		return header;
 	}
 }

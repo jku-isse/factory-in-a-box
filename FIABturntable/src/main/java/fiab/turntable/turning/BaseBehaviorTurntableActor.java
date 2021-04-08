@@ -51,12 +51,19 @@ public class BaseBehaviorTurntableActor extends AbstractTracingActor {
 			receiveTurningTrigger(new TurningTriggerMessage("", req));
 
 		}).match(TurnRequest.class, req -> {
-			if (tsm.canFire(TURN_TO)) {
-				tsm.fire(TURN_TO); // in STARTING
-				publishNewState();
-				turn(req);
-			} else {
-				log.warning("Turntable not ready for TurningRequest to: " + req.getTto());
+			try {
+				tracer.startConsumerSpan(req, "Turn Request received");
+				if (tsm.canFire(TURN_TO)) {
+					tsm.fire(TURN_TO); // in STARTING
+					publishNewState();
+					turn(req);
+				} else {
+					log.warning("Turntable not ready for TurningRequest to: " + req.getTto());
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				tracer.finishCurrentSpan();
 			}
 
 		}).matchAny(msg -> {
@@ -92,7 +99,6 @@ public class BaseBehaviorTurntableActor extends AbstractTracingActor {
 		} finally {
 			tracer.finishCurrentSpan();
 		}
-		
 
 	}
 
@@ -102,7 +108,7 @@ public class BaseBehaviorTurntableActor extends AbstractTracingActor {
 		if (intraEventBus != null) {
 			TurntableStatusUpdateEvent event = new TurntableStatusUpdateEvent("",
 					OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", tsm.getState());
-			event.setHeader(tracer.getCurrentHeader());
+			event.setTracingHeader(tracer.getCurrentHeader());
 			tracer.injectMsg(event);
 
 			intraEventBus.publish(event);

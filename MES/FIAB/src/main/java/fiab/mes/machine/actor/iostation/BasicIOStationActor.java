@@ -187,7 +187,7 @@ public class BasicIOStationActor extends AbstractTracingActor {
 		log.info(msg);
 		this.currentState = newState;
 		MachineUpdateEvent mue = new IOStationStatusUpdateEvent(machineId.getId(), msg, newState);
-		mue.setHeader(tracer.getCurrentHeader());
+		mue.setTracingHeader(tracer.getCurrentHeader());
 		tracer.injectMsg(mue);
 		externalHistory.add(mue);
 		tellEventBus(mue);
@@ -257,7 +257,7 @@ public class BasicIOStationActor extends AbstractTracingActor {
 			reservedForOrder = ror;
 
 			ReadyForProcessEvent event = new ReadyForProcessEvent(ror);
-			event.setHeader(tracer.getCurrentHeader());
+			event.setTracingHeader(tracer.getCurrentHeader());
 			tracer.injectMsg(event);
 
 			ror.getRequestor().tell(event, getSelf());

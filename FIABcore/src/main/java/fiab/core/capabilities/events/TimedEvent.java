@@ -34,12 +34,12 @@ public abstract class TimedEvent implements TracingHeader {
 	}
 
 	@Override
-	public String getHeader() {
+	public String getTracingHeader() {
 		return header;
 	}
 
 	@Override
-	public void setHeader(String header) {
+	public void setTracingHeader(String header) {
 		this.header = header;
 	}
 

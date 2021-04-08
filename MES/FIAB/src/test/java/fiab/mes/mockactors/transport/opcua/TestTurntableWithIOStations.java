@@ -41,10 +41,13 @@ import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
+import fiab.mes.tracing.TestTracingUtil;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.msg.TransportModuleRequest;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
+import fiab.tracing.extension.TracingExtension;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 import fiab.turntable.opcua.OPCUATurntableRootActor;
 
 public class TestTurntableWithIOStations {
@@ -62,18 +65,20 @@ public class TestTurntableWithIOStations {
 	}
 	
 	public static void startupW34toS37(){
-		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1");
-		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
+		TracingExtension ext = fiab.mes.tracing.TestTracingUtil.getTracingExtension();
+		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1",ext);
+		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1",ext);
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
+        system.registerExtension(ext);
         int portOffset = 2;
         boolean exposeInternalControls = false;
-        system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toS37", portOffset, exposeInternalControls,null), "TurntableRoot");
+        system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toS37", portOffset, exposeInternalControls,TestTracingUtil.getReporter()), "TurntableRoot");
 	}
 	
 	public static void startupW34toN31toS37() {
-		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1"); //Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
-		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
-		fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK);
+		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1",null); //Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
+		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1",null);
+		fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK,null);
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
         int portOffset = 2;
         boolean exposeInternalControls = false;
@@ -82,10 +87,10 @@ public class TestTurntableWithIOStations {
 	
 	public static void startupW34toE35() {
 		// !!! Names are reflected in Nodeset, do not change without propagating to wiringinfo.json 
-		StartupUtil.startupInputstation(0, "VirtualInputStation1"); 
-		StartupUtil.startupOutputstation(1, "VirtualOutputStation1");
-		fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK); //NORTH TT1
-		fiab.machine.plotter.opcua.StartupUtil.startup(6, "VirtualPlotter32", SupportedColors.BLACK); //NORTH TT2
+		StartupUtil.startupInputstation(0, "VirtualInputStation1",null); 
+		StartupUtil.startupOutputstation(1, "VirtualOutputStation1",null);
+		fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK,null); //NORTH TT1
+		fiab.machine.plotter.opcua.StartupUtil.startup(6, "VirtualPlotter32", SupportedColors.BLACK,null); //NORTH TT2
 		ActorSystem systemTT1 = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA1");
         int portOffsetTT1 = 2;
         boolean exposeInternalControls = false;
@@ -100,6 +105,7 @@ public class TestTurntableWithIOStations {
 	@BeforeEach
 	void setup() throws Exception{
 		system = ActorSystem.create("TEST_ROOT_SYSTEM");
+		system.registerExtension(TestTracingUtil.getTracingExtension());
 		// assume OPCUA server (mock or otherwise is started
 		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		ProcessCore.Process p = ProduceProcess.getSequential4ColorProcess("P1-");
@@ -186,7 +192,7 @@ public class TestTurntableWithIOStations {
 						}
 						else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !didReactOnIdle) {
 							logger.info("Sending TEST transport request to: "+msue.getMachineId());
-							TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), posFrom, posTo, "Order1", "TReq1");
+							TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), posFrom, posTo, "Order1", "TReq1",ZipkinUtil.generateRandomB3Header());
 							machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
 							didReactOnIdle = true;
 						} else if (msue.getStatus().equals(BasicMachineStates.COMPLETE) || msue.getStatus().equals(BasicMachineStates.COMPLETING)) {

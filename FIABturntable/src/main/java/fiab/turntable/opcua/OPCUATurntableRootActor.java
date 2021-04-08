@@ -90,13 +90,14 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 		}).match(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.class, req -> {
 			receiveTTModuleWellknownCapabilityIdentifier(new TTModuleWellknwonCapabilityIdentifierMessage("", req));
 		}).match(MachineStatusUpdateEvent.class, req -> {
+			
 			try {
-				tracer.startConsumerSpan(req, "OPCUA Turntable Root Actor: Machine Status Update Event received");
+//				tracer.startConsumerSpan(req, "OPCUA Turntable Root Actor: Machine Status Update Event received");
 				setStatusValue(req.getStatus().toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				tracer.finishCurrentSpan();
+//				tracer.finishCurrentSpan();
 			}
 
 		}).match(InternalTransportModuleRequest.class, req -> {
@@ -169,10 +170,11 @@ public class OPCUATurntableRootActor extends AbstractTracingActor {
 			ttWrapper = context().actorOf(
 					TransportModuleCoordinatorActor.props(intraEventBus, turningFU.getActor(), conveyorFU.getActor()),
 					"TurntableCoordinator");
-			ttWrapper.tell(
-					new TTModuleWellknwonCapabilityIdentifierMessage(tracer.getCurrentHeader(),
-							TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState),
-					getSelf());
+			TTModuleWellknwonCapabilityIdentifierMessage msg = new TTModuleWellknwonCapabilityIdentifierMessage(
+					tracer.getCurrentHeader(),
+					TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState);
+			tracer.injectMsg(msg);
+			ttWrapper.tell(msg, getSelf());
 		} else {
 			ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");
 			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null,

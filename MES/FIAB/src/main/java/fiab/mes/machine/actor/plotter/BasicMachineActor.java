@@ -245,7 +245,7 @@ public class BasicMachineActor extends AbstractTracingActor {
 		this.currentState = newState;
 		MachineUpdateEvent mue = new MachineStatusUpdateEvent(machineId.getId(),
 				OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, newState);
-		mue.setHeader(tracer.getCurrentHeader());
+		mue.setTracingHeader(tracer.getCurrentHeader());
 		tracer.injectMsg(mue);
 		tellEventBus(mue);
 	}
@@ -261,7 +261,7 @@ public class BasicMachineActor extends AbstractTracingActor {
 			log.warning("RegisterProcessStepRequest failed due to client error: " + e.getMessage());
 
 			ReadyForProcessEvent event = new ReadyForProcessEvent(registerReq, e);
-			event.setHeader(tracer.getCurrentHeader());
+			event.setTracingHeader(tracer.getCurrentHeader());
 			tracer.injectMsg(event);
 
 			sender().tell(event, self());
@@ -280,7 +280,7 @@ public class BasicMachineActor extends AbstractTracingActor {
 			reservedForOrder = ror;
 
 			ReadyForProcessEvent event = new ReadyForProcessEvent(ror);
-			event.setHeader(tracer.getCurrentHeader());
+			event.setTracingHeader(tracer.getCurrentHeader());
 			tracer.injectMsg(event);
 
 			ror.getRequestor().tell(event, getSelf());
@@ -311,7 +311,7 @@ public class BasicMachineActor extends AbstractTracingActor {
 				ReadyForProcessEvent event = new ReadyForProcessEvent(
 						new RegisterProcessStepRequest(lockReq.getRootOrderId(), lockReq.getStepId(), null, sender()),
 						false);
-				event.setHeader(tracer.getCurrentHeader());
+				event.setTracingHeader(tracer.getCurrentHeader());
 				tracer.injectMsg(event);
 
 				sender().tell(event, self);
@@ -323,7 +323,7 @@ public class BasicMachineActor extends AbstractTracingActor {
 
 			MachineInWrongStateResponse resp = new MachineInWrongStateResponse(this.machineId.getId(),
 					OPCUABasicMachineBrowsenames.STATE_VAR_NAME, msg, currentState, lockReq, BasicMachineStates.IDLE);
-			resp.setHeader(tracer.getCurrentHeader());
+			resp.setTracingHeader(tracer.getCurrentHeader());
 			tracer.injectMsg(resp);
 
 			sender().tell(resp, self);

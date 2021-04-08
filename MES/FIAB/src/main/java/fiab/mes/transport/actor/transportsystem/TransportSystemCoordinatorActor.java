@@ -62,6 +62,7 @@ public class TransportSystemCoordinatorActor extends AbstractTracingActor{
 	protected int expectedTTs = 1;
 	
 	public TransportSystemCoordinatorActor(TransportRoutingInterface routing, TransportPositionLookupInterface dns, int expectedTTs) {
+		super();
 		this.routing = routing;
 		this.dns = dns;
 		this.self = getSelf();
@@ -84,7 +85,7 @@ public class TransportSystemCoordinatorActor extends AbstractTracingActor{
 		return receiveBuilder()
 				.match(RegisterTransportRequest.class, req -> {
 					try {
-						tracer.startConsumerSpan(req, "Transport System Coordinator Actor: Register Transport Request received");
+						tracer.startConsumerSpan(req, "Register Transport Request received");
 						log.info(String.format("Received Transport Request %s -> %s", req.getSource().getId(), req.getDestination().getId()));
 						handleNewIncomingRequest(req); // Message to register transport among machines (including input and output station)
 					} catch (Exception e) {

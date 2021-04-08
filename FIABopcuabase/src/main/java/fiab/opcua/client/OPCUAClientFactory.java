@@ -80,7 +80,7 @@ public class OPCUAClientFactory {
             .setIdentityProvider(new AnonymousProvider())
             .setRequestTimeout(uint(5000))
             .build();
-        if (reporter != null) {
+        if (reporter == null) {
         	return OpcUaClient.create(config);
         } else {
         	return ModifiedOpcUaClient.create(config, reporter);	

@@ -36,6 +36,7 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
+import fiab.mes.tracing.Util;
 import fiab.opcua.CapabilityImplInfo;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.MetadataInsufficientException;
@@ -104,7 +105,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 
 	private void connectToServer(BrowseRequest req) {
 		try {
-			client = new OPCUAClientFactory().createClient(req.endpointURL);
+			client = new OPCUAClientFactory().createTracingClient(req.endpointURL,Util.getReporter());
 			client.connect().get();
 			this.status = DISCOVERY_STATUS.CONNECTED;
 			log.info("Connected to "+req.endpointURL);

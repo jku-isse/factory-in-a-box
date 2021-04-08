@@ -4,10 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import fiab.core.capabilities.handshake.HandshakeCapability;
-import fiab.handshake.fu.HandshakeFU;
-
-import org.eclipse.milo.opcua.sdk.client.ModifiedOpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
@@ -21,17 +17,19 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import fiab.core.capabilities.StatePublisher;
+import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
-import fiab.opcua.CapabilityImplInfo;
+import fiab.handshake.fu.HandshakeFU;
 //import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.methods.Complete;
 import fiab.handshake.fu.client.methods.Reset;
 import fiab.handshake.fu.client.methods.Start;
 import fiab.handshake.fu.client.methods.Stop;
+import fiab.opcua.CapabilityImplInfo;
 import fiab.opcua.WiringExposingUtils;
 import fiab.opcua.client.OPCUAClientFactory;
 import fiab.opcua.server.OPCUABase;
@@ -99,9 +97,8 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 			status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_CLIENTSIDE_VAR_NAME, HandshakeCapability.ClientSideStates.STOPPED);
 			opcuaWrapper = context.actorOf(OPCUAClientHandshakeActorWrapper.props(), capInstId+"_OPCUAWrapper");
 			localClient = context.actorOf(ClientHandshakeActor.props(ttBaseActor, opcuaWrapper, this), capInstId);
-			opcuaWrapper.tell(localClient, ActorRef.noSender());
+			opcuaWrapper.tell(localClient, ActorRef.noSender());			
 			
-			//TODO add header information
 			ttBaseActor.tell(new LocalEndpointStatus.LocalClientEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender()); 
 			
 			if (exposeInternalControl) {
@@ -130,7 +127,7 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		base.generateStringVariableNode(capability1, path+"/CAPABILITY",  OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
 				new String(isProvided ? OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED : OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_REQUIRED));
 		String wiringsFolderPath = path + "/CAPABILITY/WIRINGS";
-        UaFolderNode wiringsFolder = base.generateFolder(capability1,wiringsFolderPath, "WIRINGS", "WIRINGS" );
+        base.generateFolder(capability1,wiringsFolderPath, "WIRINGS", "WIRINGS" );
         
 		// add wiring method
 		wiringNodes = WiringExposingUtils.createWiringInfoFolder(base, handshakeNode, path);

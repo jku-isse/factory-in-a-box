@@ -18,40 +18,39 @@ public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements
 
 	protected NodeId transportMethod;
 	protected IntraMachineEventBus intraMachineBus;
-	
+
 	public TransportModuleOPCUAWrapper(IntraMachineEventBus intraMachineBus, OpcUaClient client,
-			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId transportMethod, ActorRef spawner) {
+			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId transportMethod,
+			ActorRef spawner) {
 		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar, spawner);
 		this.intraMachineBus = intraMachineBus;
 		this.transportMethod = transportMethod;
 	}
 
-	
 	@Override
 	public void transport(InternalTransportModuleRequest req) {
-		Variant[] inputArgs = new Variant[]{new Variant(req.getCapabilityInstanceIdFrom()),
-				new Variant(req.getCapabilityInstanceIdTo()),
-				new Variant(req.getOrderId()),
-				new Variant(req.getRequestId())};
-		callMethod(transportMethod, inputArgs);
+		Variant[] inputArgs = new Variant[] { new Variant(req.getCapabilityInstanceIdFrom()),
+				new Variant(req.getCapabilityInstanceIdTo()), new Variant(req.getOrderId()),
+				new Variant(req.getRequestId()) };
+		callMethod(transportMethod, inputArgs,req.getTracingHeader());
 	}
 
 	public void onStateSubscriptionChange(UaMonitoredItem item, DataValue value) {
-		logger.debug(
-				"subscription value received: item={}, value={}",
-				item.getReadValueId().getNodeId(), value.getValue());
-		if( value.getValue().isNotNull() ) {
+		logger.debug("subscription value received: item={}, value={}", item.getReadValueId().getNodeId(),
+				value.getValue());
+		if (value.getValue().isNotNull()) {
 			String stateAsString = value.getValue().getValue().toString();
-			//System.out.println(stateAsString);
+			// System.out.println(stateAsString);
 			try {
 				BasicMachineStates state = BasicMachineStates.valueOf(stateAsString);
 				if (this.intraMachineBus != null) {
-					intraMachineBus.publish(new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "TransportModule published new State", state));
+					intraMachineBus.publish(new MachineStatusUpdateEvent("",
+							OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "TransportModule published new State", state));
 				}
 			} catch (java.lang.IllegalArgumentException e) {
-				logger.error("Received Unknown State: "+e.getMessage());
+				logger.error("Received Unknown State: " + e.getMessage());
 			}
-			
+
 		}
 	}
 
@@ -59,6 +58,5 @@ public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements
 	public void unsubscribeFromStatus() {
 		super.unsubscribeAll();
 	}
-
 
 }

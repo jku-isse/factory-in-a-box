@@ -18,6 +18,7 @@ import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
 import fiab.tracing.actor.AbstractTracingActor;
+import fiab.tracing.actor.messages.EmptyMessage;
 
 public class OrderActor extends AbstractTracingActor {
 
@@ -36,6 +37,16 @@ public class OrderActor extends AbstractTracingActor {
 	}
 
 	public OrderActor(RegisterProcessRequest orderReq, ActorSelection eventBusByRef, ActorSelection orderPlannerByRef) {
+		super();
+		try {
+			tracer.startConsumerSpan(new EmptyMessage(), "Order actor created");
+			System.out.println("Order Actor: " + tracer.getCurrentHeader());
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			tracer.finishCurrentSpan();
+		}
+
 		this.orderId = orderReq.getRootOrderId();
 		this.order = orderReq;
 		this.eventBusByRef = eventBusByRef;
@@ -50,6 +61,7 @@ public class OrderActor extends AbstractTracingActor {
 		log.info("Forwarding order request to Planning Actor for OrderId: " + orderId);
 		orderReq.setRequestor(getSelf());
 		this.orderPlannerByRef = orderPlannerByRef;
+		orderReq.setTracingHeader(tracer.getCurrentHeader());
 		this.orderPlannerByRef.tell(orderReq, getSelf());
 	}
 

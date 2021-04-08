@@ -11,7 +11,7 @@ public class OrderEvent extends TimedEvent {
 	private String machineId;
 	private String message;
 	
-	public OrderEvent(String orderId, String machineId, OrderEventType eventType, String message) {
+	public OrderEvent(String orderId, String machineId, OrderEventType eventType, String message ) {
 		super();
 		this.orderId = orderId;
 		this.eventType = eventType;
