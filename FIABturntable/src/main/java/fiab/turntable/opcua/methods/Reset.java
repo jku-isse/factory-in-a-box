@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 import fiab.turntable.actor.messages.TTModuleWellknwonCapabilityIdentifierMessage;
 
 public class Reset extends AbstractMethodInvocationHandler {
@@ -47,7 +48,8 @@ public class Reset extends AbstractMethodInvocationHandler {
 		TTModuleWellknwonCapabilityIdentifierMessage msg;
 		if (headerOpt.isPresent()) {
 			logger.info("Received B3 header: " + headerOpt.get().toString());
-			msg = new TTModuleWellknwonCapabilityIdentifierMessage(headerOpt.get().spanId,
+			B3Header b3 = headerOpt.get();
+			msg = new TTModuleWellknwonCapabilityIdentifierMessage(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId),
 					TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset);
 		} else {
 			msg = new TTModuleWellknwonCapabilityIdentifierMessage("",

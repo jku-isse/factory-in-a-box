@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 import fiab.turntable.turning.TurnRequest;
 import fiab.turntable.turning.TurnTableOrientation;
 
@@ -54,9 +55,10 @@ public class TurningRequest extends AbstractMethodInvocationHandler {
 			// for now we ignore that we could have gotten a image id we don't support
 			Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
 			TurnRequest req = new TurnRequest(TurnTableOrientation.createFromInt(pos));
-			if(headerOpt.isPresent())
-				req.setTracingHeader(headerOpt.get().spanId);
-			else
+			if (headerOpt.isPresent()) {
+				B3Header b3 = headerOpt.get();
+				req.setTracingHeader(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId));
+			} else
 				req.setTracingHeader("");
 			actor.tell(req, ActorRef.noSender());
 		} catch (Exception e) {

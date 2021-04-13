@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 import fiab.turntable.actor.messages.TurningTriggerMessage;
 import fiab.turntable.turning.statemachine.TurningTriggers;
 
@@ -44,9 +45,11 @@ public class TurningStop extends AbstractMethodInvocationHandler {
 		logger.debug("Invoking stop() method of objectId={}", invocationContext.getObjectId());
 		Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
 		TurningTriggerMessage msg;
-		if (headerOpt.isPresent())
-			msg = new TurningTriggerMessage(headerOpt.get().spanId, TurningTriggers.STOP);
-		else
+		if (headerOpt.isPresent()) {
+			B3Header b3 = headerOpt.get();
+			msg = new TurningTriggerMessage(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId),
+					TurningTriggers.STOP);
+		} else
 			msg = new TurningTriggerMessage("", TurningTriggers.STOP);
 		actor.tell(msg, ActorRef.noSender());
 		return new Variant[0];

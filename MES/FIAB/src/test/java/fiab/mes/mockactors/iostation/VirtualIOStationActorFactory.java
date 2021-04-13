@@ -15,6 +15,7 @@ import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.handshake.actor.LocalEndpointStatus;
+import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.machine.iostation.IOStationServerHandshakeActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
@@ -88,7 +89,15 @@ public class VirtualIOStationActorFactory {
 		@Override
 		public Receive createReceive() {
 			
-			return receiveBuilder()				
+			return receiveBuilder()	.match(HSServerSideStateMessage.class,msg->{
+						ServerSideStates req = msg.getBody();
+						log.info(req.toString());
+						bus.publish(new IOStationStatusUpdateEvent("", "Mock Endpoint has new State", req));
+						if (req.equals(ServerSideStates.COMPLETE) && doAutoReload) { //we auto reload here
+							child = getSender();
+							reloadPallet();
+						}				
+						})			
 					.match(ServerSideStates.class, req -> {
 						log.info(req.toString());
 						bus.publish(new IOStationStatusUpdateEvent("", "Mock Endpoint has new State", req));

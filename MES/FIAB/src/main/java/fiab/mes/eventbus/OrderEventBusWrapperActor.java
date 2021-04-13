@@ -38,15 +38,8 @@ public class OrderEventBusWrapperActor extends AbstractTracingActor {
 					}
 				}) 
 				.match(OrderEvent.class, event -> {
-					log.debug("Received Publish Event: "+event.toString() );
-					try {
-						tracer.startConsumerSpan(event, "Order Event Bus Wrapper: Order Event received");								
-						oeb.publish(event);					
-					} catch (Exception e) {
-						e.printStackTrace();
-					} finally {
-						tracer.finishCurrentSpan();
-					}					
+					log.debug("Received Publish Event: "+event.toString() );							
+					oeb.publish(event);										
 				})
 		.build();
 	}

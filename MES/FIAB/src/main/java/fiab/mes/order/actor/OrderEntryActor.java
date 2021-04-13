@@ -74,15 +74,7 @@ public class OrderEntryActor extends AbstractTracingActor {
 				sender().tell(new OrderHistoryRequest.Response(null, null, false), getSelf());
 			}
 		}).match(OrderEvent.class, event -> {
-			try {
-				tracer.startConsumerSpan(event, "Order Entry Actor: Order Event receied");
-				this.latestChange.put(event.getOrderId(), event);
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracer.finishCurrentSpan();
-			}
-
+			this.latestChange.put(event.getOrderId(), event);
 		}).match(CancelOrTerminateOrder.class, req -> {
 			try {
 				tracer.startConsumerSpan(req, "Order Entry Actor: Cancel Or Terminate Order received");

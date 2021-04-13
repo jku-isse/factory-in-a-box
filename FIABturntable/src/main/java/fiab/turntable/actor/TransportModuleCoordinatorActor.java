@@ -88,33 +88,18 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 			receiveTTModuleWellknownCapabilityIdentifier(msg);
 
 		}).match(LocalEndpointStatus.LocalClientEndpointStatus.class, les -> {
-			try {
-				tracer.startConsumerSpan(les, "Transport Module Coordinator: Local Client Endpoint Status received");
-				if (!epNonUpdateableStates.contains(currentState)) {
-					this.eps.addOrReplace(les);
-					WiringUpdateEvent event = new WiringUpdateEvent(self.path().name(), les);
-					event.setTracingHeader(tracer.getCurrentHeader());
-					this.intraEventBus.publish(event);
-				} else {
-					log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracer.finishCurrentSpan();
+			if (!epNonUpdateableStates.contains(currentState)) {
+				this.eps.addOrReplace(les);
+				WiringUpdateEvent event = new WiringUpdateEvent(self.path().name(), les);			
+				this.intraEventBus.publish(event);
+			} else {
+				log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
 			}
 		}).match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {
-			try {
-				tracer.startConsumerSpan(les, "Transport Module Coordinator: Local Server Endpoint Status received");
-				if (!epNonUpdateableStates.contains(currentState)) {
-					this.eps.addOrReplace(les);
-				} else {
-					log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracer.finishCurrentSpan();
+			if (!epNonUpdateableStates.contains(currentState)) {
+				this.eps.addOrReplace(les);
+			} else {
+				log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
 			}
 
 		}).match(InternalTransportModuleRequest.class, req -> {

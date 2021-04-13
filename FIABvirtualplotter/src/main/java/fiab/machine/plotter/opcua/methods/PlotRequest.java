@@ -20,6 +20,7 @@ import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.machine.plotter.messages.PlotterMessage;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 
 import static akka.pattern.Patterns.ask;
 
@@ -66,9 +67,10 @@ public class PlotRequest extends AbstractMethodInvocationHandler {
 			// for now we ignore that we could have gotten a image id we don't support
 			Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
 			PlotterMessage msg;
-			if (headerOpt.isPresent())
-				msg = new PlotterMessage(headerOpt.get().spanId, PlotterMessageTypes.Plot);
-			else
+			if (headerOpt.isPresent()) {
+				B3Header b3 = headerOpt.get();
+				msg = new PlotterMessage(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId), PlotterMessageTypes.Plot);
+			}else
 				msg = new PlotterMessage("", PlotterMessageTypes.Plot);
 
 			resp = ask(actor, msg, timeout).toCompletableFuture().get();

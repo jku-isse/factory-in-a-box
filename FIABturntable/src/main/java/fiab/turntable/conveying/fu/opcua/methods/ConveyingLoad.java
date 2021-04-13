@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 import fiab.turntable.actor.messages.ConveyorTriggerMessage;
 import fiab.turntable.conveying.statemachine.ConveyorTriggers;
 
@@ -45,7 +46,9 @@ public class ConveyingLoad extends AbstractMethodInvocationHandler {
 		Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
 		ConveyorTriggerMessage msg;
 		if (headerOpt.isPresent()) {
-			msg = new ConveyorTriggerMessage(headerOpt.get().spanId, ConveyorTriggers.LOAD);
+			B3Header b3 = headerOpt.get();
+			msg = new ConveyorTriggerMessage(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId),
+					ConveyorTriggers.LOAD);
 		} else {
 			msg = new ConveyorTriggerMessage("", ConveyorTriggers.LOAD);
 		}

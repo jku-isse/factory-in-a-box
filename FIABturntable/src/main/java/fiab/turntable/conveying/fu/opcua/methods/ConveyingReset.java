@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 import fiab.turntable.actor.messages.ConveyorTriggerMessage;
 import fiab.turntable.conveying.statemachine.ConveyorTriggers;
 
@@ -21,36 +22,38 @@ public class ConveyingReset extends AbstractMethodInvocationHandler {
 
 	final Duration timeout = Duration.ofSeconds(2);
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	private ActorRef actor;
-	
-    public ConveyingReset(UaMethodNode methodNode, ActorRef actor) {
-        super(methodNode); 
-        this.actor = actor;        
-    }
 
-    @Override
-    public Argument[] getInputArguments() {    	
-    	return new Argument[0];    	    	
-    }
+	public ConveyingReset(UaMethodNode methodNode, ActorRef actor) {
+		super(methodNode);
+		this.actor = actor;
+	}
 
-    @Override
-    public Argument[] getOutputArguments() {
-    	return new Argument[0];
-    }
+	@Override
+	public Argument[] getInputArguments() {
+		return new Argument[0];
+	}
 
-    @Override
-    protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
-    	logger.debug("Invoking reset() method of objectId={}", invocationContext.getObjectId());    	
-    	Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
+	@Override
+	public Argument[] getOutputArguments() {
+		return new Argument[0];
+	}
+
+	@Override
+	protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {
+		logger.debug("Invoking reset() method of objectId={}", invocationContext.getObjectId());
+		Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
 		ConveyorTriggerMessage msg;
 		if (headerOpt.isPresent()) {
-			msg = new ConveyorTriggerMessage(headerOpt.get().spanId, ConveyorTriggers.RESET);
+			B3Header b3 = headerOpt.get();
+			msg = new ConveyorTriggerMessage(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId),
+					ConveyorTriggers.RESET);
 		} else {
 			msg = new ConveyorTriggerMessage("", ConveyorTriggers.RESET);
 		}
 		actor.tell(msg, ActorRef.noSender());
-    	return new Variant[0]; 	    	
-    }	
-    
+		return new Variant[0];
+	}
+
 }

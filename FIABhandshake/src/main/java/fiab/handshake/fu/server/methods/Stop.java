@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.handshake.actor.messages.HSServerMessage;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -46,7 +47,9 @@ public class Stop extends AbstractMethodInvocationHandler {
 		HSServerMessage msg;
 		if (headerOpt.isPresent()) {
 			logger.info("Received B3 header: " + headerOpt.get().toString());
-			msg = new HSServerMessage(headerOpt.get().spanId, IOStationCapability.ServerMessageTypes.Stop);
+			B3Header b3 = headerOpt.get();
+			msg = new HSServerMessage(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId),
+					IOStationCapability.ServerMessageTypes.Stop);
 		} else {
 			msg = new HSServerMessage("", IOStationCapability.ServerMessageTypes.Stop);
 		}

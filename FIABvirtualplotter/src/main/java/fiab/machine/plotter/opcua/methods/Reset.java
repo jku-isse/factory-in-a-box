@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.machine.plotter.messages.PlotterMessage;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -44,9 +45,11 @@ public class Reset extends AbstractMethodInvocationHandler {
 		logger.debug("Invoking Reset() method of objectId={}", invocationContext.getObjectId());
 		Optional<B3Header> headerOpt = ModifiedSession.extractFromSession(invocationContext.getSession().get());
 		PlotterMessage msg;
-		if (headerOpt.isPresent())
-			msg = new PlotterMessage(headerOpt.get().spanId, PlotterMessageTypes.Reset);
-		else
+		if (headerOpt.isPresent()) {
+			B3Header b3 = headerOpt.get();
+			msg = new PlotterMessage(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId),
+					PlotterMessageTypes.Reset);
+		} else
 			msg = new PlotterMessage("", PlotterMessageTypes.Reset);
 		actor.tell(msg, ActorRef.noSender());
 		return new Variant[0];

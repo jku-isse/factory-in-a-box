@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import akka.actor.ActorRef;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.handshake.actor.messages.HSServerMessage;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 
 public class InitHandover extends AbstractMethodInvocationHandler {
 
@@ -58,14 +59,15 @@ public class InitHandover extends AbstractMethodInvocationHandler {
 			HSServerMessage msg;
 			if (headerOpt.isPresent()) {
 				logger.info("Received B3 header: " + headerOpt.get().toString());
-				msg = new HSServerMessage(headerOpt.get().spanId,
+				B3Header b3 = headerOpt.get();
+				msg = new HSServerMessage(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId),
 						IOStationCapability.ServerMessageTypes.RequestInitiateHandover);
 			} else {
 				msg = new HSServerMessage("", IOStationCapability.ServerMessageTypes.RequestInitiateHandover);
 			}
 			resp = ask(actor, msg, timeout).toCompletableFuture().get();
 		} catch (InterruptedException | ExecutionException e) {
-			logger.error(e.getMessage());			
+			logger.error(e.getMessage());
 			resp = IOStationCapability.ServerMessageTypes.NotOkResponseInitHandover;
 		}
 		return new Variant[] { new Variant(resp.toString()) };
