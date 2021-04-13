@@ -138,11 +138,11 @@ public class OrderEmittingTestServerWithOPCUA {
 						}
 					} 
 			
-				    CountDownLatch count = new CountDownLatch(4);
+				    CountDownLatch count = new CountDownLatch(1);
 				    while(count.getCount() > 0) {
 				    	String oid = "P"+String.valueOf(count.getCount()+"-");
-				    	//OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleBlackStepProcess(oid));
-						OrderProcess op1 = new OrderProcess(ProduceProcess.getSequential4ColorProcess(oid));
+				    	OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleBlackStepProcess(oid));
+						//OrderProcess op1 = new OrderProcess(ProduceProcess.getSequential4ColorProcess(oid));
 						RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, getRef());
 				    	orderEntryActor.tell(req, getRef());
 				    	

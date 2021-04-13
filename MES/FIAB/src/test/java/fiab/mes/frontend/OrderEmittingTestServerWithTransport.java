@@ -59,6 +59,7 @@ public class OrderEmittingTestServerWithTransport {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
+		system.registerExtension(fiab.mes.tracing.TestTracingUtil.getTracingExtension());;
 		
 //		system.registerExtension(fiab.mes.tracing.Util.getTracingExtension());
 		
@@ -80,7 +81,7 @@ public class OrderEmittingTestServerWithTransport {
 //	    binding = http.bindAndHandle(routeFlow, ConnectHttp.toHost("localhost", 8080), materializer);
 //	
 //	    System.out.println("Server online at https://localhost:8080/");
-
+		
 		binding = ShopfloorStartup.startup(null, 1, system);
 		layout = new DefaultLayout(system, false);
 		orderEventBus = system.actorSelection("/user/" + OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);

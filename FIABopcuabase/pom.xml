@@ -119,7 +119,7 @@
 				<version>2.5.2</version>
 				<executions>
 					<execution>
-						<id>install-jar-lib-2</id>
+						<id>install-jar-lib-1</id>
 						<goals>
 							<goal>install-file</goal>
 						</goals>
