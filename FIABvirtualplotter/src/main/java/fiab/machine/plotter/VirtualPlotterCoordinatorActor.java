@@ -24,6 +24,7 @@ import fiab.machine.plotter.messages.PlotterMessage;
 import fiab.tracing.actor.AbstractTracingActor;
 import hardware.ConveyorHardware;
 import hardware.PlotterHardware;
+import sensors.MockSensor;
 import sensors.Sensor;
 
 public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
@@ -230,9 +231,17 @@ public class VirtualPlotterCoordinatorActor extends AbstractTracingActor {
 		plotXMotor.backward();
 		plotYMotor.backward();
 		conveyorMotor.stop();
+		simulateHoming();
 		waitForHardwareToReset();
 	}
 
+	private void simulateHoming() {
+		context().system().scheduler().scheduleOnce(Duration.ofMillis(700), () -> {
+			((MockSensor) plotXSensor).setDetectedInput(true);
+			((MockSensor) plotYSensor).setDetectedInput(true);
+		}, context().dispatcher());
+	}
+	
 	private void waitForHardwareToReset() {
 		if (plotXSensor.hasDetectedInput() && plotYSensor.hasDetectedInput()) {
 			context().system().scheduler().scheduleOnce(Duration.ofMillis(1000), () -> {

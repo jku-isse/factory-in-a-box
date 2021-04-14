@@ -105,7 +105,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 
 	private void connectToServer(BrowseRequest req) {
 		try {
-			client = new OPCUAClientFactory().createTracingClient(req.endpointURL,Util.getReporter());
+			client = new OPCUAClientFactory().createTracingClient(req.endpointURL,Util.getReporter(), "MESProxy#"+self.path().toString());
 			client.connect().get();
 			this.status = DISCOVERY_STATUS.CONNECTED;
 			log.info("Connected to "+req.endpointURL);

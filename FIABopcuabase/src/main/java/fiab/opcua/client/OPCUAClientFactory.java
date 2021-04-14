@@ -24,15 +24,15 @@ public class OPCUAClientFactory {
 
 	 private final Logger logger = LoggerFactory.getLogger(getClass());
 	
-	public OpcUaClient createTracingClient(String endpointUrl,  AsyncReporter<zipkin2.Span> reporter) throws Exception{
-	    return createClient(endpointUrl, reporter);
+	public OpcUaClient createTracingClient(String endpointUrl,  AsyncReporter<zipkin2.Span> reporter, String serviceName) throws Exception{
+	    return createClient(endpointUrl, reporter, serviceName);
 	}
 	
 	public OpcUaClient createClient(String endpointUrl) throws Exception {
-		return createClient(endpointUrl, null);
+		return createClient(endpointUrl, null, null);
 	}
 		
-	private OpcUaClient createClient(String endpointUrl, AsyncReporter<zipkin2.Span> reporter) throws Exception {
+	private OpcUaClient createClient(String endpointUrl, AsyncReporter<zipkin2.Span> reporter, String serviceName) throws Exception {
         Path securityTempDir = Paths.get(System.getProperty("java.io.tmpdir"), "security");
         Files.createDirectories(securityTempDir);
         if (!Files.exists(securityTempDir)) {
@@ -70,10 +70,10 @@ public class OPCUAClientFactory {
 //
 //        logger.info("Using endpoint: {} [{}/{}]",
 //            endpoint.getEndpointUrl(), securityPolicy, endpoint.getSecurityMode());
-
+        String applicationUri = serviceName == null ? "urn:eclipse:milo:examples:client" : serviceName;
         OpcUaClientConfig config = OpcUaClientConfig.builder()
             .setApplicationName(LocalizedText.english("eclipse milo opc-ua client"))
-            .setApplicationUri("urn:eclipse:milo:examples:client")
+            .setApplicationUri(applicationUri)
             .setCertificate(loader.getClientCertificate())
             .setKeyPair(loader.getClientKeyPair())
             .setEndpoint(endpoint)
