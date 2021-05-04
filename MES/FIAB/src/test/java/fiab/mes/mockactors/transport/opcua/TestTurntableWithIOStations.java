@@ -1,7 +1,5 @@
 package fiab.mes.mockactors.transport.opcua;
 
-import static org.junit.Assert.fail;
-
 import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -15,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ProcessCore.ProcessStep;
-import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
@@ -25,11 +22,12 @@ import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.tracing.TestTracingUtil;
 import fiab.machine.iostation.opcua.StartupUtil;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
+import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
@@ -41,10 +39,8 @@ import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
-import fiab.mes.tracing.TestTracingUtil;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.msg.TransportModuleRequest;
-import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.tracing.extension.TracingExtension;
 import fiab.tracing.impl.zipkin.ZipkinUtil;
@@ -65,7 +61,7 @@ public class TestTurntableWithIOStations {
 	}
 	
 	public static void startupW34toS37(){
-		TracingExtension ext = fiab.mes.tracing.TestTracingUtil.getTracingExtension();
+		TracingExtension ext = TestTracingUtil.getTracingExtension();
 		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1",ext);
 		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1",ext);
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");

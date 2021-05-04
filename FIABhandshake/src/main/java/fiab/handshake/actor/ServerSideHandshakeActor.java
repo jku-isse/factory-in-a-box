@@ -99,7 +99,7 @@ public class ServerSideHandshakeActor extends AbstractTracingActor {
 
 		try {
 			tracer.startConsumerSpan(msg,
-					"Server-Handshake: StateOverriderequest: " + body.toString() + " received");
+					"Server-Handshake: " + body.toString() + " received");
 			switch (body) {
 			case Complete:
 				if (currentState.equals(ServerSideStates.EXECUTE))

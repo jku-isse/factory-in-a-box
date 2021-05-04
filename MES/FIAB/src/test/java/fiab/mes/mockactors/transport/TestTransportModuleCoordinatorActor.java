@@ -1,5 +1,6 @@
 package fiab.mes.mockactors.transport;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,76 +18,96 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import brave.Span;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.tracing.TestTracingUtil;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-import fiab.handshake.actor.ClientHandshakeActor;
-import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.shopfloor.DefaultLayout;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 import fiab.turntable.actor.InternalTransportModuleRequest;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.actor.SubscriptionClassifier;
-import fiab.turntable.actor.TransportModuleCoordinatorActor;
-import fiab.turntable.conveying.BaseBehaviorConveyorActor;
-import fiab.turntable.conveying.ConveyorActor;
-import fiab.turntable.turning.BaseBehaviorTurntableActor;
-import fiab.turntable.turning.TurntableActor;
+import fiab.turntable.actor.WiringUpdateEvent;
 
-public class TestTransportModuleCoordinatorActor { 
+public class TestTransportModuleCoordinatorActor {
 
 	protected static ActorSystem system;
 	protected static ActorRef machine;
 	public static String ROOT_SYSTEM = "TEST_TTINTEGRATION";
 	protected OrderProcess op;
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(TestTransportModuleCoordinatorActor.class);
-	
+
 	@BeforeAll
-	static void setUpBeforeClass() throws Exception {		
+	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
+		system.registerExtension(TestTracingUtil.getTracingExtension());
 	}
 
-	
 	@AfterClass
 	public static void teardown() {
-	    TestKit.shutdownActorSystem(system);
-	    system = null;
+		TestKit.shutdownActorSystem(system);
+		system = null;
 	}
-
-	
 
 	@Test
 	void testSetupMinimalShopfloor() throws InterruptedException, ExecutionException {
-		new TestKit(system) { 
+		new TestKit(system) {
 			{
 				DefaultLayout layout = new DefaultLayout(system);
 				layout.setupIOStations(34, 35);
-				ActorSelection inServer = system.actorSelection("/user/"+layout.partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+				ActorSelection inServer = system.actorSelection(
+						"/user/" + layout.partsIn.model.getActorName() + VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 				ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-				ActorSelection outServer = system.actorSelection("/user/"+layout.partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+				ActorSelection outServer = system.actorSelection(
+						"/user/" + layout.partsOut.model.getActorName() + VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable
-				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
+				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
-				Map<String,ActorRef> ioRefs = new HashMap<String,ActorRef>();
+				Map<String, ActorRef> ioRefs = new HashMap<String, ActorRef>();
 				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, inRef);
 				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, outRef);
 				ActorRef ttWrapper = layout.setupSingleTurntable(1, intraEventBus, ioRefs, new HashSet<String>());
-				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());				
+				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState,
+						getRef());
 				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
-				
+
+				sendInternalTransportModuleRequest(ttWrapper);
+			}
+
+			private void sendInternalTransportModuleRequest(ActorRef ttWrapper) {
 				boolean hasSentReq = false;
 				boolean doRun = true;
 				while (doRun) {
-					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineUpdateEvent.class);
-					logEvent(mue);
+
+					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineUpdateEvent.class,
+							WiringUpdateEvent.class);
+
+					MachineUpdateEvent mue = null;
+					if (msg instanceof MachineUpdateEvent) {
+						mue = (MachineUpdateEvent) msg;
+						logEvent(mue);
+					}
+
 					if (mue instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) mue).getStatus().equals(BasicMachineStates.IDLE) && !hasSentReq) {
-							ttWrapper.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder1", "Req1"), getRef());
+						if (((MachineStatusUpdateEvent) mue).getStatus().equals(BasicMachineStates.IDLE)
+								&& !hasSentReq) {
+							Span span = TestTracingUtil.createNewRandomSpan();
+							InternalTransportModuleRequest req = new InternalTransportModuleRequest(
+									TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT,
+									TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT,
+									"TestOrder1", "Req1");
+							req.setTracingHeader(ZipkinUtil.createXB3Header(span));
+
+							logger.info(req.getTracingHeader());
+							TestTracingUtil.getInjector().inject(span.context(), req);
+							ttWrapper.tell(req, getRef());
 							hasSentReq = true;
 						}
 						if (((MachineStatusUpdateEvent) mue).getStatus().equals(BasicMachineStates.COMPLETE)) {
@@ -94,57 +115,85 @@ public class TestTransportModuleCoordinatorActor {
 						}
 					}
 				}
+
 			}
 		};
 	}
-	
-	
+
 	@Test
-	void testSetup2TTplusIO() throws InterruptedException, ExecutionException {
-		new TestKit(system) { 
+	void testSetup2TTplusIO() throws InterruptedException, ExecutionException, IOException {
+		new TestKit(system) {
 			{
 				DefaultLayout layout = new DefaultLayout(system);
 				layout.setupIOStations(34, 35);
-				ActorSelection inServer = system.actorSelection("/user/"+layout.partsIn.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+				ActorSelection inServer = system.actorSelection(
+						"/user/" + layout.partsIn.model.getActorName() + VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 				ActorRef inRef = inServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
-				ActorSelection outServer = system.actorSelection("/user/"+layout.partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
+				ActorSelection outServer = system.actorSelection(
+						"/user/" + layout.partsOut.model.getActorName() + VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable
-				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
+				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
-				Map<String,ActorRef> iRefs = new HashMap<String,ActorRef>();
+				Map<String, ActorRef> iRefs = new HashMap<String, ActorRef>();
 				iRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, inRef);
 				Set<String> serverRefs = new HashSet<String>();
 				serverRefs.add(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER);
 				ActorRef ttWrapper = layout.setupSingleTurntable(1, intraEventBus, iRefs, serverRefs);
-				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());				
+				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState,
+						getRef());
 				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
-				
-				IntraMachineEventBus intraEventBus2 = new IntraMachineEventBus();	
+
+				IntraMachineEventBus intraEventBus2 = new IntraMachineEventBus();
 				intraEventBus2.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
-				Map<String,ActorRef> ioRefs = new HashMap<String,ActorRef>();
-				ActorSelection eastServerSel = system.actorSelection("/user/"+TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER+"~"+1);
+				Map<String, ActorRef> ioRefs = new HashMap<String, ActorRef>();
+				ActorSelection eastServerSel = system.actorSelection("/user/"
+						+ TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER + "~" + 1);
 				ActorRef eastServer = eastServerSel.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, outRef);
 				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, eastServer);
 				ActorRef ttWrapper2 = layout.setupSingleTurntable(2, intraEventBus2, ioRefs, new HashSet<String>());
-				ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getRef());				
+				ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState,
+						getRef());
 				ttWrapper2.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
-				
+
 				boolean hasSentReqTT1 = false;
 				boolean hasSentReqTT2 = false;
+				Span span = TestTracingUtil.createNewRandomSpan().name("Parent Span").start();
+				System.err.println(span.context().traceIdString());
+
 				boolean doRun = true;
 				while (doRun) {
-					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineUpdateEvent.class);
-					logEvent(mue);
+					Object msg = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineUpdateEvent.class,
+							WiringUpdateEvent.class);
+
+					MachineUpdateEvent mue = null;
+					if (msg instanceof MachineUpdateEvent) {
+						mue = (MachineUpdateEvent) msg;
+						logEvent(mue);
+					}
 					if (mue instanceof MachineStatusUpdateEvent) {
-						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent)mue;
-						if (msue.getMachineId().equals("TT1") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT1) {
-							ttWrapper.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, "TestOrder1", "Req1"), getRef());
+						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) mue;
+						if (msue.getMachineId().equals("TT1") && msue.getStatus().equals(BasicMachineStates.IDLE)
+								&& !hasSentReqTT1) {
+							InternalTransportModuleRequest req = new InternalTransportModuleRequest(
+									TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT,
+									TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER,
+									"TestOrder1", "Req1");
+							req.setTracingHeader(ZipkinUtil.createXB3Header(span));
+							TestTracingUtil.getInjector().inject(span.context(), req);
+							ttWrapper.tell(req, getRef());
 							hasSentReqTT1 = true;
 						}
-						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT2) {
-							ttWrapper2.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder2", "Req2"), getRef());
+						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.IDLE)
+								&& !hasSentReqTT2) {
+
+							InternalTransportModuleRequest req = new InternalTransportModuleRequest(
+									TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT,
+									TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT,
+									"TestOrder2", "Req2");
+							req.setTracingHeader(ZipkinUtil.createXB3Header(span));
+							ttWrapper2.tell(req, getRef());
 							hasSentReqTT2 = true;
 						}
 						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.COMPLETE)) {
@@ -152,6 +201,9 @@ public class TestTransportModuleCoordinatorActor {
 						}
 					}
 				}
+				span.finish();
+				System.in.read();
+				TestTracingUtil.finishSpan();
 			}
 		};
 	}
@@ -258,11 +310,9 @@ public class TestTransportModuleCoordinatorActor {
 //			}
 //		};
 //	}
-		
+
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());
 	}
-	
-	
-	
+
 }

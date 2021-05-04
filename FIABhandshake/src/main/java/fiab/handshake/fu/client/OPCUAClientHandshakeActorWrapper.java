@@ -264,12 +264,8 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractTracingActor {
 			String stateAsString = value.getValue().getValue().toString();
 			System.out.println(stateAsString);
 			try {
-				HSServerSideStateMessage msg = new HSServerSideStateMessage(tracer.getCurrentHeader(),
-						ServerSideStates.valueOf(stateAsString));
-				tracer.injectMsg(msg);
-
 				if (this.localActor != null) {
-					localActor.tell(msg, self);
+					localActor.tell(ServerSideStates.valueOf(stateAsString), self);
 				}
 			} catch (java.lang.IllegalArgumentException e) {
 				logger.error("Received Unknown State: " + e.getMessage());

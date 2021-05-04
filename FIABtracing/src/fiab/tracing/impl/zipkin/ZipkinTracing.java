@@ -37,15 +37,14 @@ public class ZipkinTracing implements Traceability {
 
 		if (injector == null)
 			injector = tracing.propagation().injector(new B3Setter());
+
 		scope = createNewScope(localServiceName, "Default");
 	}
 
-	
 	public void startProducerSpan(String spanName) {
 		currentSpan = tracing.tracer().nextSpan().name(spanName).kind(Kind.PRODUCER).start();
 	}
 
-	
 	public void startConsumerSpan(String spanName) {
 		currentSpan = tracing.tracer().newChild(scope.context()).kind(Kind.CONSUMER).name(spanName).start();
 	}
@@ -97,7 +96,10 @@ public class ZipkinTracing implements Traceability {
 		else
 			return currentSpanHeader();
 	}
-	
+
+	public static ZipkinSpanHandler getHandler() {
+		return handler;
+	}
 
 //	@Override
 //	public Span createNewTrace(String traceName, String spanName) {
@@ -126,13 +128,12 @@ public class ZipkinTracing implements Traceability {
 //		ZipkinUtil.printSpan(currentSpan);
 
 	}
-	
 
 	private void printSpanFinished() {
 //		System.out.print("Span finished: ");
 //		ZipkinUtil.printSpan(currentSpan);
 	}
-	
+
 	public static String getReportUrl() {
 		return REPORT_URL;
 	}

@@ -59,6 +59,8 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 
 	protected InternalTransportModuleRequest currentRequest;
 
+	private String internalTransportHeader = "";
+
 	// we need to pass all actors representing server/client handshake and their
 	// capability ids
 	static public Props props(IntraMachineEventBus internalMachineEventBus, ActorRef turntableFU,
@@ -90,7 +92,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 		}).match(LocalEndpointStatus.LocalClientEndpointStatus.class, les -> {
 			if (!epNonUpdateableStates.contains(currentState)) {
 				this.eps.addOrReplace(les);
-				WiringUpdateEvent event = new WiringUpdateEvent(self.path().name(), les);			
+				WiringUpdateEvent event = new WiringUpdateEvent(self.path().name(), les);
 				this.intraEventBus.publish(event);
 			} else {
 				log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
@@ -104,6 +106,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 
 		}).match(InternalTransportModuleRequest.class, req -> {
 			receiveInternalTransportModuleRequest(req);
+			
 
 		}).match(HSServerSideStateMessage.class, msg -> {
 			receiveHSServerSideStateMessage(msg);
@@ -129,7 +132,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 	private void receiveTTModuleWellknownCapabilityIdentifier(TTModuleWellknwonCapabilityIdentifierMessage msg) {
 		TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes ident = msg.getBody();
 		try {
-			tracer.startConsumerSpan(msg, "TransportCoordinator: Simple Message " + ident.toString() + " received");
+			tracer.startConsumerSpan(msg, "Simple Message " + ident.toString() + " received");
 			switch (ident) {
 			case Reset:
 				if (currentState.equals(BasicMachineStates.STOPPED) || currentState.equals(BasicMachineStates.COMPLETE))
@@ -164,6 +167,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 						OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", BasicMachineStates.STARTING);
 				event.setTracingHeader(tracer.getCurrentHeader());
 				tracer.injectMsg(event);
+				internalTransportHeader = tracer.getCurrentHeader();
 
 				sender().tell(event, self);
 				log.info("Received TransportModuleRequest from: " + req.getCapabilityInstanceIdFrom() + ", to: "
@@ -194,8 +198,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 	private void receiveHSServerSideStateMessage(HSServerSideStateMessage msg) {
 		ServerSideStates state = msg.getBody();
 		try {
-			tracer.startConsumerSpan(msg,
-					"TransportCoordinator: Handshake Server Side State " + state.toString() + " received");
+			tracer.startConsumerSpan(msg, "Handshake Server Side State " + state.toString() + " received");
 
 			if (currentState.equals(BasicMachineStates.EXECUTE)) {
 				String capId = getSender().path().name();
@@ -230,8 +233,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 		ClientSideStates state = msg.getBody();
 
 		try {
-			tracer.startConsumerSpan(msg,
-					"TransportCoordinator: Handshake Server Side State " + state.toString() + " received");
+			tracer.startConsumerSpan(msg, "Handshake Client Side State " + state.toString() + " received");
 
 			if (currentState.equals(BasicMachineStates.EXECUTE)) {
 				String capId = getSender().path().name();
@@ -273,7 +275,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 		ttFUState = state.getStatus();
 
 		try {
-			tracer.startConsumerSpan(state, "Status update: " + state.getStatus().toString() + " received");
+			tracer.startConsumerSpan(state, " Turntable Status update: " + state.getStatus().toString() + " received");
 
 			switch (state.getStatus()) {
 			case IDLE:
@@ -308,8 +310,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 	private void receiveConveyorStatusUpdateEvent(ConveyorStatusUpdateEvent state) {
 		convFUState = state.getStatus();
 		try {
-			tracer.startConsumerSpan(state,
-					"TransportCoordinator: Conveyor Status Update Event" + state.toString() + " received");
+			tracer.startConsumerSpan(state, "Conveyor Status Update Event" + state.getStatus().toString() + " received");
 
 			if (state.getStatus().equals(ConveyorStates.FULLY_OCCUPIED)
 					&& exeSubState.equals(InternalProcess.CONVEYING_SOURCE)) {
@@ -500,16 +501,18 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 		log.info("Starting to Turn to Destination");
 		Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdTo());
 		toEP.ifPresent(ep -> setExeSubState(InternalProcess.TURNING_DEST));
-		/*
-		 * toEP.ifPresent(ep -> { context().system() .scheduler()
-		 * .scheduleOnce(Duration.ofMillis(5000), //waiting to turntable having reached
-		 * home position, very ugly this way new Runnable() {
-		 * 
-		 * @Override public void run() { turntableFU.tell(new
-		 * TurnRequest(resolveCapabilityToOrientation(ep)), self);
-		 * setExeSubState(InternalProcess.TURNING_DEST); } },
-		 * context().system().dispatcher()); });
-		 */
+
+		toEP.ifPresent(ep -> {
+			// waiting to turntable having,reached home position, very ugly this way
+			context().system().scheduler().scheduleOnce(Duration.ofMillis(5000), new Runnable() {
+				@Override
+				public void run() {
+					turntableFU.tell(new TurnRequest(resolveCapabilityToOrientation(ep)), self);
+					setExeSubState(InternalProcess.TURNING_DEST);
+				}
+			}, context().system().dispatcher());
+		});
+
 	}
 
 	private void sendTurntableFuTurnToRequest() {
@@ -562,7 +565,7 @@ public class TransportModuleCoordinatorActor extends AbstractTracingActor {
 	}
 
 	private void sendClientStart() {
-		HSClientMessage msg = new HSClientMessage(tracer.getCurrentHeader(), ClientMessageTypes.Start);
+		HSClientMessage msg = new HSClientMessage(internalTransportHeader, ClientMessageTypes.Start);
 		tracer.injectMsg(msg);
 		getSender().tell(msg, self);
 	}

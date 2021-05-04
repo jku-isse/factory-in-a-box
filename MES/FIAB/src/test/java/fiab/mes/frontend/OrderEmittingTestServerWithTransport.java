@@ -13,9 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.http.javadsl.ServerBinding;
@@ -23,6 +20,7 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.tracing.TestTracingUtil;
 import fiab.mes.ShopfloorStartup;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
@@ -40,7 +38,6 @@ import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.shopfloor.DefaultLayout;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
-import fiab.tracing.extension.TracingExtension;
 
 public class OrderEmittingTestServerWithTransport {
 
@@ -59,7 +56,7 @@ public class OrderEmittingTestServerWithTransport {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
-		system.registerExtension(fiab.mes.tracing.TestTracingUtil.getTracingExtension());;
+		system.registerExtension(TestTracingUtil.getTracingExtension());;
 		
 //		system.registerExtension(fiab.mes.tracing.Util.getTracingExtension());
 		

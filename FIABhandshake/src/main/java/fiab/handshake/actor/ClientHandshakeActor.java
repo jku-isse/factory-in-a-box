@@ -15,6 +15,7 @@ import fiab.handshake.actor.messages.HSClientSideStateMessage;
 import fiab.handshake.actor.messages.HSServerMessage;
 import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.tracing.actor.AbstractTracingActor;
+import fiab.tracing.actor.messages.DummyMessage;
 
 public class ClientHandshakeActor extends AbstractTracingActor {
 
@@ -24,6 +25,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private ClientSideStates currentState = ClientSideStates.STOPPED;
 	private ServerSideStates remoteState = null;
 	private ActorRef self;
+	private String orderHeader;
 
 	private StatePublisher publishEP;
 
@@ -37,9 +39,8 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	}
 
 	public ClientHandshakeActor(ActorRef machineWrapper, ActorRef serverSide) {
-		this.machineWrapper = machineWrapper;
-		this.serverSide = serverSide;
-		this.self = getSelf();
+		this(machineWrapper, serverSide, null);
+
 	}
 
 	public ClientHandshakeActor(ActorRef machineWrapper, ActorRef serverSide, StatePublisher publishEP) {
@@ -47,6 +48,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		this.serverSide = serverSide;
 		this.publishEP = publishEP;
 		this.self = getSelf();
+		this.orderHeader = "";
 	}
 
 	@Override
@@ -79,20 +81,25 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 		log.info(String.format("Received %s from %s", body, getSender()));
 		try {
-			tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");
 			switch (body) {
 			case Reset:
+				tracer.startConsumerSpan(new DummyMessage(), "Client-Handshake: " + body.toString() + " Received");
 				reset(); // prepare for next round
 				break;
 			case Start:
+				tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");
+				orderHeader = tracer.getCurrentHeader();
 				start(); // engage in handshake: subscribe to state updates
 				break;
 			case Complete:
 				// only if we are in state executing, otherwise complete makes no sense
-				if (currentState.equals(ClientSideStates.EXECUTE))
-					complete(); // handshake can be wrapped up
+				if (currentState.equals(ClientSideStates.EXECUTE)) {
+					tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");
+					complete(); // handshake can be wrapped up					
+				}
 				break;
 			case Stop:
+				tracer.startConsumerSpan(msg, "Client-Handshake: " + body.toString() + " Received");
 				stop(); // error or external stop, otherwise autostopping upon completion
 				break;
 			default:
@@ -141,7 +148,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 		log.info(String.format("Received %s from %s in local state %s", body, getSender(), currentState));
 		try {
-			tracer.startConsumerSpan(msg, "Client-Handshake: Server Side State: " + body.toString() + " received");
+			tracer.startConsumerSpan(new DummyMessage(orderHeader), "Client-Handshake: Server Side State: " + body.toString() + " received");
 			if (getSender().equals(serverSide)) {
 				remoteState = body;
 				switch (body) {
@@ -226,8 +233,8 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 
 			HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 					IOStationCapability.ServerMessageTypes.SubscribeToStateUpdates);
-			tracer.injectMsg(msg);// subscribe for
-			// updates
+			tracer.injectMsg(msg);// subscribe for updates
+			
 
 			serverSide.tell(msg, getSelf());
 			publishNewState(ClientSideStates.INITIATING);
@@ -318,6 +325,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 					IOStationCapability.ServerMessageTypes.UnsubscribeToStateUpdates);
 			tracer.injectMsg(msg);
 			serverSide.tell(msg, self);
+			orderHeader = "";
 		}
 		context().system().scheduler().scheduleOnce(Duration.ofMillis(1000), new Runnable() {
 			@Override

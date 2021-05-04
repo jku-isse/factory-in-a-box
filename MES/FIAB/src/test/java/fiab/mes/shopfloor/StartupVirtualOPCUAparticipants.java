@@ -1,6 +1,7 @@
 package fiab.mes.shopfloor;
 
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
+import fiab.core.capabilities.tracing.TestTracingUtil;
 import fiab.machine.plotter.opcua.StartupUtil;
 
 import fiab.tracing.extension.TracingExtension;
@@ -13,12 +14,11 @@ public class StartupVirtualOPCUAparticipants {
 	// new HardcodedDefaultTransportRoutingAndMapping
 
 	public static void main(String[] args) {
-		startupSingleTurntableInputOutputDualPlotter();
-
+		startupDoubleTurntableInputOutput();
 	}
 
 	public static void startupSingleTurntableInputOutputDualPlotter() {
-	TracingExtension ext = fiab.mes.tracing.TestTracingUtil.getTracingExtension();
+		TracingExtension ext = TestTracingUtil.getTracingExtension();
 		// TT1 West
 		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation1", ext);
 		// TT1 North
@@ -31,5 +31,17 @@ public class StartupVirtualOPCUAparticipants {
 		// configured
 		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1TracingTest", ext);
 
+	}
+
+	public static void startupDoubleTurntableInputOutput() {
+		TracingExtension ext = TestTracingUtil.getTracingExtension();
+		// TT1 West
+		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation1", ext);
+		// TT1 EAST
+		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "OutputStation1", ext);
+		// TT1 itself - ensure this starts later than the others or has no prior wiring
+		// configured
+		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1DualTTWiring", ext);
+		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "Turntable2DualTTWiring", ext);
 	}
 }
