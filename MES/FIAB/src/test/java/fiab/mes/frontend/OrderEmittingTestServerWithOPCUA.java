@@ -324,7 +324,10 @@ public class OrderEmittingTestServerWithOPCUA {
 				TestTracingUtil.getInjector().inject(span.context(), rtr);
 
 				transportSystemCoordinatorActor.tell(rtr, getRef());
-
+				
+				knownActors.keySet().forEach(uri -> System.out.println(uri));
+				
+				
 				boolean transportDone = false;
 				boolean resetTT1 = false;
 				boolean resetTT2 = false;

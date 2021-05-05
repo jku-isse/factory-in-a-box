@@ -58,4 +58,12 @@ public class TurningMockMotor extends MockMotor {
     public void waitMs(long period) {
         super.waitMs(period);
     }
+
+	@Override
+	public int getRotationAngle() {
+		// fixed rotation to always reach the desired angle immediately
+		return Integer.MAX_VALUE;
+	}
+    
+    
 }

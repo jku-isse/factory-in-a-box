@@ -91,7 +91,7 @@ public class HardwareInfo {
             this.sensor2 = new MockSensor();    //Mock LoadingSensor conveyor
             this.sensor3 = new MockSensor();    //Mock UnloadingSensor conveyor
             this.sensor4 = new MockSensor();    //Mock HomingSensor turning
-
+           
             this.conveyorHardware = new MockConveyorHardware(motorA, sensor2, sensor3);
             this.turningHardware = new MockTurningHardware(motorD, sensor4);
         } else {
