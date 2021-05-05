@@ -26,6 +26,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	private ServerSideStates remoteState = null;
 	private ActorRef self;
 	private String orderHeader;
+	//private ActorRef sender;
 
 	private StatePublisher publishEP;
 
@@ -77,6 +78,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	}
 
 	private void receiveClientMessage(HSClientMessage msg) {
+		//sender = getSender();
 		IOStationCapability.ClientMessageTypes body = msg.getBody();
 
 		log.info(String.format("Received %s from %s", body, getSender()));
@@ -113,6 +115,7 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 	}
 
 	private void receiveServerMessage(HSServerMessage msg) {
+		//sender = getSender();
 		IOStationCapability.ServerMessageTypes body = msg.getBody();
 		log.info(String.format("Received %s from %s", body, getSender()));
 
@@ -248,7 +251,8 @@ public class ClientHandshakeActor extends AbstractTracingActor {
 		HSServerMessage msg = new HSServerMessage(tracer.getCurrentHeader(),
 				IOStationCapability.ServerMessageTypes.RequestInitiateHandover);
 		tracer.injectMsg(msg);
-		getSender().tell(msg, self);
+		//getSender().tell(msg, self);
+		serverSide.tell(msg, self);
 		retryInit();
 	}
 
