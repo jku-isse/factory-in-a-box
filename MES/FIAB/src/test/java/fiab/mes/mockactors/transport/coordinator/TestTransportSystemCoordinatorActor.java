@@ -16,6 +16,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
+import brave.Span;
 import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
@@ -37,6 +38,7 @@ import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.actor.TransportModuleCoordinatorActor;
 import fiab.turntable.conveying.BaseBehaviorConveyorActor;
@@ -150,15 +152,21 @@ class TestTransportSystemCoordinatorActor {
 				int countConnEvents = 0;
 				while (countConnEvents < 4) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineConnectedEvent.class,
-							IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class);
+							IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class,
+							TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent)
 						countConnEvents++;
 				}
 				// assert(dns.getActorForPosition(new
 				// Position("21")).get().equals(knownActors.get("MockTurntableActor21")));
+				Span span = TestTracingUtil.createNewRandomSpan().name("Parent Span").start();
+
 				RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get("InputStationActor34"),
 						knownActors.get("OutputStationActor35"), "TestOrder1", getRef());
+				rtr.setTracingHeader(ZipkinUtil.createXB3Header(span));
+				TestTracingUtil.getInjector().inject(span.context(), rtr);
+
 				coordActor.tell(rtr, getRef());
 
 				boolean transportDone = false;
@@ -166,7 +174,8 @@ class TestTransportSystemCoordinatorActor {
 				boolean resetTT2 = false;
 				while (!transportDone) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class,
-							IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class);
+							IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class,
+							TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof MachineStatusUpdateEvent
 							&& ((MachineStatusUpdateEvent) te).getMachineId().equals("MockTurntableActor20")
@@ -193,7 +202,13 @@ class TestTransportSystemCoordinatorActor {
 											.equals(RegisterTransportRequestStatusResponse.ResponseType.ISSUED));
 						}
 					}
-				}
+				}				
+				span.finish();
+				System.out.println("Finished with emitting orders. Press ENTER to end test!");
+				System.in.read();
+				System.out.println("Test completed");
+				
+				TestTracingUtil.finishSpan();
 			}
 		};
 	}

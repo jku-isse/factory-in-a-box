@@ -87,7 +87,8 @@ public class TransportModuleUsageTracker {
 	}
 	
 	public Optional<TransportModuleOrderMappingStatus.AllocationState> getUsageState(AkkaActorBackedCoreModelAbstractActor actor) {
-		return Optional.ofNullable(moms.get(actor)).map(tmoms -> tmoms.getAssignmentState());
+		return Optional.ofNullable(moms.get(actor)).map(tmoms -> 
+		tmoms.getAssignmentState());
 	}
 	
 	public void trackIfTransportModule(MachineConnectedEvent event) {

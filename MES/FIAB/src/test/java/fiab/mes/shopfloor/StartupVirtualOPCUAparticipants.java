@@ -13,7 +13,7 @@ public class StartupVirtualOPCUAparticipants {
 	// Checkout Position arrangement
 	// new HardcodedDefaultTransportRoutingAndMapping
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		startupDoubleTurntableInputOutput();
 	}
 
@@ -33,15 +33,17 @@ public class StartupVirtualOPCUAparticipants {
 
 	}
 
-	public static void startupDoubleTurntableInputOutput() {
+	public static void startupDoubleTurntableInputOutput() throws InterruptedException {
 		TracingExtension ext = TestTracingUtil.getTracingExtension();
 		// TT1 West
 		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation1", ext);
+		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1DualTT", ext);
 		// TT1 EAST
-		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "OutputStation1", ext);
+		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(1, "OutputStation1", ext);
 		// TT1 itself - ensure this starts later than the others or has no prior wiring
 		// configured
-		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1DualTTWiring", ext);
-		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "Turntable2DualTTWiring", ext);
+		
+		
+		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "Turntable2DualTT", ext);
 	}
 }
