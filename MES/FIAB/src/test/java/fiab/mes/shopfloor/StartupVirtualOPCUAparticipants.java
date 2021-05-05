@@ -15,6 +15,7 @@ public class StartupVirtualOPCUAparticipants {
 
 	public static void main(String[] args) throws InterruptedException {
 		startupDoubleTurntableInputOutput();
+		//startupSingleTurntableInputOutputDualPlotter();
 	}
 
 	public static void startupSingleTurntableInputOutputDualPlotter() {
@@ -43,7 +44,7 @@ public class StartupVirtualOPCUAparticipants {
 		// TT1 itself - ensure this starts later than the others or has no prior wiring
 		// configured
 		
-		
+		Thread.sleep(3000);
 		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "Turntable2DualTT", ext);
 	}
 }
