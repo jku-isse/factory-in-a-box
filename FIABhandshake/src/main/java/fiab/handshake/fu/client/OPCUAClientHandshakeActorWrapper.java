@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
+import org.eclipse.milo.opcua.sdk.client.ModifiedOpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
@@ -19,6 +20,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.eclipse.milo.opcua.stack.core.types.structured.CallMethodRequest;
+import org.eclipse.milo.opcua.stack.core.types.structured.CallMethodResult;
 import org.eclipse.milo.opcua.stack.core.types.structured.MonitoredItemCreateRequest;
 import org.eclipse.milo.opcua.stack.core.types.structured.MonitoringParameters;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
@@ -34,6 +36,7 @@ import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.handshake.actor.messages.HSServerMessage;
 import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.tracing.actor.AbstractTracingActor;
+import fiab.tracing.impl.zipkin.ZipkinUtil;
 
 public class OPCUAClientHandshakeActorWrapper extends AbstractTracingActor {
 
@@ -127,28 +130,36 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractTracingActor {
 
 		CallMethodRequest request = new CallMethodRequest(nodeIds.getCapabilityImplNode(), methodId, new Variant[] {});
 
-		return nodeIds.getClient().call(request).thenCompose(result -> {
-			StatusCode statusCode = result.getStatusCode();
+		if (nodeIds.getClient() instanceof ModifiedOpcUaClient) {
+			String header = tracer.getCurrentHeader();
+			return ((ModifiedOpcUaClient) nodeIds.getClient())
+					.call(request, ZipkinUtil.extractTraceId(header), ZipkinUtil.extractParentId(header))
+					.thenCompose(result -> getResult(result));
+		} else
+			return nodeIds.getClient().call(request).thenCompose(result -> getResult(result));
+	}
 
-			if (statusCode.isGood()) {
-				int len = result.getOutputArguments() != null ? result.getOutputArguments().length : -1;
-				if (len > 0) {
-					String value = (String) (result.getOutputArguments())[0].getValue();
-					return CompletableFuture.completedFuture(value);
-				} else { // workaround here as FORTE doesn't return result in current i/o station version
-					return CompletableFuture.completedFuture("OK");
-				}
-			} else {
-				StatusCode[] inputArgumentResults = result.getInputArgumentResults();
-				for (int i = 0; i < inputArgumentResults.length; i++) {
-					logger.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
-				}
+	private CompletableFuture<String> getResult(CallMethodResult result) {
+		StatusCode statusCode = result.getStatusCode();
 
-				CompletableFuture<String> f = new CompletableFuture<>();
-				f.completeExceptionally(new UaException(statusCode));
-				return f;
+		if (statusCode.isGood()) {
+			int len = result.getOutputArguments() != null ? result.getOutputArguments().length : -1;
+			if (len > 0) {
+				String value = (String) (result.getOutputArguments())[0].getValue();
+				return CompletableFuture.completedFuture(value);
+			} else { // workaround here as FORTE doesn't return result in current i/o station version
+				return CompletableFuture.completedFuture("OK");
 			}
-		});
+		} else {
+			StatusCode[] inputArgumentResults = result.getInputArgumentResults();
+			for (int i = 0; i < inputArgumentResults.length; i++) {
+				logger.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
+			}
+
+			CompletableFuture<String> f = new CompletableFuture<>();
+			f.completeExceptionally(new UaException(statusCode));
+			return f;
+		}
 	}
 
 	private void setNewNodeIds(ServerHandshakeNodeIds nodeIds) {
