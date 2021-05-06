@@ -16,6 +16,7 @@ public class StartupUtil {
 
 	private static void startup(int portOffset, String name, boolean isInputStation, TracingExtension extension) {
 		ActorSystem system = ActorSystem.create("SYSTEM_" + name);
+		if(extension !=null)
 		system.registerExtension(extension);
 		ActorRef actor = isInputStation
 				? system.actorOf(OPCUAIOStationRootActor.propsForInputStation(name, portOffset), name)

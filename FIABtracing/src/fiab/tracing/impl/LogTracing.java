@@ -10,6 +10,8 @@ import fiab.tracing.actor.messages.TracingHeader;
 
 public class LogTracing implements Traceability {
 	private static final Logger logger = LoggerFactory.getLogger(LogTracing.class);
+	
+	private String currentHeader;
 
 	@Override
 	public void initWithServiceName(String name) {		
@@ -19,13 +21,13 @@ public class LogTracing implements Traceability {
 	@Override
 	public void startProducerSpan(TracingHeader msg, String spanName) {
 		logger.info("Started Producer Span: " + LocalDateTime.now() + " " + spanName);
-
+		currentHeader = msg.getTracingHeader();
 	}
 
 	@Override
 	public void startConsumerSpan(TracingHeader msg, String spanName) {
 		logger.info("Started Consumer Span: " + LocalDateTime.now() + " " + spanName);
-
+		currentHeader = msg.getTracingHeader();
 	}
 
 	@Override
@@ -40,7 +42,7 @@ public class LogTracing implements Traceability {
 
 	@Override
 	public String getCurrentHeader() {		
-		return "No Header defined for default logging";
+		return currentHeader;
 	}
 
 }

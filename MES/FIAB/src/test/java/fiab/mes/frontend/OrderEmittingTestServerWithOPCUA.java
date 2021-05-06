@@ -82,7 +82,7 @@ public class OrderEmittingTestServerWithOPCUA {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
-		system.registerExtension(TestTracingUtil.getTracingExtension());
+//		system.registerExtension(TestTracingUtil.getTracingExtension());
 
 		binding = ShopfloorStartup.startup(null, 2, system);
 		orderEventBus = system.actorSelection("/user/" + OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -331,7 +331,7 @@ public class OrderEmittingTestServerWithOPCUA {
 				boolean transportDone = false;
 				boolean resetTT1 = false;
 				boolean resetTT2 = false;
-				System.in.read();
+				
 				while (!transportDone) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class,
 							IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class,

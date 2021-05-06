@@ -9,7 +9,7 @@ import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 public class StartupUtil {
 	private final static AsyncReporter<zipkin2.Span> reporter;
-	//TODO remove for dynamically added URl
+	// TODO remove for dynamically added URl
 	static {
 		reporter = AsyncReporter.builder(URLConnectionSender.create(ZipkinTracing.getReportUrl())).build();
 	}
@@ -25,7 +25,8 @@ public class StartupUtil {
 
 	private static void startup(int portOffset, String name, boolean exposeInternalControls, TracingExtension ext) {
 		ActorSystem system = ActorSystem.create("SYSTEM_" + name);
-		system.registerExtension(ext);
+		if (ext != null)
+			system.registerExtension(ext);
 
 		system.actorOf(OPCUATurntableRootActor.props(name, portOffset, exposeInternalControls, reporter),
 				"TurntableRoot");
