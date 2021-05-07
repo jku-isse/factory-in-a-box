@@ -4,8 +4,10 @@ import static akka.pattern.Patterns.ask;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
+import org.bouncycastle.util.encoders.Hex;
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
 import org.eclipse.milo.opcua.sdk.server.ModifiedSession;
 import org.eclipse.milo.opcua.sdk.server.ModifiedSession.B3Header;
@@ -80,7 +82,11 @@ public class TransportRequest extends AbstractMethodInvocationHandler {
 			if (headerOpt.isPresent()) {
 				logger.info("Received B3 header: " + headerOpt.get().toString());
 				B3Header b3 = headerOpt.get();
-				itmr.setTracingHeader(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId));
+				byte[]  resBuf = new byte[16];
+				new Random().nextBytes(resBuf);
+				String  span = new String(Hex.encode(resBuf));
+				//itmr.setTracingHeader(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId));
+				itmr.setTracingHeader(ZipkinUtil.createB3Header(span, b3.traceId, b3.spanId));
 			} else {
 				itmr.setTracingHeader("");
 			}

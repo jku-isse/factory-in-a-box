@@ -159,7 +159,8 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		
 		//TODO: switch between tracing and non tracing client
 		try {
-			client = new OPCUAClientFactory().createTracingClient(info.getRemoteEndpointURL(), reporter, info.getLocalCapabilityId());
+		
+			client = new OPCUAClientFactory().createTracingClient(info.getRemoteEndpointURL(), reporter, fuPrefix+"/"+capInstId);
 			client.connect().get();
 		} catch (Exception e) {
 			logger.warn(e.getMessage());
