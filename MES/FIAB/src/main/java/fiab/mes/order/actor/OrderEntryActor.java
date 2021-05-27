@@ -77,6 +77,8 @@ public class OrderEntryActor extends AbstractTracingActor {
 			this.latestChange.put(event.getOrderId(), event);
 		}).match(CancelOrTerminateOrder.class, req -> {
 			try {
+				//TODO nicht tracen, OrderActor soll tracen
+//				subspan außer 
 				tracer.startConsumerSpan(req, "Order Entry Actor: Cancel Or Terminate Order received");
 				ActorRef oa = orderActors.get(req.getRootOrderId());
 				if (oa != null) {

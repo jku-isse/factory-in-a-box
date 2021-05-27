@@ -18,7 +18,7 @@ import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.restendpoint.requests.OrderHistoryRequest;
 import fiab.mes.restendpoint.requests.OrderStatusRequest;
 import fiab.tracing.actor.AbstractTracingActor;
-import fiab.tracing.actor.messages.DummyMessage;
+import fiab.tracing.actor.messages.OrderStartMessage;
 
 public class OrderActor extends AbstractTracingActor {
 
@@ -38,14 +38,11 @@ public class OrderActor extends AbstractTracingActor {
 
 	public OrderActor(RegisterProcessRequest orderReq, ActorSelection eventBusByRef, ActorSelection orderPlannerByRef) {
 		super();
-		try {
-			tracer.startConsumerSpan(new DummyMessage(), "Order actor created");
-			System.out.println("Order Actor: " + tracer.getCurrentHeader());
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			tracer.finishCurrentSpan();
-		}
+
+// This should be the first Trace in an order and it gets finished in the orderevent
+		tracer.startConsumerSpan(new OrderStartMessage(), "Order actor created");
+
+		System.out.println(tracer.getCurrentHeader());
 
 		this.orderId = orderReq.getRootOrderId();
 		this.order = orderReq;
@@ -72,6 +69,20 @@ public class OrderActor extends AbstractTracingActor {
 					sender().tell(Optional.of(new OrderStatusRequest.Response(order.getProcess())), getSelf());
 				}).match(OrderEvent.class, event -> {
 					history.add(event);
+					// OrderEvent rejected, canceled removed, premature_removal
+					// add event type as tag/annotation
+
+					switch (event.getEventType()) {
+					case REJECTED:					
+					case CANCELED:
+					case REMOVED:
+					case PREMATURE_REMOVAL:
+						tracer.addAnnotation(event.getEventType().toString());
+						tracer.finishCurrentSpan();
+						break;
+					default:
+						break;
+					}
 				}).match(OrderHistoryRequest.class, req -> {
 					List<OrderEvent> events = req.shouldResponseIncludeDetails() ? history
 							: history.stream().map(event -> event.getCloneWithoutDetails())
@@ -81,7 +92,8 @@ public class OrderActor extends AbstractTracingActor {
 				}).match(CancelOrTerminateOrder.class, req -> {
 					// forward to Planner to halt production and remove order from shopfloor
 					try {
-						tracer.startConsumerSpan(req, "Order Actor: Cancel Or Terminate Order received");
+						tracer.startConsumerSpan(req, "Cancel Or terminate Order received");
+						req.setTracingHeader(tracer.getCurrentHeader());
 						orderPlannerByRef.tell(req, getSelf());
 					} catch (Exception e) {
 						e.printStackTrace();

@@ -293,6 +293,7 @@ public class TransportSystemCoordinatorActor extends AbstractTracingActor{
 				tmrRoot.ifPresent(tmr -> {
 					requestQueue.add(tmr);					
 					queuedRequests.put(rtr.getOrderId(), rtr);
+					tracer.injectMsg(tmr);
 					String msg = String.format("Queuing TMR from %s to %s for Order %s with RequestId %s", sourceP.getPos(), destP.getPos(), tmr.getOrderId(), tmr.getRequestId());
 					this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.QUEUED ,msg), self);		
 					log.info(msg);

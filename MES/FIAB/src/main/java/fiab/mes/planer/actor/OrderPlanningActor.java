@@ -105,13 +105,13 @@ public class OrderPlanningActor extends AbstractTracingActor {
 	public Receive createReceive() {
 		return receiveBuilder().match(RegisterProcessRequest.class, rpReq -> {
 			try {
-				tracer.startConsumerSpan(rpReq, "Register Process Request received");
+				tracer.startConsumerSpan(rpReq, "Register Order Request received");
 				log.info("Received Register Order Request: " + rpReq.getRootOrderId());
 				// reqIndex.put(rpReq.getRootOrderId(), rpReq);
 				if (state.equals(PlannerState.FULLY_OPERATIONAL)) {
-					
+
 					ordMapper.registerOrder(rpReq);
-					scheduleProcess(rpReq.getRootOrderId(), rpReq.getProcess());
+					scheduleProcess(rpReq.getRootOrderId(), rpReq.getProcess(), tracer.getCurrentHeader());
 				} else {
 					String msg = String.format(
 							"Cannot accept request for process %s when not in %s state, currently in state %s",
@@ -125,17 +125,10 @@ public class OrderPlanningActor extends AbstractTracingActor {
 				tracer.finishCurrentSpan();
 			}
 		}).match(CancelOrTerminateOrder.class, req -> {
-			try {
-				tracer.startConsumerSpan(req, "Order Planning Actor: Cancel Or Terminate Order received");
-				handleCancelOrderRequest(req);
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				tracer.finishCurrentSpan();
-			}
+			handleCancelOrderRequest(req);
 		}).match(ReadyForProcessEvent.class, readyE -> {
 			try {
-				tracer.startConsumerSpan(readyE, "Order Planning Actor: Ready For Process Event received");
+				tracer.startConsumerSpan(readyE, "Ready For Process Event received");
 				produceProcessAtMachine(readyE);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -194,7 +187,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 //	}
 
 	// first time activation of the process
-	private void scheduleProcess(String rootOrderId, OrderProcess mop) {
+	private void scheduleProcess(String rootOrderId, OrderProcess mop, String tracingHeader) {
 		if (!mop.doAllLeafNodeStepsHaveInvokedCapability(mop.getProcess())) {
 			String msg = String.format(
 					"OrderProcess %s does not have all leaf nodes with capability invocations, thus cannot be completely mapped to machines, cancelling order",
@@ -211,7 +204,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 					+ rootOrderId;
 			orderEventBus.tell(new OrderProcessUpdateEvent(rootOrderId, this.self().path().name(), msg, pci),
 					ActorRef.noSender());
-			tryAssignExecutingMachineForOneProcessStep(mop, rootOrderId);
+			tryAssignExecutingMachineForOneProcessStep(mop, rootOrderId, tracingHeader);
 		}
 	}
 
@@ -219,7 +212,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 	// already idle,
 	// if there are all machines occupied, then this will not do anything (order
 	// will be paused)
-	private void tryAssignExecutingMachineForOneProcessStep(OrderProcess op, String rootOrderId) {
+	private void tryAssignExecutingMachineForOneProcessStep(OrderProcess op, String rootOrderId, String tracingHeader) {
 		// basically we get possible steps from process (filter out flow control
 		// elements) and register first step at machine
 		List<CapabilityInvocation> stepCandidates = op.getAvailableSteps().stream()
@@ -243,7 +236,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 					return;
 				} else {// else, we have now the reservation of the outputstation for this order and we
 						// continue with transport
-					requestTransport(outputStation.get(), rootOrderId);
+					requestTransport(outputStation.get(), rootOrderId, tracingHeader);
 				}
 			} else {
 				// this implies that the process cant make progress as there is no available
@@ -262,7 +255,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 					return;
 				} else {// else, we have now the reservation of the outputstation for this order and we
 						// continue with transport
-					requestTransport(outputStation.get(), rootOrderId);
+					requestTransport(outputStation.get(), rootOrderId, tracingHeader);
 				}
 			}
 		} else {
@@ -332,7 +325,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 					log.info(String.format("Order %s about to be registered at machine %s", rootOrderId,
 							aa.getValue().getId()));
 					aa.getValue().getAkkaActor().tell(new RegisterProcessStepRequest(rootOrderId,
-							aa.getKey().toString(), aa.getKey(), this.self(),tracer.getCurrentHeader()), this.self());
+							aa.getKey().toString(), aa.getKey(), this.self(), tracer.getCurrentHeader()), this.self());
 
 				});
 				if (!maOpt.isPresent()) {
@@ -396,16 +389,17 @@ public class OrderPlanningActor extends AbstractTracingActor {
 				ordMapper.reserveOrderAtMachine(machine);
 
 				LockForOrder lfo = new LockForOrder(readyE.getResponseTo().getProcessStepId(), orderId,
-						tracer.getCurrentHeader());
+						readyE.getTracingHeader());
 				tracer.injectMsg(lfo);
 				this.getSender().tell(lfo, this.getSelf());
-				
+
 				// upon lockfororder,the machine should transition into starting state
 				// FIXME this should actually be published by the machine
 				ordMapper.allocateProcess(orderId);
 				// request transport to that machine: this machine should now be in Starting
 				// state
-				requestTransport(machine, orderId); // if not transport is ready, here we stay in allocated state
+				requestTransport(machine, orderId, readyE.getTracingHeader()); // if not transport is ready, here we
+																				// stay in allocated state
 
 				// FIXME: this should be triggered by the machine event, not here as we haven't
 				// transported anything yet
@@ -434,7 +428,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 								ordMapper.freeUpMachine(iStation, false);
 								ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
 										.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(),
-												rpr.getRootOrderId()));
+												rpr.getRootOrderId(), rpr.getTracingHeader()));
 							});
 				});
 			}
@@ -448,19 +442,22 @@ public class OrderPlanningActor extends AbstractTracingActor {
 			ordMapper.updateMachineStatus(machine, ue);
 			if (ue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
 				// we reached idle for an outputstation
-				ordMapper.getProcessesInState(OrderEventType.COMPLETED).stream().forEach(
-						rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+				ordMapper.getProcessesInState(OrderEventType.COMPLETED).stream()
+						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(),
+								rpr.getRootOrderId(), rpr.getTracingHeader()));
 				ordMapper.getProcessesInState(OrderEventType.CANCELED).stream() // orders that need to be prematurely
 																				// removed
 						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(),
-								rpr.getRootOrderId()));
+								rpr.getRootOrderId(), rpr.getTracingHeader()));
 			} else if (ue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 				// we reached idle for an inputstation
 				// we are ready to start a new process as this input is ready
-				ordMapper.getProcessesInState(OrderEventType.PAUSED).stream().forEach(
-						rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
-				ordMapper.getProcessesInState(OrderEventType.REGISTERED).stream().forEach(
-						rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+				ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
+						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(),
+								rpr.getRootOrderId(), rpr.getTracingHeader()));
+				ordMapper.getProcessesInState(OrderEventType.REGISTERED).stream()
+						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(),
+								rpr.getRootOrderId(), rpr.getTracingHeader()));
 			}
 		});
 	}
@@ -492,7 +489,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 			case SCHEDULED:
 				// waiting for machine to respond, lets cancel this at the machine
 				CancelOrTerminateOrder cot = new CancelOrTerminateOrder(req.getRootOrderId());
-				cot.setTracingHeader(tracer.getCurrentHeader());
+				cot.setTracingHeader(req.getTracingHeader());
 				tracer.injectMsg(cot);
 
 				ordMapper.getRequestedMachineOfOrder(req.getRootOrderId()).ifPresent(machine -> {
@@ -522,7 +519,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 						return;
 					} else {// else, we have now the reservation of the outputstation for this order and we
 							// continue with transport
-						requestTransport(outputStation.get(), req.getRootOrderId());
+						requestTransport(outputStation.get(), req.getRootOrderId(), req.getTracingHeader());
 					}
 				}
 				break;
@@ -535,9 +532,13 @@ public class OrderPlanningActor extends AbstractTracingActor {
 				log.info(msg);
 				ordMapper.markOrderCanceled(req.getRootOrderId(), msg);
 				ordMapper.getRequestedMachineOfOrder(req.getRootOrderId()).ifPresent(machine -> {
-					machine.getAkkaActor().tell(new CancelOrTerminateOrder(req.getRootOrderId()), self);
+					CancelOrTerminateOrder cot1 = new CancelOrTerminateOrder(req.getRootOrderId());
+					cot1.setTracingHeader(req.getTracingHeader());
+					machine.getAkkaActor().tell(cot1, self);
 				});
-				transportCoordinator.tell(new CancelTransportRequest(req.getRootOrderId(),tracer.getCurrentHeader()), self);
+				CancelTransportRequest ctr = new CancelTransportRequest(req.getRootOrderId(), req.getTracingHeader());
+				tracer.injectMsg(ctr);
+				transportCoordinator.tell(ctr, self);
 				// we will ask the user to extract from turntable
 				break;
 			case ALLOCATED: // transient
@@ -575,15 +576,17 @@ public class OrderPlanningActor extends AbstractTracingActor {
 			case IDLE:
 				// if idle --> machine ready --> lets check if any order is waiting for that
 				// machine
-				ordMapper.getPausedProcessesOnSomeMachine().stream().forEach(
-						rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+				ordMapper.getPausedProcessesOnSomeMachine().stream()
+						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(),
+								rpr.getRootOrderId(), rpr.getTracingHeader()));
 				// we don't abort upon first success but try for every one, shouldn't matter,
 				// just takes a bit of processing
 
 				// order that are paused but not assigned to any machine yet (not efficient as
 				// will check all those already checked above)
-				ordMapper.getProcessesInState(OrderEventType.PAUSED).stream().forEach(
-						rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+				ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
+						.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(),
+								rpr.getRootOrderId(), rpr.getTracingHeader()));
 
 				// if none, then just wait for next incoming event
 				break;
@@ -619,7 +622,8 @@ public class OrderPlanningActor extends AbstractTracingActor {
 								this.self().path().name(), msg, pci);
 						orderEventBus.tell(opue, ActorRef.noSender());
 					});
-					tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId());
+					tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId(),
+							rpr.getTracingHeader());
 				});
 				break;
 			case STOPPING:// fallthrough
@@ -661,7 +665,8 @@ public class OrderPlanningActor extends AbstractTracingActor {
 							|| state2.equals(OrderEventType.TRANSPORT_IN_PROGRESS)) {
 						// cancel transport, we might be in state requested, then we may continue, but
 						// transport might just have started
-						transportCoordinator.tell(new CancelTransportRequest(moms.getOrderId(),tracer.getCurrentHeader()), self);
+						transportCoordinator
+								.tell(new CancelTransportRequest(moms.getOrderId(), tracer.getCurrentHeader()), self);
 						// transport will tell us whether it started already, we then react to these
 						// transport update events
 						// so we don't mark it at all, if not started then we can continue it elsewhere
@@ -678,7 +683,8 @@ public class OrderPlanningActor extends AbstractTracingActor {
 					if (state.equals(OrderEventType.TRANSPORT_REQUESTED)
 							|| state.equals(OrderEventType.TRANSPORT_IN_PROGRESS)) {
 						// ensure, the transport is canceled, transportmodules are freed up
-						transportCoordinator.tell(new CancelTransportRequest(moms.getOrderId(),tracer.getCurrentHeader()), self);
+						transportCoordinator
+								.tell(new CancelTransportRequest(moms.getOrderId(), tracer.getCurrentHeader()), self);
 					}
 				});
 				ordMapper.removeOrderAllocationIfMachineStillOccupied(machine);
@@ -741,7 +747,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 
 	}
 
-	private void requestTransport(AkkaActorBackedCoreModelAbstractActor destination, String orderId) {
+	private void requestTransport(AkkaActorBackedCoreModelAbstractActor destination, String orderId, String header) {
 
 		Optional<AkkaActorBackedCoreModelAbstractActor> currentLoc = ordMapper.getCurrentMachineOfOrder(orderId);
 		if (!currentLoc.isPresent()) {
@@ -758,7 +764,11 @@ public class OrderPlanningActor extends AbstractTracingActor {
 			// reservation
 		} else {
 			ordMapper.markOrderWaitingForTransport(orderId);
-			transportCoordinator.tell(new RegisterTransportRequest(currentLoc.get(), destination, orderId, self,tracer.getCurrentHeader()), self);
+
+			RegisterTransportRequest rtr = new RegisterTransportRequest(currentLoc.get(), destination, orderId, self,
+					header);
+			tracer.injectMsg(rtr);
+			transportCoordinator.tell(rtr, self);
 		}
 
 	}
@@ -851,7 +861,7 @@ public class OrderPlanningActor extends AbstractTracingActor {
 					ordMapper.getProcessesInState(OrderEventType.CANCELED).stream() // orders that need to be
 																					// prematurely removed
 							.forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(),
-									rpr.getRootOrderId()));
+									rpr.getRootOrderId(), rpr.getTracingHeader()));
 					return;
 				}
 			}); // else we assume order can be rerouted to another machine later

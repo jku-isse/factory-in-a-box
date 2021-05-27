@@ -82,7 +82,7 @@ public class OrderEmittingTestServerWithOPCUA {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
-//		system.registerExtension(TestTracingUtil.getTracingExtension());
+		system.registerExtension(TestTracingUtil.getTracingExtension());
 
 		binding = ShopfloorStartup.startup(null, 2, system);
 		orderEventBus = system.actorSelection("/user/" + OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -117,7 +117,7 @@ public class OrderEmittingTestServerWithOPCUA {
 				machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")),
 						getRef());
 
-				Set<String> urlsToBrowse = getTracingLocalhostLayout();
+				Set<String> urlsToBrowse = getDoubleTTPlotterLayout();
 				// Set<String> urlsToBrowse = getSingleTTLayout(); //set layout to 1 expectedTT
 				// in preTEst method
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
@@ -129,9 +129,13 @@ public class OrderEmittingTestServerWithOPCUA {
 				});
 
 				int countConnEvents = 0;
+				int machineUpdateEvents = 0;
 				boolean isPlannerFunctional = false;
 				boolean isTransportFunctional = false;
-				while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional) {
+
+				// manchineStatusUpdateEvents 2 smaller countCOnnEvents
+				while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional
+						|| machineUpdateEvents < (countConnEvents - 2)) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof PlanerStatusMessage
@@ -149,12 +153,15 @@ public class OrderEmittingTestServerWithOPCUA {
 					}
 					// DO THIS MANUALLY FROM WEB UI!
 					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED))
+						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) {
 							Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
 									.ifPresent(actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(
 											((MachineStatusUpdateEvent) te).getMachineId()), getRef()));
+							machineUpdateEvents++;
+						}
 					}
 				}
+				
 
 				CountDownLatch count = new CountDownLatch(1);
 				while (count.getCount() > 0) {
@@ -163,15 +170,20 @@ public class OrderEmittingTestServerWithOPCUA {
 					// OrderProcess op1 = new
 					// OrderProcess(ProduceProcess.getSequential4ColorProcess(oid));
 					RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, getRef());
+					
 					orderEntryActor.tell(req, getRef());
 
 					count.countDown();
 					Thread.sleep(3000);
 				}
+
+				
 				System.out.println("Finished with emitting orders. Press ENTER to end test!");
 				System.in.read();
 				System.out.println("Test completed");
+				TestTracingUtil.finishSpan();
 			}
+
 		};
 
 	}
@@ -201,21 +213,10 @@ public class OrderEmittingTestServerWithOPCUA {
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				boolean isTransportFunctional = false;
-				while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() - 1 || !isTransportFunctional) { // we
-																														// expect
-																														// one
-																														// machine
-																														// less,
-																														// the
-																														// spot
-																														// we
-																														// switch
-																														// to,
-																														// but
-																														// which
-																														// we
-																														// nevertheless
-																														// monitor
+				while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() - 1 || !isTransportFunctional) {
+					// we expect one machine less, the spot we switch to but which we nevetherless
+					// monitor
+
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof PlanerStatusMessage
@@ -264,8 +265,7 @@ public class OrderEmittingTestServerWithOPCUA {
 	//
 	@Test // works
 	void testFrontendResponsesByEmittingTransportRequest() throws Exception {
-		
-		
+
 		new TestKit(system) {
 			{
 				System.out.println("test frontend responses by emitting orders with sequential process");
@@ -324,29 +324,26 @@ public class OrderEmittingTestServerWithOPCUA {
 				TestTracingUtil.getInjector().inject(span.context(), rtr);
 
 				transportSystemCoordinatorActor.tell(rtr, getRef());
-				
+
 				knownActors.keySet().forEach(uri -> System.out.println(uri));
-				
-				
+
 				boolean transportDone = false;
 				boolean resetTT1 = false;
 				boolean resetTT2 = false;
-				
+
 				while (!transportDone) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), MachineStatusUpdateEvent.class,
 							IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class,
 							TransportSystemStatusMessage.class);
 					logEvent(te);
-					if (te instanceof MachineStatusUpdateEvent
-							&& ((MachineStatusUpdateEvent) te).getMachineId().equals("opc.tcp://localhost:4842/milo/Turntable1DualTT/Turntable_FU")
-							&& !resetTT1) {
+					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId()
+							.equals("opc.tcp://localhost:4842/milo/Turntable1DualTT/Turntable_FU") && !resetTT1) {
 						knownActors.get("opc.tcp://localhost:4842/milo/Turntable1DualTT/Turntable_FU").getAkkaActor()
 								.tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());
 						resetTT1 = true;
 					}
-					if (te instanceof MachineStatusUpdateEvent
-							&& ((MachineStatusUpdateEvent) te).getMachineId().equals("opc.tcp://localhost:4843/milo/Turntable2DualTT/Turntable_FU")
-							&& !resetTT2) {
+					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId()
+							.equals("opc.tcp://localhost:4843/milo/Turntable2DualTT/Turntable_FU") && !resetTT2) {
 						knownActors.get("opc.tcp://localhost:4843/milo/Turntable2DualTT/Turntable_FU").getAkkaActor()
 								.tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());
 						resetTT2 = true;
@@ -437,6 +434,18 @@ public class OrderEmittingTestServerWithOPCUA {
 		urlsToBrowse.add("opc.tcp://localhost:4841/milo"); // POS EAST of TT2, Pos 35 output station
 		urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 Pos20
 		urlsToBrowse.add("opc.tcp://localhost:4843/milo"); // TT2 Pos21
+		return urlsToBrowse;
+	}
+
+	private Set<String> getDoubleTTPlotterLayout() {
+		Set<String> urlsToBrowse = new HashSet<String>();
+		urlsToBrowse.add("opc.tcp://localhost:4840/milo"); // IStation pos34
+		urlsToBrowse.add("opc.tcp://localhost:4841/milo"); // OStation Pos35
+		urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 pos20
+		urlsToBrowse.add("opc.tcp://localhost:4843/milo"); // TT2 Pos21
+		// virtual plotters
+		urlsToBrowse.add("opc.tcp://localhost:4845/milo"); // Plotter pos31
+		urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Plotter pos37
 		return urlsToBrowse;
 	}
 

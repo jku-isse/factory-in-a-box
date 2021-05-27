@@ -6,4 +6,19 @@
 		"remoteNodeId": "ns=2;s=InputStation1/IOSTATION/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
 		"remoteRole": "RemoteRole1"
 	}
+	,
+	"SOUTH_CLIENT": {
+		"localCapabilityId": "SOUTH_CLIENT",
+		"remoteCapabilityId": "DefaultHandshakeServerSide",
+		"remoteEndpointURL": "opc.tcp://localhost:4847/milo",
+		"remoteNodeId": "ns=2;s=VirtualPlotter2/Plotting_FU/Handshake_FU/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+		"remoteRole": "RemoteRole1"
+	},
+	"NORTH_CLIENT": {
+		"localCapabilityId": "NORTH_CLIENT",
+		"remoteCapabilityId": "DefaultHandshakeServerSide",
+		"remoteEndpointURL": "opc.tcp://localhost:4845/milo",
+		"remoteNodeId": "ns=2;s=VirtualPlotter1/Plotting_FU/Handshake_FU/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+		"remoteRole": "RemoteRole1"
+	}
 }

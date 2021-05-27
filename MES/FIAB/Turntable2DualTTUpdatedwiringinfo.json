@@ -2,7 +2,7 @@
   "WEST_CLIENT" : {
     "localCapabilityId" : "WEST_CLIENT",
     "remoteCapabilityId" : "DefaultHandshakeServerSide",
-    "remoteEndpointURL" : "opc.tcp://localhost:4842",
+    "remoteEndpointURL" : "opc.tcp://localhost:4842/milo",
     "remoteNodeId" : "ns=2;s=Turntable1DualTT/Turntable_FU/HANDSHAKE_FU_EAST_SERVER/CAPABILITIES/CAPABILITY",
     "remoteRole" : "RemoteRole1"
   },

@@ -23,5 +23,9 @@ public interface Traceability {
 
 	public String getCurrentHeader();
 
+	public void addAnnotation(String string);
+
+
+
 
 }

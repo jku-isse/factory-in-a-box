@@ -45,4 +45,10 @@ public class LogTracing implements Traceability {
 		return currentHeader;
 	}
 
+	@Override
+	public void addAnnotation(String string) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

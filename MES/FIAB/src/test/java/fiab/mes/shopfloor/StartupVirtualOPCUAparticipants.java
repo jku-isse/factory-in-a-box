@@ -7,6 +7,7 @@ import fiab.machine.plotter.opcua.StartupUtil;
 import fiab.tracing.extension.TracingExtension;
 
 public class StartupVirtualOPCUAparticipants {
+	private static TracingExtension ext = TestTracingUtil.getTracingExtension();
 
 	// Checkout for Port to Position mapping:
 	// TransportPositionLookup.parsePosViaPortNr();
@@ -14,12 +15,12 @@ public class StartupVirtualOPCUAparticipants {
 	// new HardcodedDefaultTransportRoutingAndMapping
 
 	public static void main(String[] args) throws InterruptedException {
-		startupDoubleTurntableInputOutput();
-		//startupSingleTurntableInputOutputDualPlotter();
+//		startupDoubleTurntableInputOutput();
+//		startupSingleTurntableInputOutputDualPlotter();
+		startupDoubleTurntableInputOutputDualPlotter();
 	}
 
-	public static void startupSingleTurntableInputOutputDualPlotter() {
-		TracingExtension ext = TestTracingUtil.getTracingExtension();
+	public static void startupSingleTurntableInputOutputDualPlotter() {		
 		// TT1 West
 		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation1", ext);
 		// TT1 North
@@ -31,12 +32,24 @@ public class StartupVirtualOPCUAparticipants {
 		// TT1 itself - ensure this starts later than the others or has no prior wiring
 		// configured
 		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1TracingTest", ext);
-
+	}
+	public static void startupDoubleTurntableInputOutputDualPlotter() throws InterruptedException {		
+		// TT1 West
+		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation1", ext);
+		// TT1 North
+		StartupUtil.startup(5, "VirtualPlotter1", SupportedColors.BLACK, ext);
+		// TT1 South
+		StartupUtil.startup(7, "VirtualPlotter2", SupportedColors.BLACK, ext);
+		// TT1 EAST
+		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(1, "OutputStation1", ext);
+		// TT1 itself - ensure this starts later than the others or has no prior wiring
+		// configured
+		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1DualTT", ext);
+		Thread.sleep(5000);
+		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "Turntable2DualTT", ext);
 	}
 
-	public static void startupDoubleTurntableInputOutput() throws InterruptedException {
-//		TracingExtension ext = TestTracingUtil.getTracingExtension();
-		TracingExtension ext = null;
+	public static void startupDoubleTurntableInputOutput() throws InterruptedException {		
 		// TT1 West
 		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation1", null);
 		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1DualTT", null);
@@ -46,6 +59,6 @@ public class StartupVirtualOPCUAparticipants {
 		// configured
 		
 		Thread.sleep(5000);
-		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "Turntable2DualTT", null);
+		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "Turntable2DualTT", null);	
 	}
 }

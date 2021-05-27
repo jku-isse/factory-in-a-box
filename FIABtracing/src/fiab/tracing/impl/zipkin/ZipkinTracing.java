@@ -97,19 +97,14 @@ public class ZipkinTracing implements Traceability {
 			return currentSpanHeader();
 	}
 
+	@Override
+	public void addAnnotation(String annotation) {
+		currentSpan.annotate(annotation);
+	}
+
 	public static ZipkinSpanHandler getHandler() {
 		return handler;
 	}
-
-//	@Override
-//	public Span createNewTrace(String traceName, String spanName) {
-//		Tracing tracing = Tracing.newBuilder().localServiceName(traceName).addSpanHandler(handler).build();	
-//		Span span = tracing.tracer().nextSpan().name(spanName);
-//		Stack<Span> stack = new Stack<>();
-//		stack.push(span);
-//		tracingMap.put(span.context().traceIdString(), stack);
-//		return span;
-//	}
 
 	private ScopedSpan createNewScope(String traceName, String scopeName) {
 		return tracing.tracer().startScopedSpan(scopeName);
