@@ -12,8 +12,6 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.CallingThreadDispatcher;
 import akka.testkit.javadsl.TestKit;
-import brave.ScopedSpan;
-import brave.Tracing;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
@@ -24,7 +22,6 @@ import fiab.handshake.actor.messages.HSClientSideStateMessage;
 import fiab.handshake.actor.messages.HSServerMessage;
 import fiab.handshake.actor.messages.HSServerSideStateMessage;
 import fiab.tracing.actor.messages.ExtensibleMessage;
-import fiab.tracing.impl.zipkin.ZipkinTracing;
 import fiab.tracing.impl.zipkin.ZipkinUtil;
 
 public class TestHandshakeProtocol {
@@ -74,7 +71,7 @@ public class TestHandshakeProtocol {
 						exMsg = (ExtensibleMessage<Object>) msg;
 
 					logEvent(msg, getLastSender());
-					String header = ZipkinUtil.createXB3ScopeHeader(createScopedSpan());
+					String header = ZipkinUtil.createXB3ScopeHeader(TestTracingUtil.createRandomSpanScope());
 					if (exMsg.getBody().equals(ClientSideStates.IDLE)) {
 						HSClientMessage scopedMsg = new HSClientMessage(header,
 								HandshakeCapability.ClientMessageTypes.Start);
@@ -92,11 +89,6 @@ public class TestHandshakeProtocol {
 				}
 			}
 		};
-	}
-
-	private ScopedSpan createScopedSpan() {
-		return Tracing.newBuilder().localServiceName("Order1").addSpanHandler(ZipkinTracing.getHandler()).build()
-				.tracer().startScopedSpan("Order1");
 	}
 
 	private void logEvent(Object event, ActorRef sender) {

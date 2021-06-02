@@ -63,7 +63,7 @@ public class TestTracingUtil {
 	}
 
 	public static void finishSpan() {
-		span.finish();
+//		span.finish();
 		handler.close();
 		sender.close();
 	}

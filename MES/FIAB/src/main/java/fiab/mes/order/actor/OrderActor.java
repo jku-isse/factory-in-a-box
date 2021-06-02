@@ -40,7 +40,9 @@ public class OrderActor extends AbstractTracingActor {
 		super();
 
 // This should be the first Trace in an order and it gets finished in the orderevent
-		tracer.startConsumerSpan(new OrderStartMessage(), "Order actor created");
+		
+//		tracer.startConsumerSpan(new OrderStartMessage(), "Order actor created");
+		tracer.startNewProcess("Order actor created");
 
 		System.out.println(tracer.getCurrentHeader());
 
@@ -79,6 +81,8 @@ public class OrderActor extends AbstractTracingActor {
 					case PREMATURE_REMOVAL:
 						tracer.addAnnotation(event.getEventType().toString());
 						tracer.finishCurrentSpan();
+						Thread.sleep(2000);
+						tracer.finish();
 						break;
 					default:
 						break;

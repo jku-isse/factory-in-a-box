@@ -51,4 +51,16 @@ public class LogTracing implements Traceability {
 		
 	}
 
+	@Override
+	public void finish() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void startNewProcess(String string) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

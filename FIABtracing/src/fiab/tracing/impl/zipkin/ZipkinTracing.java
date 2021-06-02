@@ -7,6 +7,8 @@ import brave.Tracing;
 import brave.propagation.TraceContext.Extractor;
 import brave.propagation.TraceContext.Injector;
 import fiab.tracing.Traceability;
+import fiab.tracing.actor.messages.DummyMessage;
+import fiab.tracing.actor.messages.OrderStartMessage;
 import fiab.tracing.actor.messages.TracingHeader;
 import zipkin2.reporter.brave.AsyncZipkinSpanHandler;
 import zipkin2.reporter.brave.ZipkinSpanHandler;
@@ -15,7 +17,7 @@ import zipkin2.reporter.urlconnection.URLConnectionSender;
 public class ZipkinTracing implements Traceability {
 	private final static String REPORT_URL = "http://localhost:9411/api/v2/spans";
 	private final static URLConnectionSender sender;
-	private final static ZipkinSpanHandler handler;
+	private final  ZipkinSpanHandler handler;
 
 	private Extractor<TracingHeader> extractor;
 	private Injector<TracingHeader> injector;
@@ -26,6 +28,10 @@ public class ZipkinTracing implements Traceability {
 
 	static {
 		sender = URLConnectionSender.create(REPORT_URL);
+		
+	}
+	
+	public ZipkinTracing() {
 		handler = AsyncZipkinSpanHandler.create(sender).toBuilder().alwaysReportSpans(true).build();
 	}
 
@@ -101,12 +107,31 @@ public class ZipkinTracing implements Traceability {
 	public void addAnnotation(String annotation) {
 		currentSpan.annotate(annotation);
 	}
+	
+	@Override
+	public void finish() {
+		scope.finish();
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		handler.close();		
+	}
+	
 
-	public static ZipkinSpanHandler getHandler() {
+	@Override
+	public void startNewProcess(String name) {
+		currentSpan = tracing.tracer().newTrace();
+		startConsumerSpan(new DummyMessage(currentSpanHeader()), name);
+		
+	}
+
+	public  ZipkinSpanHandler getHandler() {
 		return handler;
 	}
 
-	private ScopedSpan createNewScope(String traceName, String scopeName) {
+	private ScopedSpan createNewScope(String traceName, String scopeName) {		
 		return tracing.tracer().startScopedSpan(scopeName);
 	}
 
@@ -132,5 +157,9 @@ public class ZipkinTracing implements Traceability {
 	public static String getReportUrl() {
 		return REPORT_URL;
 	}
+
+
+	
+
 
 }

@@ -37,9 +37,9 @@ public class StartupVirtualOPCUAparticipants {
 		// TT1 West
 		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation1", ext);
 		// TT1 North
-		StartupUtil.startup(5, "VirtualPlotter1", SupportedColors.BLACK, ext);
+		StartupUtil.startup(5, "VirtualPlotter1", SupportedColors.RED, ext);
 		// TT1 South
-		StartupUtil.startup(7, "VirtualPlotter2", SupportedColors.BLACK, ext);
+		StartupUtil.startup(7, "VirtualPlotter2", SupportedColors.GREEN, ext);
 		// TT1 EAST
 		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(1, "OutputStation1", ext);
 		// TT1 itself - ensure this starts later than the others or has no prior wiring

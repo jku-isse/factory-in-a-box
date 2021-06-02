@@ -82,11 +82,11 @@ public class TransportRequest extends AbstractMethodInvocationHandler {
 			if (headerOpt.isPresent()) {
 				logger.info("Received B3 header: " + headerOpt.get().toString());
 				B3Header b3 = headerOpt.get();
-				byte[]  resBuf = new byte[16];
+				byte[]  resBuf = new byte[8];
 				new Random().nextBytes(resBuf);
 				String  span = new String(Hex.encode(resBuf));
 				//itmr.setTracingHeader(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.parentId));
-				itmr.setTracingHeader(ZipkinUtil.createB3Header(span, b3.traceId, b3.spanId));
+				itmr.setTracingHeader(ZipkinUtil.createB3Header(b3.spanId, b3.traceId, b3.spanId));
 			} else {
 				itmr.setTracingHeader("");
 			}

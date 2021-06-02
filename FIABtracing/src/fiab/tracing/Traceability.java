@@ -25,6 +25,10 @@ public interface Traceability {
 
 	public void addAnnotation(String string);
 
+	public void finish();
+
+	public void startNewProcess(String string);
+
 
 
 
