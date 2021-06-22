@@ -229,7 +229,7 @@
     </dependency>
   </dependencies>
   <properties>
-    <akka.version>2.5.25</akka.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <akka.version>2.5.25</akka.version>
   </properties>
 </project>

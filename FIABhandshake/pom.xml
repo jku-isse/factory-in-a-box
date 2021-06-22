@@ -55,6 +55,18 @@
             <version>5.7.0-M1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>sdk-server</artifactId>
+            <version>0.3.7</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>sdk-client</artifactId>
+            <version>0.3.7</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
