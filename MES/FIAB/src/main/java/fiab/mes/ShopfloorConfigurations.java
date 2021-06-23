@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
@@ -173,7 +174,7 @@ public class ShopfloorConfigurations {
     }
 
     public static void addFoldingStationSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
-        capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
+        capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownFoldingCapability.FOLDING_CAPABILITY_BASE_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
             @Override
             public ActorRef createActorSpawner(ActorContext context) {
                 return context.actorOf(LocalFoldingStationActorSpawner.props());

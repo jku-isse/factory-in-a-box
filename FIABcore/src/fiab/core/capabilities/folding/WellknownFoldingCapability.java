@@ -8,26 +8,21 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 
 public interface WellknownFoldingCapability extends OPCUABasicMachineBrowsenames {
 
-    public static String FOLDING_CAPABILITY_BASE_URI = "http://factory-in-a-box.fiab/capabilities/fold/shape/";
+    public static String FOLDING_CAPABILITY_BASE_URI = "http://factory-in-a-box.fiab/capabilities/fold/";
 
     public static String OPCUA_FOLD_REQUEST = "FOLD";
 
-    public static enum SupportedShapes { //default static java.awt.Color
-        BOX, HAT, BOAT
-    }
-
-
-    static AbstractCapability getFoldingShapeCapability(WellknownFoldingCapability.SupportedShapes shape) {
+    static AbstractCapability getFoldingShapeCapability() {
         ComparableCapability ac = new ComparableCapability();
-        ac.setDisplayName("Fold "+ shape);
-        ac.setID("Capability.Folding.Shape."+ shape);
-        ac.setUri(generateFoldingCapabilityURI(shape));
+        ac.setDisplayName("Fold");
+        ac.setID("Capability.Folding");
+        ac.setUri(generateFoldingCapabilityURI());
         ac.getInputs().add(getShapeInputParameter());
         return ac;
     }
 
-    public static String generateFoldingCapabilityURI(WellknownFoldingCapability.SupportedShapes shape) {
-        return FOLDING_CAPABILITY_BASE_URI+shape;
+    public static String generateFoldingCapabilityURI() {
+        return FOLDING_CAPABILITY_BASE_URI;
     }
 
     public static String FOLDING_CAPABILITY_INPUT_SHAPE_VAR_NAME = "RD_1";

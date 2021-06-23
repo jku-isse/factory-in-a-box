@@ -95,19 +95,13 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
     }
 
     private void spawnNewActor(CapabilityImplInfo info, Actor model, LocalFoldingStationActorSpawner.FoldingOPCUAnodes nodeIds) {
-        Optional<WellknownFoldingCapability.SupportedShapes> shape = extractShape(info.getCapabilityURI());
-        if (shape.isPresent()) {
-            AbstractCapability capability = WellknownFoldingCapability.getFoldingShapeCapability(shape.get());
+            AbstractCapability capability = WellknownFoldingCapability.getFoldingShapeCapability();
             IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
             TransportRoutingInterface.Position selfPos = resolvePosition(info);
             final ActorSelection eventBusByRef = context().actorSelection("/user/"+ InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
             FoldingOPCUAWrapper hal = new FoldingOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.foldMethod, getSelf());
             machine = this.context().actorOf(FoldingStationActor.props(eventBusByRef, capability, model, hal, intraEventBus), model.getActorName()+selfPos.getPos());
             log.info("Spawned Actor: "+machine.path());
-        } else {
-            log.error("Cannot instantiate actor with unsupported color for plotting capability");
-            getSelf().tell(Kill.getInstance(), self());
-        }
     }
 
     private LocalFoldingStationActorSpawner.FoldingOPCUAnodes retrieveNodeIds(CapabilityImplInfo info) throws InterruptedException, ExecutionException {
@@ -127,19 +121,6 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
                 nodeIds.setStateVar(n.getNodeId().get());
         }
         return nodeIds;
-    }
-
-    private Optional<WellknownFoldingCapability.SupportedShapes> extractShape(String uri) {
-        int posLastSlash = uri.lastIndexOf("/");
-        if (posLastSlash == -1) return Optional.empty();
-        String colorStr = "";
-        try {
-            colorStr = uri.substring(posLastSlash+1);
-            return Optional.of(WellknownFoldingCapability.SupportedShapes.valueOf(colorStr.toUpperCase(Locale.ROOT)));
-        } catch (Exception e) {
-            log.warning("Unable to parse supported color "+colorStr);
-            return Optional.empty();
-        }
     }
 
     private TransportRoutingInterface.Position resolvePosition(CapabilityImplInfo info) {

@@ -10,6 +10,7 @@ import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.folding.FoldingMessageTypes;
 import fiab.handshake.fu.HandshakeFU;
+import fiab.handshake.fu.client.ClientSideHandshakeFU;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.machine.foldingstation.IntraMachineEventBus;
 import fiab.machine.foldingstation.VirtualFoldingMachineActor;
@@ -32,17 +33,15 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
     private UaVariableNode status = null;
     private UaVariableNode capability = null;
     private ActorRef foldingCoordinator;
-    private WellknownFoldingCapability.SupportedShapes shape;
     private int portOffset;
 
-    static public Props props(String machineName, int portOffset, WellknownFoldingCapability.SupportedShapes shape) {
-        return Props.create(OPCUAFoldingStationRootActor.class, () -> new OPCUAFoldingStationRootActor(machineName, portOffset, shape));
+    static public Props props(String machineName, int portOffset) {
+        return Props.create(OPCUAFoldingStationRootActor.class, () -> new OPCUAFoldingStationRootActor(machineName, portOffset));
     }
 
-    public OPCUAFoldingStationRootActor(String machineName, int portOffset, WellknownFoldingCapability.SupportedShapes shape) {
+    public OPCUAFoldingStationRootActor(String machineName, int portOffset) {
         try {
             this.machineName = machineName;
-            this.shape = shape;
             this.portOffset = portOffset;
             init();
         } catch (Exception e) {
@@ -64,9 +63,8 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
         foldingCoordinator = context().actorOf(VirtualFoldingMachineActor.propsForLateHandshakeBinding(intraEventBus), machineName);
         foldingCoordinator.tell(FoldingMessageTypes.SubscribeState, getSelf());
 
-        HandshakeFU defaultHandshakeFU = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, foldingCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
-
-        setupFoldingCapabilities(opcuaBase, ttNode, fuPrefix, shape);
+        HandshakeFU serverSideHandshake = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, foldingCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+        setupFoldingCapabilities(opcuaBase, ttNode, fuPrefix);
         setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, foldingCoordinator);
 
         Thread s1 = new Thread(opcuaBase);
@@ -99,14 +97,14 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
         status = opcuaBase.generateStringVariableNode(ttNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, BasicMachineStates.UNKNOWN);
     }
 
-    private void setupFoldingCapabilities(OPCUABase opcuaBase, UaFolderNode ttNode, String path, WellknownFoldingCapability.SupportedShapes shape) {
+    private void setupFoldingCapabilities(OPCUABase opcuaBase, UaFolderNode ttNode, String path) {
         // add capabilities
         UaFolderNode capabilitiesFolder = opcuaBase.generateFolder(ttNode, path, new String(OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
         path = path + "/" + OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES;
         UaFolderNode capability1 = opcuaBase.generateFolder(capabilitiesFolder, path,
                 "CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
         capability = opcuaBase.generateStringVariableNode(capability1, path + "/CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE,
-                WellknownFoldingCapability.generateFoldingCapabilityURI(shape));
+                WellknownFoldingCapability.generateFoldingCapabilityURI());
         opcuaBase.generateStringVariableNode(capability1, path + "/CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.ID,
                 "DefaultFoldingCapabilityInstance");
         opcuaBase.generateStringVariableNode(capability1, path + "/CAPABILITY", OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,

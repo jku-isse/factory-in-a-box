@@ -87,8 +87,6 @@ public class VirtualFoldingMachineActor extends AbstractActor {
                         case COMPLETE: // handshake complete, thus un/loading done
                             if (currentState.equals(BasicMachineStates.STARTING)) { // pallet is now loaded
                                 transitionStartingToExecute();
-                            } else if (currentState.equals(BasicMachineStates.COMPLETING)) { // pallet is now unloaded
-                                transitionCompletingToComplete();
                             }
                             break;
                         case STOPPED:
@@ -179,7 +177,7 @@ public class VirtualFoldingMachineActor extends AbstractActor {
         serverSide.tell(HandshakeCapability.ServerMessageTypes.Reset, self);
         context().system()
                 .scheduler()
-                .scheduleOnce(Duration.ofMillis(5000),
+                .scheduleOnce(Duration.ofMillis(3000),
                         new Runnable() {
                             @Override
                             public void run() {
@@ -207,7 +205,7 @@ public class VirtualFoldingMachineActor extends AbstractActor {
 
     private void finishProduction() {
         setAndPublishState(BasicMachineStates.COMPLETING);
-        serverSide.tell(IOStationCapability.ServerMessageTypes.Reset, self); //now again do a handshake and unload,
+        /*serverSide.tell(HandshakeCapability.ServerMessageTypes.Reset, self); //now again do a handshake and unload,
         context().system()
                 .scheduler()
                 .scheduleOnce(Duration.ofMillis(3000),
@@ -219,12 +217,18 @@ public class VirtualFoldingMachineActor extends AbstractActor {
                                     transitionCompletingToComplete();
                                 }
                             }
-                        }, context().system().dispatcher());
+                        }, context().system().dispatcher());*/
+        context().system()
+                .scheduler()
+                .scheduleOnce(Duration.ofMillis(2000), this::transitionCompletingToComplete, context().dispatcher());
     }
 
     private void transitionCompletingToComplete() {
         setAndPublishState(BasicMachineStates.COMPLETE);
-        reset(); // we automatically reset
+        context().system() // we automatically reset
+                .scheduler()
+                .scheduleOnce(Duration.ofMillis(2000), this::reset, context().dispatcher());
+
     }
 
 }
