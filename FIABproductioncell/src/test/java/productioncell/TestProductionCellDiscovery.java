@@ -1,0 +1,201 @@
+package productioncell;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.testkit.javadsl.TestKit;
+import fiab.core.capabilities.BasicMachineStates;
+import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.folding.FoldingMessageTypes;
+import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.plotting.PlotterMessageTypes;
+import fiab.machine.foldingstation.opcua.methods.FoldRequest;
+import fiab.mes.ShopfloorConfigurations;
+import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
+import fiab.mes.eventbus.SubscribeMessage;
+import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
+import fiab.mes.machine.msg.GenericMachineRequests;
+import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
+import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
+import fiab.mes.opcua.CapabilityDiscoveryActor;
+import fiab.mes.planer.msg.PlanerStatusMessage;
+import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
+import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
+import fiab.mes.transport.msg.TransportSystemStatusMessage;
+import fiab.opcua.CapabilityImplementationMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import productioncell.foldingstation.FoldingProductionCellCoordinator;
+
+import java.time.Duration;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class TestProductionCellDiscovery {
+
+    public static String ROOT_SYSTEM = "routes";
+    protected static ActorSystem system;
+
+    protected static ActorRef foldingCellCoord;
+    protected static ActorRef transportCoord;
+    protected static ActorRef machineEventBus;
+
+    private static final Logger logger = LoggerFactory.getLogger(TestProductionCellDiscovery.class);
+    static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
+
+    @BeforeAll
+    public static void setUpBeforeClass() {
+        system = ActorSystem.create(ROOT_SYSTEM);
+        HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
+        TransportPositionLookup dns = new TransportPositionLookup();machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+        foldingCellCoord = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
+    }
+
+    @AfterAll
+    public static void teardown() {
+        TestKit.shutdownActorSystem(system);
+        system = null;
+    }
+
+    @BeforeEach
+    public void setupBeforeEach() {
+        knownActors.clear();
+    }
+
+    @Test
+    void testProductionCellDiscovery() throws Exception {
+        new TestKit(system) {
+            {
+                Set<String> urlsToBrowse = getLocalhostLayout();
+
+                Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+                ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+                machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+
+                urlsToBrowse.forEach(url -> {
+                    ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
+                    discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
+                });
+
+                int countConnEvents = 0;
+                Set<String> respondingMachines = new HashSet<>();
+                boolean isPlannerFunctional = false;
+                boolean isTransportFunctional = false;
+                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || respondingMachines.size() < urlsToBrowse.size()) {
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+                    logEvent(te);
+                    if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
+                        isPlannerFunctional = true;
+                    }
+                    if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
+                        isTransportFunctional = true;
+                    }
+                    if (te instanceof MachineConnectedEvent) {
+                        countConnEvents++;
+                        knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+                    }
+                    if (te instanceof MachineStatusUpdateEvent) {
+                        respondingMachines.add(((MachineStatusUpdateEvent) te).getMachineId());
+                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED))
+                            Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId())).ifPresent(
+                                    actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
+                            );
+                    }
+                    if (te instanceof IOStationStatusUpdateEvent){
+                        respondingMachines.add(((IOStationStatusUpdateEvent) te).getMachineId());
+                    }
+                }
+                assertTrue(isPlannerFunctional);
+                assertTrue(isTransportFunctional);
+                assertEquals(countConnEvents, urlsToBrowse.size());
+                assertEquals(respondingMachines.size(), urlsToBrowse.size());
+            }
+        };
+    }
+
+    @Test
+    void testProductionCellTransportToOneFoldingStation() throws Exception {
+        new TestKit(system) {
+            {
+                Set<String> urlsToBrowse = getLocalhostLayout();
+
+                Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+                ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+                machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+
+                urlsToBrowse.forEach(url -> {
+                    ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
+                    discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
+                });
+
+                int countConnEvents = 0;
+                boolean isPlannerFunctional = false;
+                boolean isTransportFunctional = false;
+                boolean foldingComplete = false;
+                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || !foldingComplete) {
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+                    logEvent(te);
+                    if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
+                        isPlannerFunctional = true;
+                    }
+                    if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
+                        isTransportFunctional = true;
+                    }
+                    if (te instanceof MachineConnectedEvent) {
+                        countConnEvents++;
+                        knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+                    }
+                    if (te instanceof MachineStatusUpdateEvent) {
+                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) {
+                            Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId())).ifPresent(
+                                    actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
+                            );
+                        }
+                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.IDLE)){
+                            Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
+                                    .filter(m -> m.getId().toLowerCase(Locale.ROOT).contains("Folding".toLowerCase(Locale.ROOT)))
+                                    .ifPresent(actor -> actor.getAkkaActor().tell(FoldingMessageTypes.Fold, getRef()));
+                            //FIXME send correct request to foldingstation
+                            //Turntable is assigned transport even though folding station is not ready
+                        }
+                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)){
+                            foldingComplete = true;
+                        }
+                    }
+                    if (te instanceof IOStationStatusUpdateEvent){
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.COMPLETE)){
+                            Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId())).ifPresent(
+                                    actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((IOStationStatusUpdateEvent) te).getMachineId()), getRef())
+                            );
+                        }
+                    }
+                }
+                assertTrue(foldingComplete);
+            }
+        };
+    }
+
+    public Set<String> getLocalhostLayout() {
+        Set<String> urlsToBrowse = new HashSet<String>();
+        urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station (West of TT)
+        urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 Pos20
+        urlsToBrowse.add("opc.tcp://localhost:4845/milo"); // Pos31 FoldingStation1 (North of TT)
+        urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Pos37 FoldingStation2 (South of TT)
+        urlsToBrowse.add("opc.tcp://localhost:4850/milo"); // Pos23 OutputStation (East of TT)
+        return urlsToBrowse;
+    }
+
+    private void logEvent(TimedEvent event) {
+        logger.info(event.toString());
+    }
+}

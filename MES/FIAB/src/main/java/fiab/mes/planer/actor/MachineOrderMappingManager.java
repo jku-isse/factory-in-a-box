@@ -293,11 +293,21 @@ public class MachineOrderMappingManager {
 		} 
 		return BasicMachineStates.UNKNOWN;		
 	}
+
+	public ServerSideStates getIOStatus(AkkaActorBackedCoreModelAbstractActor machine) {
+		if (moms.containsKey(machine)) {
+			MachineOrderMappingStatus mom  = moms.get(machine);
+			if (mom.getLastMachineState() != null && mom.getLastMachineState() instanceof IOStationStatusUpdateEvent) {
+				return ((IOStationStatusUpdateEvent) mom.getLastMachineState()).getStatus();
+			}
+		}
+		return ServerSideStates.UNKNOWN;
+	}
 	
 	public void updateMachineStatus(AkkaActorBackedCoreModelAbstractActor machine, MachineUpdateEvent event) {				
 			moms.computeIfAbsent(machine, k -> new MachineOrderMappingStatus(machine, AssignmentState.UNKNOWN))
 										.setLastMachineState(event);			
-	}		
+	}
 	
 	public Optional<MachineOrderMappingStatus> removeMachine(AkkaActorBackedCoreModelAbstractActor machine) {
 		return Optional.ofNullable(moms.remove(machine));		
