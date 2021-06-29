@@ -549,6 +549,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
     }
 
     private void tryAssigningTransportToFoldingStation(){
+        //TODO fix bug where transport only occurs between io and second folding station
         //Find InputStation in Idle Loaded
         Set<AkkaActorBackedCoreModelAbstractActor> availableInputStations = capMan.getMachinesProvidingCapability(inputStationCap);
         Optional<AkkaActorBackedCoreModelAbstractActor> idleInputStation = availableInputStations.stream()
@@ -566,10 +567,11 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
                 .findAny();
 
         if (idleInputStation.isPresent() && readyFoldingStation.isPresent() && idleTransportFU.isPresent()) {
-            System.out.println("Sending TransportRequest from: " + idleInputStation + ", to:" + readyFoldingStation + ", using transportFU " + idleTransportFU);
+            log.info("Sending TransportRequest from: " + idleInputStation.get().getId() + ", to:" + readyFoldingStation.get().getId() + ", using transportFU " + idleTransportFU.get().getId());
             transportCoordinator.tell(new RegisterTransportRequest(idleInputStation.get(), readyFoldingStation.get(), "missingOrderIdFromCoordinator", self), self);
         }else{
-            System.out.println("Available Input station " + idleInputStation + ", Available Folding Station: " + readyFoldingStation + ", TransportFU: " + idleTransportFU);
+            log.info("Waiting for Machines to be in suitable state. Machines in suitable state? IO: {}, FoldingStation: {}, Transport: {}", idleInputStation.isEmpty(), readyFoldingStation.isEmpty(), idleTransportFU.isEmpty());
+            //System.out.println("Available Input station " + idleInputStation + ", Available Folding Station: " + readyFoldingStation + ", TransportFU: " + idleTransportFU);
         }
     }
 

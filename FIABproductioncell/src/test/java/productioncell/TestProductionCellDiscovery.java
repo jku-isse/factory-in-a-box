@@ -1,5 +1,8 @@
 package productioncell;
 
+import ProcessCore.CapabilityInvocation;
+import ProcessCore.ProcessCoreFactory;
+import ProcessCore.ProcessStep;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
@@ -7,10 +10,12 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.folding.FoldingMessageTypes;
+import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.machine.foldingstation.opcua.methods.FoldRequest;
 import fiab.mes.ShopfloorConfigurations;
+import fiab.mes.capabilities.plotting.EcoreProcessUtils;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -20,6 +25,10 @@ import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
+import fiab.mes.order.OrderProcess;
+import fiab.mes.order.msg.LockForOrder;
+import fiab.mes.order.msg.ReadyForProcessEvent;
+import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
@@ -56,7 +65,8 @@ public class TestProductionCellDiscovery {
     public static void setUpBeforeClass() {
         system = ActorSystem.create(ROOT_SYSTEM);
         HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-        TransportPositionLookup dns = new TransportPositionLookup();machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        TransportPositionLookup dns = new TransportPositionLookup();
+        machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
         foldingCellCoord = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
     }
@@ -138,6 +148,24 @@ public class TestProductionCellDiscovery {
                     discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
                 });
 
+                CapabilityInvocation foldingCap = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+                foldingCap.setID("TestFoldingCapabilityId");
+                foldingCap.setDisplayName("TestFoldingCapability");
+                foldingCap.setInvokedCapability(WellknownFoldingCapability.getFoldingShapeCapability());
+                foldingCap.getInputMappings().add(EcoreProcessUtils.getVariableMapping(WellknownFoldingCapability.getShapeInputParameter()));
+
+                ProcessCore.Process proc = ProcessCoreFactory.eINSTANCE.createProcess();
+                proc.setDisplayName("ProcessTemplate4Folds");
+                proc.setID("ProcessTemplate4Folds");
+                EcoreProcessUtils.addProcessvariables(proc, "Box");
+                EcoreProcessUtils.mapCapInputToProcessVar(proc.getVariables(), foldingCap);
+                proc.getSteps().add(foldingCap);
+
+                OrderProcess op = new OrderProcess(proc);
+                op.activateProcess();
+
+                ProcessStep step = op.getAvailableSteps().get(0);
+
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 boolean isTransportFunctional = false;
@@ -164,9 +192,9 @@ public class TestProductionCellDiscovery {
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.IDLE)){
                             Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
                                     .filter(m -> m.getId().toLowerCase(Locale.ROOT).contains("Folding".toLowerCase(Locale.ROOT)))
-                                    .ifPresent(actor -> actor.getAkkaActor().tell(FoldingMessageTypes.Fold, getRef()));
+                                    .ifPresent(actor -> actor.getAkkaActor().tell(new RegisterProcessStepRequest("Test", step.getID(), step, getRef()), getRef()));
                             //FIXME send correct request to foldingstation
-                            //Turntable is assigned transport even though folding station is not ready
+                            //Turntable is assigned transport even though folding station is not ready?
                         }
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)){
                             foldingComplete = true;
@@ -179,8 +207,16 @@ public class TestProductionCellDiscovery {
                             );
                         }
                     }
+                    if (te instanceof ReadyForProcessEvent){
+                        //assert((ReadyForProcessEvent) te).isReady();
+                        // We don't know the machine Id here so we just tell every folding station
+                        knownActors.values().stream()
+                                .filter(m -> m.getId().toLowerCase(Locale.ROOT).contains("Folding".toLowerCase(Locale.ROOT)))
+                                .forEach(actor -> actor.getAkkaActor().tell(new LockForOrder(step.getID(), "Test"), getRef()));
+                    }
                 }
                 assertTrue(foldingComplete);
+
             }
         };
     }

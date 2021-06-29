@@ -129,7 +129,7 @@ public class FoldingStationActor extends AbstractActor {
             case IDLE:
                 // check if current order is affected
                 // currently we cancel at the level of root orders
-                if (reservedForOrder.getRootOrderId().equals(req.getRootOrderId())) {
+                if (reservedForOrder != null && reservedForOrder.getRootOrderId().equals(req.getRootOrderId())) {
                     reservedForOrder = null;
                     checkIfAvailableForNextOrder();
                 }
@@ -220,7 +220,7 @@ public class FoldingStationActor extends AbstractActor {
     private void foldUponLockForOrder(LockForOrder lockReq) {
         if (currentState == BasicMachineStates.IDLE) {
             // we need to extract from the reservedOrder the step, and from the step the input properties
-            if (reservedForOrder != null || reservedForOrder.getProcessStepId().equals(lockReq.getStepId())) {
+            if (reservedForOrder != null && reservedForOrder.getProcessStepId().equals(lockReq.getStepId())) {
                 String shapeName = "box";
                 try {
                     shapeName = extractInputFromProcessStep(reservedForOrder.getProcessStep());
