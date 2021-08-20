@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>factory.in.a.box</groupId>
 	<artifactId>FIABopcuabase</artifactId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.2.1-SNAPSHOT</version>
 	<name>FIAB OPC UA Base Classes</name>
 	<description>Provide reusable OPC UA infrastructure classes</description>
 	<properties>
@@ -60,11 +60,11 @@
 			<artifactId>FIABcore</artifactId>
 			<version>1.1.0-SNAPSHOT</version>
 		</dependency>			
-		<dependency>
+<!-- 		<dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
             <version>1.68</version>
-        </dependency>
+        </dependency> -->
 	</dependencies>
 	<build>
 		<plugins>
