@@ -9,6 +9,7 @@ import org.eclipse.milo.opcua.sdk.core.Reference;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.api.DataItem;
 import org.eclipse.milo.opcua.sdk.server.api.ManagedNamespace;
+import org.eclipse.milo.opcua.sdk.server.api.ManagedNamespaceWithLifecycle;
 import org.eclipse.milo.opcua.sdk.server.api.MonitoredItem;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 
-public class OPCUABase extends ManagedNamespace implements Runnable {
+public class OPCUABase extends ManagedNamespaceWithLifecycle implements Runnable {
 
 	private UaFolderNode rootNode = null;
 	private OpcUaServer server;		
@@ -39,11 +40,13 @@ public class OPCUABase extends ManagedNamespace implements Runnable {
 		super(server, namespaceUri);
 		this.server = server;
 		subscriptionModel = new SubscriptionModel(server, this);
-		this.machineName = machineName;		
+		this.machineName = machineName;
+		getLifecycleManager().addLifecycle(subscriptionModel);
+		getLifecycleManager().addStartupTask(this::setUpServerStructure);
 	}
 	
-	public UaFolderNode  prepareRootNode() {
-		startup();
+	public UaFolderNode prepareRootNode() {
+		super.startup();
 		return rootNode;
 	}
 	
@@ -74,15 +77,6 @@ public class OPCUABase extends ManagedNamespace implements Runnable {
 	}
 	
 	public void setUpServerStructure() {
-		
-	}
-
-	
-
-	@Override
-	protected void onStartup() {
-		super.onStartup();
-
 		// Create a root folder and add it to the node manager
 		NodeId folderNodeId = newNodeId(machineName);
 
@@ -97,7 +91,26 @@ public class OPCUABase extends ManagedNamespace implements Runnable {
 
 		rootNode = folderNode;
 		//actor.tell(this, ActorRef.noSender());
-	}		
+	}
+
+//	protected void onStartup() {
+//		super.onStartup();
+//
+//		// Create a root folder and add it to the node manager
+//		NodeId folderNodeId = newNodeId(machineName);
+//
+//		UaFolderNode folderNode = new UaFolderNode(getNodeContext(), folderNodeId,
+//				newQualifiedName(machineName), LocalizedText.english(machineName));
+//
+//		getNodeManager().addNode(folderNode);
+//
+//		// Make sure our new folder shows up under the server's Objects folder.
+//		folderNode.addReference(new Reference(folderNode.getNodeId(), Identifiers.Organizes,
+//				Identifiers.ObjectsFolder.expanded(), false));
+//
+//		rootNode = folderNode;
+//		//actor.tell(this, ActorRef.noSender());
+//	}
 	
 	@Override
 	public void onDataItemsCreated(List<DataItem> dataItems) {
@@ -124,7 +137,6 @@ public class OPCUABase extends ManagedNamespace implements Runnable {
 	}
 
 	public UaFolderNode generateFolder(UaFolderNode rootNode, String nodeIdPrefix, String folderId, String folderName) {
-
 		UaFolderNode folder = new UaFolderNode(getNodeContext(), newNodeId(nodeIdPrefix + "/" + folderId),
 				newQualifiedName(folderName), // add different id
 				LocalizedText.english(folderName));
@@ -144,8 +156,10 @@ public class OPCUABase extends ManagedNamespace implements Runnable {
 	}
 	
 	public void addMethodNode(UaFolderNode folderNode, UaMethodNode methodNode, AbstractMethodInvocationHandler method) {		        
-        methodNode.setProperty(UaMethodNode.InputArguments, method.getInputArguments());
-        methodNode.setProperty(UaMethodNode.OutputArguments, method.getOutputArguments());
+        //methodNode.setProperty(UaMethodNode.InputArguments, method.getInputArguments());
+        //methodNode.setProperty(UaMethodNode.OutputArguments, method.getOutputArguments());
+		methodNode.setInputArguments(method.getInputArguments());
+		methodNode.setOutputArguments(method.getOutputArguments());
         methodNode.setInvocationHandler(method);
 
         getNodeManager().addNode(methodNode);
@@ -162,8 +176,8 @@ public class OPCUABase extends ManagedNamespace implements Runnable {
 		/* String name = "State"; */ String name = varName;
 		UaVariableNode node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext())
 				.setNodeId(newNodeId(nodeIdPrefix + "/" + name))
-				.setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
-				.setUserAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
+				.setAccessLevel(AccessLevel.READ_WRITE)
+				.setUserAccessLevel(AccessLevel.READ_WRITE)
 				.setBrowseName(newQualifiedName(name)).setDisplayName(LocalizedText.english(name))
 				.setDataType(Identifiers.String).setTypeDefinition(Identifiers.BaseDataVariableType).build();
 

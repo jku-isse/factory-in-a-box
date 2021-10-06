@@ -6,7 +6,6 @@ public class StartupVirtualComposedFoldingStation {
 
     public static void main(String[] args) {
         startupSingleTurntableInputOutputDualFolding();
-
     }
 
     public static void startupSingleTurntableInputOutputDualFolding() {
@@ -19,7 +18,7 @@ public class StartupVirtualComposedFoldingStation {
         // TT1 EAST
         fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(10, "OutputStation");
         // TT1 itself - ensure this starts later than the others or has no prior wiring configured
-        fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1");
+        //fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1");
 
     }
 }

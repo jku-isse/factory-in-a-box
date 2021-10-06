@@ -212,7 +212,8 @@
                     </archive>
                 </configuration>
             </plugin>
-            <plugin>
+            <!-- Use this plugin when compiling a jar-->
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.0</version>
@@ -248,7 +249,7 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin-->
         </plugins>
         <pluginManagement>
             <plugins>

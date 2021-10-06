@@ -7,12 +7,14 @@ import java.util.concurrent.ExecutionException;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.handshake.fu.HandshakeFU;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.NamespaceTable;
+import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,7 +161,7 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 				ServerHandshakeNodeIds nodeIds;
 				try {
 					nodeIds = retrieveNodeIds(cii);
-				} catch (InterruptedException | ExecutionException e) {
+				} catch (Exception e) {
 					logger.warn(e.getMessage());
 					throw new WiringException("Could not browse/retrieve capability nodes from remote endpoint");
 				}
@@ -186,23 +188,24 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 	}
 
 	
-	private ServerHandshakeNodeIds retrieveNodeIds(CapabilityImplInfo info) throws InterruptedException, ExecutionException {
-		List<Node> nodes = info.getClient().getAddressSpace().browse(info.getActorNode()).get();		
+	private ServerHandshakeNodeIds retrieveNodeIds(CapabilityImplInfo info) throws Exception {
+		List<ReferenceDescription> nodes = info.getClient().getAddressSpace().browse(info.getActorNode());
 		// we assume unique node names and method names within this hierarchy level (thus no two capabilities with overlapping browse names)
 		ServerHandshakeNodeIds nodeIds = new ServerHandshakeNodeIds();
-		for (Node n : nodes) {
+		NamespaceTable namespaceTable = client.getNamespaceTable();
+		for (ReferenceDescription n : nodes) {
 			//logger.info("Checking node: "+n.getBrowseName().get().toParseableString());					
-				String bName = n.getBrowseName().get().getName();
+				String bName = n.getBrowseName().getName();
 				if (bName.equalsIgnoreCase(IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME))
-					nodeIds.setStateVar(n.getNodeId().get());				
+					nodeIds.setStateVar(n.getNodeId().toNodeIdOrThrow(namespaceTable));
 				else if (bName.equalsIgnoreCase(IOStationCapability.ServerMessageTypes.RequestInitiateHandover.toString()))
-					nodeIds.setInitMethod(n.getNodeId().get());
+					nodeIds.setInitMethod(n.getNodeId().toNodeIdOrThrow(namespaceTable));
 				else if (bName.equalsIgnoreCase(IOStationCapability.ServerMessageTypes.RequestStartHandover.toString()))
-					nodeIds.setStartMethod(n.getNodeId().get());
+					nodeIds.setStartMethod(n.getNodeId().toNodeIdOrThrow(namespaceTable));
 				else if (bName.equalsIgnoreCase("INIT_HANDOVER")) // FORTE IMPLEMENTATION
-					nodeIds.setInitMethod(n.getNodeId().get());
+					nodeIds.setInitMethod(n.getNodeId().toNodeIdOrThrow(namespaceTable));
 				else if (bName.equalsIgnoreCase("START_HANDOVER")) // FORTE IMPLEMENTATION
-					nodeIds.setStartMethod(n.getNodeId().get());
+					nodeIds.setStartMethod(n.getNodeId().toNodeIdOrThrow(namespaceTable));
 		}
 		nodeIds.setCapabilityImplNode(info.getActorNode());
 		return nodeIds;
@@ -210,10 +213,11 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 	
 	private Optional<NodeId> getGrandParentForNodeIdViaBrowse(OpcUaClient client, NodeId nodeIdToSearchFor, NodeId currentNode, NodeId parent) {
 		try {
-			List<Node> nodes = client.getAddressSpace().browse(currentNode).get();
+			List<ReferenceDescription> nodes = client.getAddressSpace().browse(currentNode);
+			NamespaceTable namespaceTable = client.getNamespaceTable();
 			Optional<NodeId> found = null;
-			for (Node n : nodes) {
-				NodeId nId = n.getNodeId().get();
+			for (ReferenceDescription n : nodes) {
+				NodeId nId = n.getNodeId().toNodeIdOrThrow(namespaceTable);
 				//logger.info("Checking node for capMatch: "+nId.toParseableString());
 				if (nId.toParseableString().equalsIgnoreCase(nodeIdToSearchFor.toParseableString())) {
 					return Optional.of(parent);

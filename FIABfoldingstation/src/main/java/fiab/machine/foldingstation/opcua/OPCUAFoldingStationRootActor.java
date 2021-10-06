@@ -21,6 +21,7 @@ import fiab.machine.foldingstation.opcua.methods.SetCapability;
 import fiab.machine.foldingstation.opcua.methods.Stop;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
+import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
@@ -51,7 +52,7 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
     }
 
     private void init() throws Exception {
-        NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
+        PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
 
         OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
         UaFolderNode root = opcuaBase.prepareRootNode();

@@ -10,23 +10,23 @@ import static fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsena
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 import java.time.Duration;
-import java.util.AbstractMap;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
-import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
+//import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaObjectNode;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaVariableNode;
+import org.eclipse.milo.opcua.sdk.core.nodes.Node;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.NamespaceTable;
+import org.eclipse.milo.opcua.stack.core.types.builtin.ExpandedNodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.QualifiedName;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 
 import akka.actor.AbstractActor;
@@ -42,6 +42,7 @@ import fiab.opcua.CapabilityImplementationMetadata.MetadataInsufficientException
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.opcua.client.ClientKeyStoreLoader;
 import fiab.opcua.client.OPCUAClientFactory;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 
 public class CapabilityDiscoveryActor extends AbstractActor {
 
@@ -142,16 +143,16 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 	private void getActorCapabilities(BrowseRequest req, OpcUaClient client, NodeId rootNode) {
 		this.status = DISCOVERY_STATUS.IN_PROGRESS;
 		try {
-			List<Node> nodes = client.getAddressSpace().browse(rootNode).get();
-			for (Node n : nodes) {
-			//	log.info("Checking node: "+n.getNodeId().get().toParseableString());
-				if (n instanceof UaObjectNode) {
-					if (isCapabilitiesFolder(n)) {	// then the rootNode is the actorNode				
+			List<ReferenceDescription> nodes = client.getAddressSpace().browse(rootNode);
+			for (ReferenceDescription n : nodes) {
+				//log.info("Checking node: "+n.getNodeId().get().toParseableString());
+				if (n.getNodeClass().equals(NodeClass.Object)) {	//TODO check if folders are always Object type
+					if (isCapabilitiesFolder(n)) {	// then the rootNode is the actorNode
 						browseCapabilitiesFolder(req, client, n, rootNode);
 						return; // and we quit browsing here, upon the first toplevel one
 					} else {
 						if (this.status.equals(DISCOVERY_STATUS.IN_PROGRESS)) // we only dive deeper if not yet found an capabilities folder
-							getActorCapabilities(req, client, n.getNodeId().get());
+							getActorCapabilities(req, client, n.getNodeId().toNodeIdOrThrow(client.getNamespaceTable()));
 					}
 				}
 			}			
@@ -192,25 +193,25 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 		}, context().system().dispatcher());
 	}
 
-	private boolean isCapabilitiesFolder(Node n) throws InterruptedException, ExecutionException {
-		QualifiedName bName = n.getBrowseName().get();				
+	private boolean isCapabilitiesFolder(ReferenceDescription n) throws InterruptedException, ExecutionException {
+		QualifiedName bName = n.getBrowseName();
 		if (bName.getName().equalsIgnoreCase(CAPABILITIES)) {
-			log.info("Found Capabilities Node with id: "+n.getNodeId().get().toParseableString());
+			log.info("Found Capabilities Node with id: "+n.getNodeId().toParseableString());
 			return true;			
 		} else
 			return false;
 	}
 
 
-	private void browseCapabilitiesFolder(BrowseRequest req, OpcUaClient client, Node node, NodeId actorNode) throws InterruptedException, ExecutionException {
-		NodeId browseRoot = node.getNodeId().get();
-		List<Node> nodes = client.getAddressSpace().browse(browseRoot).get();			
-		for (Node n : nodes) {
-			if (n instanceof UaObjectNode) {
+	private void browseCapabilitiesFolder(BrowseRequest req, OpcUaClient client, ReferenceDescription node, NodeId actorNode) throws Exception {
+		NodeId browseRoot = node.getNodeId().toNodeIdOrThrow(client.getNamespaceTable());
+		List<ReferenceDescription> nodes = client.getAddressSpace().browse(browseRoot);
+		for (ReferenceDescription n : nodes) {
+			if (n.getNodeClass().equals(NodeClass.Object)) {
 				if (isCapabilityFolder(n)) {
 					try {
 						CapabilityImplementationMetadata capMeta = getCapabilityURI(client, n);
-						log.info("Found: "+capMeta.toString());
+						log.info("Found: "+capMeta);
 						//if capability registered, spawn ActorSpawner and return
 						AbstractMap.SimpleEntry<String, ProvOrReq> foundEntry = new SimpleEntry<String, ProvOrReq>(capMeta.getCapabilityURI(), capMeta.getProvOrReq());
 						Optional.ofNullable(req.capURI2Spawning.get(foundEntry)).ifPresent(spawningEP -> {
@@ -220,7 +221,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 							this.status = DISCOVERY_STATUS.COMPLETED_WITH_SPAWN;
 						});						
 					} catch (MetadataInsufficientException e) {
-						log.warning("Ignoring Capability Implementation information due to insufficient child fields in OPC-UA Node "+node.getNodeId().get().toParseableString());
+						log.warning("Ignoring Capability Implementation information due to insufficient child fields in OPC-UA Node "+node.getNodeId().toParseableString());
 						// continue searching for others
 					}									
 				} else {				
@@ -233,40 +234,45 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 //			this.status = DISCOVERY_STATUS.COMPLETED_WITHOUT_SPAWN;
 	}
 
-	private boolean isCapabilityFolder(Node n) throws InterruptedException, ExecutionException {
-		String bName = n.getBrowseName().get().getName();
+	private boolean isCapabilityFolder(ReferenceDescription n) throws InterruptedException, ExecutionException {
+		String bName = n.getBrowseName().getName();
 		//if (bName.equalsIgnoreCase(CAPABILITY)) {
-		if (bName.startsWith(CAPABILITY)) { // currently FORTE/4DIAC cannot have two sibling nodes with the same browsename, thus there are numbers prepended which we ignore here
-			log.info("Found Capability Node with id: "+n.getNodeId().get().toParseableString());
+		if (bName != null && bName.startsWith(CAPABILITY)) { // currently FORTE/4DIAC cannot have two sibling nodes with the same browsename, thus there are numbers prepended which we ignore here
+			log.info("Found Capability Node with id: "+n.getNodeId().toParseableString() + " and browseName: " +n.getBrowseName());
 			return true;			
 		} else
 			return false;
 	}
 
-	private CapabilityImplementationMetadata getCapabilityURI(OpcUaClient client, Node node) throws InterruptedException, ExecutionException, MetadataInsufficientException  {
-		List<Node> nodes = client.getAddressSpace().browse(node.getNodeId().get()).get();
+	private CapabilityImplementationMetadata getCapabilityURI(OpcUaClient client, ReferenceDescription node) throws Exception {
+		NamespaceTable namespaceTable = client.getNamespaceTable();
+		List<ReferenceDescription> nodes = client.getAddressSpace().browse(node.getNodeId().toNodeIdOrThrow(namespaceTable));
 		ProvOrReq provOrReq = null;
 		String implId = null;
 		String uri = null;
-		for (Node n : nodes) {						
-			if (n instanceof UaVariableNode) {
-				UaVariableNode var = (UaVariableNode) n;
-				String type = n.getBrowseName().get().getName();
-				switch (type) {
+		for (ReferenceDescription n : nodes) {
+			if (n.getNodeClass().equals(NodeClass.Variable)) {
+				//I have no idea whether the next line makes sense
+				UaVariableNode var = client.getAddressSpace().getVariableNode(n.getNodeId().toNodeIdOrThrow(namespaceTable));//(UaVariableNode) n;
+				String type = n.getBrowseName().getName();
+				switch (Objects.requireNonNull(type)) {
 				case ID:
-					implId = (String) var.getValue().get();
+					implId = var.getValue().getValue().getValue().toString();
+					log.info("Discovered CapabilityId" + implId);
 					break;
 				case TYPE:
-					uri = var.getValue().get().toString();					
+					uri = var.getValue().getValue().getValue().toString();
+					log.info("Discovered CapabilityType" + uri);
 					break;
 				case ROLE:
-					String role = (String) var.getValue().get();
+					String role = var.getValue().getValue().getValue().toString();
+					log.info("Discovered CapabilityRole" + role);
 					if (role.equalsIgnoreCase(ROLE_VALUE_PROVIDED))
 						provOrReq = ProvOrReq.PROVIDED;
 					else if (role.equalsIgnoreCase(ROLE_VALUE_REQUIRED))
 						provOrReq = ProvOrReq.REQUIRED;
 					else
-						log.warning("Discovered Role does not match Required or Provided in capability "+node.getNodeId().get().toParseableString());
+						log.warning("Discovered Role does not match Required or Provided in capability "+node.getNodeId().toParseableString());
 					// we assume provided
 					provOrReq = ProvOrReq.PROVIDED;
 					break;				

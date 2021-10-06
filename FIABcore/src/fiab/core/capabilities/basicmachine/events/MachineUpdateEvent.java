@@ -8,7 +8,7 @@ public abstract class MachineUpdateEvent extends MachineEvent {
 	 * This class is published on the MachineLevelEventBus and is filled with the values from the OPCUA-Server
 	 * @param machineId
 	 * @param parameterName
-	 * @param value
+	 * @param message
 	 */
 	public MachineUpdateEvent(String machineId, String parameterName, String message) {
 		super(machineId, MachineEventType.UPDATED, message);

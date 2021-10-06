@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>factory.in.a.box</groupId>
     <artifactId>FIABhandshake</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.4-SNAPSHOT</version>
     <name>Pallet Handover Handshake</name>
     <description>Server and Client side actors and OPCUA based FUs</description>
     <properties>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>factory.in.a.box</groupId>
             <artifactId>FIABopcuabase</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
+            <version>1.0.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>factory.in.a.box</groupId>
@@ -58,13 +58,13 @@
         <dependency>
             <groupId>org.eclipse.milo</groupId>
             <artifactId>sdk-server</artifactId>
-            <version>0.3.7</version>
+            <version>0.6.3</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.milo</groupId>
             <artifactId>sdk-client</artifactId>
-            <version>0.3.7</version>
+            <version>0.6.3</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
@@ -93,9 +93,9 @@
                         <configuration>
                             <groupId>factory.in.a.box</groupId>
                             <artifactId>FIABopcuabase</artifactId>
-                            <version>1.0.2-SNAPSHOT</version>
+                            <version>1.0.4-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${project.basedir}/../libs/original-FIABopcuabase-1.0.2-SNAPSHOT.jar
+                            <file>${project.basedir}/../libs/FIABopcuabase-1.0.4-SNAPSHOT.jar
                             </file>
                         </configuration>
                     </execution>

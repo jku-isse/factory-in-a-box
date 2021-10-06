@@ -100,8 +100,9 @@ public class OrderEmittingTestServerWithOPCUA {
 					
 					orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
 					machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef() );
-			
-					Set<String> urlsToBrowse = getFullLayout();
+
+					Set<String> urlsToBrowse = getVirtualSingleTTLayout();
+					//Set<String> urlsToBrowse = getFullLayout();
 					//Set<String> urlsToBrowse = getSingleTTLayout(); //set layout to 1 expectedTT in preTEst method
 					Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 					ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
@@ -223,7 +224,17 @@ public class OrderEmittingTestServerWithOPCUA {
 		urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Pos31 TT1 north plotter	
 		urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos31 TT1 south plotter
 		urlsToBrowse.add("opc.tcp://192.168.0.23:4840");	// POS EAST CLIENT TT1 outputstation instead of second TT						
-		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT	
+		urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");		// Pos20 TT
+		return urlsToBrowse;
+	}
+
+	public Set<String> getVirtualSingleTTLayout() {
+		Set<String> urlsToBrowse = new HashSet<String>();
+		urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station
+		urlsToBrowse.add("opc.tcp://localhost:4843/milo");	// POS EAST of TT2, Pos 35 output station
+		urlsToBrowse.add("opc.tcp://localhost:4845/milo");	// POS NORTH of TT1 31
+		urlsToBrowse.add("opc.tcp://localhost:4847/milo");	// POS NORTH of TT2 32
+		urlsToBrowse.add("opc.tcp://192.168.0.40:4842");		// Pos20 TT
 		return urlsToBrowse;
 	}
 	
@@ -255,7 +266,8 @@ public class OrderEmittingTestServerWithOPCUA {
 		Set<String> urlsToBrowse = new HashSet<String>();
 		urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station
 		urlsToBrowse.add("opc.tcp://localhost:4841/milo");	// POS EAST of TT2, Pos 35 output station				
-		urlsToBrowse.add("opc.tcp://localhost:4842/milo");		// TT1 Pos20
+		//urlsToBrowse.add("opc.tcp://localhost:4842/milo");		// TT1 Pos20
+		urlsToBrowse.add("opc.tcp://192.168.0.40:4840");
 		urlsToBrowse.add("opc.tcp://localhost:4843/milo");		// TT2 Pos21
 		// virtual plotters
 		urlsToBrowse.add("opc.tcp://localhost:4845/milo");	// POS NORTH of TT1 31		

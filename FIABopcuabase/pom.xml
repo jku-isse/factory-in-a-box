@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>factory.in.a.box</groupId>
 	<artifactId>FIABopcuabase</artifactId>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.4-SNAPSHOT</version>
 	<name>FIAB OPC UA Base Classes</name>
 	<description>Provide reusable OPC UA infrastructure classes</description>
 	<properties>
@@ -20,22 +20,22 @@
 		<dependency>
 			<groupId>org.eclipse.milo</groupId>
 			<artifactId>stack-core</artifactId>
-			<version>0.3.7</version>
+			<version>0.6.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.milo</groupId>
 			<artifactId>sdk-server</artifactId>
-			<version>0.3.7</version>
+			<version>0.6.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.milo</groupId>
 			<artifactId>sdk-core</artifactId>
-			<version>0.3.7</version>
+			<version>0.6.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.milo</groupId>
 			<artifactId>sdk-client</artifactId>
-			<version>0.3.7</version>
+			<version>0.6.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>

@@ -4,8 +4,12 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
+//import org.eclipse.milo.opcua.sdk.client.api.AddressSpace;
+//import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
+import org.eclipse.milo.opcua.sdk.client.nodes.UaObjectNode;
+import org.eclipse.milo.opcua.stack.core.NamespaceTable;
+import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 
 import ActorCoreModel.Actor;
@@ -31,9 +35,12 @@ import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.CapabilityImplInfo;
 import fiab.turntable.actor.IntraMachineEventBus;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.FiniteDuration;
+
+import javax.lang.model.type.ReferenceType;
 
 
 public class LocalTransportModuleActorSpawner extends AbstractActor {
@@ -77,10 +84,12 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
                 log.error("Error obtaining methods and variables from OPCUA for spawning actor: "+nodeIds.toString());
                 return;
             }
+            log.info("Successfully retrieved node infos " + nodeIds);
             Actor model = generateActor(req.getInfo());
+            log.info("Successfully Generated actor for " + req.getInfo());
             spawnNewIOStationActor(req.getInfo(), model, nodeIds);
         } catch(Exception e) {
-            log.error("Error obtaining info from OPCUA for spawning actor with error: "+e.getMessage());
+            log.error("Error obtaining info from OPCUA for spawning transport actor with error: "+e.getMessage());
         }
     }
 
@@ -108,11 +117,14 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         return pos;
     }
 
-    private Actor generateActor(CapabilityImplInfo info) throws InterruptedException, ExecutionException {
-        UaNode actorNode = info.getClient().getAddressSpace().getNodeInstance(info.getActorNode()).get();
+    private Actor generateActor(CapabilityImplInfo info) throws UaException {
+        log.info("Transport Actor info: Client=" + info.getClient() + ", ActorNode="+info.getActorNode() +
+                ", Endpoint=" + info.getEndpointUrl() + ", CapURI=" + info.getCapabilityURI() + ", CapNode=" + info.getCapabilitiesNode());
+        UaNode actorNode = info.getClient().getAddressSpace().getNode(info.getActorNode()); //Use async?
+        log.info("Actor Node for creating actor: " + actorNode);
         Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
-        actor.setDisplayName(actorNode.getDisplayName().get().getText());
-        actor.setActorName(actorNode.getBrowseName().get().getName());
+        actor.setDisplayName(actorNode.getDisplayName().getText());
+        actor.setActorName(actorNode.getBrowseName().getName());
         String id = info.getActorNode().getIdentifier().toString();        
         String uri = info.getEndpointUrl().endsWith("/") ? info.getEndpointUrl()+id : info.getEndpointUrl()+"/"+id;
       //actor.setID(id);
@@ -121,22 +133,28 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         return actor;
     }
 
-    private TransportModuleOPCUAnodes retrieveNodeIds(CapabilityImplInfo info) throws InterruptedException, ExecutionException {
-        List<Node> nodes = info.getClient().getAddressSpace().browse(info.getActorNode()).get();
+    private TransportModuleOPCUAnodes retrieveNodeIds(CapabilityImplInfo info) throws Exception {
+        List<ReferenceDescription> nodes = info.getClient().getAddressSpace().browse(info.getActorNode());
         // we assume unique node names and method names within this hierarchy level (thus no two capabilities with overlapping browse names)
         TransportModuleOPCUAnodes nodeIds = new TransportModuleOPCUAnodes();
-        for (Node n : nodes) {
-            log.info("Checking node: "+n.getBrowseName().get().toParseableString());
-            String bName = n.getBrowseName().get().getName();
+        NamespaceTable namespaceTable = info.getClient().getNamespaceTable();
+        for (ReferenceDescription n : nodes) {
+            log.info("Checking transport module node: "+n.getBrowseName().toParseableString());
+            String bName = n.getBrowseName().getName();
+            log.info("Checking node with name " + bName);
+            if(bName == null){
+                continue;   //Just to be safe
+            }
             if (bName.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset.toString()))
-                nodeIds.setResetMethod(n.getNodeId().get());
+                nodeIds.setResetMethod(n.getNodeId().toNodeIdOrThrow(namespaceTable));
             else if (bName.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Stop.toString()))
-                nodeIds.setStopMethod(n.getNodeId().get());
+                nodeIds.setStopMethod(n.getNodeId().toNodeIdOrThrow(namespaceTable));
             else if (bName.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.OPCUA_TRANSPORT_REQUEST))
-                nodeIds.setTransportMethod(n.getNodeId().get());
+                nodeIds.setTransportMethod(n.getNodeId().toNodeIdOrThrow(namespaceTable));
             else if (bName.equalsIgnoreCase(OPCUABasicMachineBrowsenames.STATE_VAR_NAME))
-                nodeIds.setStateVar(n.getNodeId().get());
+                nodeIds.setStateVar(n.getNodeId().toNodeIdOrThrow(namespaceTable));
         }
+        log.info("NodeId retrieval for info " + info + " was successful");
         return nodeIds;
     }
 

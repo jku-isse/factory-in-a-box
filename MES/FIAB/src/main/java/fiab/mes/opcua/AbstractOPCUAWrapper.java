@@ -36,155 +36,158 @@ import fiab.mes.machine.msg.MachineDisconnectedEvent;
 
 public abstract class AbstractOPCUAWrapper {
 
-	protected OpcUaClient client;
-	protected NodeId capabilityImplNode;
-	protected NodeId stopMethod;
-	protected NodeId resetMethod;
-	protected NodeId stateVar;
-	protected ActorRef spawner;
+    protected OpcUaClient client;
+    protected NodeId capabilityImplNode;
+    protected NodeId stopMethod;
+    protected NodeId resetMethod;
+    protected NodeId stateVar;
+    protected ActorRef spawner;
 
-	protected static final Logger logger = LoggerFactory.getLogger(AbstractOPCUAWrapper.class);
-	
-	public AbstractOPCUAWrapper(OpcUaClient client, NodeId capabilityImplNode,
-			NodeId stopMethod, NodeId resetMethod, NodeId stateVar, ActorRef spawner) {
-		super();
-		this.client = client;
-		this.capabilityImplNode = capabilityImplNode;
-		this.stopMethod = stopMethod;
-		this.resetMethod = resetMethod;
-		this.stateVar = stateVar;
-		this.spawner = spawner;
-		setupConnectionMonitor();
-		logger.info("AbstractOPCUAWrapper initialized");
-	}
+    protected static final Logger logger = LoggerFactory.getLogger(AbstractOPCUAWrapper.class);
 
-	protected void setupConnectionMonitor() {
-		client.addSessionActivityListener(new SessionActivityListener(){
-			@Override
-			public void onSessionInactive(UaSession session) {
-				logger.warn("Session inactive detected - restarting MESactor");
-				spawner.tell(new MachineDisconnectedEvent("Wrapper"), ActorRef.noSender());
-				client.disconnect();
-			}				
-		});
-		
-		client.getSubscriptionManager().addSubscriptionListener(new SubscriptionListener() {
-			@Override
-			public void onSubscriptionTransferFailed(UaSubscription subscription, StatusCode statusCode) {
-				logger.warn("SubscriptiontranferFailed  - restarting MESactor");
-				spawner.tell(new MachineDisconnectedEvent("Wrapper"), ActorRef.noSender());
-				client.disconnect();
-			}				
-		});
-	}
-	
-	protected CompletableFuture<Boolean> callMethod(NodeId methodId) {
-	
-		CallMethodRequest request = new CallMethodRequest(
-				capabilityImplNode, methodId, new Variant[]{});
-	
-		return client.call(request).thenCompose(result -> {
-			StatusCode statusCode = result.getStatusCode();
-	
-			if (statusCode.isGood()) {
-				return CompletableFuture.completedFuture(Boolean.TRUE);
-			} else {
-				StatusCode[] inputArgumentResults = result.getInputArgumentResults();
-				for (int i = 0; i < inputArgumentResults.length; i++) {
-					logger.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
-				}
-	
-				CompletableFuture<Boolean> f = new CompletableFuture<>();
-				f.completeExceptionally(new UaException(statusCode));
-				return f;
-			}
-		});
-	}
-	
-	protected CompletableFuture<String> callMethod(NodeId methodId, Variant[] inputArgs) {
-		
-		CallMethodRequest request = new CallMethodRequest(
-				capabilityImplNode, methodId, inputArgs);
-	
-		return client.call(request).thenCompose(result -> {
-			StatusCode statusCode = result.getStatusCode();
-	
-			if (statusCode.isGood()) {
-				String value = (String) (result.getOutputArguments())[0].getValue();
-				return CompletableFuture.completedFuture(value);
-			} else {
-				StatusCode[] inputArgumentResults = result.getInputArgumentResults();
-				for (int i = 0; i < inputArgumentResults.length; i++) {
-					logger.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
-				}
-	
-				CompletableFuture<String> f = new CompletableFuture<>();
-				f.completeExceptionally(new UaException(statusCode));
-				return f;
-			}
-		});
-	}
+    public AbstractOPCUAWrapper(OpcUaClient client, NodeId capabilityImplNode,
+                                NodeId stopMethod, NodeId resetMethod, NodeId stateVar, ActorRef spawner) {
+        super();
+        this.client = client;
+        this.capabilityImplNode = capabilityImplNode;
+        this.stopMethod = stopMethod;
+        this.resetMethod = resetMethod;
+        this.stateVar = stateVar;
+        this.spawner = spawner;
+        setupConnectionMonitor();
+        logger.info("AbstractOPCUAWrapper initialized");
+    }
 
+    protected void setupConnectionMonitor() {
+        client.addSessionActivityListener(new SessionActivityListener() {
+            @Override
+            public void onSessionInactive(UaSession session) {
+                logger.warn("Session inactive detected - restarting MESactor");
+                spawner.tell(new MachineDisconnectedEvent("Wrapper"), ActorRef.noSender());
+                client.disconnect();
+            }
+        });
 
-	public void stop() {
-		callMethod(stopMethod);
-		logger.debug("Called STOP Method on OPCUA Node: "+stopMethod.toParseableString());
-	}
+        client.getSubscriptionManager().addSubscriptionListener(new SubscriptionListener() {
+            @Override
+            public void onSubscriptionTransferFailed(UaSubscription subscription, StatusCode statusCode) {
+                logger.warn("SubscriptiontranferFailed  - restarting MESactor");
+                spawner.tell(new MachineDisconnectedEvent("Wrapper"), ActorRef.noSender());
+                client.disconnect();
+            }
+        });
+    }
+
+    protected CompletableFuture<Boolean> callMethod(NodeId methodId) {
+
+        CallMethodRequest request = new CallMethodRequest(
+                capabilityImplNode, methodId, new Variant[]{});
+
+        return client.call(request).thenCompose(result -> {
+            StatusCode statusCode = result.getStatusCode();
+
+            if (statusCode.isGood()) {
+                return CompletableFuture.completedFuture(Boolean.TRUE);
+            } else {
+                StatusCode[] inputArgumentResults = result.getInputArgumentResults();
+                for (int i = 0; i < inputArgumentResults.length; i++) {
+                    logger.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
+                }
+
+                CompletableFuture<Boolean> f = new CompletableFuture<>();
+                f.completeExceptionally(new UaException(statusCode));
+                return f;
+            }
+        });
+    }
+
+    protected CompletableFuture<String> callMethod(NodeId methodId, Variant[] inputArgs) {
+
+        CallMethodRequest request = new CallMethodRequest(
+                capabilityImplNode, methodId, inputArgs);
+
+        return client.call(request).thenCompose(result -> {
+            StatusCode statusCode = result.getStatusCode();
+
+            if (statusCode.isGood()) {
+                String value = (String) (result.getOutputArguments())[0].getValue();
+                return CompletableFuture.completedFuture(value);
+            } else {
+                StatusCode[] inputArgumentResults = result.getInputArgumentResults();
+                for (int i = 0; i < inputArgumentResults.length; i++) {
+                    logger.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
+                }
+
+                CompletableFuture<String> f = new CompletableFuture<>();
+                f.completeExceptionally(new UaException(statusCode));
+                return f;
+            }
+        });
+    }
 
 
-	public void reset() {
-		callMethod(resetMethod).exceptionally(ex -> {
-			logger.warn("Called RESET Method on OPCUA Node: "+resetMethod.toParseableString(), ex);
-			return false;
-		}).thenAccept(v -> {
-			if (v) 	logger.debug("Called RESET Method successfully on OPCUA Node: "+resetMethod.toParseableString());
-		});
-	
-	}
+    public void stop() {
+        callMethod(stopMethod);
+        logger.debug("Called STOP Method on OPCUA Node: " + stopMethod.toParseableString());
+    }
 
-	public void subscribeToStatus() {
-		// from: https://github.com/eclipse/milo/blob/release/0.3.7/milo-examples/client-examples/src/main/java/org/eclipse/milo/examples/client/SubscriptionExample.java
-		try {
-		UaSubscription subscription = client.getSubscriptionManager().createSubscription(100.0).get();		
-		ReadValueId readValueId = new ReadValueId(stateVar, AttributeId.Value.uid(), null, QualifiedName.NULL_VALUE);
-		UInteger clientHandle = subscription.nextClientHandle();
-		MonitoringParameters parameters = new MonitoringParameters(
-				clientHandle,
-				100.0,     // sampling interval
-				null,       // filter, null means use default
-				uint(10),   // queue size
-				true        // discard oldest
-				);
-		MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(
-				readValueId,
-				MonitoringMode.Reporting,
-				parameters
-				);
-		BiConsumer<UaMonitoredItem, Integer> onItemCreated =
-				(item, id) -> item.setValueConsumer(this::onStateSubscriptionChange);
-	
-		List<UaMonitoredItem> items = subscription.createMonitoredItems(
-						TimestampsToReturn.Both,
-						Lists.newArrayList(request),
-						onItemCreated
-						).get();
-		for (UaMonitoredItem item : items) {
-					if (item.getStatusCode().isGood()) {
-						logger.debug("item created for nodeId={}", item.getReadValueId().getNodeId());
-					} else {
-						logger.warn(
-								"failed to create item for nodeId={} (status={})",
-								item.getReadValueId().getNodeId(), item.getStatusCode());
-					}
-				}				
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void unsubscribeAll() {
-		client.getSubscriptionManager().clearSubscriptions();
-	}
 
-	public abstract void onStateSubscriptionChange(UaMonitoredItem item, DataValue value);
+    public void reset() {
+        callMethod(resetMethod).exceptionally(ex -> {
+            logger.warn("Called RESET Method on OPCUA Node: " + resetMethod.toParseableString(), ex);
+            return false;
+        }).thenAccept(v -> {
+            if (v) logger.debug("Called RESET Method successfully on OPCUA Node: " + resetMethod.toParseableString());
+        });
+
+    }
+
+    public void subscribeToStatus() {
+        // from: https://github.com/eclipse/milo/blob/release/0.3.7/milo-examples/client-examples/src/main/java/org/eclipse/milo/examples/client/SubscriptionExample.java
+        try {
+            UaSubscription subscription = client.getSubscriptionManager().createSubscription(100.0).get();
+            ReadValueId readValueId = new ReadValueId(stateVar, AttributeId.Value.uid(), null, QualifiedName.NULL_VALUE);
+            UInteger clientHandle = subscription.nextClientHandle();
+            MonitoringParameters parameters = new MonitoringParameters(
+                    clientHandle,
+                    100.0,     // sampling interval
+                    null,       // filter, null means use default
+                    uint(10),   // queue size
+                    true        // discard oldest
+            );
+            MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(
+                    readValueId,
+                    MonitoringMode.Reporting,
+                    parameters
+            );
+            BiConsumer<UaMonitoredItem, Integer> onItemCreated =
+                    (item, id) -> item.setValueConsumer(this::onStateSubscriptionChange);
+
+            UaSubscription.ItemCreationCallback itemCreationCallback =
+                    (item, id) -> item.setValueConsumer(this::onStateSubscriptionChange);
+
+            List<UaMonitoredItem> items = subscription.createMonitoredItems(
+                    TimestampsToReturn.Both,
+                    Lists.newArrayList(request),
+                    itemCreationCallback//onItemCreated
+            ).get();
+            for (UaMonitoredItem item : items) {
+                if (item.getStatusCode().isGood()) {
+                    logger.debug("item created for nodeId={}", item.getReadValueId().getNodeId());
+                } else {
+                    logger.warn(
+                            "failed to create item for nodeId={} (status={})",
+                            item.getReadValueId().getNodeId(), item.getStatusCode());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void unsubscribeAll() {
+        client.getSubscriptionManager().clearSubscriptions();
+    }
+
+    public abstract void onStateSubscriptionChange(UaMonitoredItem item, DataValue value);
 }

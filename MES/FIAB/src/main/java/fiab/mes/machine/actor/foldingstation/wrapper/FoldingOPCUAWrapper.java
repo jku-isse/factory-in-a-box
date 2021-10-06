@@ -4,7 +4,7 @@ import akka.actor.ActorRef;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import fiab.machine.plotter.IntraMachineEventBus;
+import fiab.machine.foldingstation.IntraMachineEventBus;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;

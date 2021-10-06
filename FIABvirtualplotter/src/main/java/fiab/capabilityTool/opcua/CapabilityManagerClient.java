@@ -10,17 +10,20 @@ import fiab.capabilityTool.opcua.msg.ClientReadyNotification;
 import fiab.capabilityTool.opcua.msg.WriteRequest;
 import fiab.opcua.client.OPCUAClientFactory;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.NamespaceTable;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
 import org.eclipse.milo.opcua.stack.core.types.structured.CallMethodRequest;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -40,7 +43,7 @@ public class CapabilityManagerClient extends AbstractActor {
         try {
             this.client = new OPCUAClientFactory().createClient(endpointURL);
             this.client.connect().get();
-            browseServerNodesRecursively(client.getAddressSpace().browse(Identifiers.RootFolder).get());
+            browseServerNodesRecursively(client.getAddressSpace().browse(Identifiers.RootFolder), client.getNamespaceTable());
             if (setCapabilityMethodNodeId == null) {
                 log.info("No matching method found, terminating actor for " + endpointURL);
                 getSelf().tell(PoisonPill.getInstance(), self());
@@ -61,13 +64,13 @@ public class CapabilityManagerClient extends AbstractActor {
                 .build();
     }
 
-    private void browseServerNodesRecursively(List<Node> nodes) throws ExecutionException, InterruptedException {
-        for (Node node : nodes) {
-            browseServerNodesRecursively(client.getAddressSpace().browse(node.getNodeId().get()).get());
-            if (Objects.requireNonNull(node.getBrowseName().get().getName()).contains("SET_PLOT_CAPABILITY")) {
-                if (node instanceof UaMethodNode) {
-                    log.info("Found set capability method node: " + node.getNodeId().get());
-                    setCapabilityMethodNodeId = node.getNodeId().get();
+    private void browseServerNodesRecursively(List<ReferenceDescription> nodes, NamespaceTable namespaceTable) throws Exception {
+        for (ReferenceDescription node : nodes) {
+            browseServerNodesRecursively(client.getAddressSpace().browse(node.getNodeId().toNodeIdOrThrow(namespaceTable)), namespaceTable);
+            if (Objects.requireNonNull(node.getBrowseName().getName()).contains("SET_PLOT_CAPABILITY")) {
+                if (node.getNodeClass().equals(NodeClass.Method)) {
+                    log.info("Found set capability method node: " + node.getNodeId());
+                    setCapabilityMethodNodeId = node.getNodeId().toNodeIdOrThrow(namespaceTable);
                 }
             }
         }
@@ -85,16 +88,16 @@ public class CapabilityManagerClient extends AbstractActor {
 
     protected CompletableFuture<String> callMethod(NodeId methodId, Variant[] inputArgs) {
         CallMethodRequest request = new CallMethodRequest(
-                new NodeId(1, 321), methodId, inputArgs);
+                setCapabilityMethodNodeId, methodId, inputArgs);
 
         return client.call(request).thenCompose(result -> {
             StatusCode statusCode = result.getStatusCode();
             if (statusCode.isGood()) {
-                String value = (String) (result.getOutputArguments())[0].getValue();
-                return CompletableFuture.completedFuture(value);
+                    String value = "Ok";//(String) (result.getOutputArguments())[0].getValue();
+                    return CompletableFuture.completedFuture(value);
             } else {
                 StatusCode[] inputArgumentResults = result.getInputArgumentResults();
-                for (int i = 0; i < inputArgumentResults.length; i++) {
+                for (int i = 0; i < Objects.requireNonNull(inputArgumentResults).length; i++) {
                     log.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
                 }
 

@@ -8,19 +8,20 @@ import akka.event.LoggingAdapter;
 import akka.pattern.Patterns;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.folding.WellknownFoldingCapability;
-import fiab.core.capabilities.plotting.WellknownPlotterCapability;
-import fiab.machine.plotter.IntraMachineEventBus;
+import fiab.machine.foldingstation.IntraMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.foldingstation.FoldingStationActor;
-import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.opcua.CapabilityImplInfo;
-import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
+//import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
+import org.eclipse.milo.opcua.stack.core.NamespaceTable;
+import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.FiniteDuration;
@@ -82,11 +83,11 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
         }
     }
 
-    private Actor generateActor(CapabilityImplInfo info) throws InterruptedException, ExecutionException {
-        UaNode actorNode = info.getClient().getAddressSpace().getNodeInstance(info.getActorNode()).get();
+    private Actor generateActor(CapabilityImplInfo info) throws InterruptedException, ExecutionException, UaException {
+        UaNode actorNode = info.getClient().getAddressSpace().getNode(info.getActorNode()); //Use getNodeAsync instead?
         Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
-        actor.setDisplayName(actorNode.getDisplayName().get().getText());
-        actor.setActorName(actorNode.getBrowseName().get().getName());
+        actor.setDisplayName(actorNode.getDisplayName().getText());
+        actor.setActorName(actorNode.getBrowseName().getName());
         String id = info.getActorNode().getIdentifier().toString();
         String uri = info.getEndpointUrl().endsWith("/") ? info.getEndpointUrl()+id : info.getEndpointUrl()+"/"+id;
         actor.setUri(uri);
@@ -104,21 +105,26 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
             log.info("Spawned Actor: "+machine.path());
     }
 
-    private LocalFoldingStationActorSpawner.FoldingOPCUAnodes retrieveNodeIds(CapabilityImplInfo info) throws InterruptedException, ExecutionException {
-        List<Node> nodes = info.getClient().getAddressSpace().browse(info.getActorNode()).get();
+    private LocalFoldingStationActorSpawner.FoldingOPCUAnodes retrieveNodeIds(CapabilityImplInfo info) throws Exception {
+        //List<Node> nodes = info.getClient().getAddressSpace().browse(info.getActorNode());
+        List<ReferenceDescription> referenceDescriptions = info.getClient().getAddressSpace().browse(info.getActorNode());
         // we assume unique node names and method names within this hierarchy level (thus no two capabilities with overlapping browse names)
         LocalFoldingStationActorSpawner.FoldingOPCUAnodes nodeIds = new LocalFoldingStationActorSpawner.FoldingOPCUAnodes();
-        for (Node n : nodes) {
-            log.info("Checking node: "+n.getBrowseName().get().toParseableString());
-            String bName = n.getBrowseName().get().getName();
+        NamespaceTable namespaceTable = info.getClient().getNamespaceTable(); // Apparently necessary for retrieving NodeId
+        for (ReferenceDescription r : referenceDescriptions) {
+            log.info("Checking node: "+r.getBrowseName().toParseableString());
+            String bName = r.getBrowseName().getName();
+            if(bName == null){  //We should be fine without this, but just to be safe
+                continue;
+            }
             if (bName.equalsIgnoreCase(OPCUABasicMachineBrowsenames.RESET_REQUEST))
-                nodeIds.setResetMethod(n.getNodeId().get());
+                nodeIds.setResetMethod(r.getNodeId().toNodeIdOrThrow(namespaceTable));
             else if (bName.equalsIgnoreCase(OPCUABasicMachineBrowsenames.STOP_REQUEST))
-                nodeIds.setStopMethod(n.getNodeId().get());
+                nodeIds.setStopMethod(r.getNodeId().toNodeIdOrThrow(namespaceTable));
             else if (bName.equalsIgnoreCase(WellknownFoldingCapability.OPCUA_FOLD_REQUEST))
-                nodeIds.setFoldMethod(n.getNodeId().get());
+                nodeIds.setFoldMethod(r.getNodeId().toNodeIdOrThrow(namespaceTable));
             else if (bName.equalsIgnoreCase(OPCUABasicMachineBrowsenames.STATE_VAR_NAME))
-                nodeIds.setStateVar(n.getNodeId().get());
+                nodeIds.setStateVar(r.getNodeId().toNodeIdOrThrow(namespaceTable));
         }
         return nodeIds;
     }

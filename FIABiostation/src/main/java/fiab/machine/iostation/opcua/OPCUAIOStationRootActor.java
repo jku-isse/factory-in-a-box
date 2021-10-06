@@ -23,6 +23,7 @@ import fiab.opcua.CapabilityExposingUtils;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
+import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
 
 public class OPCUAIOStationRootActor extends AbstractActor {
@@ -76,7 +77,7 @@ public class OPCUAIOStationRootActor extends AbstractActor {
 
 	
 	private void init(int portOffset) throws Exception {
-		NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
+		PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
 		OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
 		UaFolderNode root = opcuaBase.prepareRootNode();
 		UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "IOSTATION");

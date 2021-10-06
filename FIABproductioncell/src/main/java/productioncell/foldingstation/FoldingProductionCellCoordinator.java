@@ -11,12 +11,7 @@ import fiab.mes.planer.actor.MachineOrderMappingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import ProcessCore.AbstractCapability;
@@ -182,7 +177,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
         foldingCap.setID("FoldingCapabilityId");
         foldingCap.setDisplayName("FoldingCapability");
         foldingCap.setInvokedCapability(WellknownFoldingCapability.getFoldingShapeCapability());
-        List<CapabilityInvocation> stepCandidates = List.of(foldingCap);
+        List<CapabilityInvocation> stepCandidates = Collections.singletonList(foldingCap);
         /*op.getAvailableSteps().stream()
                 .filter(step ->(step instanceof CapabilityInvocation) )
                 .map(CapabilityInvocation.class::cast)

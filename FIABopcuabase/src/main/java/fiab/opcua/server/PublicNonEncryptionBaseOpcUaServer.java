@@ -91,7 +91,7 @@ public class PublicNonEncryptionBaseOpcUaServer {
                 EndpointConfiguration.Builder builder = EndpointConfiguration.newBuilder()
                         .setBindAddress(bindAddress)
                         .setHostname(hostname)
-                        .setPath("/milo")
+                        .setPath("/milo")       //This can be deleted in the future
                         .addTokenPolicies(
                                 USER_TOKEN_POLICY_ANONYMOUS,
                                 USER_TOKEN_POLICY_USERNAME
@@ -107,7 +107,7 @@ public class PublicNonEncryptionBaseOpcUaServer {
 
 
                 EndpointConfiguration.Builder discoveryBuilder = builder.copy()
-                        .setPath("/milo/discovery")
+                        .setPath("/milo/discovery")     //We can change this to /discovery as well
                         .setSecurityPolicy(SecurityPolicy.None)
                         .setSecurityMode(MessageSecurityMode.None);
 

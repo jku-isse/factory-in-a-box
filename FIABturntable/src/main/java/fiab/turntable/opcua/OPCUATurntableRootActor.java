@@ -85,13 +85,13 @@ public class OPCUATurntableRootActor extends AbstractActor {
 
     private void init() throws Exception {
         OPCUABase opcuaBase;
-        if (System.getProperty("os.name").contains("win")) {
+        /*if (System.getProperty("os.name").contains("win")) {
             NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
             opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
-        } else {
+        } else {*/
             PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
             opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
-        }
+        //}
         //OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
         UaFolderNode root = opcuaBase.prepareRootNode();
         UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "Turntable_FU");

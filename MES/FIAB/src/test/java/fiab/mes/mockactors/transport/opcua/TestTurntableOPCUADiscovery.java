@@ -65,6 +65,11 @@ class TestTurntableOPCUADiscovery {
 	void testDiscoveryVirtualTurntable() {
 		discoverTurntable("opc.tcp://localhost:4842/milo");
 	}
+
+	@Test
+	void testDiscoveryTurntableNiryo() {
+		discoverTurntable("opc.tcp://192.168.0.40:4842");
+	}
 	
 	@Test
 	void testDiscoveryActualTurntable() {

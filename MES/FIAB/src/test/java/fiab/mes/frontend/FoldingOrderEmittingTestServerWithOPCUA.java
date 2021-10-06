@@ -155,7 +155,8 @@ public class FoldingOrderEmittingTestServerWithOPCUA {
     public Set<String> getLocalhostLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();
         urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station (West of TT)
-        urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 Pos20
+        urlsToBrowse.add("opc.tcp://192.168.0.40:4842"); // TT1 Pos20
+        //urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 Pos20
         urlsToBrowse.add("opc.tcp://localhost:4845/milo"); // Pos31 FoldingStation1 (North of TT)
         urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Pos37 FoldingStation2 (South of TT)
         urlsToBrowse.add("opc.tcp://localhost:4850/milo"); // Pos23 OutputStation (East of TT)
