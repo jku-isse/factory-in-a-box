@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+}
+
+group 'fiab.isse'
+version '1.0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "ch.qos.logback:logback-classic:1.2.3"
+    implementation "com.typesafe.akka:akka-actor_${akkaTarget}:${akkaVersion}"
+    implementation "com.typesafe.akka:akka-slf4j_${akkaTarget}:${akkaVersion}"
+
+    implementation project(":FIABcore")
+    implementation project(":FIABopcuabase")
+    implementation project(":FIABhandshake")
+
+    testImplementation "com.typesafe.akka:akka-testkit_${akkaTarget}:${akkaVersion}"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}

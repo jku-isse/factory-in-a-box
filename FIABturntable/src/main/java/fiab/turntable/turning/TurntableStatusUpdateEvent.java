@@ -22,7 +22,7 @@ public class TurntableStatusUpdateEvent extends MachineUpdateEvent {
 
 	@Override
 	public String toString() {
-		return "TurningStatesUpdateEvent [status=" + status + ", machineId=" + machineId + "]";
+		return "TurningStatusUpdateEvent [status=" + status + ", machineId=" + machineId + "]";
 	}
 	
 

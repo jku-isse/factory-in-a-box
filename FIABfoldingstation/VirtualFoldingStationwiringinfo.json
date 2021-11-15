@@ -1,0 +1,9 @@
+{
+  "NORTH_CLIENT": {
+    "localCapabilityId": "SOUTH_CLIENT",
+    "remoteCapabilityId": "DefaultHandshakeServerSide",
+    "remoteEndpointURL": "opc.tcp://127.0.0.1:4849/milo",
+    "remoteNodeId": "ns=2;s=OutputStation/IOSTATION/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+    "remoteRole": "RemoteRole1"
+  }
+}

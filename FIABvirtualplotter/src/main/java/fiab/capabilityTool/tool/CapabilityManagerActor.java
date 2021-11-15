@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,10 @@ public class CapabilityManagerActor extends AbstractActor {
                     String url = notification.getEndpointUrl();
                     if (urlCapabilitiesMap.containsKey(url)) {
                         String capability = urlCapabilitiesMap.get(url);
-                        sender().tell(new WriteRequest(capability), self());
+                        System.out.println("Capability=" + capability);
+                        if (capability != null) {
+                            sender().tell(new WriteRequest(capability), self());
+                        }
                     }
                 }).build();
     }
@@ -53,7 +57,7 @@ public class CapabilityManagerActor extends AbstractActor {
     private Map<String, String> getCapabilitiesFromDir() {
         Map<String, String> endPointCapabilityMap = null;
         try {
-            List<Path> filePaths = Files.list(Path.of(dirPath)).collect(Collectors.toList());
+            List<Path> filePaths = Files.list(Paths.get(dirPath)).collect(Collectors.toList());
             endPointCapabilityMap = new HashMap<>();
             for (Path path : filePaths) {
                 AbstractMap.SimpleEntry<String, String> entry = parseJsonFileAsCapabilityEntry(path);

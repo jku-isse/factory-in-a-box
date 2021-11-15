@@ -211,7 +211,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
 
     private void finishProduction() {
         setAndPublishState(BasicMachineStates.COMPLETING);
-        serverSide.tell(IOStationCapability.ServerMessageTypes.Reset, self); //now again do a handshake and unload,
+        serverSide.tell(HandshakeCapability.ServerMessageTypes.Reset, self); //now again do a handshake and unload,
         context().system()
                 .scheduler()
                 .scheduleOnce(Duration.ofMillis(3000),
