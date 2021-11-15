@@ -217,7 +217,6 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                         finalizeTransport();
                     }
                 })
-                .matchAny(msg -> log.info("Received unsupported message " + msg + " from " + sender()))
                 .build();
     }
 

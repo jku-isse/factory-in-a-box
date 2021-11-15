@@ -2,22 +2,13 @@ package hardware;
 
 import hardware.actuators.Motor;
 import hardware.sensors.Sensor;
+import lombok.Getter;
 
 public abstract class ConveyorHardware {
 
-    protected Motor conveyorMotor;
-    protected Sensor loadingSensor;
-    protected Sensor unloadingSensor;
+    @Getter protected Motor conveyorMotor;
+    @Getter protected Sensor loadingSensor;
+    @Getter protected Sensor unloadingSensor;
 
-    public Motor getConveyorMotor() {
-        return conveyorMotor;
-    }
 
-    public Sensor getLoadingSensor() {
-        return loadingSensor;
-    }
-
-    public Sensor getUnloadingSensor() {
-        return unloadingSensor;
-    }
 }

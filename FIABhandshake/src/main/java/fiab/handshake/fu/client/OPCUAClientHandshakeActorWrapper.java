@@ -213,7 +213,7 @@ public class OPCUAClientHandshakeActorWrapper extends AbstractActor {
 					MonitoringMode.Reporting,
 					parameters
 					);
-			UaSubscription.ItemCreationCallback onItemCreated =
+			BiConsumer<UaMonitoredItem, Integer> onItemCreated =
 					(item, id) -> item.setValueConsumer(this::onStateSubscriptionChange);
 
 					List<UaMonitoredItem> items = subscription.createMonitoredItems(

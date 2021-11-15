@@ -23,7 +23,6 @@ import fiab.opcua.CapabilityExposingUtils;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
-import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
 
 public class OPCUAIOStationRootActor extends AbstractActor {
@@ -77,14 +76,15 @@ public class OPCUAIOStationRootActor extends AbstractActor {
 
 	
 	private void init(int portOffset) throws Exception {
-		PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
+		NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
 		OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
 		UaFolderNode root = opcuaBase.prepareRootNode();
-		String fuPrefix = machineName;//+"/"+"IOSTATION";
-		fu = isInputStation ? new IOStationHandshakeFU.InputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
-							  new IOStationHandshakeFU.OutputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
-		setupOPCUANodeSet(opcuaBase, root, fuPrefix, fu.getFUActor());
-		CapabilityExposingUtils.setupCapabilities(opcuaBase, root, fuPrefix, new CapabilityImplementationMetadata("DefaultStation",
+		UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "IOSTATION");
+		String fuPrefix = machineName+"/"+"IOSTATION";
+		fu = isInputStation ? new IOStationHandshakeFU.InputStationHandshakeFU(opcuaBase, ttNode, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
+							  new IOStationHandshakeFU.OutputStationHandshakeFU(opcuaBase, ttNode, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+		setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, fu.getFUActor());
+		CapabilityExposingUtils.setupCapabilities(opcuaBase, ttNode, fuPrefix, new CapabilityImplementationMetadata("DefaultStation", 
 										isInputStation ? IOStationCapability.INPUTSTATION_CAPABILITY_URI : IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, 
 										ProvOrReq.PROVIDED));
 		Thread s1 = new Thread(opcuaBase);

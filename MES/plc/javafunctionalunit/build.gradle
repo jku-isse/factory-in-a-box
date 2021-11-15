@@ -1,0 +1,62 @@
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'idea'
+    id 'com.github.ev3dev-lang-java.gradle-plugin' version '1.6.8'
+}
+
+group 'jku.isse'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    maven { url "https://jitpack.io" }
+    mavenCentral()
+}
+
+dependencies {
+    compile("org.slf4j:slf4j-api:1.7.25")
+    compile("com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3")
+    compile("com.github.oxo42:stateless4j:2.5.0")
+    compile("io.vertx:vertx-core:3.8.0")
+    compile('com.googlecode.json-simple:json-simple:1.1.1')
+    compileOnly('org.projectlombok:lombok:1.18.10')
+    annotationProcessor('org.projectlombok:lombok:1.18.10')
+    testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
+    testCompile('junit:junit:4.12')
+    testImplementation('org.awaitility:awaitility:4.0.1')
+    //compile('org.eclipse.milo:sdk-client:0.3.6')
+    //compile('org.eclipse.milo:sdk-server:0.3.6')
+}
+
+apply from: './brickConfig/turnTableConfig.gradle';
+
+compileJava.options.encoding = 'UTF-8'
+
+//Compile
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+//Test
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+//Jar
+jar {
+    manifest {
+        attributes("Implementation-Title": project.name,
+                "Implementation-Version": version,
+                "Main-Class": brick.pref.mainClass,
+                "Class-Path": brick.getClassPath(true))
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
