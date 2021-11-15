@@ -1,6 +1,0 @@
-[
-  "opc.tcp://localhost:4840/milo",
-  "opc.tcp://localhost:4845/milo",
-  "opc.tcp://localhost:4849/milo",
-  "opc.tcp://localhost:4842/milo"
-]

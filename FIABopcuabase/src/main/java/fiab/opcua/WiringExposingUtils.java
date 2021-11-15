@@ -11,12 +11,11 @@ import fiab.opcua.wiring.WiringNodes;
 
 public class WiringExposingUtils {
 
-	public static final String WIRING_INFO_BROWSENAME = "WiringInformation";
 
 	public static WiringNodes createWiringInfoFolder(OPCUABase base, UaFolderNode handshakeNode, String path) {
 		UaFolderNode wiringInfoFolder = base.generateFolder(handshakeNode, path,
 				OPCUACapabilitiesAndWiringInfoBrowsenames.WIRING_INFO);
-		String wiringPath = path + "/" + WIRING_INFO_BROWSENAME;
+		String wiringPath = path + "/WiringInformation";
 		WiringNodes wn = new WiringNodes();
 		wn.setRemoteCapabilityId(base.generateStringVariableNode(
 				wiringInfoFolder, wiringPath, OPCUACapabilitiesAndWiringInfoBrowsenames.REMOTE_CAPABILITYID, ""));

@@ -3,6 +3,7 @@ package hardware.mock;
 import hardware.ConveyorHardware;
 import hardware.actuators.ConveyorMockMotor;
 import hardware.sensors.MockSensor;
+import lombok.Getter;
 
 public class ConveyorMockHardware extends ConveyorHardware {
 

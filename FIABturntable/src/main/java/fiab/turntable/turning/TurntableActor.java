@@ -207,7 +207,7 @@ public class TurntableActor extends BaseBehaviorTurntableActor {
     }
 
     private boolean isRotationFinished(TurnTableOrientation orientation) {
-        log.info("Rotation is now:" + getPosition());
+        //log.info("Rotation is now:" + getPosition());
         switch (orientation) {
             case NORTH:
                 return sensorHomingHasDetectedInput();    //Casting position from float to int somehow is always pos-1

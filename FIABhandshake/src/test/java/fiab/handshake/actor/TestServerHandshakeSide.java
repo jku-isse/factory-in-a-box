@@ -2,7 +2,9 @@ package fiab.handshake.actor;
 
 import java.time.Duration;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,15 +22,15 @@ public class TestServerHandshakeSide {
 	
 	private static final Logger logger = LoggerFactory.getLogger(TestServerHandshakeSide.class);
 	
-	@BeforeEach
-	void setUpBeforeClass() throws Exception {
+	@BeforeAll
+	static void setUpBeforeClass() throws Exception {
 		
 		system = ActorSystem.create(ROOT_SYSTEM);
 		
 	}
 
-	@AfterEach
-	public void teardown() {
+	@AfterAll
+	public static void teardown() {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;
 	}

@@ -14,7 +14,6 @@ import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdenti
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.ClientSideHandshakeFU;
-import fiab.handshake.fu.client.WiringUtils;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
@@ -80,21 +79,19 @@ public class OPCUATurntableRootActor extends AbstractActor {
                 .match(InternalTransportModuleRequest.class, req -> {
                     // forward to return response directly into method call back
                     if (ttWrapper != null) ttWrapper.forward(req, getContext());
-                })
-                .matchAny(msg -> log.info("Received unknown message " + msg + " from " + sender()))
-                .build();
+                }).build();
     }
 
 
     private void init() throws Exception {
         OPCUABase opcuaBase;
-        /*if (System.getProperty("os.name").contains("win")) {
+        if (System.getProperty("os.name").contains("win")) {
             NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
             opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
-        } else {*/
+        } else {
             PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
             opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
-        //}
+        }
         //OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
         UaFolderNode root = opcuaBase.prepareRootNode();
         UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "Turntable_FU");
@@ -117,7 +114,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
 		                //context().actorOf(ConveyorActor.props(intraEventBus, null), "ConveyingFU")), 
 						turningFU.getActor(),
 						conveyorFU.getActor()),	"TurntableCoordinator");
-            ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
+			   ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
 			//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 		} else {
 			ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");
