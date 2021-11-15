@@ -62,22 +62,11 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
 
     public static final String WELLKNOWN_LOOKUP_NAME = "FoldingProductionCellCoordinator";
 
-    //protected Map<String, RegisterProcessRequest> reqIndex = new HashMap<>();
-    //protected List<MappedOrderProcess> orders = new ArrayList<MappedOrderProcess>();
-
     // manages which machine has which capabilities
     protected MachineCapabilityManager capMan = new MachineCapabilityManager();
 
     // manages which machines has currently which order allocated and in which state
     protected MachineOrderMappingManager ordMapper;
-
-
-    //protected Map<ActorRef, List<AbstractCapability>> capabilities = new HashMap<>();
-    //protected Map<Actor, ActorRef> modelActors2AkkaActors = new HashMap<>();
-    // dont make this bidirectional as we use them differently!!
-    //protected Map<ActorRef, String> machineWorksOnOrder = new HashMap<ActorRef, String>();
-    //protected Map<String, ActorRef> rootOrderAllocatedToMachine = new HashMap<String, ActorRef>();
-    //protected Map<Entry<AkkaActorBackedCoreModelAbstractActor, String>, OrderEventType> scheduleStatus = new HashMap<>();
 
     protected ActorSelection orderEventBus;
     protected ActorSelection machineEventBus;
@@ -106,27 +95,9 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                /*.match(RegisterProcessRequest.class, rpReq -> {
-                    log.info("Received Register Order Request: "+rpReq.getRootOrderId());
-                    //reqIndex.put(rpReq.getRootOrderId(), rpReq);
-                    if (state.equals(PlannerState.FULLY_OPERATIONAL)) {
-                        ordMapper.registerOrder(rpReq);
-                        scheduleProcess(rpReq.getRootOrderId(), rpReq.getProcess());
-                    } else {
-                        String msg = String.format("Cannot accept request for process %s when not in %s state, currently in state %s",rpReq.getRootOrderId(), PlannerState.FULLY_OPERATIONAL, state);
-                        log.warning(msg);
-                        ordMapper.markOrderRejected(rpReq.getRootOrderId(), msg);
-                    }
-                })
-                .match(CancelOrTerminateOrder.class, req -> {
-                    handleCancelOrderRequest(req);
-                })
-                .match(ReadyForProcessEvent.class, readyE -> {
-                    produceProcessAtMachine(readyE);
-                })
-                .match(OrderEvent.class, orderEvent -> {
-                    //TODO: to confirm that an order is now produced or completed at a machine
-                })*/
+                //.match(CancelOrTerminateOrder.class, req -> {
+                //    handleCancelOrderRequest(req);
+                //})
                 .match(MachineConnectedEvent.class, machineEvent -> {
                     handleNewlyAvailableMachine(machineEvent);
                 })
@@ -178,44 +149,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
         foldingCap.setDisplayName("FoldingCapability");
         foldingCap.setInvokedCapability(WellknownFoldingCapability.getFoldingShapeCapability());
         List<CapabilityInvocation> stepCandidates = Collections.singletonList(foldingCap);
-        /*op.getAvailableSteps().stream()
-                .filter(step ->(step instanceof CapabilityInvocation) )
-                .map(CapabilityInvocation.class::cast)
-                .filter(capInv -> capInv.getInvokedCapability() != null)
-                .collect(Collectors.toList());*/
 
-        /*if (stepCandidates.isEmpty()) {
-            // check if process is finished, then we can remove it from the shopfloor
-            if (op.areAllTasksCancelledOrCompleted()) {
-                // no need to signal completion here, as step level completion already happended, and completion only when process arrives at output station
-                log.info(String.format("OrderProcess %s is complete, now triggering move to output station",rootOrderId));
-                //transport it off to output station
-                ordMapper.markOrderCompleted(rootOrderId, "Order about to be moved to next available/idle output station");
-                Optional<AkkaActorBackedCoreModelAbstractActor> outputStation = tryReserveOutputStation(rootOrderId);
-                if (!outputStation.isPresent()) {
-                    // if not possible we wont do anything with this order at the moment and wait for outputstation to become available
-                    log.info(String.format("No Output station available yet for removing order %s ",rootOrderId));
-                    return;
-                } else {// else, we have now  the reservation of the outputstation for this order and we continue with transport
-                    requestTransport(outputStation.get(), rootOrderId);
-                }
-            } else {
-                // this implies that the process cant make progress as there is no available capabilityinvocation ie. process step to allocate to a machine
-                String msg = String.format("OrderProcess %s has no available steps of type CapabilityInvocation to continue with, moving to next available/idle output station",rootOrderId);
-                log.warning(msg);
-                ordMapper.markOrderCanceled(rootOrderId, msg);
-                //if this process is somewhere on some machine, remove it from production --> transport it off to output station
-                Optional<AkkaActorBackedCoreModelAbstractActor> outputStation = tryReserveOutputStation(rootOrderId);
-                if (!outputStation.isPresent()) {
-                    // if not possible we wont do anything with this order at the moment and wait for outputstation to become available
-                    return;
-                } else {// else, we have now  the reservation of the outputstation for this order and we continue with transport
-                    requestTransport(outputStation.get(), rootOrderId);
-                }
-            }
-        } else {*/
-            // go through each candidate and check if any of the steps can be mapped to a available machine,
-            // first get candidates where the machine capabilites matches
             Map<CapabilityInvocation,Set<AkkaActorBackedCoreModelAbstractActor>> capMap = stepCandidates.stream()
                     .map(step -> new AbstractMap.SimpleEntry<>(step, capMan.getMachinesProvidingCapability(step.getInvokedCapability())) )
                     .filter(pair -> !pair.getValue().isEmpty() )
@@ -323,6 +257,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
                         .forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
                 ordMapper.getProcessesInState(OrderEventType.CANCELED).stream() //orders that need to be prematurely removed
                         .forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
+                tryAssigningTransportToOutputStation();
             } else if (ue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
                 tryAssigningTransportToFoldingStation();
                 // we reached idle for an inputstation
@@ -388,6 +323,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
                             orderEventBus.tell(opue, ActorRef.noSender());
                         } );
                         tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()); });
+                    tryAssigningTransportToOutputStation();
                     break;
                 case STOPPING:// fallthrough
                 case STOPPED:
@@ -429,6 +365,36 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
             transportCoordinator.tell(new RegisterTransportRequest(idleInputStation.get(), readyFoldingStation.get(), "missingOrderIdFromCoordinator", self), self);
         } else {
             log.info("Waiting for Machines to be in suitable state. Machines in suitable state? IO: {}, FoldingStation: {}, Transport: {}", idleInputStation.isPresent(), readyFoldingStation.isPresent(), idleTransportFU.isPresent());
+            //System.out.println("Available Input station " + idleInputStation + ", Available Folding Station: " + readyFoldingStation + ", TransportFU: " + idleTransportFU);
+        }
+    }
+
+    private void tryAssigningTransportToOutputStation(){
+        //Find OutputStation in Idle Empty
+        Set<AkkaActorBackedCoreModelAbstractActor> availableOutputStations = capMan.getMachinesProvidingCapability(outputStationCap);
+        Optional<AkkaActorBackedCoreModelAbstractActor> idleOutputStation = availableOutputStations.stream()
+                .filter(m -> ordMapper.getIOStatus(m).equals(ServerSideStates.IDLE_EMPTY))
+                .findAny();
+        //Find FoldingStation in Completing
+        Set<AkkaActorBackedCoreModelAbstractActor> availableFoldingStations = capMan.getMachinesProvidingCapability(foldingStationCap);
+        Optional<AkkaActorBackedCoreModelAbstractActor> readyFoldingStation = availableFoldingStations.stream()
+                .filter(m -> ordMapper.getMachineStatus(m).equals(BasicMachineStates.COMPLETING))
+                .findAny();
+        availableFoldingStations.forEach(System.out::println);
+        List<AkkaActorBackedCoreModelAbstractActor> readyFoldingStationList = availableFoldingStations.stream()
+                .filter(m -> ordMapper.getMachineStatus(m).equals(BasicMachineStates.COMPLETING))
+                .collect(Collectors.toList());
+        readyFoldingStationList.forEach(s -> System.out.println(s.getId()+" is in State: "+ordMapper.getMachineStatus(s)));
+        //Check if transport FU is available
+        Set<AkkaActorBackedCoreModelAbstractActor> availableTransportFus = capMan.getMachinesProvidingCapability(transportCap);
+        Optional<AkkaActorBackedCoreModelAbstractActor> idleTransportFU = availableTransportFus.stream()
+                .filter(m -> ordMapper.getMachineStatus(m).equals(BasicMachineStates.IDLE))
+                .findAny();
+        if (idleOutputStation.isPresent() && readyFoldingStation.isPresent() && idleTransportFU.isPresent()) {
+            log.info("Sending TransportRequest from: " + idleOutputStation.get().getId() + ", to:" + readyFoldingStation.get().getId() + ", using transportFU " + idleTransportFU.get().getId());
+            transportCoordinator.tell(new RegisterTransportRequest(idleOutputStation.get(), readyFoldingStation.get(), "missingOrderIdFromCoordinator", self), self);
+        } else {
+            log.info("Waiting for Machines to be in suitable state. Machines in suitable state? IO: {}, FoldingStation: {}, Transport: {}", idleOutputStation.isPresent(), readyFoldingStation.isPresent(), idleTransportFU.isPresent());
             //System.out.println("Available Input station " + idleInputStation + ", Available Folding Station: " + readyFoldingStation + ", TransportFU: " + idleTransportFU);
         }
     }
@@ -618,188 +584,5 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
                 break;
         }
     }
-
-    //Code removed from OrderPlanningActor
-
-//	private void mapProcessToMachines(RegisterProcessRequest rpReq) {
-//		log.warning(String.format("OrderProcess %s has no mapped Actors based on Capabilities, this is not supported yet",rpReq.getRootOrderId()));
-//		orderEventBus.tell(new OrderEvent(rpReq.getRootOrderId(), this.self().path().name(), OrderEventType.CANCELED), ActorRef.noSender());
-//		// check if every step can be mapped to a machine (for now we assume there is only
-//		throw new RuntimeException("Not Implemented yet");
-//	}
-
-    // first time activation of the process
-    /*private void scheduleProcess(String rootOrderId, OrderProcess mop) {
-        if (!mop.doAllLeafNodeStepsHaveInvokedCapability(mop.getProcess())) {
-            String msg = String.format("OrderProcess %s does not have all leaf nodes with capability invocations, thus cannot be completely mapped to machines, cancelling order", rootOrderId);
-            log.warning(msg);
-            ordMapper.removeOrder(rootOrderId); // we didn/t start processing yet, so we can just drop the process
-            orderEventBus.tell(new OrderEvent(rootOrderId, this.self().path().name(), OrderEventType.REJECTED, msg), ActorRef.noSender());
-        } else {
-            // we have capability invocations with capabilities, thus able to map them to machines
-            ProcessChangeImpact pci = mop.activateProcess();
-            String msg = "Capability invocations have capabilities, thus able to map them to machines. rootOrderId: "+rootOrderId;
-            orderEventBus.tell( new OrderProcessUpdateEvent(rootOrderId, this.self().path().name(), msg, pci), ActorRef.noSender() );
-            tryAssignExecutingMachineForOneProcessStep(mop, rootOrderId);
-        }
-    }*/
-
-        /*private void produceProcessAtMachine(ReadyForProcessEvent readyE) {
-        String orderId = readyE.getResponseTo().getRootOrderId();
-        //TODO: if order is canceled already,  freeup has happened, machine has been told
-
-        capMan.resolveByAkkaActor(getSender()).ifPresent(machine -> {
-            if (readyE.isReady()) {
-                ordMapper.reserveOrderAtMachine(machine);
-                this.getSender().tell(new LockForOrder(readyE.getResponseTo().getProcessStepId(), orderId), this.getSelf());
-                //upon lockfororder,the machine should transition into starting state
-                //FIXME this should actually be published by the machine
-                ordMapper.allocateProcess(orderId);
-                // request transport to that machine: this machine should now be in Starting state
-                requestTransport(machine, orderId); // if not transport is ready, here we stay in allocated state
-
-                //FIXME: this should be triggered by the machine event, not here as we haven't transported anything yet
-                // update that we now work on an order
-                ordMapper.getOrderRequest(orderId).ifPresent(rpr -> {
-                    ProcessChangeImpact pci = rpr.getProcess().activateStepIfAllowed(readyE.getResponseTo().getProcessStep());
-                    String msg = String.format("Machine with ID %s agreed to work on Order with ID %s", machine.getId(), orderId);
-                    log.info(msg);
-                    orderEventBus.tell( new OrderProcessUpdateEvent(orderId, this.self().path().name(), msg, pci), ActorRef.noSender() );
-                });
-
-            } else { // e.g., when machine needs to go down for maintenance, or some other error occured in the meantime
-                ordMapper.freeUpMachine(machine, true);
-                ordMapper.pauseOrder(readyE.getResponseTo().getRootOrderId());
-                // then Wait for event on status update
-                //check if inputstation was reserved, free up as well:
-                ordMapper.getCurrentMachineOfOrder(orderId).ifPresent( somewhere -> {
-                    capMan.getMachinesProvidingCapability(inputStationCap).stream()
-                            .filter(iStation -> iStation.equals(somewhere)) // found order at istation
-                            .findAny().ifPresent(iStation -> {
-                        // deallocate and check for others that might wanna make use of it
-                        ordMapper.freeUpMachine(iStation, false);
-                        ordMapper.getProcessesInState(OrderEventType.PAUSED).stream()
-                                .forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
-                    });
-                });
-            }
-        });
-    }*/
-
-    /*private void handleCancelOrderRequest(CancelOrTerminateOrder req) {
-        // we first mark all steps as canceled
-        ordMapper.getOrderRequest(req.getRootOrderId()).ifPresent(oreq -> {
-            // completed steps remain marked completed, everthing else is canceled
-            String msg = String.format("Request to cancel Order %s - canceling all remaining steps", req.getRootOrderId());
-            log.info(msg);
-            oreq.getProcess().markStepCanceled(oreq.getProcess().getProcess());
-        });
-
-        ordMapper.getLastOrderState(req.getRootOrderId()).ifPresent(oStatus -> {
-            // transient states exist only briefly and thus should never be set when we enter here
-            switch(oStatus) {
-
-                case PRODUCING: // fallthrough
-                    // when machine finishes, we override automatically the step as completed, but all other steps will be canceled thus order will be transported off to outputstation
-                case COMPLETED:
-                    // process is waiting for output station, nothing to do here, no point in further canceling
-                    // will be transported to output station with next available
-                    break;
-                case SCHEDULED:
-                    // waiting for machine to respond, lets cancel this at the machine
-                    ordMapper.getRequestedMachineOfOrder(req.getRootOrderId()).ifPresent(machine -> {
-                        machine.getAkkaActor().tell(new CancelOrTerminateOrder(req.getRootOrderId()), self);
-                    });
-                    // then remove from current machine
-                    // via fallthrough
-                case PAUSED: // at machine or before first machine
-                    Optional<AkkaActorBackedCoreModelAbstractActor> currentLoc = ordMapper.getCurrentMachineOfOrder(req.getRootOrderId());
-                    if (!currentLoc.isPresent()) {
-                        String msg = String.format("Request to cancel Order %s confirmed before order entered shopfloor", req.getRootOrderId());
-                        log.info(msg);
-                        ordMapper.markOrderRejected(req.getRootOrderId(), msg);
-                    } else { // order at machine
-                        String msg = String.format("Request to cancel Order %s confirmed while pause at machine, will be transported to output station", req.getRootOrderId());
-                        log.info(msg);
-                        ordMapper.markOrderCanceled(req.getRootOrderId(), msg);
-                        Optional<AkkaActorBackedCoreModelAbstractActor> outputStation = tryReserveOutputStation(req.getRootOrderId());
-                        if (!outputStation.isPresent()) {
-                            // if not possible we wont do anything with this order at the moment and wait for outputstation to become available
-                            return;
-                        } else {// else, we have now  the reservation of the outputstation for this order and we continue with transport
-                            requestTransport(outputStation.get(), req.getRootOrderId());
-                        }
-                    }
-                    break;
-                case TRANSPORT_REQUESTED: // fallthrough, we are still at start machine
-                    // if cancel of transport successful, then next check will move to output
-                case TRANSPORT_IN_PROGRESS: // cancel at receiving machine,
-                    String msg = String.format("Request to cancel Order %s confirmed while order waiting for transport or in transit", req.getRootOrderId());
-                    log.info(msg);
-                    ordMapper.markOrderCanceled(req.getRootOrderId(), msg);
-                    ordMapper.getRequestedMachineOfOrder(req.getRootOrderId()).ifPresent(machine -> {
-                        machine.getAkkaActor().tell(new CancelOrTerminateOrder(req.getRootOrderId()), self);
-                    });
-                    transportCoordinator.tell(new CancelTransportRequest(req.getRootOrderId()), self);
-                    // we will ask the user to extract from turntable
-                    break;
-                case ALLOCATED: // transient
-                case PRODUCTION_UPDATE: // transient state
-                case TRANSPORT_COMPLETED: // transient state
-                case TRANSPORT_DENIED: //fallthrough: transient state
-                case TRANSPORT_FAILED:	//fallthrough: transient state
-                case CREATED:	// transient state
-                case REGISTERED: // transient state
-                case CANCELED: // transient state
-                    log.error("Encountered order in transient state "+oStatus+" when trying to cancel or terminate, ignoring request");
-                    break;
-                case REJECTED: // fallthrough
-                case REMOVED: // fallthrough
-                case PREMATURE_REMOVAL:
-                    // nothing to do
-                    break;
-
-                default:
-                    break;
-            }
-        });
-    }*/
-
-    /*private void handleProductionCompletionEvent() {
-        // just complete the processstep in the process if not already done so
-
-    }*/
-
-
-    /*private void requestTransport(AkkaActorBackedCoreModelAbstractActor destination, String orderId) {
-
-        Optional<AkkaActorBackedCoreModelAbstractActor> currentLoc = ordMapper.getCurrentMachineOfOrder(orderId);
-        if (!currentLoc.isPresent()) {
-            String msg = "Unable to located current machine of order: "+orderId;
-            log.error(msg);
-            // now this is really an error as we ensure when requesting a machine that we do this only when first reserving and allocating an inputstation
-            ordMapper.markOrderPrematureRemovalFromShopfloor(orderId, msg);
-            // free up destination
-            ordMapper.freeUpMachine(destination, true);
-            //TODO: if outputstation then dont need a new event, depending where the request failed, perhaps already at new machine?!
-            // TODO: if source is inputstation, then freeup also input station from reservation
-        } else {
-            ordMapper.markOrderWaitingForTransport(orderId);
-            transportCoordinator.tell(new RegisterTransportRequest(currentLoc.get(), destination, orderId, self), self);
-        }
-
-    }
-*/
-
-
-
-    // manage a list of loading and unloading stations (at least one each needs to be available)
-    // when loading/input station is loaded --> then assign to order
-    // for unloading/output station: just track if it is empty
-
-
-
-
-
 }
 

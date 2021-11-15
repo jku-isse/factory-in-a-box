@@ -9,8 +9,11 @@ import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.folding.FoldingMessageTypes;
+import fiab.core.capabilities.wiring.WiringInfo;
+import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.ClientSideHandshakeFU;
+import fiab.handshake.fu.client.WiringUtils;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.machine.foldingstation.IntraMachineEventBus;
 import fiab.machine.foldingstation.VirtualFoldingMachineActor;
@@ -28,6 +31,9 @@ import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
+import java.util.HashMap;
+import java.util.Optional;
+
 public class OPCUAFoldingStationRootActor extends AbstractActor {
     private String machineName = "FoldingStation";
     static final String NAMESPACE_URI = "urn:factory-in-a-box";
@@ -35,6 +41,8 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
     private UaVariableNode capability = null;
     private ActorRef foldingCoordinator;
     private int portOffset;
+    private HandshakeFU clientSideHandshakeOutput;
+
 
     static public Props props(String machineName, int portOffset) {
         return Props.create(OPCUAFoldingStationRootActor.class, () -> new OPCUAFoldingStationRootActor(machineName, portOffset));
@@ -65,11 +73,25 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
         foldingCoordinator.tell(FoldingMessageTypes.SubscribeState, getSelf());
 
         HandshakeFU serverSideHandshake = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, foldingCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+        this.clientSideHandshakeOutput = new ClientSideHandshakeFU(opcuaBase, ttNode, fuPrefix, foldingCoordinator, getContext(), "DefaultClientSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_REQUIRED, false);
         setupFoldingCapabilities(opcuaBase, ttNode, fuPrefix);
         setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, foldingCoordinator);
 
+        loadWiringFromFile();
+
         Thread s1 = new Thread(opcuaBase);
         s1.start();
+    }
+
+    private void loadWiringFromFile() {
+        Optional<HashMap<String, WiringInfo>> optInfo = WiringUtils.loadWiringInfoFromFileSystem(machineName);
+        if(clientSideHandshakeOutput != null && optInfo.isPresent()){
+            try {
+                clientSideHandshakeOutput.provideWiringInfo(optInfo.get().values().stream().findFirst().get());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -81,6 +103,7 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
                 })
                 .match(MachineStatusUpdateEvent.class, req -> {
                     setStatusValue(req.getStatus().toString());
+                }).match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {//ignore
                 })
                 .build();
     }

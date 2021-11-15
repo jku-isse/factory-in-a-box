@@ -80,12 +80,11 @@ public class OPCUAIOStationRootActor extends AbstractActor {
 		PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
 		OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
 		UaFolderNode root = opcuaBase.prepareRootNode();
-		UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "IOSTATION");
-		String fuPrefix = machineName+"/"+"IOSTATION";
-		fu = isInputStation ? new IOStationHandshakeFU.InputStationHandshakeFU(opcuaBase, ttNode, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
-							  new IOStationHandshakeFU.OutputStationHandshakeFU(opcuaBase, ttNode, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
-		setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, fu.getFUActor());
-		CapabilityExposingUtils.setupCapabilities(opcuaBase, ttNode, fuPrefix, new CapabilityImplementationMetadata("DefaultStation", 
+		String fuPrefix = machineName;//+"/"+"IOSTATION";
+		fu = isInputStation ? new IOStationHandshakeFU.InputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
+							  new IOStationHandshakeFU.OutputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+		setupOPCUANodeSet(opcuaBase, root, fuPrefix, fu.getFUActor());
+		CapabilityExposingUtils.setupCapabilities(opcuaBase, root, fuPrefix, new CapabilityImplementationMetadata("DefaultStation",
 										isInputStation ? IOStationCapability.INPUTSTATION_CAPABILITY_URI : IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, 
 										ProvOrReq.PROVIDED));
 		Thread s1 = new Thread(opcuaBase);

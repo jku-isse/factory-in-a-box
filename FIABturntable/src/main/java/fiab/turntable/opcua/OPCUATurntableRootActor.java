@@ -14,6 +14,7 @@ import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdenti
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.ClientSideHandshakeFU;
+import fiab.handshake.fu.client.WiringUtils;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
@@ -79,7 +80,9 @@ public class OPCUATurntableRootActor extends AbstractActor {
                 .match(InternalTransportModuleRequest.class, req -> {
                     // forward to return response directly into method call back
                     if (ttWrapper != null) ttWrapper.forward(req, getContext());
-                }).build();
+                })
+                .matchAny(msg -> log.info("Received unknown message " + msg + " from " + sender()))
+                .build();
     }
 
 
@@ -114,7 +117,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
 		                //context().actorOf(ConveyorActor.props(intraEventBus, null), "ConveyingFU")), 
 						turningFU.getActor(),
 						conveyorFU.getActor()),	"TurntableCoordinator");
-			   ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
+            ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
 			//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 		} else {
 			ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");

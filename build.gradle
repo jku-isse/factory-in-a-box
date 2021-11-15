@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group 'fiab.isse'
+version '1.0'
+
+allprojects {
+    repositories {
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+        flatDir {
+            dirs '../libs'
+        }
+    }
+    ext {
+        //TODO add more common version numbers accross modules
+        akkaTarget = '2.12' //Change to 2.13 if possible. This is the scala version
+        akkaVersion = '2.6.16'
+    }
+//TODO specify build order? Gradle seems to build them in the right order for me
+}

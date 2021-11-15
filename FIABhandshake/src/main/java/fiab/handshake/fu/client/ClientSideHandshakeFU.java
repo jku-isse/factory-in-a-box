@@ -8,6 +8,7 @@ import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.handshake.fu.HandshakeFU;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
+import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.NamespaceTable;
 import org.eclipse.milo.opcua.stack.core.UaException;
@@ -116,7 +117,7 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 		
 		// add wiring method
 		wiringNodes = WiringExposingUtils.createWiringInfoFolder(base, handshakeNode, path);
-		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode nWire = base.createPartialMethodNode(path, OPCUACapabilitiesAndWiringInfoBrowsenames.OPCUA_WIRING_REQUEST, "Request stop");		
+		UaMethodNode nWire = base.createPartialMethodNode(path, OPCUACapabilitiesAndWiringInfoBrowsenames.OPCUA_WIRING_REQUEST, "Request stop");
 		base.addMethodNode(handshakeNode, nWire, new WiringRequest(nWire, this)); 
 	}
 	
@@ -148,7 +149,7 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
 
 		} catch (Exception e) {
 			logger.warn(e.getMessage());
-			throw new WiringException("Could not connect to remote endpoint");
+			throw new WiringException("Could not connect to remote endpoint " + info.getRemoteEndpointURL());
 		}
 		logger.info("OPCUA Client connected for FU: "+this.capInstId);
 		Optional<NodeId> optRemoteNodeId = NodeId.parseSafe(info.getRemoteNodeId());

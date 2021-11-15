@@ -1,8 +1,5 @@
 package hardware.actuators;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -14,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class MockMotor extends Motor {
 
-    @Getter @Setter private int motorSpeed;
+    private int motorSpeed;
 
     protected ScheduledExecutorService executorService;
     private ScheduledFuture forwardTask;
@@ -25,6 +22,14 @@ public class MockMotor extends Motor {
         super();
         executorService = new ScheduledThreadPoolExecutor(1);
         motorSpeed = speed;
+    }
+
+    public int getMotorSpeed() {
+        return motorSpeed;
+    }
+
+    public void setMotorSpeed(int motorSpeed) {
+        this.motorSpeed = motorSpeed;
     }
 
     @Override

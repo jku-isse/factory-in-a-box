@@ -82,7 +82,7 @@ public class TestProductionCellDiscovery {
         knownActors.clear();
     }
 
-    @Test
+    //@Test
     void testProductionCellDiscovery() throws Exception {
         new TestKit(system) {
             {
@@ -134,7 +134,7 @@ public class TestProductionCellDiscovery {
         };
     }
 
-    @Test
+    //@Test
     void testProductionCellTransportToOneFoldingStation() throws Exception {
         new TestKit(system) {
             {
