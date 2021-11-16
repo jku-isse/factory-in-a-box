@@ -183,6 +183,7 @@ public class OrderEmittingTestServerWithOPCUA {
 				System.in.read();
 				System.out.println("Test completed");
 				TestTracingUtil.finishSpan();
+				Thread.sleep(3000);
 			}
 
 		};

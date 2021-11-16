@@ -152,6 +152,11 @@ public class ProduceProcess {
 				SupportedColors.GREEN);
 	}
 
+	public static ProcessCore.Process getRedAndBlueStepProcess(String prefix) {
+		return getSequentialStepProcess(prefix, ProcessCoreFactory.eINSTANCE.createXmlRoot(), SupportedColors.RED,
+				SupportedColors.BLUE);
+	}
+	
 	public static ProcessCore.Process getSequentialStepProcess(String prefix, XmlRoot root, SupportedColors... colors) {
 		// first four supported colors: BLACK, BLUE, GREEN, RED,
 		ProcessCore.Process p = ProcessCoreFactory.eINSTANCE.createProcess();
