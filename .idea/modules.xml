@@ -8,7 +8,6 @@
       <module fileurl="file://$PROJECT_DIR$/FIABopcuabase/FIABopcuabase.iml" filepath="$PROJECT_DIR$/FIABopcuabase/FIABopcuabase.iml" />
       <module fileurl="file://$PROJECT_DIR$/FIABvirtualplotter/FIABvirtualplotter.iml" filepath="$PROJECT_DIR$/FIABvirtualplotter/FIABvirtualplotter.iml" />
       <module fileurl="file://$PROJECT_DIR$/MES/FIAB/MESactors.iml" filepath="$PROJECT_DIR$/MES/FIAB/MESactors.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/factory-in-a-box.iml" filepath="$PROJECT_DIR$/.idea/factory-in-a-box.iml" />
     </modules>
   </component>
 </project>

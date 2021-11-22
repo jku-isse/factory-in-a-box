@@ -7,7 +7,7 @@
     "remoteRole": "EAST_SERVER"
   },
   "EAST_CLIENT": {
-    "localCapabilityId": "WEST_CLIENT",
+    "localCapabilityId": "EAST_CLIENT",
     "remoteCapabilityId": "DefaultServerSideHandshake",
     "remoteEndpointURL": "opc.tcp://127.0.0.1:4841/milo",
     "remoteNodeId": "ns=2;s=OutputStation/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",

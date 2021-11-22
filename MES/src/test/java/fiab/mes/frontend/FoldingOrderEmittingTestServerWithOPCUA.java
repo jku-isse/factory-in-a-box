@@ -118,7 +118,7 @@ public class FoldingOrderEmittingTestServerWithOPCUA {
                 boolean isPlannerFunctional = false;
                 boolean isTransportFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -168,7 +168,7 @@ public class FoldingOrderEmittingTestServerWithOPCUA {
         urlsToBrowse.add("opc.tcp://localhost:4845/milo"); // Pos31 FoldingStation1 (North of TT)
         urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 Pos20
         urlsToBrowse.add("opc.tcp://localhost:4843/milo"); // TT2 Pos21
-        //urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Pos37 BufferStation (South of TT)
+        urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Pos37 BufferStation (South of TT)
         return urlsToBrowse;
     }
 

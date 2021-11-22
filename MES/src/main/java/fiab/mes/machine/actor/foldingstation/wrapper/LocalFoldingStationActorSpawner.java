@@ -116,9 +116,9 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
         String endpoint = resolveOutputStationEndpoint(info, nodeIds);
         if (endpoint != null) {
             Actor actor = ActorCoreModelFactory.eINSTANCE.createActor();
-            actor.setDisplayName("OutputStation");
-            actor.setActorName("OutputStation");
-            String id = "OutputStation";
+            actor.setDisplayName("BufferStation");
+            actor.setActorName("BufferStation");
+            String id = "BufferStation";
             String uri = endpoint.endsWith("/") ? endpoint + id : endpoint + "/" + id;
             actor.setUri(uri);
             actor.setID(uri);

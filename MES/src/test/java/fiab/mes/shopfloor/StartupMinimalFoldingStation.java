@@ -2,6 +2,8 @@ package fiab.mes.shopfloor;
 
 import fiab.machine.foldingstation.opcua.StartupUtil;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class StartupMinimalFoldingStation {
@@ -21,14 +23,22 @@ public class StartupMinimalFoldingStation {
         fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(1, "OutputStation");
         // TT1 itself 1
         fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "FoldingTurntable1");
-        try {
-            TimeUnit.SECONDS.sleep(10);
-            //Thread.sleep(5000);
-            // TT2 itself - ensure this starts later than the others or has no prior wiring configured
-            fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "FoldingTurntable2");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
+        ScheduledExecutorService es = Executors.newScheduledThreadPool(1);
+        es.schedule(new Runnable(){
+            @Override
+            public void run() {
+                fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "FoldingTurntable2");
+            }
+        }, 20, TimeUnit.SECONDS);
+//        try {
+//            //TimeUnit.SECONDS.sleep(10);
+//            Thread.sleep(5000);
+//            // TT2 itself - ensure this starts later than the others or has no prior wiring configured
+//            fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "FoldingTurntable2");
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
 
 

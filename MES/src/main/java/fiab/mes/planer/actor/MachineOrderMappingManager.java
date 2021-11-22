@@ -196,7 +196,7 @@ public class MachineOrderMappingManager {
 
     public void updateOrderLocation(String orderId, AkkaActorBackedCoreModelAbstractActor newLocation) {
         moms.values().stream()
-                .filter(m -> m.getOrderId() != null && m.getOrderId().contentEquals(orderId))
+                .filter(m -> m.getOrderId() != null && m.getOrderId().equals(orderId))
                 .findFirst()
                 .ifPresent(m -> {
                     //m.setOrderId(null);
