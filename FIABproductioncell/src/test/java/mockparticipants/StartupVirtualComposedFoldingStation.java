@@ -2,6 +2,10 @@ package mockparticipants;
 
 import fiab.machine.foldingstation.opcua.StartupUtil;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 public class StartupVirtualComposedFoldingStation {
 
     public static void main(String[] args) {
@@ -11,15 +15,19 @@ public class StartupVirtualComposedFoldingStation {
     public static void startupSingleTurntableInputOutputDualFolding() {
         // TT1 West
         fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation");
-        // TT1 North, TT2 North
+        // TT1 North
         StartupUtil.startup(5, "VirtualFolding1");
-        // TT1 South, TT2 South
+        // TT1 South
         StartupUtil.startup(7, "VirtualFolding2");
         // TT2 EAST
-        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(10, "OutputStation");
+        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(10, "BufferStation");
         // TT1 itself - ensure this starts later than the others or has no prior wiring configured
-        fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1");
-        // TT2
-        fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "Turntable2");
+        ScheduledExecutorService es = Executors.newScheduledThreadPool(1);
+        es.schedule(new Runnable(){
+            @Override
+            public void run() {
+                fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1");
+            }
+        }, 3, TimeUnit.SECONDS);
     }
 }

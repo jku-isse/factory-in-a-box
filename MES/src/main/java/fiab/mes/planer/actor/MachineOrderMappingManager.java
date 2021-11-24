@@ -273,9 +273,7 @@ public class MachineOrderMappingManager {
             mom.setProductionJob(productionJob);
             logger.info(String.format("Updating OrderMapping for order %s on machine %s from %s to %s", mom.getOrderId(), machine.getId(), old, newType));
         }
-        ;
     }
-
 
     public void reserveOrderAtMachine(AkkaActorBackedCoreModelAbstractActor machine) {
         updateMachineMappingStatus(machine, AssignmentState.RESERVED);

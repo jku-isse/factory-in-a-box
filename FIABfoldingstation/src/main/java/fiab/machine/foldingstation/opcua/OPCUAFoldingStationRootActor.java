@@ -37,7 +37,7 @@ import java.util.Optional;
 public class OPCUAFoldingStationRootActor extends AbstractActor {
     private String machineName = "FoldingStation";
     static final String NAMESPACE_URI = "urn:factory-in-a-box";
-    private UaVariableNode status = null;
+    private UaVariableNode status;
     private UaVariableNode capability = null;
     private ActorRef foldingCoordinator;
     private int portOffset;

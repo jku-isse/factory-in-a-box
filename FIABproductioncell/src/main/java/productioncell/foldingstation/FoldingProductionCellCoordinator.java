@@ -6,6 +6,7 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.mes.machine.msg.OrderRelocationNotification;
 import fiab.mes.planer.actor.MachineCapabilityManager;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
 import org.slf4j.Logger;
@@ -112,6 +113,9 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
                 })
                 .match(RegisterTransportRequestStatusResponse.class, resp -> {
                     handleResponseToTransportRequest(resp);
+                })
+                .match(OrderRelocationNotification.class, notification ->{
+                    this.ordMapper.updateOrderLocation(notification.getOrderId(), notification.getTargetActor());
                 })
                 .match(TransportSystemStatusMessage.class, msg -> {
                     this.tsysState = msg.getState();
@@ -269,9 +273,6 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
             }
         });
     }
-
-
-
 
     private void handleMachineUpdateEvent(MachineStatusUpdateEvent mue) {
         log.info(String.format("MachineUpdateEvent for machine %s : %s", mue.getMachineId(), mue.getStatus().toString()));

@@ -49,7 +49,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TestProductionCellDiscovery {
+public class TestProductionCell {
 
     public static String ROOT_SYSTEM = "routes";
     protected static ActorSystem system;
@@ -58,7 +58,7 @@ public class TestProductionCellDiscovery {
     protected static ActorRef transportCoord;
     protected static ActorRef machineEventBus;
 
-    private static final Logger logger = LoggerFactory.getLogger(TestProductionCellDiscovery.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestProductionCell.class);
     static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 
     @BeforeAll
@@ -134,7 +134,7 @@ public class TestProductionCellDiscovery {
         };
     }
 
-    //@Test
+    @Test
     void testProductionCellTransportToOneFoldingStation() throws Exception {
         new TestKit(system) {
             {
@@ -171,8 +171,9 @@ public class TestProductionCellDiscovery {
                 boolean isPlannerFunctional = false;
                 boolean isTransportFunctional = false;
                 boolean foldingComplete = false;
+                boolean isProcessAssigned = false;
                 while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || !foldingComplete) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofMinutes(10), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -208,12 +209,15 @@ public class TestProductionCellDiscovery {
                             );
                         }
                     }
-                    if (te instanceof ReadyForProcessEvent){
+                    if (te instanceof ReadyForProcessEvent) {
                         //assert((ReadyForProcessEvent) te).isReady();
                         // We don't know the machine Id here so we just tell every folding station
-                        knownActors.values().stream()
-                                .filter(m -> m.getId().toLowerCase(Locale.ROOT).contains("Folding".toLowerCase(Locale.ROOT)))
-                                .forEach(actor -> actor.getAkkaActor().tell(new LockForOrder(step.getID(), "Test"), getRef()));
+                        if (!isProcessAssigned) {
+                            knownActors.values().stream()
+                                    .filter(m -> m.getId().toLowerCase(Locale.ROOT).contains("Folding".toLowerCase(Locale.ROOT)))
+                                    .forEach(actor -> actor.getAkkaActor().tell(new LockForOrder(step.getID(), "Test"), getRef()));
+                            isProcessAssigned = true;
+                        }
                     }
                 }
                 assertTrue(foldingComplete);
@@ -235,7 +239,7 @@ public class TestProductionCellDiscovery {
     public Set<String> getTestLayout(){
         Set<String> urlsToBrowse = new HashSet<String>();
         urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station (West of TT)
-        urlsToBrowse.add("opc.tcp://localhost:4842"); // TT1 Pos20
+        urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 Pos20
         urlsToBrowse.add("opc.tcp://localhost:4845/milo"); // Pos31 FoldingStation1 (North of TT)
         urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Pos37 FoldingStation2 (South of TT)
         urlsToBrowse.add("opc.tcp://localhost:4850/milo"); // Pos23 OutputStation (East of TT)

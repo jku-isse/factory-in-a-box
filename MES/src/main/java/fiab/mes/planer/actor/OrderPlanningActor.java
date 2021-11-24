@@ -177,7 +177,7 @@ public class OrderPlanningActor extends AbstractActor {
 //	}
 
     // first time activation of the process
-    private void scheduleProcess(String rootOrderId, OrderProcess mop) {
+    protected void scheduleProcess(String rootOrderId, OrderProcess mop) {
         if (!mop.doAllLeafNodeStepsHaveInvokedCapability(mop.getProcess())) {
             String msg = String.format("OrderProcess %s does not have all leaf nodes with capability invocations, thus cannot be completely mapped to machines, cancelling order", rootOrderId);
             log.warning(msg);
@@ -479,7 +479,7 @@ public class OrderPlanningActor extends AbstractActor {
         });
     }
 
-    private void handleMachineUpdateEvent(MachineStatusUpdateEvent mue) {
+    protected void handleMachineUpdateEvent(MachineStatusUpdateEvent mue) {
         log.info(String.format("MachineUpdateEvent for machine %s : %s", mue.getMachineId(), mue.getStatus().toString()));
         capMan.resolveById(mue.getMachineId()).ifPresent(machine -> {
             //MachineStatus prevState = ordMapper.getMachineStatus(machine);
@@ -586,7 +586,7 @@ public class OrderPlanningActor extends AbstractActor {
         // if this is called a second time (after stopping) then also in stopped, nothing will happen as the ordMapper has set the machine to Unknown, or None
     }
 
-    private void handleNoLongerAvailableMachine(MachineDisconnectedEvent mde) {
+    protected void handleNoLongerAvailableMachine(MachineDisconnectedEvent mde) {
         // handling similar to stopping machine
         handleStoppingOrStoppedMachine(mde.getMachine());
         // now we can remove the machine
@@ -596,7 +596,7 @@ public class OrderPlanningActor extends AbstractActor {
         checkPlannerState();
     }
 
-    private void handleNewlyAvailableMachine(MachineConnectedEvent mce) {
+    protected void handleNewlyAvailableMachine(MachineConnectedEvent mce) {
         capMan.setCapabilities(mce);
         log.info("Storing Capabilities for machine: " + mce.getMachineId());
         //check for input/output stations

@@ -30,7 +30,7 @@ public class StartupMinimalFoldingStation {
             public void run() {
                 fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "FoldingTurntable2");
             }
-        }, 20, TimeUnit.SECONDS);
+        }, 10, TimeUnit.SECONDS);
 //        try {
 //            //TimeUnit.SECONDS.sleep(10);
 //            Thread.sleep(5000);

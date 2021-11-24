@@ -1,0 +1,9 @@
+{
+  "NORTH_CLIENT": {
+    "localCapabilityId": "SOUTH_CLIENT",
+    "remoteCapabilityId": "DefaultHandshakeServerSide",
+    "remoteEndpointURL": "opc.tcp://localhost:4850/milo",
+    "remoteNodeId": "ns=2;s=BufferStation/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+    "remoteRole": "RemoteRole1"
+  }
+}
