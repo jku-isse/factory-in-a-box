@@ -37,7 +37,7 @@ import fiab.mes.mockactors.transport.CoreModelActorProvider;
 import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
-import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.actor.TransportModuleCoordinatorActor;
@@ -288,7 +288,7 @@ public class DefaultLayout {
 		MockTransportModuleWrapperDelegate hal = new MockTransportModuleWrapperDelegate(ttWrapper);
 		Position selfPos = new Position(ipid+"");
 		HardcodedDefaultTransportRoutingAndMapping env = new HardcodedDefaultTransportRoutingAndMapping();								
-		return system.actorOf(BasicTransportModuleActor.props(eventBusByRef, cap, modelActor, hal, selfPos, intraEventBus, new TransportPositionLookup(), env), "MESlevelTTActor"+ipid);
+		return system.actorOf(BasicTransportModuleActor.props(eventBusByRef, cap, modelActor, hal, selfPos, intraEventBus, new DefaultTransportPositionLookup(), env), "MESlevelTTActor"+ipid);
 	}
 	
 	// Returns machine-level ActorRef of the ServerSideHandshakeActor

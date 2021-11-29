@@ -27,7 +27,7 @@ import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
-import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.CapabilityImplInfo;
@@ -95,15 +95,15 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         Position selfPos = resolvePosition(info);
         TransportModuleOPCUAWrapper hal = new TransportModuleOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.transportMethod, getSelf());
         HardcodedDefaultTransportRoutingAndMapping env = new HardcodedDefaultTransportRoutingAndMapping();
-        machine = this.context().actorOf(BasicTransportModuleActor.props(eventBusByRef, capability, model, hal, selfPos, intraEventBus, new TransportPositionLookup(), env), model.getActorName()+selfPos.getPos());
+        machine = this.context().actorOf(BasicTransportModuleActor.props(eventBusByRef, capability, model, hal, selfPos, intraEventBus, new DefaultTransportPositionLookup(), env), model.getActorName()+selfPos.getPos());
         log.info("Spawned Actor: "+machine.path());
     }
 
     private Position resolvePosition(CapabilityImplInfo info) {
-        Position pos = TransportPositionLookup.parseLastIPPos(info.getEndpointUrl());
+        Position pos = DefaultTransportPositionLookup.parseLastIPPos(info.getEndpointUrl());
         if (pos == TransportRoutingInterface.UNKNOWN_POSITION || pos.getPos().equals("1")) {
             log.error("Unable to resolve position for uri via IP Addr, trying now via Port: "+info.getEndpointUrl());
-            pos = TransportPositionLookup.parsePosViaPortNr(info.getEndpointUrl());
+            pos = DefaultTransportPositionLookup.parsePosViaPortNr(info.getEndpointUrl());
             if (pos == TransportRoutingInterface.UNKNOWN_POSITION) {
                 log.error("Unable to resolve position for uri via port, assigning default position 20: "+info.getEndpointUrl());
                 pos = new Position("20");

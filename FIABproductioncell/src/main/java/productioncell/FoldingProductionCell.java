@@ -4,15 +4,10 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
-import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
-import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
-import fiab.opcua.CapabilityImplementationMetadata;
 import productioncell.foldingstation.FoldingProductionCellCoordinator;
-
-import java.util.*;
 
 public class FoldingProductionCell {
 
@@ -27,7 +22,7 @@ public class FoldingProductionCell {
         }
         system = ActorSystem.create(production_cell_name);
         HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-        TransportPositionLookup dns = new TransportPositionLookup();
+        DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
         ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         ActorRef transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
         ActorRef foldingCellCoord = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);

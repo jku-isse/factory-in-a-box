@@ -1,25 +1,16 @@
 package fiab.mes.machine.actor.plotter.wrapper;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.milo.opcua.sdk.client.SessionActivityListener;
-import org.eclipse.milo.opcua.sdk.client.api.ServiceFaultListener;
-import org.eclipse.milo.opcua.sdk.client.api.UaSession;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
-import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
-import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscriptionManager.SubscriptionListener;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
 import org.eclipse.milo.opcua.stack.core.NamespaceTable;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
-import org.eclipse.milo.opcua.stack.core.types.structured.ServiceFault;
 
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
@@ -35,12 +26,11 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.machine.plotter.IntraMachineEventBus;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
-import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.CapabilityImplInfo;
@@ -130,10 +120,10 @@ public class LocalPlotterActorSpawner extends AbstractActor {
     }
 
     private Position resolvePosition(CapabilityImplInfo info) {
-        Position pos = TransportPositionLookup.parseLastIPPos(info.getEndpointUrl());
+        Position pos = DefaultTransportPositionLookup.parseLastIPPos(info.getEndpointUrl());
         if (pos == TransportRoutingInterface.UNKNOWN_POSITION || pos.getPos().equals("1")) {
             log.error("Unable to resolve position for uri via IP Addr, trying now via Port: " + info.getEndpointUrl());
-            pos = TransportPositionLookup.parsePosViaPortNr(info.getEndpointUrl());
+            pos = DefaultTransportPositionLookup.parsePosViaPortNr(info.getEndpointUrl());
             if (pos == TransportRoutingInterface.UNKNOWN_POSITION) {
                 log.error("Unable to resolve position for uri via port, assigning default position 31: " + info.getEndpointUrl());
                 pos = new Position("31");

@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,26 +16,16 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ActorCoreModel.Actor;
-import ProcessCore.AbstractCapability;
 import ProcessCore.ProcessStep;
-import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.core.capabilities.transport.TransportModuleCapability;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-import fiab.handshake.actor.ClientHandshakeActor;
-import fiab.handshake.actor.LocalEndpointStatus;
-import fiab.handshake.actor.ServerSideHandshakeActor;
 import fiab.mes.ShopfloorConfigurations;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -45,10 +34,6 @@ import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
-import fiab.mes.machine.msg.GenericMachineRequests.Reset;
-import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
-import fiab.mes.mockactors.transport.CoreModelActorProvider;
-import fiab.mes.mockactors.transport.MockTransportModuleWrapperDelegate;
 import fiab.mes.mockactors.transport.opcua.TestTurntableWithIOStations;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
@@ -57,22 +42,12 @@ import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
-import fiab.mes.shopfloor.DefaultLayout;
-import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
-import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
-import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
-import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
-import fiab.mes.transport.msg.TransportModuleRequest;
-import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
-import fiab.turntable.actor.IntraMachineEventBus;
-import fiab.turntable.actor.TransportModuleCoordinatorActor;
-import fiab.turntable.conveying.BaseBehaviorConveyorActor;
-import fiab.turntable.turning.BaseBehaviorTurntableActor;
 
 class TestTransportSystemCoordinatorActorViaOPCUA {
 
@@ -93,7 +68,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 	protected static ActorRef coordActor;
 	protected static ProcessStep step;
 	HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-	TransportPositionLookup dns = new TransportPositionLookup();
+	DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
 
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 	

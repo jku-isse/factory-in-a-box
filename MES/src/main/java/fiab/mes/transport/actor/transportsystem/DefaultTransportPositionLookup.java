@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 
-public class TransportPositionLookup implements TransportPositionLookupInterface {
+public class DefaultTransportPositionLookup implements TransportPositionLookupInterface {
 
-	private static final Logger logger = LoggerFactory.getLogger(TransportPositionLookup.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultTransportPositionLookup.class);
 	
 	private HashMap<Position, AkkaActorBackedCoreModelAbstractActor> lookupTable = new HashMap<>();
 	

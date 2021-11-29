@@ -9,22 +9,16 @@ import akka.event.LoggingAdapter;
 import akka.pattern.Patterns;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.folding.WellknownFoldingCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
-import fiab.core.capabilities.wiring.WiringInfo;
-import fiab.handshake.fu.HandshakeFU;
-import fiab.handshake.fu.client.ClientSideHandshakeFU;
 import fiab.machine.foldingstation.IntraMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.foldingstation.FoldingStationActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
-import fiab.mes.transport.actor.transportsystem.TransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.opcua.CapabilityImplInfo;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
-import fiab.opcua.WiringExposingUtils;
-import fiab.opcua.wiring.WiringNodes;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.NamespaceTable;
@@ -36,8 +30,6 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.FiniteDuration;
 
 import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -212,10 +204,10 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
     }
 
     private TransportRoutingInterface.Position resolvePosition(CapabilityImplInfo info) {
-        TransportRoutingInterface.Position pos = TransportPositionLookup.parseLastIPPos(info.getEndpointUrl());
+        TransportRoutingInterface.Position pos = DefaultTransportPositionLookup.parseLastIPPos(info.getEndpointUrl());
         if (pos == TransportRoutingInterface.UNKNOWN_POSITION || pos.getPos().equals("1")) {
             log.error("Unable to resolve position for uri via IP Addr, trying now via Port: " + info.getEndpointUrl());
-            pos = TransportPositionLookup.parsePosViaPortNr(info.getEndpointUrl());
+            pos = DefaultTransportPositionLookup.parsePosViaPortNr(info.getEndpointUrl());
             if (pos == TransportRoutingInterface.UNKNOWN_POSITION) {
                 log.error("Unable to resolve position for uri via port, assigning default position 31: " + info.getEndpointUrl());
                 pos = new TransportRoutingInterface.Position("31");

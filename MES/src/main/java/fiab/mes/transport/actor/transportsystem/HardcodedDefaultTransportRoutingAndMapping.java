@@ -134,6 +134,7 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT, pos37);
 		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT, pos31);
 		tt20map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF, pos20);
+
 		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, pos35);
 		tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, pos20);
 		//tt21map.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_SERVER, pos22); // when no second TT available; ACTUALLY WESTSERVER should also be pos20
