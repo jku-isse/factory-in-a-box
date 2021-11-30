@@ -16,6 +16,7 @@ import fiab.mes.machine.actor.foldingstation.FoldingStationActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.opcua.CapabilityImplInfo;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
@@ -40,9 +41,18 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
     ActorRef machine;
     ActorRef discovery;
     ActorRef outputStation;
+    private final TransportPositionParser transportPositionParser;
 
-    public static Props props() {
-        return Props.create(LocalFoldingStationActorSpawner.class, () -> new LocalFoldingStationActorSpawner());
+    public static Props props(TransportPositionParser parser) {
+        return Props.create(LocalFoldingStationActorSpawner.class, () -> new LocalFoldingStationActorSpawner(parser));
+    }
+
+    public LocalFoldingStationActorSpawner(TransportPositionParser transportPositionParser) {
+        if(transportPositionParser == null){
+            this.transportPositionParser = new DefaultTransportPositionLookup();
+        }else{
+            this.transportPositionParser = transportPositionParser;
+        }
     }
 
     @Override
@@ -107,10 +117,12 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
     private Actor generateOutputActor(CapabilityImplInfo info, FoldingOPCUAnodes nodeIds) {
         String endpoint = resolveOutputStationEndpoint(info, nodeIds);
         if (endpoint != null) {
+
             Actor actor = ActorCoreModelFactory.eINSTANCE.createActor();
-            actor.setDisplayName("BufferStation");
-            actor.setActorName("BufferStation");
-            String id = "BufferStation";
+            String pos = transportPositionParser.parseLastIPPos(info.getEndpointUrl()).getPos();
+            String id = "TransitStation" + pos;
+            actor.setDisplayName(id);
+            actor.setActorName(id);
             String uri = endpoint.endsWith("/") ? endpoint + id : endpoint + "/" + id;
             actor.setUri(uri);
             actor.setID(uri);
@@ -135,7 +147,7 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
         TransportRoutingInterface.Position selfPos = resolvePosition(info);
         final ActorSelection eventBusByRef = context().actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         FoldingOPCUAWrapper hal = new FoldingOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.foldMethod, getSelf());
-        machine = this.context().actorOf(FoldingStationActor.props(eventBusByRef, capability, model, outputModel, hal, intraEventBus), outputModel.getActorName() + selfPos.getPos());
+        machine = this.context().actorOf(FoldingStationActor.props(eventBusByRef, capability, model, outputModel, hal, intraEventBus), model.getActorName() + selfPos.getPos());
         log.info("Spawned Actor: " + machine.path());
     }
 
@@ -204,10 +216,10 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
     }
 
     private TransportRoutingInterface.Position resolvePosition(CapabilityImplInfo info) {
-        TransportRoutingInterface.Position pos = DefaultTransportPositionLookup.parseLastIPPos(info.getEndpointUrl());
+        TransportRoutingInterface.Position pos = transportPositionParser.parseLastIPPos(info.getEndpointUrl());
         if (pos == TransportRoutingInterface.UNKNOWN_POSITION || pos.getPos().equals("1")) {
             log.error("Unable to resolve position for uri via IP Addr, trying now via Port: " + info.getEndpointUrl());
-            pos = DefaultTransportPositionLookup.parsePosViaPortNr(info.getEndpointUrl());
+            pos = transportPositionParser.parsePosViaPortNr(info.getEndpointUrl());
             if (pos == TransportRoutingInterface.UNKNOWN_POSITION) {
                 log.error("Unable to resolve position for uri via port, assigning default position 31: " + info.getEndpointUrl());
                 pos = new TransportRoutingInterface.Position("31");

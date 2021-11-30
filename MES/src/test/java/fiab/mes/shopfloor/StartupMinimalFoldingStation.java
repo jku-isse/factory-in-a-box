@@ -18,7 +18,7 @@ public class StartupMinimalFoldingStation {
         // TT1 North
         StartupUtil.startup(5, "VirtualFolding1");
         // TT1 South
-        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "BufferStation");
+        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "TransitStation");
         // OutputStation East TT2
         fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(1, "OutputStation");
         // TT1 itself 1

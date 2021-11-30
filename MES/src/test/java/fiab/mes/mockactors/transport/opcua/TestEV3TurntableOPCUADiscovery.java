@@ -19,6 +19,7 @@ import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.opcua.CapabilityImplementationMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,7 @@ public class TestEV3TurntableOPCUADiscovery {
                 capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
                     @Override
                     public ActorRef createActorSpawner(ActorContext context) {
-                        return context.actorOf(LocalTransportModuleActorSpawner.props());
+                        return context.actorOf(LocalTransportModuleActorSpawner.props(new DefaultTransportPositionLookup()));
                     }
                 });
                 ActorRef discovAct = system.actorOf(CapabilityDiscoveryActor.props());

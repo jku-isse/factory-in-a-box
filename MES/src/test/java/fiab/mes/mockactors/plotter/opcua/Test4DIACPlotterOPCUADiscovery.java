@@ -17,6 +17,7 @@ import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.opcua.CapabilityImplementationMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +55,7 @@ public class Test4DIACPlotterOPCUADiscovery {
                 String endpointURL = "opc.tcp://192.168.0.31:4840";
 
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-                ShopfloorConfigurations.addColorPlotterStationSpawner(capURI2Spawning);
+                ShopfloorConfigurations.addColorPlotterStationSpawner(capURI2Spawning, new DefaultTransportPositionLookup());
 //				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
 //					@Override
 //					public ActorRef createActorSpawner(ActorContext context) {

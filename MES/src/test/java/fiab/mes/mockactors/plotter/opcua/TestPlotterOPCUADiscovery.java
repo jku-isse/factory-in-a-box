@@ -5,6 +5,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -80,7 +81,7 @@ class TestPlotterOPCUADiscovery {
 				
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				ShopfloorConfigurations.addColorPlotterStationSpawner(capURI2Spawning);			
+				ShopfloorConfigurations.addColorPlotterStationSpawner(capURI2Spawning, new DefaultTransportPositionLookup());
 //				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 //					@Override
 //					public ActorRef createActorSpawner(ActorContext context) {
@@ -128,7 +129,7 @@ class TestPlotterOPCUADiscovery {
 				
 				
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-				ShopfloorConfigurations.addColorPlotterStationSpawner(capURI2Spawning);			
+				ShopfloorConfigurations.addColorPlotterStationSpawner(capURI2Spawning, new DefaultTransportPositionLookup());
 //				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownPlotterCapability.PLOTTING_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 //					@Override
 //					public ActorRef createActorSpawner(ActorContext context) {

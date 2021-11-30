@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 
 //import org.eclipse.milo.opcua.sdk.client.api.AddressSpace;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
+import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
 import org.eclipse.milo.opcua.stack.core.NamespaceTable;
 import org.eclipse.milo.opcua.stack.core.UaException;
@@ -43,9 +44,18 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
 
     ActorRef machine;
     ActorRef discovery;
+    private final TransportPositionParser transportPositionParser;
 
-    public static Props props() {
-        return Props.create(LocalTransportModuleActorSpawner.class, () -> new LocalTransportModuleActorSpawner());
+    public static Props props(TransportPositionParser transportPositionParser) {
+        return Props.create(LocalTransportModuleActorSpawner.class, () -> new LocalTransportModuleActorSpawner(transportPositionParser));
+    }
+
+    public LocalTransportModuleActorSpawner(TransportPositionParser transportPositionParser) {
+        if(transportPositionParser == null) {
+            this.transportPositionParser = new DefaultTransportPositionLookup();
+        }else{
+            this.transportPositionParser = transportPositionParser;
+        }
     }
 
     @Override
@@ -100,10 +110,10 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
     }
 
     private Position resolvePosition(CapabilityImplInfo info) {
-        Position pos = DefaultTransportPositionLookup.parseLastIPPos(info.getEndpointUrl());
+        Position pos = transportPositionParser.parseLastIPPos(info.getEndpointUrl());
         if (pos == TransportRoutingInterface.UNKNOWN_POSITION || pos.getPos().equals("1")) {
             log.error("Unable to resolve position for uri via IP Addr, trying now via Port: "+info.getEndpointUrl());
-            pos = DefaultTransportPositionLookup.parsePosViaPortNr(info.getEndpointUrl());
+            pos = transportPositionParser.parsePosViaPortNr(info.getEndpointUrl());
             if (pos == TransportRoutingInterface.UNKNOWN_POSITION) {
                 log.error("Unable to resolve position for uri via port, assigning default position 20: "+info.getEndpointUrl());
                 pos = new Position("20");

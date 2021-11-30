@@ -5,6 +5,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -85,7 +86,7 @@ class TestIOStationOPCUADiscovery {
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
+						return context.actorOf(LocalIOStationActorSpawner.props(new DefaultTransportPositionLookup()));
 					}
 				});
 				ActorRef discovAct = system.actorOf(CapabilityDiscoveryActor.props());
@@ -118,18 +119,18 @@ class TestIOStationOPCUADiscovery {
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);				
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				// setup discoveryactor
-				
+				DefaultTransportPositionLookup lookup = new DefaultTransportPositionLookup();
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
+						return context.actorOf(LocalIOStationActorSpawner.props(lookup));
 					}
 				});
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
+						return context.actorOf(LocalIOStationActorSpawner.props(lookup));
 					}
 				});
 				ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
@@ -169,18 +170,19 @@ class TestIOStationOPCUADiscovery {
 				// setup discoveryactor
 				String endpointURL = "opc.tcp://localhost:4840/milo";
 				String endpointURL2 = "opc.tcp://localhost:4841/milo";
-				
+
+				DefaultTransportPositionLookup lookup = new DefaultTransportPositionLookup();
 				Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
+						return context.actorOf(LocalIOStationActorSpawner.props(lookup));
 					}
 				});
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
+						return context.actorOf(LocalIOStationActorSpawner.props(lookup));
 					}
 				});
 				ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());

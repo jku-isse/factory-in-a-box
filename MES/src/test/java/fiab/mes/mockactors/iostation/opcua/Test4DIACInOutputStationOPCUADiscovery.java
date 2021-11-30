@@ -5,6 +5,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -65,7 +66,7 @@ class Test4DIACInOutputStationOPCUADiscovery {
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
+						return context.actorOf(LocalIOStationActorSpawner.props(new DefaultTransportPositionLookup()));
 					}
 				});
 				ActorRef discovAct = system.actorOf(CapabilityDiscoveryActor.props());
@@ -105,7 +106,7 @@ class Test4DIACInOutputStationOPCUADiscovery {
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalIOStationActorSpawner.props());
+						return context.actorOf(LocalIOStationActorSpawner.props(new DefaultTransportPositionLookup()));
 					}
 				});
 				ActorRef discovAct = system.actorOf(CapabilityDiscoveryActor.props());

@@ -5,6 +5,9 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
+import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import org.eclipse.milo.opcua.sdk.client.api.ServiceFaultListener;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
@@ -47,9 +50,18 @@ public class LocalIOStationActorSpawner extends AbstractActor {
 
     ActorRef machine;
     ActorRef discovery;
+    private final TransportPositionParser transportPositionParser;
 
-    public static Props props() {
-        return Props.create(LocalIOStationActorSpawner.class, () -> new LocalIOStationActorSpawner());
+    public static Props props(TransportPositionParser transportPositionParser) {
+        return Props.create(LocalIOStationActorSpawner.class, () -> new LocalIOStationActorSpawner(transportPositionParser));
+    }
+
+    public LocalIOStationActorSpawner(TransportPositionParser transportPositionParser) {
+        if (transportPositionParser == null) {
+            this.transportPositionParser = new DefaultTransportPositionLookup();
+        } else {
+            this.transportPositionParser = transportPositionParser;
+        }
     }
 
     @Override
@@ -101,9 +113,10 @@ public class LocalIOStationActorSpawner extends AbstractActor {
     private void spawnNewIOStationActor(CapabilityImplInfo info, boolean isInputStation, Actor model, NodeId stopMethod, NodeId resetMethod, NodeId stateVar) {
         final ActorSelection eventBusByRef = context().actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         AbstractCapability capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
+        TransportRoutingInterface.Position selfPos = resolvePosition(info);
         InterMachineEventBus intraEventBus = new InterMachineEventBus();
         IOStationOPCUAWrapper wrapper = new IOStationOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), stopMethod, resetMethod, stateVar, getSelf());
-        machine = this.context().actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName());
+        machine = this.context().actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName() + selfPos.getPos());
 
     }
 
@@ -140,6 +153,19 @@ public class LocalIOStationActorSpawner extends AbstractActor {
             }
         }
         return nodeIds;
+    }
+
+    private TransportRoutingInterface.Position resolvePosition(CapabilityImplInfo info) {
+        TransportRoutingInterface.Position pos = transportPositionParser.parseLastIPPos(info.getEndpointUrl());
+        if (pos == TransportRoutingInterface.UNKNOWN_POSITION || pos.getPos().equals("1")) {
+            log.error("Unable to resolve position for uri via IP Addr, trying now via Port: " + info.getEndpointUrl());
+            pos = transportPositionParser.parsePosViaPortNr(info.getEndpointUrl());
+            if (pos == TransportRoutingInterface.UNKNOWN_POSITION) {
+                log.error("Unable to resolve position for uri via port, assigning default position 31: " + info.getEndpointUrl());
+                pos = new TransportRoutingInterface.Position("31");
+            }
+        }
+        return pos;
     }
 
     public static class IOStationOPCUAnodes {

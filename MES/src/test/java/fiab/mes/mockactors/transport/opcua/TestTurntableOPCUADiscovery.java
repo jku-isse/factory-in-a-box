@@ -5,6 +5,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -88,7 +89,7 @@ class TestTurntableOPCUADiscovery {
 				capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {					
 					@Override
 					public ActorRef createActorSpawner(ActorContext context) {
-						return context.actorOf(LocalTransportModuleActorSpawner.props());
+						return context.actorOf(LocalTransportModuleActorSpawner.props(new DefaultTransportPositionLookup()));
 					}
 				});
 				ActorRef discovAct = system.actorOf(CapabilityDiscoveryActor.props());

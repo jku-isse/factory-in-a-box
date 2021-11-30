@@ -1,4 +1,4 @@
-package fiab.mes.shopfloor.opcua;
+package fiab.mes.frontend;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -8,23 +8,22 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.ShopfloorStartup;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.frontend.OrderEmittingTestServerWithOPCUA;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests;
+import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
-import fiab.mes.order.OrderProcess;
 import fiab.mes.order.actor.OrderEntryActor;
-import fiab.mes.order.ecore.ProduceFoldingProcess;
-import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.msg.PlanerStatusMessage;
+import fiab.mes.transport.actor.transportsystem.FoldingTransportPositionLookup;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata;
 import org.junit.jupiter.api.AfterAll;
@@ -37,12 +36,11 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TestFoldingShopfloorDiscovery {
+public class TestComposedFoldingStation {
 
     private static ActorSystem system;
     private static String ROOT_SYSTEM = "routes";
@@ -59,7 +57,7 @@ public class TestFoldingShopfloorDiscovery {
     static void setUpBeforeClass() throws Exception {
         system = ActorSystem.create(ROOT_SYSTEM);
 
-        binding = ShopfloorStartup.startup(null, 2, system);
+        binding = ShopfloorStartup.startup(null, 3, system);
         orderEventBus = system.actorSelection("/user/" + OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         machineEventBus = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         orderEntryActor = system.actorSelection("/user/" + OrderEntryActor.WELLKNOWN_LOOKUP_NAME);//.resolveOne(Timeout.create(Duration.ofSeconds(3)))..;
@@ -82,7 +80,7 @@ public class TestFoldingShopfloorDiscovery {
     }
 
     @Test
-    void testShopfloorParticipantDiscovery() {
+    void testShopfloorParticipantDiscoveryAndReset() {
         new TestKit(system) {
             {
                 System.out.println("test frontend responses by emitting orders with sequential process");
@@ -92,8 +90,8 @@ public class TestFoldingShopfloorDiscovery {
 
                 Set<String> urlsToBrowse = getLocalhostLayout();
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
-                ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-
+                //ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+                ShopfloorConfigurations.addSpawners(capURI2Spawning, new FoldingTransportPositionLookup());
                 urlsToBrowse.forEach(url -> {
                     ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
                     try {
@@ -108,7 +106,8 @@ public class TestFoldingShopfloorDiscovery {
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 boolean isTransportFunctional = false;
-                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional) {
+                int idleEvents = 0;
+                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || idleEvents < urlsToBrowse.size()) {
                     TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
@@ -121,33 +120,29 @@ public class TestFoldingShopfloorDiscovery {
                         countConnEvents++;
                         knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
                     }
-
-                    /*if (te instanceof MachineStatusUpdateEvent) {
+                    if (te instanceof IOStationStatusUpdateEvent){
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.STOPPED))
+                            Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))
+                                    .ifPresent(actor -> actor.getAkkaActor()
+                                            .tell(new GenericMachineRequests.Reset(((IOStationStatusUpdateEvent) te).getMachineId()), getRef())
+                                    );
+                        if(((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_EMPTY) ||
+                                ((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_LOADED)){
+                            idleEvents++;
+                        }
+                    }
+                    if (te instanceof MachineStatusUpdateEvent) {
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED))
                             Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
                                     .ifPresent(actor -> actor.getAkkaActor()
                                             .tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
                                     );
-                    }*/
+                        if(((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.IDLE)){
+                            idleEvents++;
+                        }
+                    }
                 }
                 assertEquals(urlsToBrowse.size(), knownActors.size());
-
-                /*CountDownLatch count = new CountDownLatch(1);
-                while (count.getCount() > 0) {
-                    String oid = "P" + String.valueOf(count.getCount() + "-");
-                    OrderProcess op1 = new OrderProcess(ProduceFoldingProcess.getSequentialBoxProcess(oid));
-                    RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, getRef());
-                    orderEntryActor.tell(req, getRef());
-
-                    count.countDown();
-                    Thread.sleep(3000);
-                }
-                System.out.println("Finished with emitting orders. Press ENTER to end test!");
-                int i = -1;
-                while(i < 0){
-                    i = System.in.read();
-                }
-                System.out.println("Test completed by keyboard input " + i);*/
             }
         };
 
@@ -155,20 +150,20 @@ public class TestFoldingShopfloorDiscovery {
 
     public Set<String> getLocalhostLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();
-        urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Input
-        urlsToBrowse.add("opc.tcp://localhost:4841/milo"); //Plot
-        urlsToBrowse.add("opc.tcp://localhost:4842/milo"); //Output
-        urlsToBrowse.add("opc.tcp://localhost:4843/milo"); //TT1
-        urlsToBrowse.add("opc.tcp://localhost:4844/milo"); //TT2
-        urlsToBrowse.add("opc.tcp://localhost:4845/milo"); //Plot
-        urlsToBrowse.add("opc.tcp://localhost:4846/milo"); //Plot
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4840/milo"); //Input
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4841/milo"); //Plot
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4842/milo"); //Output
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4843/milo"); //TT1
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4844/milo"); //TT2
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4845/milo"); //Plot
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4846/milo"); //Plot
 
-        urlsToBrowse.add("opc.tcp://localhost:4849/milo"); //Fold
-        urlsToBrowse.add("opc.tcp://localhost:4850/milo"); //Fold
-        urlsToBrowse.add("opc.tcp://localhost:4851/milo"); //Fold
-        urlsToBrowse.add("opc.tcp://localhost:4852/milo"); //Transit
-        urlsToBrowse.add("opc.tcp://localhost:4853/milo"); //TT3
-        urlsToBrowse.add("opc.tcp://localhost:4854/milo"); //Output
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4849/milo"); //Fold
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4850/milo"); //Fold
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4851/milo"); //Fold
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4852/milo"); //Transit
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4853/milo"); //TT3
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4854/milo"); //Output
         return urlsToBrowse;
     }
 

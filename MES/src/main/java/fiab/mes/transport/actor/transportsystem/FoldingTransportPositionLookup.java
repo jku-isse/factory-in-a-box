@@ -11,7 +11,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Optional;
 
-public class FoldingTransportPositionLookup implements TransportPositionLookupInterface {
+public class FoldingTransportPositionLookup implements TransportPositionLookupInterface, TransportPositionParser {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultTransportPositionLookup.class);
 
@@ -30,7 +30,8 @@ public class FoldingTransportPositionLookup implements TransportPositionLookupIn
         return Optional.ofNullable(lookupTable.get(pos));
     }
 
-    public static TransportRoutingInterface.Position parseLastIPPos(String uriAsString) {
+    @Override
+    public TransportRoutingInterface.Position parseLastIPPos(String uriAsString) {
         String host = "UNKNOWN";
         try {
             URI uri = new URI(uriAsString);
@@ -56,7 +57,8 @@ public class FoldingTransportPositionLookup implements TransportPositionLookupIn
     }
 
     // USE THIS FOR TESTS ONLY
-    public static TransportRoutingInterface.Position parsePosViaPortNr(String uriAsString) {
+    @Override
+    public TransportRoutingInterface.Position parsePosViaPortNr(String uriAsString) {
         try {
             URI uri = new URI(uriAsString);
             // this uses ports used for testing mock hardware on localhost, do not use in production

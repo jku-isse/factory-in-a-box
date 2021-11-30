@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 
-public class DefaultTransportPositionLookup implements TransportPositionLookupInterface {
+public class DefaultTransportPositionLookup implements TransportPositionLookupInterface, TransportPositionParser {
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultTransportPositionLookup.class);
 	
@@ -33,7 +33,8 @@ public class DefaultTransportPositionLookup implements TransportPositionLookupIn
 		return Optional.ofNullable(lookupTable.get(pos));
 	}
 	
-	public static Position parseLastIPPos(String uriAsString) {
+	@Override
+	public Position parseLastIPPos(String uriAsString) {
 		String host = "UNKNOWN";
 		try {
 			URI uri = new URI(uriAsString);
@@ -63,7 +64,8 @@ public class DefaultTransportPositionLookup implements TransportPositionLookupIn
 	}
 	
 	// USE THIS FOR TESTS ONLY
-	public static Position parsePosViaPortNr(String uriAsString) {
+	@Override
+	public Position parsePosViaPortNr(String uriAsString) {
 		try {
 			URI uri = new URI(uriAsString);
 			// this uses ports used for testing mock hardware on localhost, do not use in production		

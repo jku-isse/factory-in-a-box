@@ -25,6 +25,8 @@ import fiab.mes.machine.actor.plotter.wrapper.LocalPlotterActorSpawner;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
+import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
@@ -127,27 +129,36 @@ public class ShopfloorConfigurations {
     }
 
     public static void addDefaultSpawners(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
-        addInputStationSpawner(capURI2Spawning);
-        addOutputStationSpawner(capURI2Spawning);
-        addTurntableSpawner(capURI2Spawning);
-        addColorPlotterStationSpawner(capURI2Spawning);
-        addFoldingStationSpawner(capURI2Spawning);
+        final DefaultTransportPositionLookup transportPositionLookup = new DefaultTransportPositionLookup();
+        addInputStationSpawner(capURI2Spawning, transportPositionLookup);
+        addOutputStationSpawner(capURI2Spawning, transportPositionLookup);
+        addTurntableSpawner(capURI2Spawning, transportPositionLookup);
+        addColorPlotterStationSpawner(capURI2Spawning, transportPositionLookup);
+        addFoldingStationSpawner(capURI2Spawning, transportPositionLookup);
     }
 
-    public static void addInputStationSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
+    public static void addSpawners(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, TransportPositionParser transportPositionParser){
+        addInputStationSpawner(capURI2Spawning, transportPositionParser);
+        addOutputStationSpawner(capURI2Spawning, transportPositionParser);
+        addTurntableSpawner(capURI2Spawning, transportPositionParser);
+        addColorPlotterStationSpawner(capURI2Spawning, transportPositionParser);
+        addFoldingStationSpawner(capURI2Spawning, transportPositionParser);
+    }
+
+    public static void addInputStationSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, TransportPositionParser transportPositionParser) {
         capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
             @Override
             public ActorRef createActorSpawner(ActorContext context) {
-                return context.actorOf(LocalIOStationActorSpawner.props());
+                return context.actorOf(LocalIOStationActorSpawner.props(transportPositionParser));
             }
         });
     }
 
-    public static void addOutputStationSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
+    public static void addOutputStationSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, TransportPositionParser transportPositionParser) {
         capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
             @Override
             public ActorRef createActorSpawner(ActorContext context) {
-                return context.actorOf(LocalIOStationActorSpawner.props());
+                return context.actorOf(LocalIOStationActorSpawner.props(transportPositionParser));
             }
         });
     }
@@ -161,11 +172,11 @@ public class ShopfloorConfigurations {
 //		});
 //	}
 
-    public static void addColorPlotterStationSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
+    public static void addColorPlotterStationSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, TransportPositionParser transportPositionParser) {
         CapabilityCentricActorSpawnerInterface allColorSpawner = new CapabilityCentricActorSpawnerInterface() {
             @Override
             public ActorRef createActorSpawner(ActorContext context) {
-                return context.actorOf(LocalPlotterActorSpawner.props());
+                return context.actorOf(LocalPlotterActorSpawner.props(transportPositionParser));
             }
         };
         for (SupportedColors color : SupportedColors.values()) {
@@ -173,20 +184,20 @@ public class ShopfloorConfigurations {
         }
     }
 
-    public static void addFoldingStationSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
+    public static void addFoldingStationSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, TransportPositionParser transportPositionParser) {
         capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(WellknownFoldingCapability.FOLDING_CAPABILITY_BASE_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
             @Override
             public ActorRef createActorSpawner(ActorContext context) {
-                return context.actorOf(LocalFoldingStationActorSpawner.props());
+                return context.actorOf(LocalFoldingStationActorSpawner.props(transportPositionParser));
             }
         });
     }
 
-    public static void addTurntableSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning) {
+    public static void addTurntableSpawner(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, TransportPositionParser transportPositionParser) {
         capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
             @Override
             public ActorRef createActorSpawner(ActorContext context) {
-                return context.actorOf(LocalTransportModuleActorSpawner.props());
+                return context.actorOf(LocalTransportModuleActorSpawner.props(transportPositionParser));
             }
         });
     }
