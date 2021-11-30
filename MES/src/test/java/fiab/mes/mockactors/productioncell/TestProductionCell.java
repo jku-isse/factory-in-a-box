@@ -1,4 +1,4 @@
-package productioncell;
+package fiab.mes.mockactors.productioncell;
 
 import ProcessCore.CapabilityInvocation;
 import ProcessCore.ProcessCoreFactory;
@@ -27,18 +27,18 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.msg.PlanerStatusMessage;
-import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import productioncell.foldingstation.FoldingProductionCellCoordinator;
+import fiab.mes.productioncell.foldingstation.FoldingProductionCellCoordinator;
 
 import java.time.Duration;
 import java.util.*;
@@ -235,11 +235,12 @@ public class TestProductionCell {
 
     public Set<String> getTestLayout(){
         Set<String> urlsToBrowse = new HashSet<String>();
-        urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station (West of TT)
+        urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station (West of TT1)
         urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 Pos20
-        urlsToBrowse.add("opc.tcp://localhost:4845/milo"); // Pos31 FoldingStation1 (North of TT)
-        urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Pos37 FoldingStation2 (South of TT)
-        urlsToBrowse.add("opc.tcp://localhost:4850/milo"); // Pos23 OutputStation (East of TT)
+        urlsToBrowse.add("opc.tcp://localhost:4845/milo"); // Pos31 FoldingStation1 (North of TT1)
+        urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Pos37 TransitStation2 (South of TT1)
+        urlsToBrowse.add("opc.tcp://localhost:4841/milo"); // Pos23 OutputStation (East of TT2)
+        urlsToBrowse.add("opc.tcp://localhost:4843/milo"); // TT2 Pos21
         return urlsToBrowse;
     }
 

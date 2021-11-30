@@ -2,4 +2,3 @@
 */target
 *.gradle
 .idea
-./.idea/modules.xml

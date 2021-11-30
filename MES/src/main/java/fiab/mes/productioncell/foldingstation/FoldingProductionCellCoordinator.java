@@ -1,50 +1,38 @@
-package productioncell.foldingstation;
-
-import ProcessCore.ProcessCoreFactory;
-import akka.actor.*;
-import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.folding.WellknownFoldingCapability;
-import fiab.core.capabilities.transport.TransportModuleCapability;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-import fiab.mes.machine.msg.OrderRelocationNotification;
-import fiab.mes.planer.actor.MachineCapabilityManager;
-import fiab.mes.planer.actor.MachineOrderMappingManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.stream.Collectors;
+package fiab.mes.productioncell.foldingstation;
 
 import ProcessCore.AbstractCapability;
 import ProcessCore.CapabilityInvocation;
+import ProcessCore.ProcessCoreFactory;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineEvent.MachineEventType;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
-import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
+import fiab.mes.machine.msg.OrderRelocationNotification;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
-import fiab.mes.order.msg.LockForOrder;
-import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
-import fiab.mes.order.msg.ReadyForProcessEvent;
-import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
+import fiab.mes.planer.actor.MachineCapabilityManager;
+import fiab.mes.planer.actor.MachineOrderMappingManager;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatus.AssignmentState;
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
@@ -55,6 +43,9 @@ import fiab.mes.transport.msg.CancelTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class FoldingProductionCellCoordinator extends AbstractActor{

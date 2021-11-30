@@ -3,7 +3,7 @@
     "localCapabilityId": "SOUTH_CLIENT",
     "remoteCapabilityId": "DefaultHandshakeServerSide",
     "remoteEndpointURL": "opc.tcp://localhost:4847/milo",
-    "remoteNodeId": "ns=2;s=BufferStation/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+    "remoteNodeId": "ns=2;s=TransitStation/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
     "remoteRole": "RemoteRole1"
   }
 }

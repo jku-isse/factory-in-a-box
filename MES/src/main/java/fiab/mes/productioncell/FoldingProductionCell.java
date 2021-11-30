@@ -1,13 +1,13 @@
-package productioncell;
+package fiab.mes.productioncell;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
-import productioncell.foldingstation.FoldingProductionCellCoordinator;
+import fiab.mes.productioncell.foldingstation.FoldingProductionCellCoordinator;
 
 public class FoldingProductionCell {
 
