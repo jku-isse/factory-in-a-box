@@ -1,13 +1,29 @@
 package fiab.mes.productioncell;
 
+import akka.NotUsed;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.http.javadsl.ConnectHttp;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.HttpsConnectionContext;
+import akka.http.javadsl.ServerBinding;
+import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.model.HttpResponse;
+import akka.stream.ActorMaterializer;
+import akka.stream.javadsl.Flow;
+import fiab.mes.DefaultShopfloorInfrastructure;
 import fiab.mes.ShopfloorConfigurations;
+import fiab.mes.auth.HttpsConfigurator;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.machine.MachineEntryActor;
+import fiab.mes.order.actor.OrderEntryActor;
+import fiab.mes.restendpoint.ActorRestEndpoint;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.productioncell.foldingstation.FoldingProductionCellCoordinator;
+
+import java.util.concurrent.CompletionStage;
 
 public class FoldingProductionCell {
 
@@ -15,9 +31,9 @@ public class FoldingProductionCell {
     private static ActorSystem system;
 
     public static void main(String[] args) {
-        if(args.length > 0) {
+        if (args.length > 0) {
             production_cell_name = args[0];
-        }else{
+        } else {
             production_cell_name = "LocalFoldingProductionCell";
         }
         system = ActorSystem.create(production_cell_name);
@@ -29,9 +45,36 @@ public class FoldingProductionCell {
         loadProductionCellLayoutFromFile();
     }
 
-    public static void loadProductionCellLayoutFromFile(){
+    public static void loadProductionCellLayoutFromFile() {
         ShopfloorConfigurations.JsonFilePersistedDiscovery discovery = new ShopfloorConfigurations.JsonFilePersistedDiscovery(production_cell_name);
         discovery.triggerDiscoveryMechanism(system);
+    }
+
+    public static CompletionStage<ServerBinding> startup(String jsonDiscoveryFile, int expectedTTs, ActorSystem system) {
+        // boot up server using the route as defined below
+        final Http http = Http.get(system);
+
+        HttpsConnectionContext https = HttpsConfigurator.useHttps(system);
+        http.setDefaultServerHttpContext(https);
+
+        final ActorMaterializer materializer = ActorMaterializer.create(system);
+
+        DefaultProductionCellInfrastructure shopfloor = new DefaultProductionCellInfrastructure(system, expectedTTs);
+        ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), "Folding" + OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), "Folding" + MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
+
+        if (jsonDiscoveryFile != null)
+            new ShopfloorConfigurations.JsonFilePersistedDiscovery(jsonDiscoveryFile).triggerDiscoveryMechanism(system);
+        else {
+            //new ShopfloorConfigurations.VirtualInputOutputTurntableOnly().triggerDiscoveryMechanism(system);
+            new ShopfloorConfigurations.NoDiscovery().triggerDiscoveryMechanism(system);
+        }
+        ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
+
+        final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
+        final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
+                ConnectHttp.toHost("0.0.0.0", 8080), materializer);
+        return binding;
     }
 
 }

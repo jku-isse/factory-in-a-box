@@ -354,7 +354,8 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
 
         if (idleInputStation.isPresent() && readyFoldingStation.isPresent() && idleTransportFU.isPresent()) {
             log.info("Sending TransportRequest from: " + idleInputStation.get().getId() + ", to:" + readyFoldingStation.get().getId() + ", using transportFU " + idleTransportFU.get().getId());
-            transportCoordinator.tell(new RegisterTransportRequest(idleInputStation.get(), readyFoldingStation.get(), "missingOrderIdFromCoordinator", self), self);
+            transportCoordinator.tell(new RegisterTransportRequest(idleInputStation.get(), readyFoldingStation.get(),
+                    ordMapper.getJobOnMachine(idleInputStation.get()).toString(), self), self);
         } else {
             log.info("Waiting for Machines to be in suitable state. Machines in suitable state? IO: {}, FoldingStation: {}, Transport: {}", idleInputStation.isPresent(), readyFoldingStation.isPresent(), idleTransportFU.isPresent());
             //System.out.println("Available Input station " + idleInputStation + ", Available Folding Station: " + readyFoldingStation + ", TransportFU: " + idleTransportFU);

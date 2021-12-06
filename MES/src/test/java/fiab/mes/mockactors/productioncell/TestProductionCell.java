@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import fiab.mes.productioncell.foldingstation.FoldingProductionCellCoordinator;
+import fiab.mes.productioncell.foldingstation.DefaultFoldingCellTransportPositionLookup;
 
 import java.time.Duration;
 import java.util.*;
@@ -62,7 +63,7 @@ public class TestProductionCell {
     public static void setUpBeforeClass() {
         system = ActorSystem.create(ROOT_SYSTEM);
         HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-        DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
+        DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
         machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
         foldingCellCoord = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
@@ -79,7 +80,7 @@ public class TestProductionCell {
         knownActors.clear();
     }
 
-    //@Test
+    @Test
     void testProductionCellDiscovery() throws Exception {
         new TestKit(system) {
             {
@@ -88,7 +89,7 @@ public class TestProductionCell {
 
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
                 ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-                machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+                machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
                 urlsToBrowse.forEach(url -> {
                     ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
@@ -119,7 +120,7 @@ public class TestProductionCell {
                                     actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
                             );
                     }
-                    if (te instanceof IOStationStatusUpdateEvent){
+                    if (te instanceof IOStationStatusUpdateEvent) {
                         respondingMachines.add(((IOStationStatusUpdateEvent) te).getMachineId());
                     }
                 }
@@ -135,11 +136,10 @@ public class TestProductionCell {
     void testProductionCellTransportToOneFoldingStation() throws Exception {
         new TestKit(system) {
             {
-                //Set<String> urlsToBrowse = getLocalhostLayout();  //Used for local mock machines
                 Set<String> urlsToBrowse = getTestLayout();
-                Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-                ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-                machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+                Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
+                ShopfloorConfigurations.addSpawners(capURI2Spawning, new DefaultFoldingCellTransportPositionLookup());
+                machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
                 urlsToBrowse.forEach(url -> {
                     ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
@@ -169,7 +169,7 @@ public class TestProductionCell {
                 boolean isTransportFunctional = false;
                 boolean foldingComplete = false;
                 boolean isProcessAssigned = false;
-                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || !foldingComplete) {
+                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || !foldingComplete || !isProcessAssigned) {
                     TimedEvent te = expectMsgAnyClassOf(Duration.ofMinutes(10), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
@@ -181,26 +181,33 @@ public class TestProductionCell {
                     if (te instanceof MachineConnectedEvent) {
                         countConnEvents++;
                         knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+                        logger.info("#%# Machine connected: " + ((MachineConnectedEvent) te).getMachineId() + " and stored in: "
+                                + knownActors.get(((MachineConnectedEvent) te).getMachineId()));
                     }
                     if (te instanceof MachineStatusUpdateEvent) {
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) {
                             Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId())).ifPresent(
                                     actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
                             );
+
                         }
-                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.IDLE)){
+                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.IDLE)) {
                             Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
-                                    .filter(m -> m.getId().toLowerCase(Locale.ROOT).contains("Folding".toLowerCase(Locale.ROOT)))
+                                    .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase()))
                                     .ifPresent(actor -> actor.getAkkaActor().tell(new RegisterProcessStepRequest("Test", step.getID(), step, getRef()), getRef()));
                             //FIXME send correct request to foldingstation
                             //Turntable is assigned transport even though folding station is not ready?
                         }
-                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)){
-                            foldingComplete = true;
+                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)) {
+                            boolean isFoldingStation = Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
+                                    .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase())).isPresent();
+                            if (isFoldingStation) {
+                                foldingComplete = true;
+                            }
                         }
                     }
-                    if (te instanceof IOStationStatusUpdateEvent){
-                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.COMPLETE)){
+                    if (te instanceof IOStationStatusUpdateEvent) {
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.COMPLETE)) {
                             Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId())).ifPresent(
                                     actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((IOStationStatusUpdateEvent) te).getMachineId()), getRef())
                             );
@@ -233,14 +240,16 @@ public class TestProductionCell {
         return urlsToBrowse;
     }
 
-    public Set<String> getTestLayout(){
+    public Set<String> getTestLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();
-        urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station (West of TT1)
-        urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 Pos20
-        urlsToBrowse.add("opc.tcp://localhost:4845/milo"); // Pos31 FoldingStation1 (North of TT1)
-        urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Pos37 TransitStation2 (South of TT1)
-        urlsToBrowse.add("opc.tcp://localhost:4841/milo"); // Pos23 OutputStation (East of TT2)
-        urlsToBrowse.add("opc.tcp://localhost:4843/milo"); // TT2 Pos21
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4847/milo"); //Input West of TT
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4848/milo"); //InternalTT
+
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4849/milo"); //Folding1
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4850/milo"); //Folding2
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4851/milo"); //Folding3
+
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4852/milo"); //TransitStation
         return urlsToBrowse;
     }
 

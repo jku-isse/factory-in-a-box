@@ -22,7 +22,6 @@ import static fiab.core.capabilities.transport.TurntableModuleWellknownCapabilit
 
 public class HardcodedFoldingTransportRoutingAndMapping implements TransportRoutingInterface, InternalCapabilityToPositionMapping {
 
-    //TODO implement layout from above
     private final Map<Position, Position> edgeNodeMapping = new HashMap<>();
     private final Map<Position, Set<Position>> routerConnections = new HashMap<>();
 
