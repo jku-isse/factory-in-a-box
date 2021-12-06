@@ -57,11 +57,12 @@ public class VirtualFoldingMachineActor extends AbstractActor {
                             setAndPublishState(currentState); //we publish the current state
                             break;
                         case Fold:
-                            if (currentState.equals(BasicMachineStates.IDLE))
+                            if (currentState.equals(BasicMachineStates.IDLE)) {
                                 fold();
-                            else
+                            } else {
                                 log.warning("VirtualFoldingCoordinatorActor told to fold in wrong state " + currentState);
-                            sender().tell(new MachineInWrongStateResponse("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Machine not in state to fold", currentState, FoldingMessageTypes.Fold, BasicMachineStates.IDLE), self);
+                                sender().tell(new MachineInWrongStateResponse("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Machine not in state to fold", currentState, FoldingMessageTypes.Fold, BasicMachineStates.IDLE), self);
+                            }
                             break;
                         case Reset:
                             if (currentState.equals(BasicMachineStates.STOPPED))
@@ -123,7 +124,7 @@ public class VirtualFoldingMachineActor extends AbstractActor {
         }
     }
 
-    private void updateCapability(String newCapability){
+    private void updateCapability(String newCapability) {
         intraEventBus.publish(new MachineCapabilityUpdateEvent("", "Fold_Capability", newCapability));
     }
 

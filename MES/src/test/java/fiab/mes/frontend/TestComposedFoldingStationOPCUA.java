@@ -1,5 +1,9 @@
 package fiab.mes.frontend;
 
+import ProcessCore.CapabilityInvocation;
+import ProcessCore.ProcessCoreFactory;
+import ProcessCore.ProcessStep;
+import ProcessCore.impl.ProcessImpl;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
@@ -8,9 +12,11 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.ShopfloorStartup;
+import fiab.mes.capabilities.plotting.EcoreProcessUtils;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.eventbus.OrderEventBusWrapperActor;
@@ -21,7 +27,13 @@ import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
+import fiab.mes.order.OrderProcess;
 import fiab.mes.order.actor.OrderEntryActor;
+import fiab.mes.order.ecore.ProduceFoldingProcess;
+import fiab.mes.order.msg.LockForOrder;
+import fiab.mes.order.msg.ReadyForProcessEvent;
+import fiab.mes.order.msg.RegisterProcessRequest;
+import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.productioncell.foldingstation.FoldingProductionCellCoordinator;
@@ -39,10 +51,13 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TestComposedFoldingStation {
+public class TestComposedFoldingStationOPCUA {
 
     private static ActorSystem system;
     private static String ROOT_SYSTEM = "routes";
@@ -51,25 +66,18 @@ public class TestComposedFoldingStation {
     private static ActorSelection orderEntryActor;
     private static CompletionStage<ServerBinding> binding;
 
-    private static ActorSelection foldingCoordinatorActor;
-    private static CompletionStage<ServerBinding> foldBinding;
-
     private static final Logger logger = LoggerFactory.getLogger(OrderEmittingTestServerWithOPCUA.class);
-    static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
     static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownFoldingActors = new HashMap<>();
-//	private static OrderProcess process;
 
     @BeforeAll
     static void setUpBeforeClass() throws Exception {
         system = ActorSystem.create(ROOT_SYSTEM);
 
-        binding = ShopfloorStartup.startup(null, 3, system);
+        binding = ShopfloorStartup.startupFolding(null, 3, system);
         orderEventBus = system.actorSelection("/user/" + OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         machineEventBus = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         orderEntryActor = system.actorSelection("/user/" + OrderEntryActor.WELLKNOWN_LOOKUP_NAME);//.resolveOne(Timeout.create(Duration.ofSeconds(3)))..;
 
-        foldBinding = FoldingProductionCell.startup(null, 1, system);
-        foldingCoordinatorActor = system.actorSelection("/user/" + FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
     }
 
     @BeforeEach
@@ -82,16 +90,12 @@ public class TestComposedFoldingStation {
                 .thenAccept(unbound -> {
                     TestKit.shutdownActorSystem(system);
                 }); // and shutdown when done
-        foldBinding.thenCompose(ServerBinding::unbind) // trigger unbinding from the port
-                .thenAccept(unbound -> {
-                    TestKit.shutdownActorSystem(system);
-                }); // and shutdown when done
         system.terminate();
         system = null;
     }
 
     @Test
-    void testShopfloorParticipantDiscoveryAndReset() {
+    void testShopfloorFoldingProcess() {
         new TestKit(system) {
             {
                 System.out.println("test frontend responses by emitting orders with sequential process");
@@ -111,21 +115,33 @@ public class TestComposedFoldingStation {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-
                 });
+
+                OrderProcess op = new OrderProcess(ProduceFoldingProcess.getSequentialBoxProcess("Test"));
+                RegisterProcessRequest processRequest = new RegisterProcessRequest("Test", op, getRef());
 
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
-                boolean isTransportFunctional = false;
+                boolean isTransport1Functional = false;
+                boolean isTransport2Functional = false;
+                boolean waitingForProcess = true;
+                boolean foldingComplete = false;
                 int idleEvents = 0;
-                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || idleEvents < urlsToBrowse.size()) {
+                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() ||
+                        !isTransport1Functional || !isTransport2Functional ||
+                        idleEvents < urlsToBrowse.size() || !foldingComplete || waitingForProcess) {
+                    ignoreMsg(msg -> msg instanceof String);
                     TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
                     }
                     if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
-                        isTransportFunctional = true;
+                        if (!isTransport1Functional) {
+                            isTransport1Functional = true;
+                        } else {
+                            isTransport2Functional = true;
+                        }
                     }
                     if (te instanceof MachineConnectedEvent) {
                         countConnEvents++;
@@ -133,7 +149,7 @@ public class TestComposedFoldingStation {
                     }
                     if (te instanceof IOStationStatusUpdateEvent) {
                         if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.STOPPED))
-                            Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))
+                            Optional.ofNullable(knownFoldingActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))
                                     .ifPresent(actor -> actor.getAkkaActor()
                                             .tell(new GenericMachineRequests.Reset(((IOStationStatusUpdateEvent) te).getMachineId()), getRef())
                                     );
@@ -150,79 +166,46 @@ public class TestComposedFoldingStation {
                                     );
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.IDLE)) {
                             idleEvents++;
+                            if(waitingForProcess) {
+                                orderEntryActor.tell(processRequest, getRef());
+                                waitingForProcess = false;
+                            }
+                        }
+                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)) {
+                            boolean isFoldingStation = Optional.ofNullable(knownFoldingActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
+                                    .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase())).isPresent();
+                            if (isFoldingStation) {
+                                foldingComplete = true;
+                            }
                         }
                     }
                 }
-                assertEquals(urlsToBrowse.size(), knownFoldingActors.size());
+                int totalUrlsToBrowse = urlsToBrowse.size();
+                assertEquals(totalUrlsToBrowse, knownFoldingActors.size());
+                assertTrue(foldingComplete);
+                //TODO add OrderProcess (plot)/(fold)/(plot+fold) and execute
             }
         };
     }
 
-    @Test
-    void testFoldingCellParticipantDiscoveryAndReset() {
-        new TestKit(system) {
-            {
-                System.out.println("test frontend responses by emitting orders with sequential process");
+    public ProcessStep createFoldingProcessStep() {
+        CapabilityInvocation foldingCap = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
+        foldingCap.setID("TestFoldingCapabilityId");
+        foldingCap.setDisplayName("TestFoldingCapability");
+        foldingCap.setInvokedCapability(WellknownFoldingCapability.getFoldingShapeCapability());
+        foldingCap.getInputMappings().add(EcoreProcessUtils.getVariableMapping(WellknownFoldingCapability.getShapeInputParameter()));
 
-                orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
-                machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
+        ProcessCore.Process proc = ProcessCoreFactory.eINSTANCE.createProcess();
+        proc.setDisplayName("ProcessTemplate4Folds");
+        proc.setID("ProcessTemplate4Folds");
+        EcoreProcessUtils.addProcessvariables(proc, "Box");
+        EcoreProcessUtils.mapCapInputToProcessVar(proc.getVariables(), foldingCap);
+        proc.getSteps().add(foldingCap);
 
-                Set<String> urlsToBrowse = getLocalFoldingCellLayout();
-                Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
-                ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-                urlsToBrowse.forEach(url -> {
-                    ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-                    try {
-                        discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
-                        TimeUnit.SECONDS.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        OrderProcess op = new OrderProcess(proc);
+        op.activateProcess();
 
-                });
-
-                int countConnEvents = 0;
-                boolean isPlannerFunctional = false;
-                boolean isTransportFunctional = false;
-                int idleEvents = 0;
-                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || idleEvents < urlsToBrowse.size()) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
-                    logEvent(te);
-                    if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
-                        isPlannerFunctional = true;
-                    }
-                    if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
-                        isTransportFunctional = true;
-                    }
-                    if (te instanceof MachineConnectedEvent) {
-                        countConnEvents++;
-                        knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
-                    }
-                    if (te instanceof IOStationStatusUpdateEvent) {
-                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.STOPPED))
-                            Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))
-                                    .ifPresent(actor -> actor.getAkkaActor()
-                                            .tell(new GenericMachineRequests.Reset(((IOStationStatusUpdateEvent) te).getMachineId()), getRef())
-                                    );
-                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_EMPTY) ||
-                                ((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_LOADED)) {
-                            idleEvents++;
-                        }
-                    }
-                    if (te instanceof MachineStatusUpdateEvent) {
-                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED))
-                            Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
-                                    .ifPresent(actor -> actor.getAkkaActor()
-                                            .tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
-                                    );
-                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.IDLE)) {
-                            idleEvents++;
-                        }
-                    }
-                }
-                assertEquals(urlsToBrowse.size(), knownActors.size());
-            }
-        };
+        return op.getAvailableSteps().get(0);
     }
 
     public Set<String> getLocalhostLayout() {
@@ -244,7 +227,7 @@ public class TestComposedFoldingStation {
         return urlsToBrowse;
     }
 
-    public Set<String> getLocalFoldingCellLayout() {
+    /*public Set<String> getLocalFoldingCellLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();
         urlsToBrowse.add("opc.tcp://127.0.0.1:4847/milo"); //Input West of TT
         urlsToBrowse.add("opc.tcp://127.0.0.1:4848/milo"); //InternalTT
@@ -255,7 +238,7 @@ public class TestComposedFoldingStation {
 
         urlsToBrowse.add("opc.tcp://127.0.0.1:4852/milo"); //TransitStation
         return urlsToBrowse;
-    }
+    }*/
 
     private void logEvent(TimedEvent event) {
         logger.info(event.toString());

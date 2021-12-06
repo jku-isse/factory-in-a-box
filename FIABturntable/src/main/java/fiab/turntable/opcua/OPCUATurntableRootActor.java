@@ -81,7 +81,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
                     // forward to return response directly into method call back
                     if (ttWrapper != null) ttWrapper.forward(req, getContext());
                 })
-                .matchAny(msg -> log.info("Received unknown message " + msg + " from " + sender()))
+                //.matchAny(msg -> log.info("Received unknown message " + msg + " from " + sender()))
                 .build();
     }
 

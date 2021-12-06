@@ -19,5 +19,12 @@
     "remoteEndpointURL": "opc.tcp://127.0.0.1:4843/milo",
     "remoteNodeId": "ns=2;s=VirtualTurntable1/Turntable_FU/HANDSHAKE_FU_EAST_SERVER/CAPABILITIES/CAPABILITY",
     "remoteRole": "RemoteRole1"
+  },
+  "EAST_CLIENT": {
+    "localCapabilityId": "EAST_CLIENT",
+    "remoteCapabilityId": "DefaultHandshakeServerSide",
+    "remoteEndpointURL": "opc.tcp://127.0.0.1:4860/milo",
+    "remoteNodeId": "ns=2;s=OutputStation/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
+    "remoteRole": "RemoteRole1"
   }
 }

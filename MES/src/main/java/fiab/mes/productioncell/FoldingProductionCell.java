@@ -73,7 +73,7 @@ public class FoldingProductionCell {
 
         final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
         final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
-                ConnectHttp.toHost("0.0.0.0", 8080), materializer);
+                ConnectHttp.toHost("0.0.0.0", 8081), materializer);
         return binding;
     }
 

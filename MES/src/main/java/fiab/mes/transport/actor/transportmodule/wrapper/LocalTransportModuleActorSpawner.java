@@ -5,7 +5,8 @@ import java.util.concurrent.TimeUnit;
 
 //import org.eclipse.milo.opcua.sdk.client.api.AddressSpace;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
-import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
+import fiab.mes.transport.actor.transportmodule.InternalCapabilityToPositionMapping;
+import fiab.mes.transport.actor.transportsystem.*;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
 import org.eclipse.milo.opcua.stack.core.NamespaceTable;
 import org.eclipse.milo.opcua.stack.core.UaException;
@@ -27,9 +28,6 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
-import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
-import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
-import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.CapabilityImplInfo;
 import fiab.turntable.actor.IntraMachineEventBus;
@@ -45,6 +43,7 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
     ActorRef machine;
     ActorRef discovery;
     private final TransportPositionParser transportPositionParser;
+    private final InternalCapabilityToPositionMapping env;
 
     public static Props props(TransportPositionParser transportPositionParser) {
         return Props.create(LocalTransportModuleActorSpawner.class, () -> new LocalTransportModuleActorSpawner(transportPositionParser));
@@ -53,8 +52,10 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
     public LocalTransportModuleActorSpawner(TransportPositionParser transportPositionParser) {
         if(transportPositionParser == null) {
             this.transportPositionParser = new DefaultTransportPositionLookup();
+            env = new HardcodedDefaultTransportRoutingAndMapping();
         }else{
             this.transportPositionParser = transportPositionParser;
+            env = new HardcodedFoldingTransportRoutingAndMapping();
         }
     }
 
@@ -104,7 +105,6 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         Position selfPos = resolvePosition(info);
         TransportModuleOPCUAWrapper hal = new TransportModuleOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.transportMethod, getSelf());
-        HardcodedDefaultTransportRoutingAndMapping env = new HardcodedDefaultTransportRoutingAndMapping();
         machine = this.context().actorOf(BasicTransportModuleActor.props(eventBusByRef, capability, model, hal, selfPos, intraEventBus, new DefaultTransportPositionLookup(), env), model.getActorName()+selfPos.getPos());
         log.info("Spawned Actor: "+machine.path());
     }

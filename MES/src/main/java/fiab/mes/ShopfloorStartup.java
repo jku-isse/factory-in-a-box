@@ -65,6 +65,33 @@ public class ShopfloorStartup extends AllDirectives {
 	        ConnectHttp.toHost("0.0.0.0", 8080), materializer);	    
 	    return binding;
   }
+
+	public static CompletionStage<ServerBinding> startupFolding(String jsonDiscoveryFile, int expectedTTs, ActorSystem system) {
+		// boot up server using the route as defined below
+		final Http http = Http.get(system);
+
+		HttpsConnectionContext https = HttpsConfigurator.useHttps(system);
+		http.setDefaultServerHttpContext(https);
+
+		final ActorMaterializer materializer = ActorMaterializer.create(system);
+
+		FoldingShopfloorInfrastructure shopfloor = new FoldingShopfloorInfrastructure(system, expectedTTs);
+		ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
+		ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
+
+		if (jsonDiscoveryFile != null)
+			new ShopfloorConfigurations.JsonFilePersistedDiscovery(jsonDiscoveryFile).triggerDiscoveryMechanism(system);
+		else {
+			//new ShopfloorConfigurations.VirtualInputOutputTurntableOnly().triggerDiscoveryMechanism(system);
+			new ShopfloorConfigurations.NoDiscovery().triggerDiscoveryMechanism(system);
+		}
+		ActorRestEndpoint app = new ActorRestEndpoint(system, orderEntryActor, machineEntryActor);
+
+		final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
+		final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
+				ConnectHttp.toHost("0.0.0.0", 8080), materializer);
+		return binding;
+	}
   
   
 }

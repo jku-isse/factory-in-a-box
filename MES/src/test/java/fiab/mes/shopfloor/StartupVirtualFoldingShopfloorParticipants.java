@@ -1,7 +1,9 @@
 package fiab.mes.shopfloor;
 
+import akka.actor.ActorSystem;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.machine.foldingstation.opcua.StartupUtil;
+import fiab.mes.productioncell.FoldingProductionCell;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -55,6 +57,8 @@ public class StartupVirtualFoldingShopfloorParticipants {
     }
 
     private static void startupHiddenFoldingParticipants(){
+        //TT2 East, Actual HS_East binding for TT2 (For now since InputStation does not accept to be loaded via hs)
+        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(20, "OutputStation");
         //TT4 West, Actual HS_East binding for TT2
         fiab.machine.iostation.opcua.StartupUtil.startupInputstation(7, "InputStation");
         // Start Turntable later
@@ -63,5 +67,13 @@ public class StartupVirtualFoldingShopfloorParticipants {
             //TT4 itself
             fiab.turntable.StartupUtil.startupWithHiddenInternalControls(8, "VirtualTurntable4");
         }, 10, TimeUnit.SECONDS);
+        es.schedule(() -> {
+            //TT4 itself
+            startupFoldingCoordinator();
+        }, 15, TimeUnit.SECONDS);
+    }
+
+    private static void startupFoldingCoordinator(){
+        FoldingProductionCell.startup(null, 1, ActorSystem.create("FoldingProductionCellCoordinator"));
     }
 }

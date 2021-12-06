@@ -30,6 +30,7 @@ import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.msg.CancelOrTerminateOrder;
 import fiab.mes.order.msg.OrderEvent.OrderEventType;
 import fiab.mes.order.msg.OrderProcessUpdateEvent;
+import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.actor.MachineCapabilityManager;
 import fiab.mes.planer.actor.MachineOrderMappingManager;
@@ -112,6 +113,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
                     this.tsysState = msg.getState();
                     checkPlannerState();
                 })
+                .match(RegisterProcessRequest.class, msg -> {/*ignore*/})
                 .build();
     }
 
