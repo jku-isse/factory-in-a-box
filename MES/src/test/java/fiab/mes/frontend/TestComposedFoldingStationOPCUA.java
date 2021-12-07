@@ -38,6 +38,7 @@ import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.productioncell.foldingstation.FoldingProductionCellCoordinator;
 import fiab.mes.transport.actor.transportsystem.FoldingTransportPositionLookup;
+import fiab.mes.transport.actor.transportsystem.HardcodedFoldingTransportRoutingAndMapping;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata;
 import org.junit.jupiter.api.AfterAll;
@@ -65,6 +66,7 @@ public class TestComposedFoldingStationOPCUA {
     private static ActorSelection orderEventBus;
     private static ActorSelection orderEntryActor;
     private static CompletionStage<ServerBinding> binding;
+    private static CompletionStage<ServerBinding> cellBinding;
 
     private static final Logger logger = LoggerFactory.getLogger(OrderEmittingTestServerWithOPCUA.class);
     static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownFoldingActors = new HashMap<>();
@@ -74,6 +76,8 @@ public class TestComposedFoldingStationOPCUA {
         system = ActorSystem.create(ROOT_SYSTEM);
 
         binding = ShopfloorStartup.startupFolding(null, 3, system);
+        cellBinding = FoldingProductionCell.startup("LocalFoldingProductionCell", 1, ActorSystem.create("FoldingProductionCellCoordinator"));
+
         orderEventBus = system.actorSelection("/user/" + OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         machineEventBus = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         orderEntryActor = system.actorSelection("/user/" + OrderEntryActor.WELLKNOWN_LOOKUP_NAME);//.resolveOne(Timeout.create(Duration.ofSeconds(3)))..;
@@ -81,12 +85,18 @@ public class TestComposedFoldingStationOPCUA {
     }
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp()  {
+        knownFoldingActors = new HashMap<>();
+
     }
 
     @AfterAll
     public static void teardown() {
         binding.thenCompose(ServerBinding::unbind) // trigger unbinding from the port
+                .thenAccept(unbound -> {
+                    TestKit.shutdownActorSystem(system);
+                }); // and shutdown when done
+        cellBinding.thenCompose(ServerBinding::unbind) // trigger unbinding from the port
                 .thenAccept(unbound -> {
                     TestKit.shutdownActorSystem(system);
                 }); // and shutdown when done
@@ -106,7 +116,7 @@ public class TestComposedFoldingStationOPCUA {
                 Set<String> urlsToBrowse = getLocalhostLayout();
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
                 //ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-                ShopfloorConfigurations.addSpawners(capURI2Spawning, new FoldingTransportPositionLookup());
+                ShopfloorConfigurations.addSpawners(capURI2Spawning, new FoldingTransportPositionLookup(), new HardcodedFoldingTransportRoutingAndMapping());
                 urlsToBrowse.forEach(url -> {
                     ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
                     try {

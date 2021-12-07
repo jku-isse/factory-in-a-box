@@ -161,8 +161,8 @@ public class LocalIOStationActorSpawner extends AbstractActor {
             log.error("Unable to resolve position for uri via IP Addr, trying now via Port: " + info.getEndpointUrl());
             pos = transportPositionParser.parsePosViaPortNr(info.getEndpointUrl());
             if (pos == TransportRoutingInterface.UNKNOWN_POSITION) {
-                log.error("Unable to resolve position for uri via port, assigning default position 31: " + info.getEndpointUrl());
-                pos = new TransportRoutingInterface.Position("31");
+                log.error("Unable to resolve position for uri via port, assigning default position 32: " + info.getEndpointUrl());
+                pos = new TransportRoutingInterface.Position("32");
             }
         }
         return pos;

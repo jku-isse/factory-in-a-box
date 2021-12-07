@@ -27,6 +27,7 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.msg.PlanerStatusMessage;
+import fiab.mes.productioncell.foldingstation.HardcodedFoldingCellTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
@@ -62,7 +63,7 @@ public class TestProductionCell {
     @BeforeAll
     public static void setUpBeforeClass() {
         system = ActorSystem.create(ROOT_SYSTEM);
-        HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
+        HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();
         DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
         machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
@@ -81,14 +82,14 @@ public class TestProductionCell {
     }
 
     @Test
-    void testProductionCellDiscovery() throws Exception {
+    void testProductionCellDiscovery()  {
         new TestKit(system) {
             {
-                //Set<String> urlsToBrowse = getLocalhostLayout();  //Used for local mock machines
                 Set<String> urlsToBrowse = getTestLayout();
 
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-                ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+                ShopfloorConfigurations.addSpawners(capURI2Spawning, new DefaultFoldingCellTransportPositionLookup(),
+                        new HardcodedFoldingCellTransportRoutingAndMapping());
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
                 urlsToBrowse.forEach(url -> {
@@ -98,14 +99,10 @@ public class TestProductionCell {
 
                 int countConnEvents = 0;
                 Set<String> respondingMachines = new HashSet<>();
-                boolean isPlannerFunctional = false;
                 boolean isTransportFunctional = false;
-                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || respondingMachines.size() < urlsToBrowse.size()) {
+                while (countConnEvents < urlsToBrowse.size() || !isTransportFunctional || respondingMachines.size() < urlsToBrowse.size()) {
                     TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
                     logEvent(te);
-                    if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
-                        isPlannerFunctional = true;
-                    }
                     if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
                         isTransportFunctional = true;
                     }
@@ -124,7 +121,6 @@ public class TestProductionCell {
                         respondingMachines.add(((IOStationStatusUpdateEvent) te).getMachineId());
                     }
                 }
-                assertTrue(isPlannerFunctional);
                 assertTrue(isTransportFunctional);
                 assertEquals(countConnEvents, urlsToBrowse.size());
                 assertEquals(respondingMachines.size(), urlsToBrowse.size());
@@ -133,12 +129,13 @@ public class TestProductionCell {
     }
 
     @Test
-    void testProductionCellTransportToOneFoldingStation() throws Exception {
+    void testProductionCellTransportToOneFoldingStation() {
         new TestKit(system) {
             {
                 Set<String> urlsToBrowse = getTestLayout();
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
-                ShopfloorConfigurations.addSpawners(capURI2Spawning, new DefaultFoldingCellTransportPositionLookup());
+                ShopfloorConfigurations.addSpawners(capURI2Spawning, new DefaultFoldingCellTransportPositionLookup(),
+                        new HardcodedFoldingCellTransportRoutingAndMapping());
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
                 urlsToBrowse.forEach(url -> {
@@ -165,16 +162,16 @@ public class TestProductionCell {
                 ProcessStep step = op.getAvailableSteps().get(0);
 
                 int countConnEvents = 0;
-                boolean isPlannerFunctional = false;
+                //boolean isPlannerFunctional = false;
                 boolean isTransportFunctional = false;
                 boolean foldingComplete = false;
                 boolean isProcessAssigned = false;
-                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional || !foldingComplete || !isProcessAssigned) {
+                while (/*!isPlannerFunctional ||*/ countConnEvents < urlsToBrowse.size() || !isTransportFunctional || !foldingComplete || !isProcessAssigned) {
                     TimedEvent te = expectMsgAnyClassOf(Duration.ofMinutes(10), TimedEvent.class);
                     logEvent(te);
-                    if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
+                    /*if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
-                    }
+                    }*/
                     if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
                         isTransportFunctional = true;
                     }
@@ -195,8 +192,6 @@ public class TestProductionCell {
                             Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
                                     .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase()))
                                     .ifPresent(actor -> actor.getAkkaActor().tell(new RegisterProcessStepRequest("Test", step.getID(), step, getRef()), getRef()));
-                            //FIXME send correct request to foldingstation
-                            //Turntable is assigned transport even though folding station is not ready?
                         }
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)) {
                             boolean isFoldingStation = Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
@@ -230,16 +225,6 @@ public class TestProductionCell {
         };
     }
 
-    public Set<String> getLocalhostLayout() {
-        Set<String> urlsToBrowse = new HashSet<String>();
-        urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station (West of TT)
-        urlsToBrowse.add("opc.tcp://localhost:4842/milo"); // TT1 Pos20
-        urlsToBrowse.add("opc.tcp://localhost:4845/milo"); // Pos31 FoldingStation1 (North of TT)
-        urlsToBrowse.add("opc.tcp://localhost:4847/milo"); // Pos37 FoldingStation2 (South of TT)
-        urlsToBrowse.add("opc.tcp://localhost:4850/milo"); // Pos23 OutputStation (East of TT)
-        return urlsToBrowse;
-    }
-
     public Set<String> getTestLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();
         urlsToBrowse.add("opc.tcp://127.0.0.1:4847/milo"); //Input West of TT
@@ -248,8 +233,6 @@ public class TestProductionCell {
         urlsToBrowse.add("opc.tcp://127.0.0.1:4849/milo"); //Folding1
         urlsToBrowse.add("opc.tcp://127.0.0.1:4850/milo"); //Folding2
         urlsToBrowse.add("opc.tcp://127.0.0.1:4851/milo"); //Folding3
-
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4852/milo"); //TransitStation
         return urlsToBrowse;
     }
 

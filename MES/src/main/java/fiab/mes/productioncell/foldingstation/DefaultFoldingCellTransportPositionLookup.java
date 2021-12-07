@@ -19,7 +19,7 @@ public class DefaultFoldingCellTransportPositionLookup implements TransportPosit
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultTransportPositionLookup.class);
 
-    private HashMap<TransportRoutingInterface.Position, AkkaActorBackedCoreModelAbstractActor> lookupTable = new HashMap<>();
+    private final HashMap<TransportRoutingInterface.Position, AkkaActorBackedCoreModelAbstractActor> lookupTable = new HashMap<>();
 
     @Override
     public TransportRoutingInterface.Position getPositionForActor(AkkaActorBackedCoreModelAbstractActor actor) {
@@ -70,8 +70,8 @@ public class DefaultFoldingCellTransportPositionLookup implements TransportPosit
             if (port == 4847) return new TransportRoutingInterface.Position("34");
             if (port == 4848) return new TransportRoutingInterface.Position("20");
             if (port == 4849) return new TransportRoutingInterface.Position("31");
-            if (port == 4850) return new TransportRoutingInterface.Position("32");
-            if (port == 4851) return new TransportRoutingInterface.Position("33");
+            if (port == 4850) return new TransportRoutingInterface.Position("21");
+            if (port == 4851) return new TransportRoutingInterface.Position("37");
             return TransportRoutingInterface.UNKNOWN_POSITION;
         } catch (URISyntaxException e) {
             logger.warn(String.format("Unable to load URI for actor %s", uriAsString));

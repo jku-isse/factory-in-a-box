@@ -1,6 +1,7 @@
 package fiab.mes.transport.actor.transportmodule.wrapper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 //import org.eclipse.milo.opcua.sdk.client.api.AddressSpace;
@@ -46,16 +47,22 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
     private final InternalCapabilityToPositionMapping env;
 
     public static Props props(TransportPositionParser transportPositionParser) {
-        return Props.create(LocalTransportModuleActorSpawner.class, () -> new LocalTransportModuleActorSpawner(transportPositionParser));
+        return Props.create(LocalTransportModuleActorSpawner.class, () -> new LocalTransportModuleActorSpawner(transportPositionParser, null));
     }
 
-    public LocalTransportModuleActorSpawner(TransportPositionParser transportPositionParser) {
-        if(transportPositionParser == null) {
+    public static Props props(TransportPositionParser transportPositionParser, InternalCapabilityToPositionMapping env) {
+        return Props.create(LocalTransportModuleActorSpawner.class, () -> new LocalTransportModuleActorSpawner(transportPositionParser, env));
+    }
+
+    public LocalTransportModuleActorSpawner(TransportPositionParser transportPositionParser, InternalCapabilityToPositionMapping env) {
+        InternalCapabilityToPositionMapping mapping = Objects.requireNonNullElseGet(env, () -> new HardcodedDefaultTransportRoutingAndMapping());
+        if (transportPositionParser == null) {
             this.transportPositionParser = new DefaultTransportPositionLookup();
-            env = new HardcodedDefaultTransportRoutingAndMapping();
-        }else{
+            this.env = mapping;
+        } else {
             this.transportPositionParser = transportPositionParser;
-            env = new HardcodedFoldingTransportRoutingAndMapping();
+            this.env = mapping;
+
         }
     }
 
@@ -63,59 +70,60 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(CapabilityCentricActorSpawnerInterface.SpawnRequest.class, req -> {
-                    log.info(String.format("Received CapabilityImplementationInfos for Cap: %s on %s",req.getInfo().getCapabilityURI(), req.getInfo().getEndpointUrl()));
+                    log.info(String.format("Received CapabilityImplementationInfos for Cap: %s on %s", req.getInfo().getCapabilityURI(), req.getInfo().getEndpointUrl()));
                     discovery = getSender();
-                    retrieveMethodAndVariableNodeIds(req); })
+                    retrieveMethodAndVariableNodeIds(req);
+                })
                 .match(MachineDisconnectedEvent.class, req -> {
-					machine.tell(req, getSelf());					
-					FiniteDuration duration = FiniteDuration.create(5, TimeUnit.SECONDS);
-					Future<Boolean> stopFuture = Patterns.gracefulStop(machine, duration);
-				    Boolean stopped = Await.result(stopFuture, duration);
-					discovery.tell(req, getSelf());					
-					getContext().stop(getSelf());
-				})
+                    machine.tell(req, getSelf());
+                    FiniteDuration duration = FiniteDuration.create(5, TimeUnit.SECONDS);
+                    Future<Boolean> stopFuture = Patterns.gracefulStop(machine, duration);
+                    Boolean stopped = Await.result(stopFuture, duration);
+                    discovery.tell(req, getSelf());
+                    getContext().stop(getSelf());
+                })
                 .build();
     }
 
     private void retrieveMethodAndVariableNodeIds(CapabilityCentricActorSpawnerInterface.SpawnRequest req) {
         // check if input or output station:
         String uri = req.getInfo().getCapabilityURI();
-        if (!uri.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI))	{
-            log.error("Called with nonsupported Capability: "+uri);
+        if (!uri.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_CAPABILITY_URI)) {
+            log.error("Called with nonsupported Capability: " + uri);
             return;
         }
         try {
             TransportModuleOPCUAnodes nodeIds = retrieveNodeIds(req.getInfo());
             if (!nodeIds.isComplete()) {
-                log.error("Error obtaining methods and variables from OPCUA for spawning actor: "+nodeIds.toString());
+                log.error("Error obtaining methods and variables from OPCUA for spawning actor: " + nodeIds.toString());
                 return;
             }
             log.info("Successfully retrieved node infos " + nodeIds);
             Actor model = generateActor(req.getInfo());
             log.info("Successfully Generated actor for " + req.getInfo());
             spawnNewTransportActor(req.getInfo(), model, nodeIds);
-        } catch(Exception e) {
-            log.error("Error obtaining info from OPCUA for spawning transport actor with error: "+e.getMessage());
+        } catch (Exception e) {
+            log.error("Error obtaining info from OPCUA for spawning transport actor with error: " + e.getMessage());
         }
     }
 
     private void spawnNewTransportActor(CapabilityImplInfo info, Actor model, TransportModuleOPCUAnodes nodeIds) {
-        final ActorSelection eventBusByRef = context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        final ActorSelection eventBusByRef = context().actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         AbstractCapability capability = TransportModuleCapability.getTransportCapability();
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         Position selfPos = resolvePosition(info);
-        TransportModuleOPCUAWrapper hal = new TransportModuleOPCUAWrapper(intraEventBus,  info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.transportMethod, getSelf());
-        machine = this.context().actorOf(BasicTransportModuleActor.props(eventBusByRef, capability, model, hal, selfPos, intraEventBus, new DefaultTransportPositionLookup(), env), model.getActorName()+selfPos.getPos());
-        log.info("Spawned Actor: "+machine.path());
+        TransportModuleOPCUAWrapper hal = new TransportModuleOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.transportMethod, getSelf());
+        machine = this.context().actorOf(BasicTransportModuleActor.props(eventBusByRef, capability, model, hal, selfPos, intraEventBus, new DefaultTransportPositionLookup(), env), model.getActorName() + selfPos.getPos());
+        log.info("Spawned Actor: " + machine.path());
     }
 
     private Position resolvePosition(CapabilityImplInfo info) {
         Position pos = transportPositionParser.parseLastIPPos(info.getEndpointUrl());
         if (pos == TransportRoutingInterface.UNKNOWN_POSITION || pos.getPos().equals("1")) {
-            log.error("Unable to resolve position for uri via IP Addr, trying now via Port: "+info.getEndpointUrl());
+            log.error("Unable to resolve position for uri via IP Addr, trying now via Port: " + info.getEndpointUrl());
             pos = transportPositionParser.parsePosViaPortNr(info.getEndpointUrl());
             if (pos == TransportRoutingInterface.UNKNOWN_POSITION) {
-                log.error("Unable to resolve position for uri via port, assigning default position 20: "+info.getEndpointUrl());
+                log.error("Unable to resolve position for uri via port, assigning default position 20: " + info.getEndpointUrl());
                 pos = new Position("20");
             }
         }
@@ -123,16 +131,16 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
     }
 
     private Actor generateActor(CapabilityImplInfo info) throws UaException {
-        log.info("Transport Actor info: Client=" + info.getClient() + ", ActorNode="+info.getActorNode() +
+        log.info("Transport Actor info: Client=" + info.getClient() + ", ActorNode=" + info.getActorNode() +
                 ", Endpoint=" + info.getEndpointUrl() + ", CapURI=" + info.getCapabilityURI() + ", CapNode=" + info.getCapabilitiesNode());
         UaNode actorNode = info.getClient().getAddressSpace().getNode(info.getActorNode()); //Use async?
         log.info("Actor Node for creating actor: " + actorNode);
         Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
         actor.setDisplayName(actorNode.getDisplayName().getText());
         actor.setActorName(actorNode.getBrowseName().getName());
-        String id = info.getActorNode().getIdentifier().toString();        
-        String uri = info.getEndpointUrl().endsWith("/") ? info.getEndpointUrl()+id : info.getEndpointUrl()+"/"+id;
-      //actor.setID(id);
+        String id = info.getActorNode().getIdentifier().toString();
+        String uri = info.getEndpointUrl().endsWith("/") ? info.getEndpointUrl() + id : info.getEndpointUrl() + "/" + id;
+        //actor.setID(id);
         actor.setID(uri);
         actor.setUri(uri);
         return actor;
@@ -144,10 +152,10 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         TransportModuleOPCUAnodes nodeIds = new TransportModuleOPCUAnodes();
         NamespaceTable namespaceTable = info.getClient().getNamespaceTable();
         for (ReferenceDescription n : nodes) {
-            log.info("Checking transport module node: "+n.getBrowseName().toParseableString());
+            log.info("Checking transport module node: " + n.getBrowseName().toParseableString());
             String bName = n.getBrowseName().getName();
             log.info("Checking node with name " + bName);
-            if(bName == null){
+            if (bName == null) {
                 continue;   //Just to be safe
             }
             if (bName.equalsIgnoreCase(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset.toString()))
@@ -172,30 +180,39 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         public NodeId getStopMethod() {
             return stopMethod;
         }
+
         public void setStopMethod(NodeId stopMethod) {
             this.stopMethod = stopMethod;
         }
+
         public NodeId getResetMethod() {
             return resetMethod;
         }
+
         public void setResetMethod(NodeId resetMethod) {
             this.resetMethod = resetMethod;
         }
+
         public NodeId getStateVar() {
             return stateVar;
         }
+
         public void setStateVar(NodeId stateVar) {
             this.stateVar = stateVar;
         }
+
         public NodeId getTransportMethod() {
             return transportMethod;
         }
+
         public void setTransportMethod(NodeId transportMethod) {
             this.transportMethod = transportMethod;
         }
+
         public boolean isComplete() {
             return (stopMethod != null && resetMethod != null && stateVar != null && transportMethod != null);
         }
+
         @Override
         public String toString() {
             String stop = stopMethod != null ? stopMethod.toParseableString() : "NULL";

@@ -254,7 +254,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
                         .forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
                 ordMapper.getProcessesInState(OrderEventType.CANCELED).stream() //orders that need to be prematurely removed
                         .forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
-                tryAssigningTransportToOutputStation();
+                //tryAssigningTransportToOutputStation();
             } else if (ue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
                 tryAssigningTransportToFoldingStation();
                 // we reached idle for an inputstation
@@ -317,7 +317,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
                             orderEventBus.tell(opue, ActorRef.noSender());
                         } );
                         tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()); });
-                    tryAssigningTransportToOutputStation();
+                    //tryAssigningTransportToOutputStation();
                     break;
                 case STOPPING:// fallthrough
                 case STOPPED:
@@ -364,7 +364,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
         }
     }
 
-    private void tryAssigningTransportToOutputStation(){
+    /*private void tryAssigningTransportToOutputStation(){
         //Find OutputStation in Idle Empty
         Set<AkkaActorBackedCoreModelAbstractActor> availableOutputStations = capMan.getMachinesProvidingCapability(outputStationCap);
         Optional<AkkaActorBackedCoreModelAbstractActor> idleOutputStation = availableOutputStations.stream()
@@ -392,7 +392,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
             log.info("Waiting for Machines to be in suitable state. Machines in suitable state? IO: {}, FoldingStation: {}, Transport: {}", idleOutputStation.isPresent(), readyFoldingStation.isPresent(), idleTransportFU.isPresent());
             //System.out.println("Available Input station " + idleInputStation + ", Available Folding Station: " + readyFoldingStation + ", TransportFU: " + idleTransportFU);
         }
-    }
+    }*/
 
     private void handleStoppingOrStoppedMachine(AkkaActorBackedCoreModelAbstractActor machine) {
         // this is called when the machine is explicitly stopped, e.g. to shut it down or because of emergency,

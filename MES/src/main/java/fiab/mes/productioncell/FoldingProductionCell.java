@@ -17,6 +17,8 @@ import fiab.mes.auth.HttpsConfigurator;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.MachineEntryActor;
 import fiab.mes.order.actor.OrderEntryActor;
+import fiab.mes.productioncell.foldingstation.DefaultFoldingCellTransportPositionLookup;
+import fiab.mes.productioncell.foldingstation.HardcodedFoldingCellTransportRoutingAndMapping;
 import fiab.mes.restendpoint.ActorRestEndpoint;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
@@ -37,8 +39,8 @@ public class FoldingProductionCell {
             production_cell_name = "LocalFoldingProductionCell";
         }
         system = ActorSystem.create(production_cell_name);
-        HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-        DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
+        HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();
+        DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
         ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         ActorRef transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
         ActorRef foldingCellCoord = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
@@ -47,7 +49,9 @@ public class FoldingProductionCell {
 
     public static void loadProductionCellLayoutFromFile() {
         ShopfloorConfigurations.JsonFilePersistedDiscovery discovery = new ShopfloorConfigurations.JsonFilePersistedDiscovery(production_cell_name);
-        discovery.triggerDiscoveryMechanism(system);
+        HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();
+        DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
+        discovery.triggerDiscoveryMechanism(system, dns, routing);
     }
 
     public static CompletionStage<ServerBinding> startup(String jsonDiscoveryFile, int expectedTTs, ActorSystem system) {
@@ -63,9 +67,11 @@ public class FoldingProductionCell {
         ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), "Folding" + OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
         ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), "Folding" + MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
 
-        if (jsonDiscoveryFile != null)
-            new ShopfloorConfigurations.JsonFilePersistedDiscovery(jsonDiscoveryFile).triggerDiscoveryMechanism(system);
-        else {
+        if (jsonDiscoveryFile != null) {
+            HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();
+            DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
+            new ShopfloorConfigurations.JsonFilePersistedDiscovery(jsonDiscoveryFile).triggerDiscoveryMechanism(system, dns, routing);
+        }else {
             //new ShopfloorConfigurations.VirtualInputOutputTurntableOnly().triggerDiscoveryMechanism(system);
             new ShopfloorConfigurations.NoDiscovery().triggerDiscoveryMechanism(system);
         }

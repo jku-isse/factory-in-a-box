@@ -35,14 +35,14 @@ public class StartupVirtualFoldingShopfloorParticipants {
         StartupUtil.startup(10, "VirtualFolding");
         // TT2 East
         StartupUtil.startup(11, "VirtualFolding");
-        startupHiddenFoldingParticipants();
+        ScheduledExecutorService es = Executors.newScheduledThreadPool(4);
+        startupHiddenFoldingParticipants(es);
         // TT3 West
         fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(12, "TransitStation");
         // TT3 East
         fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(14, "OutputStation");
 
         //Start Turntables later
-        ScheduledExecutorService es = Executors.newScheduledThreadPool(2);
         es.schedule(() -> {
             // TT2 West - TT1 itself
             fiab.turntable.StartupUtil.startupWithHiddenInternalControls(3, "VirtualTurntable1");
@@ -56,24 +56,16 @@ public class StartupVirtualFoldingShopfloorParticipants {
         }, 10, TimeUnit.SECONDS);
     }
 
-    private static void startupHiddenFoldingParticipants(){
+    private static void startupHiddenFoldingParticipants(ScheduledExecutorService es){
         //TT2 East, Actual HS_East binding for TT2 (For now since InputStation does not accept to be loaded via hs)
         fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(20, "OutputStation");
         //TT4 West, Actual HS_East binding for TT2
         fiab.machine.iostation.opcua.StartupUtil.startupInputstation(7, "InputStation");
         // Start Turntable later
-        ScheduledExecutorService es = Executors.newScheduledThreadPool(1);
+        es = Executors.newScheduledThreadPool(1);
         es.schedule(() -> {
             //TT4 itself
             fiab.turntable.StartupUtil.startupWithHiddenInternalControls(8, "VirtualTurntable4");
         }, 10, TimeUnit.SECONDS);
-        es.schedule(() -> {
-            //TT4 itself
-            startupFoldingCoordinator();
-        }, 15, TimeUnit.SECONDS);
-    }
-
-    private static void startupFoldingCoordinator(){
-        FoldingProductionCell.startup(null, 1, ActorSystem.create("FoldingProductionCellCoordinator"));
     }
 }
