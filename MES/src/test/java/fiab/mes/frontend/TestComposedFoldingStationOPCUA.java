@@ -85,7 +85,7 @@ public class TestComposedFoldingStationOPCUA {
     }
 
     @BeforeEach
-    void setUp()  {
+    void setUp() {
         knownFoldingActors = new HashMap<>();
 
     }
@@ -133,13 +133,12 @@ public class TestComposedFoldingStationOPCUA {
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 boolean isTransport1Functional = false;
-                boolean isTransport2Functional = false;
-                boolean waitingForProcess = true;
+                //boolean isTransport2Functional = false;
+                //boolean waitingForProcess = true;
                 boolean foldingComplete = false;
                 int idleEvents = 0;
                 while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() ||
-                        !isTransport1Functional || !isTransport2Functional ||
-                        idleEvents < urlsToBrowse.size() || !foldingComplete || waitingForProcess) {
+                        !isTransport1Functional || idleEvents < urlsToBrowse.size()) {
                     ignoreMsg(msg -> msg instanceof String);
                     TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
                     logEvent(te);
@@ -149,8 +148,6 @@ public class TestComposedFoldingStationOPCUA {
                     if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
                         if (!isTransport1Functional) {
                             isTransport1Functional = true;
-                        } else {
-                            isTransport2Functional = true;
                         }
                     }
                     if (te instanceof MachineConnectedEvent) {
@@ -176,11 +173,15 @@ public class TestComposedFoldingStationOPCUA {
                                     );
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.IDLE)) {
                             idleEvents++;
-                            if(waitingForProcess) {
-                                orderEntryActor.tell(processRequest, getRef());
-                                waitingForProcess = false;
-                            }
                         }
+                    }
+                }
+                orderEntryActor.tell(processRequest, getRef());
+
+                while (!foldingComplete) {
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
+                    logEvent(te);
+                    if (te instanceof MachineStatusUpdateEvent) {
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)) {
                             boolean isFoldingStation = Optional.ofNullable(knownFoldingActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
                                     .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase())).isPresent();

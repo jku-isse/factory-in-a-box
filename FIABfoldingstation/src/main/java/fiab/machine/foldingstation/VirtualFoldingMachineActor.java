@@ -20,6 +20,7 @@ import java.time.Duration;
 
 public class VirtualFoldingMachineActor extends AbstractActor {
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    private String machineName = "VirtualFoldingStation";
     protected IntraMachineEventBus intraEventBus;
     protected BasicMachineStates currentState = BasicMachineStates.STOPPING;
     protected boolean doPublishState = false;
@@ -125,14 +126,14 @@ public class VirtualFoldingMachineActor extends AbstractActor {
     }
 
     private void updateCapability(String newCapability) {
-        intraEventBus.publish(new MachineCapabilityUpdateEvent("", "Fold_Capability", newCapability));
+        intraEventBus.publish(new MachineCapabilityUpdateEvent(machineName, "Fold_Capability", newCapability));
     }
 
     private void setAndPublishState(BasicMachineStates newState) {
         //log.debug(String.format("%s sets state from %s to %s", this.machineId.getId(), this.currentState, newState));
         this.currentState = newState;
         if (doPublishState) {
-            intraEventBus.publish(new MachineStatusUpdateEvent("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", newState));
+            intraEventBus.publish(new MachineStatusUpdateEvent(machineName, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Status update", newState));
         }
     }
 

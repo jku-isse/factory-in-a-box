@@ -62,7 +62,6 @@ public class StartupVirtualFoldingShopfloorParticipants {
         //TT4 West, Actual HS_East binding for TT2
         fiab.machine.iostation.opcua.StartupUtil.startupInputstation(7, "InputStation");
         // Start Turntable later
-        es = Executors.newScheduledThreadPool(1);
         es.schedule(() -> {
             //TT4 itself
             fiab.turntable.StartupUtil.startupWithHiddenInternalControls(8, "VirtualTurntable4");

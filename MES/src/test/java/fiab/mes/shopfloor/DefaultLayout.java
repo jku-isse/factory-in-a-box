@@ -315,7 +315,7 @@ public class DefaultLayout {
 		Thread.sleep(1000);
 		ActorRef serverSideRef = serverSide.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 		FoldingStationWrapperInterface wrapperDelegate = new MockFoldingStationWrapperDelegate(machineWrapper);
-		ActorRef machine = system.actorOf(FoldingStationActor.props(eventBusByRef, cap, modelActor, wrapperDelegate, intraEventBus));
+		ActorRef machine = system.actorOf(FoldingStationActor.props(eventBusByRef, cap, modelActor, FoldingStationActor.outputMock,wrapperDelegate, intraEventBus));
 		return serverSideRef;
 	}
 

@@ -3,6 +3,7 @@ package fiab.mes.mockactors.productioncell;
 import ProcessCore.CapabilityInvocation;
 import ProcessCore.ProcessCoreFactory;
 import ProcessCore.ProcessStep;
+import akka.actor.Actor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
@@ -44,6 +45,7 @@ import fiab.mes.productioncell.foldingstation.DefaultFoldingCellTransportPositio
 
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -82,7 +84,7 @@ public class TestProductionCell {
     }
 
     @Test
-    void testProductionCellDiscovery()  {
+    void testProductionCellDiscovery() {
         new TestKit(system) {
             {
                 Set<String> urlsToBrowse = getTestLayout();
@@ -166,7 +168,8 @@ public class TestProductionCell {
                 boolean isTransportFunctional = false;
                 boolean foldingComplete = false;
                 boolean isProcessAssigned = false;
-                while (/*!isPlannerFunctional ||*/ countConnEvents < urlsToBrowse.size() || !isTransportFunctional || !foldingComplete || !isProcessAssigned) {
+                int countIdleEvents = 0;
+                while (/*!isPlannerFunctional ||*/ countConnEvents < urlsToBrowse.size() || !isTransportFunctional || countIdleEvents < urlsToBrowse.size()) {
                     TimedEvent te = expectMsgAnyClassOf(Duration.ofMinutes(10), TimedEvent.class);
                     logEvent(te);
                     /*if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
@@ -180,18 +183,20 @@ public class TestProductionCell {
                         knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
                         logger.info("#%# Machine connected: " + ((MachineConnectedEvent) te).getMachineId() + " and stored in: "
                                 + knownActors.get(((MachineConnectedEvent) te).getMachineId()));
+                        ((MachineConnectedEvent) te).getMachine().getAkkaActor()
+                                .tell(new GenericMachineRequests.Stop(((MachineConnectedEvent) te).getMachineId()), getRef());
                     }
                     if (te instanceof MachineStatusUpdateEvent) {
+                        if (((MachineStatusUpdateEvent) te).getStatus() == null) {
+                            logger.info(((MachineStatusUpdateEvent) te).getMachineId() + " sent null");
+                        }
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) {
                             Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId())).ifPresent(
                                     actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
                             );
-
                         }
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.IDLE)) {
-                            Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
-                                    .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase()))
-                                    .ifPresent(actor -> actor.getAkkaActor().tell(new RegisterProcessStepRequest("Test", step.getID(), step, getRef()), getRef()));
+                            countIdleEvents++;
                         }
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)) {
                             boolean isFoldingStation = Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
@@ -208,15 +213,31 @@ public class TestProductionCell {
                             );
                         }
                     }
+
+                }
+                Optional<AkkaActorBackedCoreModelAbstractActor> target = knownActors.values().stream()
+                                .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase())).findAny();
+                target.ifPresent(akkaActorBackedCoreModelAbstractActor ->
+                        akkaActorBackedCoreModelAbstractActor.getAkkaActor()
+                                .tell(new RegisterProcessStepRequest("Test", step.getID(), step, getRef()), getRef()));
+                while (!foldingComplete) {
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofMinutes(10), TimedEvent.class);
+                    logEvent(te);
+                    if (te instanceof MachineStatusUpdateEvent) {
+                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)) {
+                            boolean isFoldingStation = Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
+                                    .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase())).isPresent();
+                            if (isFoldingStation) {
+                                foldingComplete = true;
+                            }
+                        }
+                    }
                     if (te instanceof ReadyForProcessEvent) {
                         //assert((ReadyForProcessEvent) te).isReady();
                         // We don't know the machine Id here so we just tell every folding station
-                        if (!isProcessAssigned) {
-                            knownActors.values().stream()
-                                    .filter(m -> m.getId().toLowerCase(Locale.ROOT).contains("Folding".toLowerCase(Locale.ROOT)))
-                                    .forEach(actor -> actor.getAkkaActor().tell(new LockForOrder(step.getID(), "Test"), getRef()));
-                            isProcessAssigned = true;
-                        }
+                        target.ifPresent(akkaActorBackedCoreModelAbstractActor ->
+                                akkaActorBackedCoreModelAbstractActor.getAkkaActor()
+                                        .tell(new LockForOrder(step.getID(), "Test"), getRef()));
                     }
                 }
                 assertTrue(foldingComplete);

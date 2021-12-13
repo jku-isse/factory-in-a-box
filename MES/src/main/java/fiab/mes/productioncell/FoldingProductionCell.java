@@ -65,6 +65,7 @@ public class FoldingProductionCell {
 
         DefaultProductionCellInfrastructure shopfloor = new DefaultProductionCellInfrastructure(system, expectedTTs);
         ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), "Folding" + OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
+
         ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), "Folding" + MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
 
         if (jsonDiscoveryFile != null) {

@@ -90,11 +90,11 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
             }
             Actor model = generateActor(req.getInfo());
             Actor outputModel = generateOutputActor(req.getInfo(), nodeIds);
-            if (outputModel == null) {   //If there is no outputstation connected via the wiringInfo, spawn without out
-                spawnNewActor(req.getInfo(), model, nodeIds);
-            } else {
+            //if (outputModel == null) {   //If there is no outputstation connected via the wiringInfo, spawn without out
+            //    spawnNewActor(req.getInfo(), model, nodeIds);
+            //} else {
                 spawnNewActor(req.getInfo(), model, outputModel, nodeIds);
-            }
+            //}
         } catch (Exception e) {
             log.error("Error obtaining info from OPCUA for spawning actor at " + req
                     .getInfo().getEndpointUrl() + " with error, shutting down: " + e.getMessage());
@@ -131,7 +131,7 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
         return null;
     }
 
-    private void spawnNewActor(CapabilityImplInfo info, Actor model, FoldingOPCUAnodes nodeIds) {
+    /*private void spawnNewActor(CapabilityImplInfo info, Actor model, FoldingOPCUAnodes nodeIds) {
         AbstractCapability capability = WellknownFoldingCapability.getFoldingShapeCapability();
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         TransportRoutingInterface.Position selfPos = resolvePosition(info);
@@ -139,7 +139,7 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
         FoldingOPCUAWrapper hal = new FoldingOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.foldMethod, getSelf());
         machine = this.context().actorOf(FoldingStationActor.props(eventBusByRef, capability, model, hal, intraEventBus), model.getActorName() + selfPos.getPos());
         log.info("Spawned Actor: " + machine.path());
-    }
+    }*/
 
     private void spawnNewActor(CapabilityImplInfo info, Actor model, Actor outputModel, FoldingOPCUAnodes nodeIds) {
         AbstractCapability capability = WellknownFoldingCapability.getFoldingShapeCapability();

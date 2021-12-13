@@ -52,17 +52,20 @@ public class FoldingStationActor extends AbstractActor {
 
     protected HistoryTracker externalHistory=null;
 
-    static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, FoldingStationWrapperInterface hal, IntraMachineEventBus intraBus) {
-        return Props.create(FoldingStationActor.class, () -> new FoldingStationActor(machineEventBus, cap, modelActor, hal, intraBus));
-    }
+    //Use this when having no wiringInfo in layout
+    public static Actor outputMock = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
+
+    // static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, FoldingStationWrapperInterface hal, IntraMachineEventBus intraBus) {
+    //     return Props.create(FoldingStationActor.class, () -> new FoldingStationActor(machineEventBus, cap, modelActor, hal, intraBus));
+    // }
 
     static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, Actor outputActor, FoldingStationWrapperInterface hal, IntraMachineEventBus intraBus) {
         return Props.create(FoldingStationActor.class, () -> new FoldingStationActor(machineEventBus, cap, modelActor, outputActor, hal, intraBus));
     }
 
-    public FoldingStationActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, FoldingStationWrapperInterface hal, IntraMachineEventBus intraBus){
-        this(machineEventBus, cap, modelActor, null, hal, intraBus);
-    }
+    // public FoldingStationActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, FoldingStationWrapperInterface hal, IntraMachineEventBus intraBus){
+    //     this(machineEventBus, cap, modelActor, null, hal, intraBus);
+    // }
 
     public FoldingStationActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, Actor outputActor, FoldingStationWrapperInterface hal, IntraMachineEventBus intraBus) {
         this.cap = cap;
