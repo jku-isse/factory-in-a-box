@@ -60,7 +60,7 @@ public class StartupVirtualFoldingShopfloorParticipants {
         //TT2 East, Actual HS_East binding for TT2 (For now since InputStation does not accept to be loaded via hs)
         fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(20, "OutputStation");
         //TT4 West, Actual HS_East binding for TT2
-        fiab.machine.iostation.opcua.StartupUtil.startupInputstation(7, "InputStation");
+        fiab.machine.iostation.opcua.StartupUtil.startupInputStationNoAutoReload(7, "InputStation");
         // Start Turntable later
         es.schedule(() -> {
             //TT4 itself

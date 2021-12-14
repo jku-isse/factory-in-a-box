@@ -73,7 +73,7 @@ public class FoldingStationActor extends AbstractActor {
         if(outputActor != null) {
             this.outputId = new AkkaActorBackedCoreModelAbstractActor(outputActor.getID(), outputActor, self());
         }else{
-            this.outputId = null;   //TODO check if this can cause issues -> It does :/
+            this.outputId = null;   //TODO check if this can cause issues
         }
         this.eventBusByRef = machineEventBus;
         this.hal = hal;

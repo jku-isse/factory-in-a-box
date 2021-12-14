@@ -64,9 +64,9 @@ public class FoldingProductionCell {
         final ActorMaterializer materializer = ActorMaterializer.create(system);
 
         DefaultProductionCellInfrastructure shopfloor = new DefaultProductionCellInfrastructure(system, expectedTTs);
-        ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), "Folding" + OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
 
-        ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), "Folding" + MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
 
         if (jsonDiscoveryFile != null) {
             HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();

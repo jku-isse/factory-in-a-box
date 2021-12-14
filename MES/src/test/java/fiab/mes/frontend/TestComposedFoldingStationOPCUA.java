@@ -199,7 +199,7 @@ public class TestComposedFoldingStationOPCUA {
         };
     }
 
-    public ProcessStep createFoldingProcessStep() {
+    /*public ProcessStep createFoldingProcessStep() {
         CapabilityInvocation foldingCap = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
         foldingCap.setID("TestFoldingCapabilityId");
         foldingCap.setDisplayName("TestFoldingCapability");
@@ -217,7 +217,7 @@ public class TestComposedFoldingStationOPCUA {
         op.activateProcess();
 
         return op.getAvailableSteps().get(0);
-    }
+    }*/
 
     public Set<String> getLocalhostLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();
