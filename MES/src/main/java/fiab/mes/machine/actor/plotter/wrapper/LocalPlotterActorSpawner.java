@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
+import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookupInterface;
 import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
@@ -107,7 +108,7 @@ public class LocalPlotterActorSpawner extends AbstractActor {
             AbstractCapability capability = WellknownPlotterCapability.getColorPlottingCapability(color.get());
             IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
             Position selfPos = resolvePosition(info);
-            final ActorSelection eventBusByRef = context().actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+            final ActorSelection eventBusByRef = context().actorSelection("/user/" +transportPositionParser.getLookupPrefix()+ InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
             PlotterOPCUAWrapper hal = new PlotterOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.plotMethod, getSelf());
             machine = this.context().actorOf(BasicMachineActor.props(eventBusByRef, capability, model, hal, intraEventBus), model.getActorName() + selfPos.getPos());
             log.info("Spawned Actor: " + machine.path());

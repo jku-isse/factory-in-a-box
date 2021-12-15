@@ -169,7 +169,11 @@ public class FoldingStationActor extends AbstractActor {
             }
             switch(newState) {
                 case COMPLETING:
-                    eventBusByRef.tell(new OrderRelocationNotification(machineId.getId(),reservedForOrder.getRootOrderId(), outputId), self());
+                    if(reservedForOrder != null) {  //FIXME
+                        eventBusByRef.tell(new OrderRelocationNotification(machineId.getId(), reservedForOrder.getRootOrderId(), outputId), self());
+                    }else{
+                        log.warning("FoldingStation reached completing without order");
+                    }
                     setAndPublishSensedState(newState);
                     break;
                 case STOPPING:

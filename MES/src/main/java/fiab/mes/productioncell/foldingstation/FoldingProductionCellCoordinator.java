@@ -39,6 +39,7 @@ import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatu
 import fiab.mes.planer.actor.MachineOrderMappingManager.MachineOrderMappingStatusLifecycleException;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
+import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.CancelTransportRequest;
 import fiab.mes.transport.msg.RegisterTransportRequest;
@@ -119,18 +120,18 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
 
     private void getEventBusAndSubscribe() throws Exception{
         SubscribeMessage orderSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
-        orderEventBus = this.context().actorSelection("/user/"+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        orderEventBus = this.context().actorSelection("/user/"+FoldingProductionCell.LOOKUP_PREFIX+OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         orderEventBus.tell(orderSub, getSelf());
 
         SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
-        machineEventBus = this.context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        machineEventBus = this.context().actorSelection("/user/"+ FoldingProductionCell.LOOKUP_PREFIX+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         machineEventBus.tell(machineSub, getSelf());
 
         ordMapper = new MachineOrderMappingManager(orderEventBus, self().path().name());
     }
 
     private void getTransportSystemCoordinator() throws Exception {
-        transportCoordinator = this.context().actorSelection("/user/"+TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+        transportCoordinator = this.context().actorSelection("/user/"+FoldingProductionCell.LOOKUP_PREFIX+TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
     }
 
     private void publishLocalState(MachineEventType eventType, PlannerState state, String message) {

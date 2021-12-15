@@ -29,6 +29,9 @@ import java.util.concurrent.CompletionStage;
 
 public class FoldingProductionCell {
 
+    //Used to distinguish MES from FoldingCell components
+    public final static String LOOKUP_PREFIX = "Folding_";
+
     private static String production_cell_name;
     private static ActorSystem system;
 
@@ -41,9 +44,9 @@ public class FoldingProductionCell {
         system = ActorSystem.create(production_cell_name);
         HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();
         DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
-        ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-        ActorRef transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
-        ActorRef foldingCellCoord = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
+        ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), LOOKUP_PREFIX+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        ActorRef transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1),LOOKUP_PREFIX+ TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef foldingCellCoord = system.actorOf(FoldingProductionCellCoordinator.props(), LOOKUP_PREFIX+FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
         loadProductionCellLayoutFromFile();
     }
 
@@ -64,9 +67,9 @@ public class FoldingProductionCell {
         final ActorMaterializer materializer = ActorMaterializer.create(system);
 
         DefaultProductionCellInfrastructure shopfloor = new DefaultProductionCellInfrastructure(system, expectedTTs);
-        ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), LOOKUP_PREFIX+OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
 
-        ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), LOOKUP_PREFIX+MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
 
         if (jsonDiscoveryFile != null) {
             HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();

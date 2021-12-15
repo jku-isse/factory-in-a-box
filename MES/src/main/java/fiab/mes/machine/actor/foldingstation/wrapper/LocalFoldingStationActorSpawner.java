@@ -15,6 +15,7 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.foldingstation.FoldingStationActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
+import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
@@ -48,9 +49,9 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
     }
 
     public LocalFoldingStationActorSpawner(TransportPositionParser transportPositionParser) {
-        if(transportPositionParser == null){
+        if (transportPositionParser == null) {
             this.transportPositionParser = new DefaultTransportPositionLookup();
-        }else{
+        } else {
             this.transportPositionParser = transportPositionParser;
         }
     }
@@ -93,7 +94,7 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
             //if (outputModel == null) {   //If there is no outputstation connected via the wiringInfo, spawn without out
             //    spawnNewActor(req.getInfo(), model, nodeIds);
             //} else {
-                spawnNewActor(req.getInfo(), model, outputModel, nodeIds);
+            spawnNewActor(req.getInfo(), model, outputModel, nodeIds);
             //}
         } catch (Exception e) {
             log.error("Error obtaining info from OPCUA for spawning actor at " + req
@@ -120,7 +121,7 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
 
             Actor actor = ActorCoreModelFactory.eINSTANCE.createActor();
             String pos = transportPositionParser.parseLastIPPos(info.getEndpointUrl()).getPos();
-            String id = "TransitStation" + pos;
+            String id = "TransitStation";
             actor.setDisplayName(id);
             actor.setActorName(id);
             String uri = endpoint.endsWith("/") ? endpoint + id : endpoint + "/" + id;
@@ -145,7 +146,7 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
         AbstractCapability capability = WellknownFoldingCapability.getFoldingShapeCapability();
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         TransportRoutingInterface.Position selfPos = resolvePosition(info);
-        final ActorSelection eventBusByRef = context().actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        final ActorSelection eventBusByRef = context().actorSelection("/user/" + transportPositionParser.getLookupPrefix() + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         FoldingOPCUAWrapper hal = new FoldingOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.foldMethod, getSelf());
         machine = this.context().actorOf(FoldingStationActor.props(eventBusByRef, capability, model, outputModel, hal, intraEventBus), model.getActorName() + selfPos.getPos());
         log.info("Spawned Actor: " + machine.path());
@@ -182,25 +183,25 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
     }
 
     private FoldingOPCUAnodes retrieveOutputEndpointInfoFromHandshake(CapabilityImplInfo info, FoldingOPCUAnodes nodeIds,
-                                                         ReferenceDescription clientHSRef) throws Exception {
+                                                                      ReferenceDescription clientHSRef) throws Exception {
         NamespaceTable namespaceTable = info.getClient().getNamespaceTable();
         List<ReferenceDescription> hsRefs = info.getClient().getAddressSpace()
                 .browse(clientHSRef.getNodeId().toNodeIdOrThrow(namespaceTable));
-        for (ReferenceDescription r : hsRefs){
+        for (ReferenceDescription r : hsRefs) {
             String bName = r.getBrowseName().getName();
             if (bName == null) {  //We should be fine without this, but just to be safe
                 continue;
             }
-            if (bName.equalsIgnoreCase(OPCUACapabilitiesAndWiringInfoBrowsenames.WIRING_INFO)){
+            if (bName.equalsIgnoreCase(OPCUACapabilitiesAndWiringInfoBrowsenames.WIRING_INFO)) {
                 log.info("Found WiringInfo!");
                 List<ReferenceDescription> wiringRefs = info.getClient().getAddressSpace()
                         .browse(r.getNodeId().toNodeIdOrThrow(namespaceTable));
-                for(ReferenceDescription wRef : wiringRefs){
+                for (ReferenceDescription wRef : wiringRefs) {
                     String wName = wRef.getBrowseName().getName();
                     if (wName == null) {  //We should be fine without this, but just to be safe
                         continue;
                     }
-                    if(wName.equalsIgnoreCase(OPCUACapabilitiesAndWiringInfoBrowsenames.REMOTE_ENDPOINT)){
+                    if (wName.equalsIgnoreCase(OPCUACapabilitiesAndWiringInfoBrowsenames.REMOTE_ENDPOINT)) {
                         log.info("Found output endpoint!");
                         UaVariableNode endpointNode = info.getClient().getAddressSpace()
                                 .getVariableNode(wRef.getNodeId().toNodeIdOrThrow(namespaceTable));
@@ -298,7 +299,7 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
             String fold = foldMethod != null ? foldMethod.toParseableString() : "NULL";
             String out = outputEndpointInfo != null ? outputEndpointInfo.toParseableString() : "NULL";
             return "FoldingOPCUAnodes [stopMethod=" + stop + ", resetMethod=" + reset + ", stateVar="
-                    + state + ", foldMethod=" + fold + ", outputEndpointInfo="+ out +"]" ;
+                    + state + ", foldMethod=" + fold + ", outputEndpointInfo=" + out + "]";
         }
 
 

@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
@@ -111,7 +112,7 @@ public class LocalIOStationActorSpawner extends AbstractActor {
     }
 
     private void spawnNewIOStationActor(CapabilityImplInfo info, boolean isInputStation, Actor model, NodeId stopMethod, NodeId resetMethod, NodeId stateVar) {
-        final ActorSelection eventBusByRef = context().actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        final ActorSelection eventBusByRef = context().actorSelection("/user/" + transportPositionParser.getLookupPrefix()+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         AbstractCapability capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
         TransportRoutingInterface.Position selfPos = resolvePosition(info);
         InterMachineEventBus intraEventBus = new InterMachineEventBus();

@@ -1,6 +1,7 @@
 package fiab.mes.productioncell.foldingstation;
 
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
+import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookupInterface;
 import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
@@ -20,6 +21,11 @@ public class DefaultFoldingCellTransportPositionLookup implements TransportPosit
     private static final Logger logger = LoggerFactory.getLogger(DefaultTransportPositionLookup.class);
 
     private final HashMap<TransportRoutingInterface.Position, AkkaActorBackedCoreModelAbstractActor> lookupTable = new HashMap<>();
+
+    @Override
+    public String getLookupPrefix() {
+        return FoldingProductionCell.LOOKUP_PREFIX;
+    }
 
     @Override
     public TransportRoutingInterface.Position getPositionForActor(AkkaActorBackedCoreModelAbstractActor actor) {

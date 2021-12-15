@@ -42,6 +42,10 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	public static final String WELLKNOWN_LOOKUP_NAME = "TransportSystemCoordinatorActor";
+
+	static public Props props(TransportRoutingInterface routing, TransportPositionLookupInterface dns, int expectedTTs, String lookupPrefix) {
+		return Props.create(TransportSystemCoordinatorActor.class, () -> new TransportSystemCoordinatorActor(routing, dns, expectedTTs, lookupPrefix));
+	}
 	
 	static public Props props(TransportRoutingInterface routing, TransportPositionLookupInterface dns, int expectedTTs) {	    
 		return Props.create(TransportSystemCoordinatorActor.class, () -> new TransportSystemCoordinatorActor(routing, dns, expectedTTs));
@@ -62,6 +66,19 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	protected ActorRef self;
 	protected TransportSystemStatusMessage.State state = TransportSystemStatusMessage.State.STOPPED;
 	protected int expectedTTs = 1;
+	private String lookupPrefix = "";
+
+	public TransportSystemCoordinatorActor(TransportRoutingInterface routing, TransportPositionLookupInterface dns, int expectedTTs, String lookupPrefix) {
+		this.lookupPrefix = lookupPrefix;
+		this.routing = routing;
+		this.dns = dns;
+		this.self = getSelf();
+		this.externalHistory = new HistoryTracker(WELLKNOWN_LOOKUP_NAME);
+		getEventBusAndSubscribe();
+		this.state = TransportSystemStatusMessage.State.STARTING;
+		this.expectedTTs = expectedTTs;
+		publishLocalState(MachineEventType.UPDATED, this.state, "TransportSystem Started and waiting for transport modules");
+	}
 	
 	public TransportSystemCoordinatorActor(TransportRoutingInterface routing, TransportPositionLookupInterface dns, int expectedTTs) {
 		this.routing = routing;
@@ -76,7 +93,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	
 	private void getEventBusAndSubscribe() {		
 		SubscribeMessage machineSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
-		machineEventBus = this.context().actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		machineEventBus = this.context().actorSelection("/user/"+lookupPrefix+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		machineEventBus.tell(machineSub, getSelf());			
 	}
 	
@@ -111,7 +128,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	}
 	
 	private void publishLocalState(MachineEventType eventType, TransportSystemStatusMessage.State state, String message) {
-		machineEventBus.tell(new TransportSystemStatusMessage(WELLKNOWN_LOOKUP_NAME, eventType, state, message), this.self());
+		machineEventBus.tell(new TransportSystemStatusMessage(lookupPrefix+WELLKNOWN_LOOKUP_NAME, eventType, state, message), this.self());
 	}
 	
 	//REFACTOR this when adding code to handle transport module error such as stopping unexpectedly

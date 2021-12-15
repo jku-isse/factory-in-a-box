@@ -25,6 +25,7 @@ import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
+import fiab.mes.machine.msg.OrderRelocationNotification;
 import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.order.OrderProcess;
@@ -115,7 +116,6 @@ public class TestComposedFoldingStationOPCUA {
 
                 Set<String> urlsToBrowse = getLocalhostLayout();
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
-                //ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
                 ShopfloorConfigurations.addSpawners(capURI2Spawning, new FoldingTransportPositionLookup(), new HardcodedFoldingTransportRoutingAndMapping());
                 urlsToBrowse.forEach(url -> {
                     ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
@@ -133,10 +133,8 @@ public class TestComposedFoldingStationOPCUA {
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 boolean isTransport1Functional = false;
-                //boolean isTransport2Functional = false;
-                //boolean waitingForProcess = true;
-                boolean foldingComplete = false;
                 int idleEvents = 0;
+
                 while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() ||
                         !isTransport1Functional || idleEvents < urlsToBrowse.size()) {
                     ignoreMsg(msg -> msg instanceof String);
@@ -178,7 +176,11 @@ public class TestComposedFoldingStationOPCUA {
                 }
                 orderEntryActor.tell(processRequest, getRef());
 
-                while (!foldingComplete) {
+                boolean foldingComplete = false;
+                boolean orderRelocated = false;
+                boolean reachedOutput = false;
+
+                while (!foldingComplete || !reachedOutput || !orderRelocated) {
                     TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof MachineStatusUpdateEvent) {
@@ -190,34 +192,27 @@ public class TestComposedFoldingStationOPCUA {
                             }
                         }
                     }
+                    if (te instanceof OrderRelocationNotification){
+                        orderRelocated = true;
+                    }
+                    if (te instanceof IOStationStatusUpdateEvent) {
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_EMPTY) ||
+                                ((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_LOADED)) {
+                            //If event comes from an outputStation we can assume here the pallet reached the final out
+                            reachedOutput = Optional.ofNullable(knownFoldingActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))
+                                    .filter(m -> m.getId().toLowerCase().contains("Transit".toLowerCase())).isPresent();
+                        }
+                    }
                 }
                 int totalUrlsToBrowse = urlsToBrowse.size();
                 assertEquals(totalUrlsToBrowse, knownFoldingActors.size());
                 assertTrue(foldingComplete);
-                //TODO add OrderProcess (plot)/(fold)/(plot+fold) and execute
+                assertTrue(orderRelocated);
+                assertTrue(reachedOutput);
             }
         };
     }
-
-    /*public ProcessStep createFoldingProcessStep() {
-        CapabilityInvocation foldingCap = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
-        foldingCap.setID("TestFoldingCapabilityId");
-        foldingCap.setDisplayName("TestFoldingCapability");
-        foldingCap.setInvokedCapability(WellknownFoldingCapability.getFoldingShapeCapability());
-        foldingCap.getInputMappings().add(EcoreProcessUtils.getVariableMapping(WellknownFoldingCapability.getShapeInputParameter()));
-
-        ProcessCore.Process proc = ProcessCoreFactory.eINSTANCE.createProcess();
-        proc.setDisplayName("ProcessTemplate4Folds");
-        proc.setID("ProcessTemplate4Folds");
-        EcoreProcessUtils.addProcessvariables(proc, "Box");
-        EcoreProcessUtils.mapCapInputToProcessVar(proc.getVariables(), foldingCap);
-        proc.getSteps().add(foldingCap);
-
-        OrderProcess op = new OrderProcess(proc);
-        op.activateProcess();
-
-        return op.getAvailableSteps().get(0);
-    }*/
+    //TODO add OrderProcess (plot)/(plot+fold) tests
 
     public Set<String> getLocalhostLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();
@@ -237,19 +232,6 @@ public class TestComposedFoldingStationOPCUA {
         urlsToBrowse.add("opc.tcp://127.0.0.1:4854/milo"); //Output
         return urlsToBrowse;
     }
-
-    /*public Set<String> getLocalFoldingCellLayout() {
-        Set<String> urlsToBrowse = new HashSet<String>();
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4847/milo"); //Input West of TT
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4848/milo"); //InternalTT
-
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4849/milo"); //Folding1
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4850/milo"); //Folding2
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4851/milo"); //Folding3
-
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4852/milo"); //TransitStation
-        return urlsToBrowse;
-    }*/
 
     private void logEvent(TimedEvent event) {
         logger.info(event.toString());

@@ -14,13 +14,13 @@ import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 
 public class DefaultProductionCellInfrastructure {
 
-	// create machine and order event bus
-	public DefaultProductionCellInfrastructure(ActorSystem system, int expectedTTs) {
-		HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();
-		DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
-		ActorRef orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		ActorRef coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, expectedTTs), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
-		ActorRef orderPlanningActor = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
-	}
+    // create machine and order event bus
+    public DefaultProductionCellInfrastructure(ActorSystem system, int expectedTTs) {
+        HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();
+        DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
+        ActorRef orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), FoldingProductionCell.LOOKUP_PREFIX + OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), FoldingProductionCell.LOOKUP_PREFIX + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        ActorRef coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, expectedTTs, FoldingProductionCell.LOOKUP_PREFIX), FoldingProductionCell.LOOKUP_PREFIX + TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef orderPlanningActor = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
+    }
 }

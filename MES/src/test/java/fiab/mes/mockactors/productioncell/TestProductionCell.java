@@ -28,6 +28,7 @@ import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
 import fiab.mes.planer.msg.PlanerStatusMessage;
+import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.productioncell.foldingstation.HardcodedFoldingCellTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
@@ -67,8 +68,8 @@ public class TestProductionCell {
         system = ActorSystem.create(ROOT_SYSTEM);
         HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();
         DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
-        machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-        transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+        machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), FoldingProductionCell.LOOKUP_PREFIX+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1, FoldingProductionCell.LOOKUP_PREFIX), FoldingProductionCell.LOOKUP_PREFIX+TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
         foldingCellCoord = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
     }
 
