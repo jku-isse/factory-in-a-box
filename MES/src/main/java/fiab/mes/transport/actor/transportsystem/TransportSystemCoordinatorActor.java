@@ -288,7 +288,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 					}
 					break;
 				default:
-					String msg = String.format("Unable to process route between s% with Position %s and %s with Position %s due to unsupported routesize %s", 
+					String msg = String.format("Unable to process route between %s with Position %s and %s with Position %s due to unsupported routesize %s",
 							rtr.getSource().getId(), sourceP.getPos(), rtr.getDestination().getId(), destP.getPos(), routeSize);
 					log.warning(msg);					
 					this.getSender().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.UNSUPPORTED_ENDPOINT_POSITIONS ,msg), self);

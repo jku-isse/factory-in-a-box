@@ -66,7 +66,7 @@ public class NonEncryptionBaseOpcUaServer {
         Set<EndpointConfiguration> endpointConfigurations = createEndpointConfigurations();
 
         OpcUaServerConfig serverConfig = OpcUaServerConfig.builder()
-            .setApplicationUri("opc.tcp://localhost")
+            .setApplicationUri("opc.tcp://127.0.0.1")
             .setApplicationName(LocalizedText.english(serverName))
             .setEndpoints(endpointConfigurations)
             .setBuildInfo(
