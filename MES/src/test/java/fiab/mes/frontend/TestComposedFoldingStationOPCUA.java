@@ -31,6 +31,7 @@ import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.actor.OrderEntryActor;
 import fiab.mes.order.ecore.ProduceFoldingProcess;
+import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
@@ -106,7 +107,29 @@ public class TestComposedFoldingStationOPCUA {
     }
 
     @Test
-    void testShopfloorFoldingProcess() {
+    void testShopfloorFoldingProcess(){
+        //Don't forget to manually reset hidden output and load localIO and transitStation
+        OrderProcess op = new OrderProcess(ProduceFoldingProcess.getSequentialBoxProcess("Test"));
+        RegisterProcessRequest processRequest = new RegisterProcessRequest("Test", op, ActorRef.noSender());
+        testShopfloorProcess(processRequest);
+    }
+
+    @Test
+    void testShopfloorPlottingProcess(){
+        OrderProcess op = new OrderProcess(ProduceProcess.getSingleBlackStepProcess("Test"));
+        RegisterProcessRequest processRequest = new RegisterProcessRequest("Test", op,  ActorRef.noSender());
+        testShopfloorProcess(processRequest);
+    }
+
+    @Test
+    void testShopfloorPlotAndFoldingProcess(){
+        //Don't forget to manually reset hidden output and load localIO and transitStation
+        OrderProcess op = new OrderProcess(ProduceFoldingProcess.getSequentialDrawAndFoldBoxProcess("Test"));
+        RegisterProcessRequest processRequest = new RegisterProcessRequest("Test", op,  ActorRef.noSender());
+        testShopfloorProcess(processRequest);
+    }
+
+    void testShopfloorProcess(RegisterProcessRequest processRequest) {
         new TestKit(system) {
             {
                 System.out.println("test frontend responses by emitting orders with sequential process");
@@ -126,9 +149,8 @@ public class TestComposedFoldingStationOPCUA {
                         e.printStackTrace();
                     }
                 });
-
-                OrderProcess op = new OrderProcess(ProduceFoldingProcess.getSequentialBoxProcess("Test"));
-                RegisterProcessRequest processRequest = new RegisterProcessRequest("Test", op, getRef());
+                //OrderProcess op = new OrderProcess(ProduceFoldingProcess.getSequentialBoxProcess("Test"));
+                //RegisterProcessRequest processRequest = new RegisterProcessRequest("Test", op, getRef());
 
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
@@ -176,43 +198,26 @@ public class TestComposedFoldingStationOPCUA {
                 }
                 orderEntryActor.tell(processRequest, getRef());
 
-                boolean foldingComplete = false;
-                boolean orderRelocated = false;
                 boolean reachedOutput = false;
 
-                while (!foldingComplete || !reachedOutput || !orderRelocated) {
+                while (!reachedOutput) {
                     TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
                     logEvent(te);
-                    if (te instanceof MachineStatusUpdateEvent) {
-                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)) {
-                            boolean isFoldingStation = Optional.ofNullable(knownFoldingActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
-                                    .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase())).isPresent();
-                            if (isFoldingStation) {
-                                foldingComplete = true;
-                            }
-                        }
-                    }
-                    if (te instanceof OrderRelocationNotification){
-                        orderRelocated = true;
-                    }
                     if (te instanceof IOStationStatusUpdateEvent) {
                         if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_EMPTY) ||
                                 ((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_LOADED)) {
                             //If event comes from an outputStation we can assume here the pallet reached the final out
                             reachedOutput = Optional.ofNullable(knownFoldingActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))
-                                    .filter(m -> m.getId().toLowerCase().contains("Transit".toLowerCase())).isPresent();
+                                    .filter(m -> m.getId().toLowerCase().contains("Output".toLowerCase())).isPresent();
                         }
                     }
                 }
                 int totalUrlsToBrowse = urlsToBrowse.size();
                 assertEquals(totalUrlsToBrowse, knownFoldingActors.size());
-                assertTrue(foldingComplete);
-                assertTrue(orderRelocated);
                 assertTrue(reachedOutput);
             }
         };
     }
-    //TODO add OrderProcess (plot)/(plot+fold) tests
 
     public Set<String> getLocalhostLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();

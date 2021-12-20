@@ -64,13 +64,14 @@ public class HardcodedFoldingTransportRoutingAndMapping implements TransportRout
         edgeNodeMapping.put(pos40, pos39);  //Folding to TT2
         edgeNodeMapping.put(pos39, pos38);  //TT2 to TT1
 
-        edgeNodeMapping.put(pos41, pos40);  //Tr to Folding
+        //edgeNodeMapping.put(pos41, pos40);  //Tr to Folding
+        edgeNodeMapping.put(pos41, pos42);
         edgeNodeMapping.put(pos42, pos41);  //TT3 to Tr
         edgeNodeMapping.put(pos43, pos42);  //Out to TT3
 
         routerConnections.put(pos38, Set.of(pos31, pos37, pos45, pos39));   //TT1 transport connections
         routerConnections.put(pos39, Set.of(pos32, pos46, pos40, pos38));   //TT2 transport connections
-        routerConnections.put(pos42, Set.of(pos41, pos43));                 //TT3 transport connections
+        routerConnections.put(pos42, Set.of(pos41, pos43));          //TT3 transport connections
     }
 
     private final Map<String, Position> tt38map = new HashMap<>();

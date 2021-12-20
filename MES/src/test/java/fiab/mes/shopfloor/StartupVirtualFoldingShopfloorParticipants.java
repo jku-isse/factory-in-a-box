@@ -38,7 +38,7 @@ public class StartupVirtualFoldingShopfloorParticipants {
         ScheduledExecutorService es = Executors.newScheduledThreadPool(4);
         startupHiddenFoldingParticipants(es);
         // TT3 West
-        fiab.machine.iostation.opcua.StartupUtil.startupInputstation(12, "TransitStation");
+        fiab.machine.iostation.opcua.StartupUtil.startupInputStationNoAutoReload(12, "TransitStation");
         // TT3 East
         fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(14, "OutputStation");
 
