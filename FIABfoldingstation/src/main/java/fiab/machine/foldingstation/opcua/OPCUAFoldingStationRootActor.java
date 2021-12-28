@@ -15,6 +15,7 @@ import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.ClientSideHandshakeFU;
 import fiab.handshake.fu.client.WiringUtils;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
+import fiab.machine.foldingstation.EV3FoldingMachineActor;
 import fiab.machine.foldingstation.IntraMachineEventBus;
 import fiab.machine.foldingstation.VirtualFoldingMachineActor;
 import fiab.machine.foldingstation.events.MachineCapabilityUpdateEvent;
@@ -25,6 +26,8 @@ import fiab.machine.foldingstation.opcua.methods.Stop;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
 import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
+import lejos.hardware.port.Port;
+import lejos.hardware.port.SensorPort;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
@@ -41,17 +44,19 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
     private UaVariableNode capability = null;
     private ActorRef foldingCoordinator;
     private int portOffset;
+    final Port sensorPort;
     private HandshakeFU clientSideHandshakeOutput;
 
 
-    static public Props props(String machineName, int portOffset) {
-        return Props.create(OPCUAFoldingStationRootActor.class, () -> new OPCUAFoldingStationRootActor(machineName, portOffset));
+    static public Props props(String machineName, int portOffset, Port sensorPort) {
+        return Props.create(OPCUAFoldingStationRootActor.class, () -> new OPCUAFoldingStationRootActor(machineName, portOffset, sensorPort));
     }
 
-    public OPCUAFoldingStationRootActor(String machineName, int portOffset) {
+    public OPCUAFoldingStationRootActor(String machineName, int portOffset, Port sensorPort) {
         try {
             this.machineName = machineName;
             this.portOffset = portOffset;
+            this.sensorPort = sensorPort;
             init();
         } catch (Exception e) {
             e.printStackTrace();
@@ -69,7 +74,11 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
 
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
         intraEventBus.subscribe(getSelf(), new fiab.machine.foldingstation.SubscriptionClassifier("Folding Module", "*"));
-        foldingCoordinator = context().actorOf(VirtualFoldingMachineActor.propsForLateHandshakeBinding(intraEventBus), machineName);
+        if (sensorPort == null) {
+            foldingCoordinator = context().actorOf(VirtualFoldingMachineActor.propsForLateHandshakeBinding(intraEventBus), machineName);
+        }else{
+            foldingCoordinator = context().actorOf(EV3FoldingMachineActor.propsForLateHandshakeBinding(intraEventBus, sensorPort), machineName);
+        }
         foldingCoordinator.tell(FoldingMessageTypes.SubscribeState, getSelf());
 
         HandshakeFU serverSideHandshake = new ServerSideHandshakeFU(opcuaBase, ttNode, fuPrefix, foldingCoordinator, getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
@@ -85,10 +94,10 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
 
     private void loadWiringFromFile() {
         Optional<HashMap<String, WiringInfo>> optInfo = WiringUtils.loadWiringInfoFromFileSystem(machineName);
-        if(clientSideHandshakeOutput != null && optInfo.isPresent()){
+        if (clientSideHandshakeOutput != null && optInfo.isPresent()) {
             try {
                 clientSideHandshakeOutput.provideWiringInfo(optInfo.get().values().stream().findFirst().get());
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

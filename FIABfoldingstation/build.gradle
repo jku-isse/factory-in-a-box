@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'fiab.isse'
-version '1.0'
+version '1.0.0'
 
 repositories {
     mavenCentral()
@@ -14,12 +14,14 @@ dependencies {
     implementation "ch.qos.logback:logback-classic:1.2.3"
     implementation "com.typesafe.akka:akka-actor_${akkaTarget}:${akkaVersion}"
     implementation "com.typesafe.akka:akka-slf4j_${akkaTarget}:${akkaVersion}"
+    implementation "com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3"
 
     implementation "com.fasterxml.jackson.core:jackson-databind:2.9.9"
 
     implementation project(":FIABcore")
     implementation project(":FIABopcuabase")
     implementation project(":FIABhandshake")
+    implementation project(":FIABiostation")
 
     testImplementation "com.typesafe.akka:akka-testkit_${akkaTarget}:${akkaVersion}"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
@@ -32,6 +34,6 @@ test {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'fiab.machine.foldingstation.opcua.ExampleStartupFoldingStation'
+        attributes 'Main-Class': 'FoldingStationsApplication'
     }
 }

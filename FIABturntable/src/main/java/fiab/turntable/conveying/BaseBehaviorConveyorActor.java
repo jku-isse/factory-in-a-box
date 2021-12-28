@@ -38,8 +38,6 @@ public class BaseBehaviorConveyorActor extends AbstractActor {
         this.tsm = new StateMachine<>(STOPPED, new ConveyorStateMachineConfig());    
     }
 
-    
-
     @Override
     public Receive createReceive() {
         return receiveBuilder()

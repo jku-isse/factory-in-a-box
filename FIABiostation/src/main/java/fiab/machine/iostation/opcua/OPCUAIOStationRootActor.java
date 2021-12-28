@@ -37,20 +37,22 @@ public class OPCUAIOStationRootActor extends AbstractActor {
 	protected ActorRef self;
 	boolean isInputStation;
 	boolean doAutoReload;
+	private final boolean useRealHardware;
 	
-	static public Props propsForInputStation(String machineName, int portOffset, boolean doAutoReload) {	    
-		return Props.create(OPCUAIOStationRootActor.class, () -> new OPCUAIOStationRootActor(machineName, portOffset, true, doAutoReload));
+	static public Props propsForInputStation(String machineName, int portOffset, boolean doAutoReload, boolean useRealHardware) {
+		return Props.create(OPCUAIOStationRootActor.class, () -> new OPCUAIOStationRootActor(machineName, portOffset, true, doAutoReload, useRealHardware));
 	}
 	
-	static public Props propsForOutputStation(String machineName, int portOffset, boolean doAutoReload) {	    
-		return Props.create(OPCUAIOStationRootActor.class, () -> new OPCUAIOStationRootActor(machineName, portOffset, false, doAutoReload));
+	static public Props propsForOutputStation(String machineName, int portOffset, boolean doAutoReload, boolean useRealHardware) {
+		return Props.create(OPCUAIOStationRootActor.class, () -> new OPCUAIOStationRootActor(machineName, portOffset, false, doAutoReload, useRealHardware));
 	}
-	
-	public OPCUAIOStationRootActor(String machineName, int portOffset, boolean isInputStation, boolean doAutoReload) {
+
+	public OPCUAIOStationRootActor(String machineName, int portOffset, boolean isInputStation, boolean doAutoReload, boolean useRealHardware) {
 		try {
 			this.machineName = machineName;
 			this.isInputStation = isInputStation;
 			this.doAutoReload = doAutoReload;
+			this.useRealHardware = useRealHardware;
 			this.self = self();
 			init(portOffset);
 		} catch (Exception e) {
@@ -61,7 +63,6 @@ public class OPCUAIOStationRootActor extends AbstractActor {
 	
 	@Override
 	public Receive createReceive() {
-		
 		return receiveBuilder()				
 				.match(ServerSideStates.class, req -> {
 						setStatusValue(req.toString());
@@ -81,8 +82,13 @@ public class OPCUAIOStationRootActor extends AbstractActor {
 		OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
 		UaFolderNode root = opcuaBase.prepareRootNode();
 		String fuPrefix = machineName;//+"/"+"IOSTATION";
-		fu = isInputStation ? new IOStationHandshakeFU.InputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
-							  new IOStationHandshakeFU.OutputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+		if(useRealHardware){
+			fu = isInputStation ? new IOStationHandshakeFU.EV3InputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
+					new IOStationHandshakeFU.EV3OutputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+		}else {
+			fu = isInputStation ? new IOStationHandshakeFU.InputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
+					new IOStationHandshakeFU.OutputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+		}
 		setupOPCUANodeSet(opcuaBase, root, fuPrefix, fu.getFUActor());
 		CapabilityExposingUtils.setupCapabilities(opcuaBase, root, fuPrefix, new CapabilityImplementationMetadata("DefaultStation",
 										isInputStation ? IOStationCapability.INPUTSTATION_CAPABILITY_URI : IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, 

@@ -46,6 +46,7 @@ import fiab.mes.productioncell.foldingstation.DefaultFoldingCellTransportPositio
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,8 +69,8 @@ public class TestProductionCell {
         system = ActorSystem.create(ROOT_SYSTEM);
         HardcodedFoldingCellTransportRoutingAndMapping routing = new HardcodedFoldingCellTransportRoutingAndMapping();
         DefaultFoldingCellTransportPositionLookup dns = new DefaultFoldingCellTransportPositionLookup();
-        machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), FoldingProductionCell.LOOKUP_PREFIX+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-        transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1, FoldingProductionCell.LOOKUP_PREFIX), FoldingProductionCell.LOOKUP_PREFIX+TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+        machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), FoldingProductionCell.LOOKUP_PREFIX + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        transportCoord = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1, FoldingProductionCell.LOOKUP_PREFIX), FoldingProductionCell.LOOKUP_PREFIX + TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
         foldingCellCoord = system.actorOf(FoldingProductionCellCoordinator.props(), FoldingProductionCellCoordinator.WELLKNOWN_LOOKUP_NAME);
     }
 
@@ -88,8 +89,8 @@ public class TestProductionCell {
     void testProductionCellDiscovery() {
         new TestKit(system) {
             {
-                Set<String> urlsToBrowse = getTestLayout();
-
+                //Set<String> urlsToBrowse = getTestLayout();   //Used for virtual testing
+                Set<String> urlsToBrowse = getRealLayout();     //Used for testing on real machines
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
                 ShopfloorConfigurations.addSpawners(capURI2Spawning, new DefaultFoldingCellTransportPositionLookup(),
                         new HardcodedFoldingCellTransportRoutingAndMapping());
@@ -97,7 +98,12 @@ public class TestProductionCell {
 
                 urlsToBrowse.forEach(url -> {
                     ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-                    discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
+                    try {
+                        discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
+                        TimeUnit.SECONDS.sleep(1);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 });
 
                 int countConnEvents = 0;
@@ -135,7 +141,8 @@ public class TestProductionCell {
     void testProductionCellTransportToOneFoldingStation() {
         new TestKit(system) {
             {
-                Set<String> urlsToBrowse = getTestLayout();
+                //Set<String> urlsToBrowse = getTestLayout();     //Used for virtual testing
+                Set<String> urlsToBrowse = getRealLayout();       //Used for testing on real machines
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
                 ShopfloorConfigurations.addSpawners(capURI2Spawning, new DefaultFoldingCellTransportPositionLookup(),
                         new HardcodedFoldingCellTransportRoutingAndMapping());
@@ -143,7 +150,12 @@ public class TestProductionCell {
 
                 urlsToBrowse.forEach(url -> {
                     ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-                    discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
+                    try {
+                        discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
+                        TimeUnit.SECONDS.sleep(2);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 });
 
                 CapabilityInvocation foldingCap = ProcessCoreFactory.eINSTANCE.createCapabilityInvocation();
@@ -217,7 +229,7 @@ public class TestProductionCell {
 
                 }
                 Optional<AkkaActorBackedCoreModelAbstractActor> target = knownActors.values().stream()
-                                .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase())).findAny();
+                        .filter(m -> m.getId().toLowerCase().contains("Folding".toLowerCase())).findAny();
                 target.ifPresent(akkaActorBackedCoreModelAbstractActor ->
                         akkaActorBackedCoreModelAbstractActor.getAkkaActor()
                                 .tell(new RegisterProcessStepRequest("Test", step.getID(), step, getRef()), getRef()));
@@ -255,6 +267,15 @@ public class TestProductionCell {
         urlsToBrowse.add("opc.tcp://127.0.0.1:4849/milo"); //Folding1
         urlsToBrowse.add("opc.tcp://127.0.0.1:4850/milo"); //Folding2
         urlsToBrowse.add("opc.tcp://127.0.0.1:4851/milo"); //Folding3
+        return urlsToBrowse;
+    }
+
+    public Set<String> getRealLayout() {
+        Set<String> urlsToBrowse = new HashSet<>();
+        urlsToBrowse.add("opc.tcp://192.168.0.24:4847/milo");
+        urlsToBrowse.add("opc.tcp://192.168.0.41:4848");
+        urlsToBrowse.add("opc.tcp://192.168.0.24:4849/milo");
+        urlsToBrowse.add("opc.tcp://192.168.0.24:4850/milo");
         return urlsToBrowse;
     }
 

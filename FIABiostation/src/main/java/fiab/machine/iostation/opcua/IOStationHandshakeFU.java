@@ -1,5 +1,6 @@
 package fiab.machine.iostation.opcua;
 
+import fiab.machine.iostation.EV3IOStationServerHandshakeActor;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 
 import akka.actor.ActorContext;
@@ -11,30 +12,54 @@ import fiab.opcua.server.OPCUABase;
 
 public class IOStationHandshakeFU {
 
-public static class InputStationHandshakeFU extends ServerSideHandshakeFU {
+    public static class InputStationHandshakeFU extends ServerSideHandshakeFU {
 
-	public InputStationHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef parentActor,
-			ActorContext context, String capInstId, boolean exposeInternalControl, boolean isInputStation) {
-		super(base, root, fuPrefix, parentActor, context, capInstId, OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, exposeInternalControl);
-	}
+        public InputStationHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef parentActor,
+                                       ActorContext context, String capInstId, boolean exposeInternalControl, boolean isInputStation) {
+            super(base, root, fuPrefix, parentActor, context, capInstId, OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, exposeInternalControl);
+        }
 
-	@Override
-	protected void setupActor() {
-		localClient = context.actorOf(IOStationServerHandshakeActor.propsForInputstation(parentActor, true, this), capInstId);
-	}
-}
+        @Override
+        protected void setupActor() {
+            localClient = context.actorOf(IOStationServerHandshakeActor.propsForInputstation(parentActor, true, this), capInstId);
+        }
+    }
 
-public static class OutputStationHandshakeFU extends ServerSideHandshakeFU {
+    public static class EV3InputStationHandshakeFU extends ServerSideHandshakeFU {
+        public EV3InputStationHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef parentActor,
+                                          ActorContext context, String capInstId, boolean exposeInternalControl, boolean isInputStation) {
+            super(base, root, fuPrefix, parentActor, context, capInstId, OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, exposeInternalControl);
+        }
 
-	public OutputStationHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef parentActor,
-			ActorContext context, String capInstId, boolean exposeInternalControl, boolean isInputStation) {
-		super(base, root, fuPrefix, parentActor, context, capInstId, OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, exposeInternalControl);
-	}
+        @Override
+        protected void setupActor() {
+            localClient = context.actorOf(EV3IOStationServerHandshakeActor.propsForInputstation(parentActor, true, this), capInstId);
+        }
+    }
 
-	@Override
-	protected void setupActor() {
-		localClient = context.actorOf(IOStationServerHandshakeActor.propsForOutputstation(parentActor, true, this), capInstId);
-	}
-}
+    public static class OutputStationHandshakeFU extends ServerSideHandshakeFU {
+
+        public OutputStationHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef parentActor,
+                                        ActorContext context, String capInstId, boolean exposeInternalControl, boolean isInputStation) {
+            super(base, root, fuPrefix, parentActor, context, capInstId, OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, exposeInternalControl);
+        }
+
+        @Override
+        protected void setupActor() {
+            localClient = context.actorOf(IOStationServerHandshakeActor.propsForOutputstation(parentActor, true, this), capInstId);
+        }
+    }
+
+    public static class EV3OutputStationHandshakeFU extends ServerSideHandshakeFU {
+        public EV3OutputStationHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef parentActor,
+                                           ActorContext context, String capInstId, boolean exposeInternalControl, boolean isInputStation) {
+            super(base, root, fuPrefix, parentActor, context, capInstId, OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, exposeInternalControl);
+        }
+
+        @Override
+        protected void setupActor() {
+            localClient = context.actorOf(EV3IOStationServerHandshakeActor.propsForOutputstation(parentActor, true, this), capInstId);
+        }
+    }
 
 }

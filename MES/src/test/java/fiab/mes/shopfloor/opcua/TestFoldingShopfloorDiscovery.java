@@ -90,7 +90,8 @@ public class TestFoldingShopfloorDiscovery {
                 orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
 
-                Set<String> urlsToBrowse = getLocalhostLayout();
+                //Set<String> urlsToBrowse = getLocalhostLayout();
+                Set<String> urlsToBrowse = getRealLayout();
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
                 ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
 
@@ -169,6 +170,24 @@ public class TestFoldingShopfloorDiscovery {
         urlsToBrowse.add("opc.tcp://localhost:4852/milo"); //Transit
         urlsToBrowse.add("opc.tcp://localhost:4853/milo"); //TT3
         urlsToBrowse.add("opc.tcp://localhost:4854/milo"); //Output
+        return urlsToBrowse;
+    }
+
+    public Set<String> getRealLayout() {
+        Set<String> urlsToBrowse = new HashSet<String>();
+        urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Input
+        urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Plot
+        urlsToBrowse.add("opc.tcp://192.168.0.35:4840"); //Output
+        urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo"); //TT1
+        urlsToBrowse.add("opc.tcp://192.168.0.21:4842/milo"); //TT2
+        urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Plot
+        urlsToBrowse.add("opc.tcp://192.168.0.38:4840"); //Plot
+
+        urlsToBrowse.add("opc.tcp://192.168.0.24:4849/milo"); //Fold
+        urlsToBrowse.add("opc.tcp://192.168.0.24:4850/milo"); //Fold
+        urlsToBrowse.add("opc.tcp://192.168.0.41:4852"); //Transit
+        urlsToBrowse.add("opc.tcp://192.168.0.40:4853"); //TT3
+        urlsToBrowse.add("opc.tcp://192.168.0.40:4854"); //Output
         return urlsToBrowse;
     }
 

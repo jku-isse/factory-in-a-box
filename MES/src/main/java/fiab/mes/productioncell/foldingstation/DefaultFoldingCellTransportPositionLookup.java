@@ -51,12 +51,13 @@ public class DefaultFoldingCellTransportPositionLookup implements TransportPosit
                 logger.warn(String.format("URI for actor %s has no host part for resolving Position", uriAsString));
                 return TransportRoutingInterface.UNKNOWN_POSITION;
             }
-            if (host.equals("127.0.0.1") || host.equals("localhost") ){
+            if (host.equals("127.0.0.1") || host.equals("localhost")) {
                 return parsePosViaPortNr(uriAsString);
             }
-            InetAddress inetAddr = InetAddress.getByName(host);
-            int lastPos = (inetAddr.getAddress()[3]+256)%256;
-            return new TransportRoutingInterface.Position(""+lastPos);
+            return parsePosViaIPAddress(uriAsString, host);
+            //InetAddress inetAddr = InetAddress.getByName(host);
+            //int lastPos = (inetAddr.getAddress()[3]+256)%256;
+            //return new TransportRoutingInterface.Position(""+lastPos);
         } catch (URISyntaxException e) {
             logger.warn(String.format("Unable to load URI for actor %s", uriAsString));
             return TransportRoutingInterface.UNKNOWN_POSITION;
@@ -64,6 +65,16 @@ public class DefaultFoldingCellTransportPositionLookup implements TransportPosit
             logger.warn(String.format("Unable to obtain IP address for host %s for actor %s", host, uriAsString));
             return TransportRoutingInterface.UNKNOWN_POSITION;
         }
+    }
+
+    public TransportRoutingInterface.Position parsePosViaIPAddress(String uriAsString, String host) throws UnknownHostException {
+        InetAddress inetAddr = InetAddress.getByName(host);
+        int lastPos = (inetAddr.getAddress()[3] + 256) % 256;
+        //Hardcoded ip address to position translation. Should work for demo purposes
+        if (lastPos == 24) return parsePosViaPortNr(uriAsString);   //FoldingStations or IO
+        if (lastPos == 41) return new TransportRoutingInterface.Position("20");  //LocalTT
+        return TransportRoutingInterface.UNKNOWN_POSITION;
+
     }
 
     // USE THIS FOR TESTS ONLY

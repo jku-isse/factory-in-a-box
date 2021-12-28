@@ -1,11 +1,13 @@
 plugins {
     id 'java'
+    id "com.github.johnrengelman.shadow" version "7.1.0"
 }
 
 group 'fiab.isse'
-version '1.0.1'
+version '1.0.2'
 
 repositories {
+    maven { url "https://jitpack.io" }
     mavenCentral()
 }
 
@@ -13,6 +15,7 @@ dependencies {
     implementation "ch.qos.logback:logback-classic:1.2.3"
     implementation "com.typesafe.akka:akka-actor_${akkaTarget}:${akkaVersion}"
     implementation "com.typesafe.akka:akka-slf4j_${akkaTarget}:${akkaVersion}"
+    implementation "com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3"
 
     implementation project(":FIABcore")
     implementation project(":FIABopcuabase")
@@ -25,4 +28,10 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'EV3IOStationApplication'
+    }
 }

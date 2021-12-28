@@ -99,8 +99,8 @@ public class ServerSideHandshakeActor extends AbstractActor{
 						break;
 					}
 				})
-				.matchAny(msg -> { 
-					log.warning(String.format("Unexpected Message received <%s> from %s", msg.toString(), getSender() )); })
+				//.matchAny(msg -> {
+				//	log.warning(String.format("Unexpected Message received <%s> from %s", msg.toString(), getSender() )); })
 		        .build();
 	}
 

@@ -61,8 +61,8 @@ public class VirtualFoldingMachineActor extends AbstractActor {
                             if (currentState.equals(BasicMachineStates.IDLE)) {
                                 fold();
                             } else {
-                                log.warning("VirtualFoldingCoordinatorActor told to fold in wrong state " + currentState);
-                                sender().tell(new MachineInWrongStateResponse("", OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Machine not in state to fold", currentState, FoldingMessageTypes.Fold, BasicMachineStates.IDLE), self);
+                                log.warning("FoldingCoordinatorActor told to fold in wrong state " + currentState);
+                                sender().tell(new MachineInWrongStateResponse(machineName, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Machine not in state to fold", currentState, FoldingMessageTypes.Fold, BasicMachineStates.IDLE), self);
                             }
                             break;
                         case Reset:
@@ -194,7 +194,8 @@ public class VirtualFoldingMachineActor extends AbstractActor {
 
     private void transitionStartingToExecute() {
         setAndPublishState(BasicMachineStates.EXECUTE);
-        context().system()
+        //TODO check input from touch sensor to continue
+        /*context().system()
                 .scheduler()
                 .scheduleOnce(Duration.ofSeconds(5),
                         new Runnable() {
@@ -202,7 +203,7 @@ public class VirtualFoldingMachineActor extends AbstractActor {
                             public void run() {
                                 finishProduction();
                             }
-                        }, context().system().dispatcher());
+                        }, context().system().dispatcher());*/
     }
 
     private void finishProduction() {
