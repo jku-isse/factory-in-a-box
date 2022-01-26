@@ -41,8 +41,11 @@ import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.productioncell.foldingstation.FoldingProductionCellCoordinator;
 import fiab.mes.transport.actor.transportsystem.FoldingTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.HardcodedFoldingTransportRoutingAndMapping;
+import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
+import fiab.mes.transport.msg.TransportModuleRequest;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata;
+import fiab.turntable.StartupUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,14 +75,15 @@ public class TestComposedFoldingStationOPCUA {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderEmittingTestServerWithOPCUA.class);
     static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownFoldingActors = new HashMap<>();
+    //private static final String foldingCellDiscoveryFile = "LocalFoldingProductionCell";
+    private static final String foldingCellDiscoveryFile = "FoldingProductionCell";
 
     @BeforeAll
     static void setUpBeforeClass() throws Exception {
         system = ActorSystem.create(ROOT_SYSTEM);
 
         binding = ShopfloorStartup.startupFolding(null, 3, system);
-        cellBinding = FoldingProductionCell.startup("LocalFoldingProductionCell", 1, ActorSystem.create("FoldingProductionCellCoordinator"));
-
+        cellBinding = FoldingProductionCell.startup(foldingCellDiscoveryFile, 1, ActorSystem.create("FoldingProductionCellCoordinator"));
         orderEventBus = system.actorSelection("/user/" + OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         machineEventBus = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         orderEntryActor = system.actorSelection("/user/" + OrderEntryActor.WELLKNOWN_LOOKUP_NAME);//.resolveOne(Timeout.create(Duration.ofSeconds(3)))..;
@@ -116,7 +120,8 @@ public class TestComposedFoldingStationOPCUA {
 
     @Test
     void testShopfloorPlottingProcess(){
-        OrderProcess op = new OrderProcess(ProduceProcess.getSingleBlackStepProcess("Test"));
+        //Currently only working in virtual factory, since scheduler assigns random outputStation
+        OrderProcess op = new OrderProcess(ProduceProcess.getSingleRedStepProcess("Test"));
         RegisterProcessRequest processRequest = new RegisterProcessRequest("Test", op,  ActorRef.noSender());
         testShopfloorProcess(processRequest);
     }
@@ -137,14 +142,15 @@ public class TestComposedFoldingStationOPCUA {
                 orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
 
-                Set<String> urlsToBrowse = getLocalhostLayout();
+                //Set<String> urlsToBrowse = getLocalhostLayout();
+                Set<String> urlsToBrowse = getRealLayout();
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
                 ShopfloorConfigurations.addSpawners(capURI2Spawning, new FoldingTransportPositionLookup(), new HardcodedFoldingTransportRoutingAndMapping());
                 urlsToBrowse.forEach(url -> {
                     ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
                     try {
                         discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
-                        TimeUnit.SECONDS.sleep(1);
+                        TimeUnit.SECONDS.sleep(2);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -242,14 +248,14 @@ public class TestComposedFoldingStationOPCUA {
         Set<String> urlsToBrowse = new HashSet<String>();
         urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Input
         urlsToBrowse.add("opc.tcp://192.168.0.31:4840"); //Plot
-        urlsToBrowse.add("opc.tcp://192.168.0.35:4840"); //Output
+        //urlsToBrowse.add("opc.tcp://192.168.0.35:4840"); //Output
         urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo"); //TT1
         urlsToBrowse.add("opc.tcp://192.168.0.21:4842/milo"); //TT2
         urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Plot
         urlsToBrowse.add("opc.tcp://192.168.0.38:4840"); //Plot
 
         urlsToBrowse.add("opc.tcp://192.168.0.24:4849/milo"); //Fold
-        urlsToBrowse.add("opc.tcp://192.168.0.24:4850/milo"); //Fold
+        //urlsToBrowse.add("opc.tcp://192.168.0.24:4850/milo"); //Fold
         urlsToBrowse.add("opc.tcp://192.168.0.41:4852"); //Transit
         urlsToBrowse.add("opc.tcp://192.168.0.40:4853"); //TT3
         urlsToBrowse.add("opc.tcp://192.168.0.40:4854"); //Output

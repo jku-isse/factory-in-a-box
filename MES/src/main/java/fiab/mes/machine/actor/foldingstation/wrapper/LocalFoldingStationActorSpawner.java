@@ -121,7 +121,8 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
 
             Actor actor = ActorCoreModelFactory.eINSTANCE.createActor();
             String pos = transportPositionParser.parseLastIPPos(info.getEndpointUrl()).getPos();
-            String id = "TransitStation";
+            String id = "1";
+            //String id = "TransitStation";
             actor.setDisplayName(id);
             actor.setActorName(id);
             String uri = endpoint.endsWith("/") ? endpoint + id : endpoint + "/" + id;

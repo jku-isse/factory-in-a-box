@@ -249,14 +249,15 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
         log.info(String.format("IOStationUpdateEvent for machine %s : %s", ue.getMachineId(), ue.getStatus().toString()));
         capMan.resolveById(ue.getMachineId()).ifPresent(machine -> {
             ordMapper.updateMachineStatus(machine, ue);
-            if (ue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
+            /*if (ue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
                 // we reached idle for an outputstation
                 ordMapper.getProcessesInState(OrderEventType.COMPLETED).stream()
                         .forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
                 ordMapper.getProcessesInState(OrderEventType.CANCELED).stream() //orders that need to be prematurely removed
                         .forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
                 //tryAssigningTransportToOutputStation();
-            } else if (ue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
+            } else */
+            //if (ue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
                 tryAssigningTransportToFoldingStation();
                 // we reached idle for an inputstation
                 // we are ready to start a new process as this input is ready
@@ -264,7 +265,7 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
                         .forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));
                 ordMapper.getProcessesInState(OrderEventType.REGISTERED).stream()
                         .forEach(rpr -> tryAssignExecutingMachineForOneProcessStep(rpr.getProcess(), rpr.getRootOrderId()));*/
-            }
+            //}
         });
     }
 
@@ -336,15 +337,19 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
         //TODO fix bug where transport only occurs between io and second folding station
         //Find InputStation in Idle Loaded
         Set<AkkaActorBackedCoreModelAbstractActor> availableInputStations = capMan.getMachinesProvidingCapability(inputStationCap);
+        System.out.println("Listing ready Stations:");
         Optional<AkkaActorBackedCoreModelAbstractActor> idleInputStation = availableInputStations.stream()
                 .filter(m -> ordMapper.getIOStatus(m).equals(ServerSideStates.IDLE_LOADED))
                 .findAny();
+        List<AkkaActorBackedCoreModelAbstractActor> readyInputStationList = availableInputStations.stream()
+                .filter(m -> ordMapper.getIOStatus(m).equals(ServerSideStates.IDLE_LOADED))
+                .collect(Collectors.toList());
+        readyInputStationList.forEach(s -> System.out.println(s.getId()+" is in State: "+ordMapper.getMachineStatus(s)));
         //Find FoldingStation in Starting
         Set<AkkaActorBackedCoreModelAbstractActor> availableFoldingStations = capMan.getMachinesProvidingCapability(foldingStationCap);
         Optional<AkkaActorBackedCoreModelAbstractActor> readyFoldingStation = availableFoldingStations.stream()
                 .filter(m -> ordMapper.getMachineStatus(m).equals(BasicMachineStates.STARTING))
                 .findAny();
-        availableFoldingStations.forEach(System.out::println);
         List<AkkaActorBackedCoreModelAbstractActor> readyFoldingStationList = availableFoldingStations.stream()
                 .filter(m -> ordMapper.getMachineStatus(m).equals(BasicMachineStates.STARTING))
                 .collect(Collectors.toList());
@@ -354,7 +359,10 @@ public class FoldingProductionCellCoordinator extends AbstractActor{
         Optional<AkkaActorBackedCoreModelAbstractActor> idleTransportFU = availableTransportFus.stream()
                 .filter(m -> ordMapper.getMachineStatus(m).equals(BasicMachineStates.IDLE))
                 .findAny();
-
+        List<AkkaActorBackedCoreModelAbstractActor> readyTransportList = availableTransportFus.stream()
+                .filter(m -> ordMapper.getMachineStatus(m).equals(BasicMachineStates.IDLE))
+                .collect(Collectors.toList());
+        readyTransportList.forEach(s -> System.out.println(s.getId()+" is in State: "+ordMapper.getMachineStatus(s)));
         if (idleInputStation.isPresent() && readyFoldingStation.isPresent() && idleTransportFU.isPresent()) {
             log.info("Sending TransportRequest from: " + idleInputStation.get().getId() + ", to:" + readyFoldingStation.get().getId() + ", using transportFU " + idleTransportFU.get().getId());
             transportCoordinator.tell(new RegisterTransportRequest(idleInputStation.get(), readyFoldingStation.get(),

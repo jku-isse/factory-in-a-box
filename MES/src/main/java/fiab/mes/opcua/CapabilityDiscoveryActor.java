@@ -49,7 +49,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
 	public enum DISCOVERY_STATUS {
-		IDLE, CONNECTING, CONNECTED, IN_PROGRESS, FAILED, COMPLETED_WITH_SPAWN, COMPLETED_WITHOUT_SPAWN
+		IDLE, CONNECTING, CONNECTED, IN_PROGRESS, FAILED, RETRY, COMPLETED_WITH_SPAWN, COMPLETED_WITHOUT_SPAWN
 	};
 
 
@@ -112,7 +112,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 			getActorCapabilities(req, client, Identifiers.RootFolder);
 			if (this.status.equals(DISCOVERY_STATUS.IN_PROGRESS)) {
 				log.info("No Capabilities found for which an ActorSpawnerActor was registered");
-				this.status = DISCOVERY_STATUS.COMPLETED_WITHOUT_SPAWN;
+				//this.status = DISCOVERY_STATUS.COMPLETED_WITHOUT_SPAWN;
 				// no need to check a spawner actor
 			} else if (this.status.equals(DISCOVERY_STATUS.COMPLETED_WITH_SPAWN)) {
 				// check if spawner is alive

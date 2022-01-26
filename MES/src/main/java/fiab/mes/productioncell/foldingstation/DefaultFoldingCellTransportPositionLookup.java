@@ -71,8 +71,8 @@ public class DefaultFoldingCellTransportPositionLookup implements TransportPosit
         InetAddress inetAddr = InetAddress.getByName(host);
         int lastPos = (inetAddr.getAddress()[3] + 256) % 256;
         //Hardcoded ip address to position translation. Should work for demo purposes
-        if (lastPos == 24) return parsePosViaPortNr(uriAsString);   //FoldingStations or IO
-        if (lastPos == 41) return new TransportRoutingInterface.Position("20");  //LocalTT
+        if (lastPos == 24 || lastPos == 40 || lastPos == 41) return parsePosViaPortNr(uriAsString);   //FoldingStations or IO
+        //if (lastPos == 41) return new TransportRoutingInterface.Position("20");  //LocalTT
         return TransportRoutingInterface.UNKNOWN_POSITION;
 
     }

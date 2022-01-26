@@ -47,7 +47,8 @@ public class FoldingTransportPositionLookup implements TransportPositionLookupIn
             //InetAddress inetAddr = InetAddress.getByName(host);
             //int lastPos = (inetAddr.getAddress()[3] + 256) % 256;
             //return new TransportRoutingInterface.Position("" + lastPos);
-            return parsePosViaIPAddress(host);
+            return parsePosViaIPAddress(host, uriAsString);
+            //return parsePosViaPortNr(uriAsString);
         } catch (URISyntaxException e) {
             logger.warn(String.format("Unable to load URI for actor %s", uriAsString));
             return TransportRoutingInterface.UNKNOWN_POSITION;
@@ -57,7 +58,7 @@ public class FoldingTransportPositionLookup implements TransportPositionLookupIn
         }
     }
 
-    public TransportRoutingInterface.Position parsePosViaIPAddress(String host) throws UnknownHostException {
+    public TransportRoutingInterface.Position parsePosViaIPAddress(String host, String uriAsString) throws UnknownHostException {
         InetAddress inetAddr = InetAddress.getByName(host);
         int lastPos = (inetAddr.getAddress()[3] + 256) % 256;
         //Hardcoded ip address to position translation. Should work for demo purposes
@@ -68,9 +69,11 @@ public class FoldingTransportPositionLookup implements TransportPositionLookupIn
         if (lastPos == 21) return new TransportRoutingInterface.Position("39");   //TT2
         if (lastPos == 37) return new TransportRoutingInterface.Position("45");   //Plotter2
         if (lastPos == 38) return new TransportRoutingInterface.Position("46");   //Plotter3
-        if (lastPos == 24) return new TransportRoutingInterface.Position("40");   //FoldingStations
-        if (lastPos == 41) return new TransportRoutingInterface.Position("42");   //TT3
-        return TransportRoutingInterface.UNKNOWN_POSITION;
+        return parsePosViaPortNr(uriAsString);
+        //if (lastPos == 24) return new TransportRoutingInterface.Position("40");   //FoldingStations
+        //if (lastPos == 41) return new TransportRoutingInterface.Position("42");   //TT3
+        //return TransportRoutingInterface.UNKNOWN_POSITION;
+
 
     }
 

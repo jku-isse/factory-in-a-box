@@ -20,7 +20,7 @@ import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequest
 
 public class ServerSideHandshakeActor extends AbstractActor{
 
-	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);	
+	protected LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	protected boolean isLoaded = false; //assume at bootup that no pallet is loaded
 	private ActorRef parentActor;
 	protected ServerSideStates currentState = ServerSideStates.STOPPED;
@@ -200,7 +200,7 @@ public class ServerSideHandshakeActor extends AbstractActor{
 		}
 	}
 	
-	private void complete() {
+	protected void complete() {
 		publishNewState(ServerSideStates.COMPLETING);
 		context().system()
     	.scheduler()

@@ -2,6 +2,7 @@ package fiab.mes.order;
 
 import java.util.List;
 
+import fiab.mes.order.ecore.ProduceFoldingProcess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

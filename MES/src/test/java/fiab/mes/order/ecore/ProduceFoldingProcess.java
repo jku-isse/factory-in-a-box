@@ -43,7 +43,7 @@ public class ProduceFoldingProcess {
     public static ProcessCore.Process getSequentialDrawAndFoldBoxProcess(String prefix) {
         XmlRoot root = ProcessCoreFactory.eINSTANCE.createXmlRoot();
 //        for (int i = 0; i < 2; i++) {
-        AbstractCapability plotCap = WellknownPlotterCapability.getColorPlottingCapability(WellknownPlotterCapability.SupportedColors.BLACK);
+        AbstractCapability plotCap = WellknownPlotterCapability.getColorPlottingCapability(WellknownPlotterCapability.SupportedColors.RED);
         AbstractCapability foldCap = WellknownFoldingCapability.getFoldingShapeCapability();
         if (root != null) {
             root.getCapabilities().add(plotCap);

@@ -116,11 +116,11 @@ public class HardcodedFoldingTransportRoutingAndMapping implements TransportRout
     }
 
     private void setupTT42CapabilityToPositionMapping() {
-        tt42map.put(TRANSPORT_MODULE_EAST_CLIENT, pos43);
+        tt42map.put(TRANSPORT_MODULE_NORTH_CLIENT, pos43);
         tt42map.put(TRANSPORT_MODULE_WEST_CLIENT, pos41);
         tt42map.put(TRANSPORT_MODULE_SELF, pos42);
 
-        pos42cap.put(pos43, TRANSPORT_MODULE_EAST_CLIENT);
+        pos42cap.put(pos43, TRANSPORT_MODULE_NORTH_CLIENT);
         pos42cap.put(pos41, TRANSPORT_MODULE_WEST_CLIENT);
         pos42cap.put(pos42, TRANSPORT_MODULE_SELF);
     }

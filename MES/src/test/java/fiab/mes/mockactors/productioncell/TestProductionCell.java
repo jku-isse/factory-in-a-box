@@ -89,8 +89,8 @@ public class TestProductionCell {
     void testProductionCellDiscovery() {
         new TestKit(system) {
             {
-                //Set<String> urlsToBrowse = getTestLayout();   //Used for virtual testing
-                Set<String> urlsToBrowse = getRealLayout();     //Used for testing on real machines
+                Set<String> urlsToBrowse = getTestLayout();   //Used for virtual testing
+                //Set<String> urlsToBrowse = getRealLayout();     //Used for testing on real machines
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
                 ShopfloorConfigurations.addSpawners(capURI2Spawning, new DefaultFoldingCellTransportPositionLookup(),
                         new HardcodedFoldingCellTransportRoutingAndMapping());
@@ -275,7 +275,7 @@ public class TestProductionCell {
         urlsToBrowse.add("opc.tcp://192.168.0.24:4847/milo");
         urlsToBrowse.add("opc.tcp://192.168.0.41:4848");
         urlsToBrowse.add("opc.tcp://192.168.0.24:4849/milo");
-        urlsToBrowse.add("opc.tcp://192.168.0.24:4850/milo");
+        //urlsToBrowse.add("opc.tcp://192.168.0.24:4850/milo"); //We will keep it simple for now
         return urlsToBrowse;
     }
 

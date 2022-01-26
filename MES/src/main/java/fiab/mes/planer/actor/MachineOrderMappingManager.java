@@ -195,20 +195,22 @@ public class MachineOrderMappingManager {
     }
 
     public void updateOrderLocation(String orderId, AkkaActorBackedCoreModelAbstractActor newLocation) {
-        moms.values().stream()
+        Optional<MachineOrderMappingStatus> from = moms.values().stream()
                 .filter(m -> m.getOrderId() != null && m.getOrderId().equals(orderId))
-                .findFirst()
-                .ifPresent(m -> {
-                    //m.setOrderId(null);
-                    m.setAllocationState(AssignmentState.CLEANUP);
-                });
-        moms.keySet().stream()
+                .findFirst();
+        logger.info("Preparing machine " + from + " for cleanup of order " + orderId);
+        from.ifPresent(m -> {
+            //m.setOrderId(null);
+            m.setAllocationState(AssignmentState.CLEANUP);
+        });
+        Optional<AkkaActorBackedCoreModelAbstractActor> to = moms.keySet().stream()
                 .filter(m -> m.equals(newLocation))
-                .findFirst()
-                .ifPresent(m -> {
-                    moms.get(m).setOrderId(orderId);
-                    moms.get(m).setAllocationState(AssignmentState.OCCUPIED);
-                });
+                .findFirst();
+        logger.info("Registering machine " + to + " as new location for order " + orderId);
+        to.ifPresent(m -> {
+            moms.get(m).setOrderId(orderId);
+            moms.get(m).setAllocationState(AssignmentState.OCCUPIED);
+        });
 
     }
 
