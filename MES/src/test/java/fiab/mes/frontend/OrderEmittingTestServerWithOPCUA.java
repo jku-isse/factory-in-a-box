@@ -6,6 +6,8 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,8 +168,7 @@ public class OrderEmittingTestServerWithOPCUA {
     }
 
 
-    @Test
-        //works
+    @Test   //works
     void testForMachineRelocation() throws Exception {
         new TestKit(system) {
             {
@@ -190,7 +191,7 @@ public class OrderEmittingTestServerWithOPCUA {
                 boolean isPlannerFunctional = false;
                 boolean isTransportFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() - 1 || !isTransportFunctional) { // we expect one machine less, the spot we switch to, but which we nevertheless monitor
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -199,6 +200,7 @@ public class OrderEmittingTestServerWithOPCUA {
                         isTransportFunctional = true;
                     }
                     if (te instanceof MachineConnectedEvent) {
+                        //TODO only check for TTs, we can then relocate machines during a test without changing endpoints
                         countConnEvents++;
                         knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
                     }
@@ -210,8 +212,8 @@ public class OrderEmittingTestServerWithOPCUA {
                             );
                     }
                 }
-
-                CountDownLatch count = new CountDownLatch(4);
+                int nProceesses = 2;
+                CountDownLatch count = new CountDownLatch(nProceesses);
                 while (count.getCount() > 0) {
                     String oid = "P" + String.valueOf(count.getCount() + "-");
                     OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleBlackStepProcess(oid));
@@ -221,9 +223,28 @@ public class OrderEmittingTestServerWithOPCUA {
                     count.countDown();
                     Thread.sleep(3000);
                 }
-                System.out.println("Finished with emitting orders. Press ENTER to end test!");
+                int palletsReachedOutput = 0;
+                while (palletsReachedOutput < nProceesses) {
+                    TimedEvent te = (TimedEvent) fishForMessage(Duration.ofSeconds(3600), "ignore MES messages",
+                            m -> m instanceof TimedEvent);
+                    logEvent(te);
+                    if (te instanceof IOStationStatusUpdateEvent) {
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_EMPTY) ||
+                                ((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_LOADED)) {
+                            //If event comes from an outputStation we can assume here the pallet reached the final out
+                            //TODO check whether the modelActor has an ID containing "Output"
+                            boolean reachedOutput = Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))
+                                    .filter(m -> m.getModelActor().getID().toLowerCase().contains("Output".toLowerCase())).isPresent();
+                            if(reachedOutput){
+                                palletsReachedOutput++;
+                            }
+                        }
+                    }
+                }
+                Assertions.assertEquals(nProceesses, palletsReachedOutput);
+                /*System.out.println("Finished with emitting orders. Press ENTER to end test!");
                 System.in.read();
-                System.out.println("Test completed");
+                System.out.println("Test completed");*/
             }
         };
 
@@ -267,10 +288,10 @@ public class OrderEmittingTestServerWithOPCUA {
         urlsToBrowse.add("opc.tcp://192.168.0.32:4840"); //Pos32 TT2 north plotter
         urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos37 TT1 south plotter
         urlsToBrowse.add("opc.tcp://192.168.0.38:4840"); //Pos38 TT2 south plotter
-        urlsToBrowse.add("opc.tcp://192.168.0.35:4840");    // POS EAST 35/ outputstation
+        //urlsToBrowse.add("opc.tcp://192.168.0.35:4840");    // POS EAST 35/ outputstation
         urlsToBrowse.add("opc.tcp://192.168.0.21:4842/milo");    // POS 21 TT2
-        urlsToBrowse.add("opc.tcp://192.168.0.40:4842");	    // Pos20 Niryo TT1
-        //urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");        // Pos20 TT1
+        //urlsToBrowse.add("opc.tcp://192.168.0.40:4842");	    // Pos20 Niryo TT1
+        urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");        // Pos20 TT1
         return urlsToBrowse;
     }
 

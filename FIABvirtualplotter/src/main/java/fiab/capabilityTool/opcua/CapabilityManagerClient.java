@@ -32,6 +32,7 @@ public class CapabilityManagerClient extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     private OpcUaClient client;
+    private NodeId plotFuNode;
     private NodeId setCapabilityMethodNodeId;
 
     public static Props props(String endpointURL) {
@@ -44,7 +45,7 @@ public class CapabilityManagerClient extends AbstractActor {
             this.client = new OPCUAClientFactory().createClient(endpointURL);
             this.client.connect().get();
             browseServerNodesRecursively(client.getAddressSpace().browse(Identifiers.RootFolder), client.getNamespaceTable());
-            if (setCapabilityMethodNodeId == null) {
+            if (setCapabilityMethodNodeId == null || plotFuNode == null) {
                 log.info("No matching method found, terminating actor for " + endpointURL);
                 getSelf().tell(PoisonPill.getInstance(), self());
             } else {
@@ -72,6 +73,11 @@ public class CapabilityManagerClient extends AbstractActor {
                     log.info("Found set capability method node: " + node.getNodeId());
                     setCapabilityMethodNodeId = node.getNodeId().toNodeIdOrThrow(namespaceTable);
                 }
+            } else if (Objects.requireNonNull(node.getBrowseName().getName()).contains("PLOTTER_FU")) {
+                if (node.getNodeClass().equals(NodeClass.Object)) {
+                    log.info("Found plotFU node: " + node.getNodeId());
+                    plotFuNode = node.getNodeId().toNodeIdOrThrow(namespaceTable);
+                }
             }
         }
     }
@@ -87,20 +93,20 @@ public class CapabilityManagerClient extends AbstractActor {
     }
 
     protected CompletableFuture<String> callMethod(NodeId methodId, Variant[] inputArgs) {
-        CallMethodRequest request = new CallMethodRequest(
-                setCapabilityMethodNodeId, methodId, inputArgs);
+        CallMethodRequest request = new CallMethodRequest(plotFuNode, methodId, inputArgs);
 
         return client.call(request).thenCompose(result -> {
             StatusCode statusCode = result.getStatusCode();
             if (statusCode.isGood()) {
-                    String value = "Ok";//(String) (result.getOutputArguments())[0].getValue();
-                    return CompletableFuture.completedFuture(value);
+                String value = (String) (result.getOutputArguments())[0].getValue();
+                return CompletableFuture.completedFuture(value);
             } else {
                 StatusCode[] inputArgumentResults = result.getInputArgumentResults();
-                for (int i = 0; i < Objects.requireNonNull(inputArgumentResults).length; i++) {
-                    log.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
+                if (inputArgumentResults != null) {
+                    for (int i = 0; i < Objects.requireNonNull(inputArgumentResults).length; i++) {
+                        log.error("inputArgumentResults[{}]={}", i, inputArgumentResults[i]);
+                    }
                 }
-
                 CompletableFuture<String> f = new CompletableFuture<>();
                 f.completeExceptionally(new UaException(statusCode));
                 return f;

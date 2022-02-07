@@ -16,6 +16,7 @@ import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.ClientSideHandshakeFU;
 import fiab.handshake.fu.client.WiringUtils;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
+import fiab.opcua.server.FastPublicNonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
 import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
@@ -92,7 +93,8 @@ public class OPCUATurntableRootActor extends AbstractActor {
             NonEncryptionBaseOpcUaServer server1 = new NonEncryptionBaseOpcUaServer(portOffset, machineName);
             opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
         } else {*/
-            PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
+            //PublicNonEncryptionBaseOpcUaServer server1 = new PublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
+        FastPublicNonEncryptionBaseOpcUaServer server1 = new FastPublicNonEncryptionBaseOpcUaServer(portOffset, machineName);
             opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);
         //}
         //OPCUABase opcuaBase = new OPCUABase(server1.getServer(), NAMESPACE_URI, machineName);

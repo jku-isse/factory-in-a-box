@@ -56,9 +56,7 @@ public class OPCUABase extends ManagedNamespaceWithLifecycle implements Runnable
 			server.startup().get();
 //			actor.tell(this, ActorRef.noSender());
 //			actor.tell(MessageTypes.SubscribeToStateUpdates, ActorRef.noSender());
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (ExecutionException e) {
+		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
 
@@ -68,12 +66,10 @@ public class OPCUABase extends ManagedNamespaceWithLifecycle implements Runnable
 		
 		try {
 			future.get();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (ExecutionException e) {
+		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 	
 	public void setUpServerStructure() {
