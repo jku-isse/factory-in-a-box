@@ -28,12 +28,12 @@ public class RestoreCapabilityUtil {
 //									"opc.tcp://localhost:4841/milo",
 //									"ns=2;s=OutputStation1/IOSTATION/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY",
 //									"RemoteRole1");
-        WiringInfo northWI = new WiringInfo("NORTH_CLIENT",
+        WiringInfo eastWI = new WiringInfo("NORTH_CLIENT",
                 "DefaultHandshakeServerSide",
                 "opc.tcp://192.168.0.35:4840",
                 "ns=1;i=327",
                 "RemoteRole1");
-        WiringInfo eastWI = new WiringInfo("EAST_CLIENT",
+        WiringInfo northWI = new WiringInfo("EAST_CLIENT",
                 "DefaultHandshakeServerSide",
                 "opc.tcp://192.168.0.32:4840",
                 "ns=1;s=Plotter/HANDSHAKE_FU/CAPABILITIES/CAPABILITY1",
@@ -61,8 +61,10 @@ public class RestoreCapabilityUtil {
         // now restore east cap wiring
         OpcUaClient newClient = new OPCUAClientFactory().createClient(endpointUrl);
         newClient.connect().get();
-        new CapabilityDiscovery(endpointUrl, newClient).discoverAll().stream().filter(cii -> cii.metaData.getImplId().equals(capEastWire)).findAny().ifPresent(
-                cii -> executeWiringInformation(cii, wiEast)
+        new CapabilityDiscovery(endpointUrl, newClient).discoverAll().stream()
+                .filter(cii -> cii.metaData.getImplId().equals(capEastWire))
+                .findAny()
+                .ifPresent(cii -> executeWiringInformation(cii, wiEast)
         );
         newClient.disconnect();
     }

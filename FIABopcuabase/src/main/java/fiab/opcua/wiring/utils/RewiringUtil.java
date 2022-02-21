@@ -58,12 +58,14 @@ public class RewiringUtil {
                 cii -> executeWiringInformation(cii, new WiringInfo("","","","",""))					// to override the old wiring
         );
         oldClient.disconnect();
-
+        Thread.sleep(1000); // Otherwise second method call throws ua exception (timeout)
         // now wire the new capability
         OpcUaClient newClient = new OPCUAClientFactory().createClient(newEndpointUrl);
         newClient.connect().get();
-        new CapabilityDiscovery(newEndpointUrl, newClient).discoverAll().stream().filter(cii -> cii.metaData.getImplId().equals(capToWire)).findAny().ifPresent(
-                cii -> executeWiringInformation(cii, wi)
+        new CapabilityDiscovery(newEndpointUrl, newClient).discoverAll().stream()
+                .filter(cii -> cii.metaData.getImplId().equals(capToWire))
+                .findAny()
+                .ifPresent(cii -> executeWiringInformation(cii, wi)
         );
         newClient.disconnect();
     }
