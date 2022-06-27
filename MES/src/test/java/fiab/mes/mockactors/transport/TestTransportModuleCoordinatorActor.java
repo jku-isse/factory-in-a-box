@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import fiab.core.capabilities.transport.TransportModuleRequest;
+import fiab.functionalunit.connector.FUSubscriptionClassifier;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -21,24 +24,10 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
-import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-import fiab.handshake.actor.ClientHandshakeActor;
-import fiab.handshake.actor.LocalEndpointStatus;
-import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.shopfloor.DefaultLayout;
-import fiab.turntable.actor.InternalTransportModuleRequest;
-import fiab.turntable.actor.IntraMachineEventBus;
-import fiab.turntable.actor.SubscriptionClassifier;
-import fiab.turntable.actor.TransportModuleCoordinatorActor;
-import fiab.turntable.conveying.BaseBehaviorConveyorActor;
-import fiab.turntable.conveying.ConveyorActor;
-import fiab.turntable.turning.BaseBehaviorTurntableActor;
-import fiab.turntable.turning.TurntableActor;
 
 public class TestTransportModuleCoordinatorActor { 
 
@@ -74,8 +63,8 @@ public class TestTransportModuleCoordinatorActor {
 				ActorSelection outServer = system.actorSelection("/user/"+layout.partsOut.model.getActorName()+VirtualIOStationActorFactory.WRAPPER_POSTFIX);
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable
-				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
-				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
+				intraEventBus.subscribe(getRef(), new FUSubscriptionClassifier("TestClass", "*"));
 				Map<String,ActorRef> ioRefs = new HashMap<String,ActorRef>();
 				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, inRef);
 				ioRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, outRef);
@@ -90,7 +79,7 @@ public class TestTransportModuleCoordinatorActor {
 					logEvent(mue);
 					if (mue instanceof MachineStatusUpdateEvent) {
 						if (((MachineStatusUpdateEvent) mue).getStatus().equals(BasicMachineStates.IDLE) && !hasSentReq) {
-							ttWrapper.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder1", "Req1"), getRef());
+							ttWrapper.tell(new TransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder1", "Req1"), getRef());
 							hasSentReq = true;
 						}
 						if (((MachineStatusUpdateEvent) mue).getStatus().equals(BasicMachineStates.COMPLETE)) {
@@ -115,7 +104,7 @@ public class TestTransportModuleCoordinatorActor {
 				ActorRef outRef = outServer.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
 				// setup turntable
 				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();	
-				intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				intraEventBus.subscribe(getRef(), new FUSubscriptionClassifier("TestClass", "*"));
 				Map<String,ActorRef> iRefs = new HashMap<String,ActorRef>();
 				iRefs.put(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, inRef);
 				Set<String> serverRefs = new HashSet<String>();
@@ -125,7 +114,7 @@ public class TestTransportModuleCoordinatorActor {
 				ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, getRef());
 				
 				IntraMachineEventBus intraEventBus2 = new IntraMachineEventBus();	
-				intraEventBus2.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
+				intraEventBus2.subscribe(getRef(), new FUSubscriptionClassifier("TestClass", "*"));
 				Map<String,ActorRef> ioRefs = new HashMap<String,ActorRef>();
 				ActorSelection eastServerSel = system.actorSelection("/user/"+TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER+"~"+1);
 				ActorRef eastServer = eastServerSel.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get();
@@ -144,11 +133,11 @@ public class TestTransportModuleCoordinatorActor {
 					if (mue instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent)mue;
 						if (msue.getMachineId().equals("TT1") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT1) {
-							ttWrapper.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, "TestOrder1", "Req1"), getRef());
+							ttWrapper.tell(new TransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, "TestOrder1", "Req1"), getRef());
 							hasSentReqTT1 = true;
 						}
 						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT2) {
-							ttWrapper2.tell(new InternalTransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder2", "Req2"), getRef());
+							ttWrapper2.tell(new TransportModuleRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder2", "Req2"), getRef());
 							hasSentReqTT2 = true;
 						}
 						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.COMPLETE)) {

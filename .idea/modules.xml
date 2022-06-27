@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/FIABcore/FIABcore.iml" filepath="$PROJECT_DIR$/FIABcore/FIABcore.iml" />
       <module fileurl="file://$PROJECT_DIR$/FIABfoldingstation/FIABfoldingstation.iml" filepath="$PROJECT_DIR$/FIABfoldingstation/FIABfoldingstation.iml" />
-      <module fileurl="file://$PROJECT_DIR$/FIABhandshake/FIABhandshake.iml" filepath="$PROJECT_DIR$/FIABhandshake/FIABhandshake.iml" />
-      <module fileurl="file://$PROJECT_DIR$/FIABopcuabase/FIABopcuabase.iml" filepath="$PROJECT_DIR$/FIABopcuabase/FIABopcuabase.iml" />
       <module fileurl="file://$PROJECT_DIR$/FIABvirtualplotter/FIABvirtualplotter.iml" filepath="$PROJECT_DIR$/FIABvirtualplotter/FIABvirtualplotter.iml" />
       <module fileurl="file://$PROJECT_DIR$/MES/FIAB/MESactors.iml" filepath="$PROJECT_DIR$/MES/FIAB/MESactors.iml" />
     </modules>

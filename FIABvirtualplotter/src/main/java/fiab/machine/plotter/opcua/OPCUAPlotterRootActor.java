@@ -1,5 +1,7 @@
 package fiab.machine.plotter.opcua;
 
+import fiab.functionalunit.connector.FUSubscriptionClassifier;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.machine.plotter.MachineCapabilityUpdateEvent;
 import fiab.machine.plotter.opcua.methods.SetCapability;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
@@ -20,7 +22,6 @@ import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
-import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
 import fiab.machine.plotter.opcua.methods.PlotRequest;
 import fiab.machine.plotter.opcua.methods.Reset;
@@ -56,7 +57,6 @@ public class OPCUAPlotterRootActor extends AbstractActor {
 
     @Override
     public Receive createReceive() {
-
         return receiveBuilder()
                 .match(MachineCapabilityUpdateEvent.class, req -> {
                     setPlotCapability(req.getValue().toString());
@@ -77,7 +77,7 @@ public class OPCUAPlotterRootActor extends AbstractActor {
         String fuPrefix = machineName + "/" + "Plotting_FU";
 
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
-        intraEventBus.subscribe(getSelf(), new fiab.machine.plotter.SubscriptionClassifier("Plotter Module", "*"));
+        intraEventBus.subscribe(getSelf(), new FUSubscriptionClassifier("Plotter Module", "*"));
         plotterCoordinator = context().actorOf(VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus), machineName);
         plotterCoordinator.tell(PlotterMessageTypes.SubscribeState, getSelf());
 
@@ -85,7 +85,6 @@ public class OPCUAPlotterRootActor extends AbstractActor {
         //ActorRef serverSide = defaultHandshakeFU.getFUActor();
         //		.setupOPCUANodeSet(plotterWrapper, opcuaBase, ttNode, fuPrefix, getContext());
         //plotterCoordinator.tell(serverSide, getSelf());
-
 
         setupPlotterCapabilities(opcuaBase, ttNode, fuPrefix, color);
         setupOPCUANodeSet(opcuaBase, ttNode, fuPrefix, plotterCoordinator);

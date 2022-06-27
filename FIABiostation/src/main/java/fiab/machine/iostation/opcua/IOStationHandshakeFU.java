@@ -1,7 +1,7 @@
 package fiab.machine.iostation.opcua;
 
 import ev3dev.sensors.ev3.EV3ColorSensor;
-import fiab.machine.iostation.EV3IOStationServerHandshakeActor;
+//import fiab.machine.iostation.EV3IOStationServerHandshakeActor;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 
 import akka.actor.ActorContext;
@@ -32,7 +32,7 @@ public class IOStationHandshakeFU {
         }
     }
 
-    public static class EV3InputStationHandshakeFU extends ServerSideHandshakeFU {
+    /*public static class EV3InputStationHandshakeFU extends ServerSideHandshakeFU {
 
         public EV3InputStationHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef parentActor,
                                           ActorContext context, String capInstId, boolean exposeInternalControl, boolean isInputStation) {
@@ -44,7 +44,7 @@ public class IOStationHandshakeFU {
             System.out.println("In FU: ColorSensor=" + colorSensor);
             localClient = context.actorOf(EV3IOStationServerHandshakeActor.propsForInputstation(parentActor, true, this, colorSensor), capInstId);
         }
-    }
+    }*/
 
     public static class OutputStationHandshakeFU extends ServerSideHandshakeFU {
 
@@ -59,7 +59,7 @@ public class IOStationHandshakeFU {
         }
     }
 
-    public static class EV3OutputStationHandshakeFU extends ServerSideHandshakeFU {
+    /*public static class EV3OutputStationHandshakeFU extends ServerSideHandshakeFU {
 
         public EV3OutputStationHandshakeFU(OPCUABase base, UaFolderNode root, String fuPrefix, ActorRef parentActor,
                                            ActorContext context, String capInstId, boolean exposeInternalControl, boolean isInputStation) {
@@ -71,6 +71,6 @@ public class IOStationHandshakeFU {
             System.out.println("In FU: ColorSensor=" + colorSensor);
             localClient = context.actorOf(EV3IOStationServerHandshakeActor.propsForOutputstation(parentActor, true, this, colorSensor), capInstId);
         }
-    }
+    }*/
 
 }

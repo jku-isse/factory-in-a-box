@@ -8,3 +8,7 @@ include 'FIABturntable'
 include 'FIABfoldingstation'
 include 'FIABproductioncell'
 include 'MES'
+include 'FIABhal'
+include 'FIABfunctionalunit'
+include 'FIABconveyor'
+

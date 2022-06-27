@@ -14,7 +14,7 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
 
 

@@ -7,5 +7,4 @@ class ExampleStartupInputStation {
 		StartupUtil.startupInputstation(0, "VirtualInputStation1");
 	}
 
-
 }

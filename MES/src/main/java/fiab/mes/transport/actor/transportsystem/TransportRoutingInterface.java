@@ -29,8 +29,8 @@ public interface TransportRoutingInterface {
 		}
 	}
 	
-	public static class Position {
-		protected String pos = null;
+	class Position {
+		protected String pos;
 		
 		public Position(String pos) {
 			this.pos = pos;

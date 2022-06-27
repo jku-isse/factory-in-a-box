@@ -2,6 +2,8 @@ package fiab.mes.shopfloor;
 
 import akka.actor.ActorSystem;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
+import fiab.iostation.InputStationFactory;
+import fiab.iostation.OutputStationFactory;
 import fiab.machine.foldingstation.opcua.StartupUtil;
 import fiab.mes.productioncell.FoldingProductionCell;
 
@@ -17,8 +19,12 @@ public class StartupVirtualFoldingShopfloorParticipants {
     }
 
     public static void startupSingleTurntableInputOutputDualFolding() {
+        startupSingleTurntableInputOutputDualFolding(ActorSystem.create());
+    }
+
+    public static void startupSingleTurntableInputOutputDualFolding(ActorSystem system) {
         // TT1 West
-        fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation");
+        InputStationFactory.startStandaloneInputStation(system, 4840, "InputStation");
 
         // TT1 North
         fiab.machine.plotter.opcua.StartupUtil.startup(1, "Plotter", WellknownPlotterCapability.SupportedColors.RED);
@@ -26,7 +32,7 @@ public class StartupVirtualFoldingShopfloorParticipants {
         fiab.machine.plotter.opcua.StartupUtil.startup(5, "Plotter", WellknownPlotterCapability.SupportedColors.BLACK);
 
         // TT2 North
-        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(2, "OutputStation");
+        OutputStationFactory.startStandaloneOutputStation(system, 4842, "OutputStation");
         // TT2 South
         fiab.machine.plotter.opcua.StartupUtil.startup(6, "Plotter", WellknownPlotterCapability.SupportedColors.BLUE);
         // TT2 East
@@ -36,11 +42,13 @@ public class StartupVirtualFoldingShopfloorParticipants {
         // TT2 East
         StartupUtil.startup(11, "VirtualFolding");
         ScheduledExecutorService es = Executors.newScheduledThreadPool(4);
-        startupHiddenFoldingParticipants(es);
+        startupHiddenFoldingParticipants(system, es);
         // TT3 West
-        fiab.machine.iostation.opcua.StartupUtil.startupInputStationNoAutoReload(12, "TransitStation");
+        //FIXME
+        InputStationFactory.startStandaloneInputStation(system, 4852, "InputStation");
+        //fiab.machine.iostation.opcua.StartupUtil.startupInputStationNoAutoReload(12, "TransitStation");
         // TT3 East
-        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(14, "OutputStation");
+        OutputStationFactory.startStandaloneOutputStation(system, 4854, "OutputStation");
 
         //Start Turntables later
         es.schedule(() -> {
@@ -56,11 +64,13 @@ public class StartupVirtualFoldingShopfloorParticipants {
         }, 10, TimeUnit.SECONDS);
     }
 
-    private static void startupHiddenFoldingParticipants(ScheduledExecutorService es){
+    private static void startupHiddenFoldingParticipants(ActorSystem system, ScheduledExecutorService es) {
         //TT2 East, Actual HS_East binding for TT2 (For now since InputStation does not accept to be loaded via hs)
-        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(20, "OutputStation");
+        OutputStationFactory.startStandaloneOutputStation(system, 4860, "OutputStation");
+        //fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(20, "OutputStation");
         //TT4 West, Actual HS_East binding for TT2
-        fiab.machine.iostation.opcua.StartupUtil.startupInputStationNoAutoReload(7, "InputStation");
+        InputStationFactory.startStandaloneInputStation(system, 4847, "InputStation");
+        //fiab.machine.iostation.opcua.StartupUtil.startupInputStationNoAutoReload(7, "InputStation");
         // Start Turntable later
         es.schedule(() -> {
             //TT4 itself

@@ -12,6 +12,8 @@ import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.folding.FoldingMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
+import fiab.core.capabilities.handshake.ServerSideStates;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
 import fiab.machine.foldingstation.events.MachineCapabilityUpdateEvent;
@@ -24,7 +26,7 @@ public class VirtualFoldingMachineActor extends AbstractActor {
     protected IntraMachineEventBus intraEventBus;
     protected BasicMachineStates currentState = BasicMachineStates.STOPPING;
     protected boolean doPublishState = false;
-    protected HandshakeCapability.ServerSideStates handshakeStatus;
+    protected ServerSideStates handshakeStatus;
     protected ActorRef serverSide;
     protected ActorRef self;
 
@@ -81,7 +83,7 @@ public class VirtualFoldingMachineActor extends AbstractActor {
                             break;
                     }
                 })
-                .match(HandshakeCapability.ServerSideStates.class, msg -> { // state event updates
+                .match(ServerSideStates.class, msg -> { // state event updates
                     log.info(String.format("Received %s from %s", msg, getSender()));
                     //if (getSender().equals(serverSide)) {
                     handshakeStatus = msg;
@@ -110,7 +112,7 @@ public class VirtualFoldingMachineActor extends AbstractActor {
                     setServerHandshakeActor(lateBoundHandshake); //wont be called when serverhandshake announces itself to its parentActor, and parentActor is set to this actor
                 })
                 .match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {
-                    setServerHandshakeActor(les.getActor());
+                    //setServerHandshakeActor(les.getActor()); //FIXME
                 })
                 .matchAny(msg -> {
                     log.warning("Unexpected Message received: " + msg.toString());
@@ -161,7 +163,7 @@ public class VirtualFoldingMachineActor extends AbstractActor {
                             @Override
                             public void run() {
                                 // only when handshakeFU and other FUs have stopped
-                                if (handshakeStatus.equals(HandshakeCapability.ServerSideStates.STOPPED)) {
+                                if (handshakeStatus.equals(ServerSideStates.STOPPED)) {
                                     transitionToStop();
                                 }
                             }
@@ -185,7 +187,7 @@ public class VirtualFoldingMachineActor extends AbstractActor {
                             public void run() {
                                 // we only transition when the pallet is loaded, e.g., the server handshake is completing or completed,
                                 //sending of the complete() command (by the here nonexisting converyerFU when loaded) --> not necessary if we set serverside protocol actor to auto-complete
-                                if (handshakeStatus.equals(HandshakeCapability.ServerSideStates.COMPLETE)) {
+                                if (handshakeStatus.equals(ServerSideStates.COMPLETE)) {
                                     transitionStartingToExecute();
                                 }
                             }

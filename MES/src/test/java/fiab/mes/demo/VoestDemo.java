@@ -32,6 +32,7 @@ import fiab.opcua.CapabilityImplementationMetadata;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.concurrent.duration.FiniteDuration;
 
 import java.time.Duration;
 import java.util.*;

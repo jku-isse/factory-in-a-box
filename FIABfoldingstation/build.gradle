@@ -20,6 +20,7 @@ dependencies {
 
     implementation project(":FIABcore")
     implementation project(":FIABopcuabase")
+    implementation project(":FIABfunctionalunit")
     implementation project(":FIABhandshake")
     implementation project(":FIABiostation")
 

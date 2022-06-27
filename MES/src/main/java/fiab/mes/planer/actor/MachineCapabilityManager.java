@@ -88,8 +88,7 @@ public class MachineCapabilityManager {
 				.filter(a2a -> a2a.getModelActor().equals(modelActor))
 				.findFirst();
 	}
-	
-	
+
 	public Set<AkkaActorBackedCoreModelAbstractActor> getMachinesProvidingCapability(AbstractCapability cap) {
 		assert(cap != null);
 		return getMachinesProvidingAllCapabilities(flatHierarchyToCapsWithNonNullId(cap).stream().collect(Collectors.toSet()));

@@ -10,7 +10,8 @@ import akka.pattern.Patterns;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
-import fiab.machine.foldingstation.IntraMachineEventBus;
+import fiab.functionalunit.connector.IntraMachineEventBus;
+//import fiab.machine.foldingstation.IntraMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.foldingstation.FoldingStationActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
@@ -41,7 +42,6 @@ public class LocalFoldingStationActorSpawner extends AbstractActor {
 
     ActorRef machine;
     ActorRef discovery;
-    ActorRef outputStation;
     private final TransportPositionParser transportPositionParser;
 
     public static Props props(TransportPositionParser parser) {

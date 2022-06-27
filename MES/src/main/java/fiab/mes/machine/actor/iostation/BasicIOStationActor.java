@@ -14,7 +14,7 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
@@ -38,7 +38,7 @@ public class BasicIOStationActor extends AbstractActor {
 	protected ActorSelection eventBusByRef;
 	protected final AkkaActorBackedCoreModelAbstractActor machineId;
 	protected AbstractCapability cap;
-	protected IOStationCapability.ServerSideStates currentState = ServerSideStates.UNKNOWN;
+	protected ServerSideStates currentState = ServerSideStates.UNKNOWN;
 	protected IOStationWrapperInterface hal;
 	protected InterMachineEventBus intraBus;
 	protected boolean doAutoReset = true;

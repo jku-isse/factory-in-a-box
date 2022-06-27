@@ -3,26 +3,41 @@ plugins {
 }
 
 group 'fiab.isse'
-version '1.0.4'
+version '1.0.5'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    implementation "com.github.oxo42:stateless4j:2.5.0"
     implementation "com.fasterxml.jackson.core:jackson-databind:2.9.9"
     implementation "com.typesafe.akka:akka-actor_${akkaTarget}:${akkaVersion}"
     implementation "com.typesafe.akka:akka-slf4j_${akkaTarget}:${akkaVersion}"
-    implementation "ch.qos.logback:logback-classic:1.2.3"
+    //implementation "ch.qos.logback:logback-classic:1.2.3"
 
     implementation project(":FIABcore")
     implementation project(":FIABopcuabase")
+    implementation project(":FIABfunctionalunit")
 
+    implementation testFixtures(project(":FIABfunctionalunit"))
     testImplementation "com.typesafe.akka:akka-testkit_${akkaTarget}:${akkaVersion}"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
 
 test {
-    useJUnitPlatform()
+    //useJUnitPlatform()
+    useJUnitPlatform{
+        excludeTags("IntegrationTest")
+        excludeTags("SystemTest")
+    }
+}
+
+//Some tests need to be re-run manually, since I can't get rid of BindException for now
+tasks.register("runIntegrationTests", Test) {
+    useJUnitPlatform {
+        includeTags "IntegrationTest"
+    }
+    mustRunAfter check
 }

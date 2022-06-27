@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 //import org.eclipse.milo.opcua.sdk.client.api.AddressSpace;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
-import fiab.mes.productioncell.FoldingProductionCell;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.mes.transport.actor.transportmodule.InternalCapabilityToPositionMapping;
 import fiab.mes.transport.actor.transportsystem.*;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
@@ -32,7 +32,6 @@ import fiab.mes.opcua.CapabilityCentricActorSpawnerInterface;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.CapabilityImplInfo;
-import fiab.turntable.actor.IntraMachineEventBus;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import scala.concurrent.Await;
 import scala.concurrent.Future;

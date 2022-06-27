@@ -36,51 +36,58 @@ import static org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig.USE
 public class NonEncryptionBaseOpcUaServer {
 
     private final int TCP_BIND_PORT;
+    private final String serverName;
 
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-
-    
     private final OpcUaServer server;
 
-    public NonEncryptionBaseOpcUaServer(int number, String serverName) throws Exception {
-    	TCP_BIND_PORT = 4840+number;
-
-        UsernameIdentityValidator identityValidator = new UsernameIdentityValidator(
-            true,
-            authChallenge -> {
-                String username = authChallenge.getUsername();
-                String password = authChallenge.getPassword();
-
-                boolean userOk = "user".equals(username) && "password1".equals(password);
-                boolean adminOk = "admin".equals(username) && "password2".equals(password);
-
-                return userOk || adminOk;
-            }
-        );
-
-        X509IdentityValidator x509IdentityValidator = new X509IdentityValidator(c -> true);
+    public NonEncryptionBaseOpcUaServer(int portNumber, String serverName) {
+        TCP_BIND_PORT = portNumber;
+        this.serverName = serverName;
 
         Set<EndpointConfiguration> endpointConfigurations = createEndpointConfigurations();
 
-        OpcUaServerConfig serverConfig = OpcUaServerConfig.builder()
-            .setApplicationUri("opc.tcp://127.0.0.1")
-            .setApplicationName(LocalizedText.english(serverName))
-            .setEndpoints(endpointConfigurations)
-            .setBuildInfo(
-                new BuildInfo(
-                    "urn:jku:fiab",
-                    "JKU",
-                    serverName,
-                    OpcUaServer.SDK_VERSION,
-                    "", DateTime.now()))
-            .setIdentityValidator(new CompositeValidator(identityValidator, x509IdentityValidator))
-            .setProductUri("urn:eclipse:milo:"+serverName)
-            .build();
+        OpcUaServerConfig serverConfig = createLocalOpcUaServerConfig(endpointConfigurations);
 
         server = new OpcUaServer(serverConfig);
+    }
+
+    private UsernameIdentityValidator createUsernameIdentityValidator(){
+        return new UsernameIdentityValidator(
+                true,
+                authChallenge -> {
+                    String username = authChallenge.getUsername();
+                    String password = authChallenge.getPassword();
+
+                    boolean userOk = "user".equals(username) && "password1".equals(password);
+                    boolean adminOk = "admin".equals(username) && "password2".equals(password);
+
+                    return userOk || adminOk;
+                }
+        );
+    }
+
+    private OpcUaServerConfig createLocalOpcUaServerConfig(Set<EndpointConfiguration> endpointConfigurations){
+        UsernameIdentityValidator identityValidator = createUsernameIdentityValidator();
+
+        X509IdentityValidator x509IdentityValidator = new X509IdentityValidator(c -> true);
+        return OpcUaServerConfig.builder()
+                .setApplicationUri("opc.tcp://localhost")
+                .setApplicationName(LocalizedText.english(serverName))
+                .setEndpoints(endpointConfigurations)
+                .setBuildInfo(
+                        new BuildInfo(
+                                "urn:jku:fiab",
+                                "JKU",
+                                serverName,
+                                OpcUaServer.SDK_VERSION,
+                                "", DateTime.now()))
+                .setIdentityValidator(new CompositeValidator<>(identityValidator, x509IdentityValidator))
+                .setProductUri("urn:jku:fiab:" + serverName)
+                .build();
     }
 
     private Set<EndpointConfiguration> createEndpointConfigurations() {
@@ -90,50 +97,42 @@ public class NonEncryptionBaseOpcUaServer {
         bindAddresses.add("0.0.0.0");
 
         Set<String> hostnames = new LinkedHashSet<>();
+        //TODO create config with hostnames below for public visibility
         //String sHostname = HostnameUtil.getHostname();
         //hostnames.add(sHostname);
         //Set<String> hNames = HostnameUtil.getHostnames("0.0.0.0"); // ATTENTION: resolving hostnames takes long when there are many interfaces (e.g., docker, VPN, etc)
         //hostnames.addAll(hNames);
         hostnames.add("127.0.0.1");
-        //FIXME: add others here for external reachability
-        
+
         for (String bindAddress : bindAddresses) {
             for (String hostname : hostnames) {
                 EndpointConfiguration.Builder builder = EndpointConfiguration.newBuilder()
-                    .setBindAddress(bindAddress)
-                    .setHostname(hostname)
-                    .setPath("/milo")
-                    .addTokenPolicies(
-                        USER_TOKEN_POLICY_ANONYMOUS,
-                        USER_TOKEN_POLICY_USERNAME 
-                        );
-
+                        .setBindAddress(bindAddress)
+                        .setHostname(hostname)
+                        .addTokenPolicies(USER_TOKEN_POLICY_ANONYMOUS, USER_TOKEN_POLICY_USERNAME);
 
                 EndpointConfiguration.Builder noSecurityBuilder = builder.copy()
-                    .setSecurityPolicy(SecurityPolicy.None)
-                    .setSecurityMode(MessageSecurityMode.None);
+                        .setSecurityPolicy(SecurityPolicy.None)
+                        .setSecurityMode(MessageSecurityMode.None);
 
                 endpointConfigurations.add(buildTcpEndpoint(noSecurityBuilder));
 
-
-
                 EndpointConfiguration.Builder discoveryBuilder = builder.copy()
-                    .setPath("/milo/discovery")
-                    .setSecurityPolicy(SecurityPolicy.None)
-                    .setSecurityMode(MessageSecurityMode.None);
+                        .setPath("/discovery")
+                        .setSecurityPolicy(SecurityPolicy.None)
+                        .setSecurityMode(MessageSecurityMode.None);
 
                 endpointConfigurations.add(buildTcpEndpoint(discoveryBuilder));
             }
         }
-
         return endpointConfigurations;
     }
 
     private EndpointConfiguration buildTcpEndpoint(EndpointConfiguration.Builder base) {
         return base.copy()
-            .setTransportProfile(TransportProfile.TCP_UASC_UABINARY)
-            .setBindPort(TCP_BIND_PORT)
-            .build();
+                .setTransportProfile(TransportProfile.TCP_UASC_UABINARY)
+                .setBindPort(TCP_BIND_PORT)
+                .build();
     }
 
     public OpcUaServer getServer() {

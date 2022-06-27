@@ -1,5 +1,8 @@
 package fiab.mes.shopfloor;
 
+import akka.actor.ActorSystem;
+import fiab.iostation.InputStationFactory;
+import fiab.iostation.OutputStationFactory;
 import fiab.machine.foldingstation.opcua.StartupUtil;
 
 import java.util.concurrent.Executors;
@@ -12,15 +15,20 @@ public class StartupMinimalFoldingStation {
         startupSingleTurntableInputOutputDualFolding();
     }
 
-    public static void startupSingleTurntableInputOutputDualFolding() {
+    public static void startupSingleTurntableInputOutputDualFolding(){
+        startupSingleTurntableInputOutputDualFolding(ActorSystem.create());
+    }
+
+    public static void startupSingleTurntableInputOutputDualFolding(ActorSystem system) {
         // TT1 West
-        fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation");
+        //fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation");
+        InputStationFactory.startStandaloneInputStation(system, 4840, "InputStation");
         // TT1 North
         StartupUtil.startup(5, "VirtualFolding1");
         // TT1 South
-        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "TransitStation");
+        OutputStationFactory.startStandaloneOutputStation(system, 4847, "TransitStation");
         // OutputStation East TT2
-        fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(1, "OutputStation");
+        OutputStationFactory.startStandaloneOutputStation(system, 4841, "OutputStation");
         // TT1 itself 1
         fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "FoldingTurntable1");
 

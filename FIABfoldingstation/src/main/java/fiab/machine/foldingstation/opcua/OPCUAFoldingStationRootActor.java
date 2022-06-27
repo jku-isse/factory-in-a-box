@@ -10,13 +10,15 @@ import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.folding.FoldingMessageTypes;
 import fiab.core.capabilities.wiring.WiringInfo;
+import fiab.functionalunit.connector.FUSubscriptionClassifier;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.fu.HandshakeFU;
 import fiab.handshake.fu.client.ClientSideHandshakeFU;
 import fiab.handshake.fu.client.WiringUtils;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
-import fiab.machine.foldingstation.EV3FoldingMachineActor;
-import fiab.machine.foldingstation.IntraMachineEventBus;
+//import fiab.machine.foldingstation.EV3FoldingMachineActor;
+//import fiab.machine.foldingstation.IntraMachineEventBus;
 import fiab.machine.foldingstation.VirtualFoldingMachineActor;
 import fiab.machine.foldingstation.events.MachineCapabilityUpdateEvent;
 import fiab.machine.foldingstation.opcua.methods.FoldRequest;
@@ -73,11 +75,11 @@ public class OPCUAFoldingStationRootActor extends AbstractActor {
         String fuPrefix = machineName + "/" + "Folding_FU";
 
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
-        intraEventBus.subscribe(getSelf(), new fiab.machine.foldingstation.SubscriptionClassifier("Folding Module", "*"));
+        intraEventBus.subscribe(getSelf(), new FUSubscriptionClassifier("Folding Module", "*"));
         if (sensorPort == null) {
             foldingCoordinator = context().actorOf(VirtualFoldingMachineActor.propsForLateHandshakeBinding(intraEventBus), machineName);
         }else{
-            foldingCoordinator = context().actorOf(EV3FoldingMachineActor.propsForLateHandshakeBinding(intraEventBus, sensorPort), machineName);
+            //foldingCoordinator = context().actorOf(EV3FoldingMachineActor.propsForLateHandshakeBinding(intraEventBus, sensorPort), machineName);
         }
         foldingCoordinator.tell(FoldingMessageTypes.SubscribeState, getSelf());
 

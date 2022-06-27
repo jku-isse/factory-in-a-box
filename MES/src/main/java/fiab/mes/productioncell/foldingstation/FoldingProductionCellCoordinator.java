@@ -13,7 +13,7 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineEvent.MachineEventType;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.folding.WellknownFoldingCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;

@@ -16,7 +16,8 @@ import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
 
@@ -114,7 +115,7 @@ public class VirtualPlotterCoordinatorActor extends AbstractActor {
                     setServerHandshakeActor(lateBoundHandshake); //wont be called when serverhandshake announces itself to its parentActor, and parentActor is set to this actor
                 })
                 .match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {
-                    setServerHandshakeActor(les.getActor());
+                    //setServerHandshakeActor(les.getActor());  //FIXME
                 })
                 .matchAny(msg -> {
                     log.warning("Unexpected Message received: " + msg.toString());

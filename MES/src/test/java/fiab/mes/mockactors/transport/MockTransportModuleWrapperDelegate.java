@@ -1,12 +1,13 @@
 package fiab.mes.mockactors.transport;
 
+import fiab.core.capabilities.transport.TransportModuleRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
-import fiab.turntable.actor.InternalTransportModuleRequest;
+//import fiab.turntable.messages.TransportModuleRequest;
 
 public class MockTransportModuleWrapperDelegate implements TransportModuleWrapperInterface {
 
@@ -19,7 +20,7 @@ public class MockTransportModuleWrapperDelegate implements TransportModuleWrappe
 	}
 	
 	@Override
-	public void transport(InternalTransportModuleRequest req) {
+	public void transport(TransportModuleRequest req) {
 		logger.info("transport called");
 		wrapper.tell(req, ActorRef.noSender());
 	}

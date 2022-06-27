@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import fiab.core.capabilities.handshake.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.handshake.fu.HandshakeFU;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -83,11 +84,11 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
         UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "HANDSHAKE_FU_" + capInstId);
 
 
-        status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_CLIENTSIDE_VAR_NAME, HandshakeCapability.ClientSideStates.STOPPED);
+        status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_CLIENTSIDE_VAR_NAME, ClientSideStates.STOPPED);
         opcuaWrapper = context.actorOf(OPCUAClientHandshakeActorWrapper.props(), capInstId + "_OPCUAWrapper");
         localClient = context.actorOf(ClientHandshakeActor.props(ttBaseActor, opcuaWrapper, this), capInstId);
         opcuaWrapper.tell(localClient, ActorRef.noSender());
-        ttBaseActor.tell(new LocalEndpointStatus.LocalClientEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender());
+        //ttBaseActor.tell(new LocalEndpointStatus.LocalClientEndpointStatus(localClient, this.capInstId), ActorRef.noSender());
 
         if (exposeInternalControl) {
             // add reset, start, and stop and complete method
@@ -240,7 +241,6 @@ public class ClientSideHandshakeFU implements StatePublisher, HandshakeFU, Wirin
             status.setValue(new DataValue(new Variant(newStatus)));
         }
     }
-
 
     @Override
     public ActorRef getFUActor() {

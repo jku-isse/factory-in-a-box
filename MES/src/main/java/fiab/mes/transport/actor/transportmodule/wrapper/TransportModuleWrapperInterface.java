@@ -1,10 +1,11 @@
 package fiab.mes.transport.actor.transportmodule.wrapper;
 
-import fiab.turntable.actor.InternalTransportModuleRequest;
+
+import fiab.core.capabilities.transport.TransportModuleRequest;
 
 public interface TransportModuleWrapperInterface {
 	
-	public void transport(InternalTransportModuleRequest req);
+	public void transport(TransportModuleRequest req);
 	
 	public void stop();
 	

@@ -1,39 +1,36 @@
 package fiab.handshake.actor;
 
 import akka.actor.ActorRef;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ClientSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
+import fiab.functionalunit.connector.FUConnector;
 
 
 public abstract class LocalEndpointStatus {
-	private ActorRef actor;		
-	private boolean isProvidedCapability;
-	private String capabilityId;
 
-	public ActorRef getActor() {
-		return actor;
+	private final boolean isProvidedCapability;
+	private final String capabilityId;
+
+	public LocalEndpointStatus(boolean isProvidedCapability, String capabilityId) {
+		super();
+		this.isProvidedCapability = isProvidedCapability;
+		this.capabilityId = capabilityId;
 	}
+
 	public boolean isProvidedCapability() {
 		return isProvidedCapability;
 	}
 	public String getCapabilityId() {
 		return capabilityId;
 	}
-
-	public LocalEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
-		super();
-		this.actor = actor;
-		this.isProvidedCapability = isProvidedCapability;
-		this.capabilityId = capabilityId;
-	}		
 	public abstract String getRawState();
 
 	public static class LocalServerEndpointStatus extends LocalEndpointStatus{
 
 		private ServerSideStates state = ServerSideStates.STOPPED;
 
-		public LocalServerEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
-			super(actor, isProvidedCapability, capabilityId);			
+		public LocalServerEndpointStatus(String capabilityId) {
+			super( true, capabilityId);
 		}				
 
 		public ServerSideStates getState() {
@@ -53,8 +50,8 @@ public abstract class LocalEndpointStatus {
 
 		private ClientSideStates state = ClientSideStates.STOPPED;
 
-		public LocalClientEndpointStatus(ActorRef actor, boolean isProvidedCapability, String capabilityId) {
-			super(actor, isProvidedCapability, capabilityId);			
+		public LocalClientEndpointStatus(String capabilityId) {
+			super(false, capabilityId);
 		}				
 
 		public ClientSideStates getState() {

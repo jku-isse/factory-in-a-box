@@ -27,7 +27,7 @@ public class PlotRequest extends AbstractMethodInvocationHandler {
 	final Duration timeout = Duration.ofSeconds(2);
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
-	private ActorRef actor;
+	private final ActorRef actor;
 	
     public static final Argument RESPONSE = new Argument(
             "plot response",

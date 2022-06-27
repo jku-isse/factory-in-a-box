@@ -22,11 +22,11 @@ import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
-import fiab.machine.iostation.opcua.StartupUtil;
+//import fiab.machine.iostation.opcua.StartupUtil;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -65,8 +65,9 @@ public class TestTurntableWithIOStations {
 	}
 	
 	public static void startupW34toS37(){
-		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1");
-		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
+		//FIXME
+		//fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1");
+		//fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
         int portOffset = 2;
         boolean exposeInternalControls = false;
@@ -74,8 +75,9 @@ public class TestTurntableWithIOStations {
 	}
 	
 	public static void startupW34toN31toS37() {
-		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1"); //Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
-		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
+		//FIXME
+		//fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1"); //Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
+		//fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
 		fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK);
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
         int portOffset = 2;
@@ -84,9 +86,10 @@ public class TestTurntableWithIOStations {
 	}
 	
 	public static void startupW34toE35() {
-		// !!! Names are reflected in Nodeset, do not change without propagating to wiringinfo.json 
-		StartupUtil.startupInputstation(0, "VirtualInputStation1"); 
-		StartupUtil.startupOutputstation(1, "VirtualOutputStation1");
+		// !!! Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
+		//FIXME
+		//StartupUtil.startupInputstation(0, "VirtualInputStation1");
+		//StartupUtil.startupOutputstation(1, "VirtualOutputStation1");
 		fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK); //NORTH TT1
 		fiab.machine.plotter.opcua.StartupUtil.startup(6, "VirtualPlotter32", SupportedColors.BLACK); //NORTH TT2
 		ActorSystem systemTT1 = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA1");

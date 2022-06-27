@@ -6,8 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
-import fiab.mes.productioncell.FoldingProductionCell;
-import fiab.mes.transport.actor.transportsystem.TransportPositionLookupInterface;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
 import org.eclipse.milo.opcua.stack.core.NamespaceTable;
@@ -28,7 +27,6 @@ import akka.pattern.Patterns;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
-import fiab.machine.plotter.IntraMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.plotter.BasicMachineActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;

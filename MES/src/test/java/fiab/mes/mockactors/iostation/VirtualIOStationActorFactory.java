@@ -13,9 +13,9 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.handshake.actor.LocalEndpointStatus;
-import fiab.machine.iostation.IOStationServerHandshakeActor;
+//import fiab.machine.iostation.IOStationServerHandshakeActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
@@ -45,8 +45,9 @@ public class VirtualIOStationActorFactory {
 		model = getDefaultIOStationActor(isInputStation, ipId);
 		intraEventBus = new InterMachineEventBus();
 		ActorRef parent = system.actorOf(ParentActor.props(isInputStation, doAutoReload, intraEventBus), model.getActorName()+"PARENT");
-		wrapper = isInputStation ? system.actorOf(IOStationServerHandshakeActor.propsForInputstation(parent, doAutoComplete, null), model.getActorName()+WRAPPER_POSTFIX)
-				: system.actorOf(IOStationServerHandshakeActor.propsForOutputstation(parent, doAutoComplete, null), model.getActorName()+WRAPPER_POSTFIX);
+		//FIXME
+		//wrapper = isInputStation ? system.actorOf(IOStationServerHandshakeActor.propsForInputstation(parent, doAutoComplete, null), model.getActorName()+WRAPPER_POSTFIX)
+		//		: system.actorOf(IOStationServerHandshakeActor.propsForOutputstation(parent, doAutoComplete, null), model.getActorName()+WRAPPER_POSTFIX);
 		MockIOStationWrapperDelegate delegate = new MockIOStationWrapperDelegate(wrapper);
 		capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
 		machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, delegate, intraEventBus), model.getActorName());

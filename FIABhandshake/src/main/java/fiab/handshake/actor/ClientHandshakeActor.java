@@ -8,8 +8,8 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ClientSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 
 
 public class ClientHandshakeActor extends AbstractActor{
@@ -240,8 +240,6 @@ public class ClientHandshakeActor extends AbstractActor{
 	            }
 	          }, context().system().dispatcher());		
 	}
-	
-	
 	
 	private void receiveStartOkResponse() {
 		publishNewState(ClientSideStates.EXECUTE);

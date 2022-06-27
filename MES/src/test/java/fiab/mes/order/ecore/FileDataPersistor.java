@@ -34,7 +34,7 @@ public class FileDataPersistor implements DataPersistor{
 	private URI dataUri;
 	/**
 	 * 
-	 * @param Filename should end in ".xmi"
+	 * @param fileName should end in ".xmi"
 	 */
 	public FileDataPersistor(String fileName) {
 		rs = new ResourceSetImpl();

@@ -7,6 +7,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
@@ -229,8 +230,8 @@ public class OrderEmittingTestServerWithOPCUA {
                             m -> m instanceof TimedEvent);
                     logEvent(te);
                     if (te instanceof IOStationStatusUpdateEvent) {
-                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_EMPTY) ||
-                                ((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_LOADED)) {
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_EMPTY) ||
+                                ((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
                             //If event comes from an outputStation we can assume here the pallet reached the final out
                             //TODO check whether the modelActor has an ID containing "Output"
                             boolean reachedOutput = Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))

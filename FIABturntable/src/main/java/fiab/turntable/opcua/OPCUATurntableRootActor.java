@@ -8,6 +8,7 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
@@ -17,19 +18,14 @@ import fiab.handshake.fu.client.ClientSideHandshakeFU;
 import fiab.handshake.fu.client.WiringUtils;
 import fiab.handshake.fu.server.ServerSideHandshakeFU;
 import fiab.opcua.server.FastPublicNonEncryptionBaseOpcUaServer;
-import fiab.opcua.server.NonEncryptionBaseOpcUaServer;
 import fiab.opcua.server.OPCUABase;
-import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
-import fiab.turntable.actor.InternalTransportModuleRequest;
-import fiab.turntable.actor.IntraMachineEventBus;
+//import fiab.turntable.messages.TransportModuleRequest;
 import fiab.turntable.actor.NoOpTransportModuleCoordinator;
-import fiab.turntable.actor.SubscriptionClassifier;
 import fiab.turntable.actor.TransportModuleCoordinatorActor;
-import fiab.turntable.conveying.fu.opcua.ConveyingFU;
-import fiab.turntable.opcua.methods.Reset;
-import fiab.turntable.opcua.methods.Stop;
-import fiab.turntable.opcua.methods.TransportRequest;
-import fiab.turntable.turning.fu.opcua.TurningFU;
+import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.turntable.opcua.methods.UaResetTurntable;
+import fiab.turntable.opcua.methods.UaStopTurntable;
+import fiab.turntable.opcua.methods.UaTransportRequest;
 
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
@@ -78,10 +74,10 @@ public class OPCUATurntableRootActor extends AbstractActor {
                 .match(MachineStatusUpdateEvent.class, req -> {
                     setStatusValue(req.getStatus().toString());
                 })
-                .match(InternalTransportModuleRequest.class, req -> {
+                /*.match(TransportModuleRequest.class, req -> {
                     // forward to return response directly into method call back
                     if (ttWrapper != null) ttWrapper.forward(req, getContext());
-                })
+                })*/
                 //.matchAny(msg -> log.info("Received unknown message " + msg + " from " + sender()))
                 .build();
     }
@@ -103,7 +99,7 @@ public class OPCUATurntableRootActor extends AbstractActor {
         String fuPrefix = machineName + "/" + "Turntable_FU";
 
         IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
-        intraEventBus.subscribe(getSelf(), new SubscriptionClassifier("TurntableRoot", "*"));
+        intraEventBus.subscribe(getSelf(), new FUSubscriptionClassifier("TurntableRoot", "*"));
 //       ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
 //                context().actorOf(TurntableActor.props(intraEventBus, null)),
 //                context().actorOf(ConveyorActor.props(intraEventBus, null))), "TurntableCoordinator");
@@ -112,19 +108,19 @@ public class OPCUATurntableRootActor extends AbstractActor {
 
 
 		if (!exposeInternalControl) {
-			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
-			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
+			//TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
+			//ConveyorFU conveyorFU = new ConveyorFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, intraEventBus);
 			ttWrapper = context().actorOf(TransportModuleCoordinatorActor.props(intraEventBus,
 		                //context().actorOf(TurntableActor.props(intraEventBus, null), "TurntableFU"),
 		                //context().actorOf(ConveyorActor.props(intraEventBus, null), "ConveyingFU")), 
-						turningFU.getActor(),
-						conveyorFU.getActor()),	"TurntableCoordinator");
+						null, //turningFU.getActor(),
+						null), "TTCoord");//conveyorFU.getActor()),	"TurntableCoordinator");
             ttWrapper.tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.SubscribeState, getSelf());
 			//ttWrapper.tell(MockTransportModuleWrapper.SimpleMessageTypes.Reset, getSelf());
 		} else {
 			ttWrapper = context().actorOf(NoOpTransportModuleCoordinator.props(), "NoOpTT");
-			TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null);
-			ConveyingFU conveyorFU = new ConveyingFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null);
+			//TurningFU turningFU = new TurningFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null);
+			//ConveyorFU conveyorFU = new ConveyorFU(opcuaBase, ttNode, fuPrefix, getContext(), exposeInternalControl, null);
 		}        
 
         setupTurntableCapabilities(opcuaBase, ttNode, fuPrefix);
@@ -180,11 +176,11 @@ public class OPCUATurntableRootActor extends AbstractActor {
     private void setupOPCUANodeSet(OPCUABase opcuaBase, UaFolderNode ttNode, String path, ActorRef ttActor) {
 
         UaMethodNode n1 = opcuaBase.createPartialMethodNode(path, TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset.toString(), "Requests reset");
-        opcuaBase.addMethodNode(ttNode, n1, new Reset(n1, ttActor));
+        opcuaBase.addMethodNode(ttNode, n1, new UaResetTurntable(n1, ttActor));
         UaMethodNode n2 = opcuaBase.createPartialMethodNode(path, TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Stop.toString(), "Requests stop");
-        opcuaBase.addMethodNode(ttNode, n2, new Stop(n2, ttActor));
+        opcuaBase.addMethodNode(ttNode, n2, new UaStopTurntable(n2, ttActor));
         UaMethodNode n3 = opcuaBase.createPartialMethodNode(path, TransportModuleCapability.OPCUA_TRANSPORT_REQUEST, "Requests transport");
-        opcuaBase.addMethodNode(ttNode, n3, new TransportRequest(n3, ttActor));
+        opcuaBase.addMethodNode(ttNode, n3, new UaTransportRequest(n3, ttActor));
         status = opcuaBase.generateStringVariableNode(ttNode, path, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, BasicMachineStates.UNKNOWN);
     }
 

@@ -17,13 +17,13 @@ public class StartupVirtualOPCUAparticipants {
 	
 	public static void startupSingleTurntableInputOutputDualPlotter() {
 		// TT1 West
-		fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation1");
+		//fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "InputStation1");
 		// TT1 North
 		StartupUtil.startup(5, "VirtualPlotter1", SupportedColors.BLACK);
 		// TT1 South
 		StartupUtil.startup(7, "VirtualPlotter2", SupportedColors.BLACK);
 		// TT1 EAST
-		fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(3, "OutputStation1");
+		//fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(3, "OutputStation1");
 		// TT1 itself - ensure this starts later than the others or has no prior wiring configured
 		fiab.turntable.StartupUtil.startupWithHiddenInternalControls(2, "Turntable1");
 		

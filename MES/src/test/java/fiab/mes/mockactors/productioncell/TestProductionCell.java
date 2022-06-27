@@ -12,6 +12,7 @@ import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.folding.WellknownFoldingCapability;
 import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.capabilities.plotting.EcoreProcessUtils;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
@@ -220,7 +221,7 @@ public class TestProductionCell {
                         }
                     }
                     if (te instanceof IOStationStatusUpdateEvent) {
-                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.COMPLETE)) {
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.COMPLETE)) {
                             Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId())).ifPresent(
                                     actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((IOStationStatusUpdateEvent) te).getMachineId()), getRef())
                             );

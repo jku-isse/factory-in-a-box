@@ -1,5 +1,7 @@
 package fiab.mes.transport.actor.transportmodule.wrapper;
 
+import fiab.core.capabilities.transport.TransportModuleRequest;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
@@ -10,10 +12,7 @@ import akka.actor.ActorRef;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
-import fiab.turntable.actor.InternalTransportModuleRequest;
-import fiab.turntable.actor.IntraMachineEventBus;
 
 public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements TransportModuleWrapperInterface {
 
@@ -29,7 +28,7 @@ public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements
 
 	
 	@Override
-	public void transport(InternalTransportModuleRequest req) {
+	public void transport(TransportModuleRequest req) {
 		Variant[] inputArgs = new Variant[]{new Variant(req.getCapabilityInstanceIdFrom()),
 				new Variant(req.getCapabilityInstanceIdTo()),
 				new Variant(req.getOrderId()),

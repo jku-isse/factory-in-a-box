@@ -14,8 +14,10 @@ import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.core.capabilities.folding.WellknownFoldingCapability;
-import fiab.machine.foldingstation.IntraMachineEventBus;
-import fiab.machine.foldingstation.SubscriptionClassifier;
+//import fiab.machine.foldingstation.IntraMachineEventBus;
+//import fiab.machine.foldingstation.SubscriptionClassifier;
+import fiab.functionalunit.connector.FUSubscriptionClassifier;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.actor.foldingstation.wrapper.FoldingStationWrapperInterface;
@@ -85,7 +87,7 @@ public class FoldingStationActor extends AbstractActor {
 
     private void init() {
         eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self);
-        intraBus.subscribe(self, new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
+        intraBus.subscribe(self, new FUSubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
         hal.subscribeToStatus();
     }
 

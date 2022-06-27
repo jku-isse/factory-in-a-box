@@ -2,7 +2,7 @@ package fiab.core.capabilities.basicmachine;
 
 public class BasicMachineRequests {
 
-	public static enum SimpleMessageTypes {
+	public enum SimpleMessageTypes {
 		Reset, Stop
 	}
 }

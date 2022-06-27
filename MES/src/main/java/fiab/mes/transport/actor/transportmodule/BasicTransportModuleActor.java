@@ -17,6 +17,9 @@ import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
+import fiab.core.capabilities.transport.TransportModuleRequest;
+import fiab.functionalunit.connector.FUSubscriptionClassifier;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
 import fiab.mes.machine.msg.GenericMachineRequests.Reset;
@@ -27,10 +30,6 @@ import fiab.mes.restendpoint.requests.MachineHistoryRequest;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleWrapperInterface;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
-import fiab.mes.transport.msg.TransportModuleRequest;
-import fiab.turntable.actor.InternalTransportModuleRequest;
-import fiab.turntable.actor.IntraMachineEventBus;
-import fiab.turntable.actor.SubscriptionClassifier;
 
 
 public class BasicTransportModuleActor extends AbstractActor{
@@ -45,8 +44,9 @@ public class BasicTransportModuleActor extends AbstractActor{
 	protected DefaultTransportPositionLookup tpl;
 	protected Position selfPos;
 	protected InternalCapabilityToPositionMapping icpm;
-	protected InternalTransportModuleRequest reservedForTReq = null;
+	protected TransportModuleRequest reservedForTReq = null;
 	private ActorRef self;
+	private boolean autoComplete = true;
 	
 	private HistoryTracker externalHistory;
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
@@ -75,8 +75,9 @@ public class BasicTransportModuleActor extends AbstractActor{
 	public Receive createReceive() {
 		return receiveBuilder()
 				// map from positions to capabilityInstances local to the transport module 
-		        .match(TransportModuleRequest.class, req -> {
-		        	log.info(String.format("Received TransportModuleRequest from %s to %s for order %s", req.getPosFrom(), req.getPosTo(), req.getOrderId()));
+		        .match(TransportModuleRequest.class, req -> {	//FIXME
+		        	log.info(String.format("Received TransportModuleRequest from %s to %s for order %s",
+							req.getCapabilityInstanceIdFrom(), req.getCapabilityInstanceIdTo(), req.getOrderId()));
 		        	if (currentState.equals(BasicMachineStates.IDLE)) {
 		        		processTransportModuleRequest(req);
 		        	} else {
@@ -120,20 +121,22 @@ public class BasicTransportModuleActor extends AbstractActor{
 
 	private void init() {
 		eventBusByRef.tell(new MachineConnectedEvent(machineId, Collections.singleton(cap), Collections.emptySet()), self());
-		intraBus.subscribe(getSelf(), new SubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
+		intraBus.subscribe(getSelf(), new FUSubscriptionClassifier(machineId.getId(), "*")); //ensure we get all events on this bus, but never our own, should we happen to accidentally publish some
 		hal.subscribeToStatus();
 	}
 	
 	private void processTransportModuleRequest(TransportModuleRequest req) {
 		//we check if the requests directions encoded in the capabilities are indeed found on this transportmodule
-		Optional<String> capFrom = icpm.getCapabilityIdForPosition(req.getPosFrom(), selfPos);
-		Optional<String> capTo = icpm.getCapabilityIdForPosition(req.getPosTo(), selfPos);
+		Position positionSource = new Position(req.getCapabilityInstanceIdFrom());
+		Position positionDestination = new Position(req.getCapabilityInstanceIdTo());
+		Optional<String> capFrom = icpm.getCapabilityIdForPosition(positionSource, selfPos);
+		Optional<String> capTo = icpm.getCapabilityIdForPosition(positionDestination, selfPos);
 		if (capFrom.isPresent() && capTo.isPresent()) {
 			setAndPublishSensedState(BasicMachineStates.STARTING);
-			reservedForTReq = new InternalTransportModuleRequest(capFrom.get(), capTo.get(), req.getOrderId(), req.getRequestId());
+			reservedForTReq = new TransportModuleRequest(capFrom.get(), capTo.get(), req.getOrderId(), req.getRequestId());
 			hal.transport(reservedForTReq);
 		} else {
-			log.warning(String.format("TransportModuleRequest %s from %s to %s cannt be resolved to local capabilities", req.getOrderId(), req.getPosFrom(), req.getPosTo()));
+			log.warning(String.format("TransportModuleRequest %s from %s to %s cannt be resolved to local capabilities", req.getOrderId(), positionSource, positionDestination));
 			//TODO: return error message to sender			
 		}
 	}
@@ -144,7 +147,10 @@ public class BasicTransportModuleActor extends AbstractActor{
 			setAndPublishSensedState(newState);
 			switch(newState) {
 			case COMPLETE:
-				reservedForTReq = null;
+				if(autoComplete){
+					reset();
+				}
+				//reservedForTReq = null;
 				break;
 			case COMPLETING:
 				break;
@@ -157,6 +163,9 @@ public class BasicTransportModuleActor extends AbstractActor{
 			case STARTING:
 				break;
 			case STOPPED:
+				if(autoComplete){
+					reset();
+				}
 				break;
 			case STOPPING:
 				break;
@@ -201,5 +210,10 @@ public class BasicTransportModuleActor extends AbstractActor{
             	tellEventBusWithoutAddingToHistory(lastMUE);
             }
           }, context().system().dispatcher());
+	}
+
+	private void reset() {
+		reservedForTReq = null;
+		hal.reset();
 	}
 }

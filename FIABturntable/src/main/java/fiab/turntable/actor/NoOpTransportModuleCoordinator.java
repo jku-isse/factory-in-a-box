@@ -11,14 +11,15 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
+import fiab.core.capabilities.handshake.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 //import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalClientEndpointStatus;
 import fiab.handshake.actor.LocalEndpointStatus.LocalServerEndpointStatus;
+//import fiab.turntable.messages.TransportModuleRequest;
 
 public class NoOpTransportModuleCoordinator extends AbstractActor{
 
@@ -48,9 +49,9 @@ public class NoOpTransportModuleCoordinator extends AbstractActor{
 				.match(LocalServerEndpointStatus.class, les -> {
 						this.eps.addOrReplace(les);						
 				})
-				.match(InternalTransportModuleRequest.class, req -> {
+				/*.match(TransportModuleRequest.class, req -> {
 					log.warning("Not supposed to get message of type: "+ req.toString());
-				})
+				})*/
 				.match(ServerSideStates.class, state -> {
 					// ignoring events from Handshake FUs
 				})
@@ -84,14 +85,14 @@ public class NoOpTransportModuleCoordinator extends AbstractActor{
 		}
 		
 		public void tellAllEPsToStop() {
-			handshakeEPs.values().stream()
+			/*handshakeEPs.values().stream()
 				.forEach(les -> {
 					if (les.isProvidedCapability()) { 					// if server use server msg
 						les.getActor().tell(ServerMessageTypes.Stop, self);
 					} else {
 						les.getActor().tell(ClientMessageTypes.Stop, self);
 					}			
-				});
+				});*/
 		}
 		
 	}

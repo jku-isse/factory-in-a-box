@@ -16,7 +16,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.fu.HandshakeFU;
@@ -84,14 +84,14 @@ public class OPCUAIOStationRootActor extends AbstractActor {
         UaFolderNode root = opcuaBase.prepareRootNode();
         String fuPrefix = machineName;//+"/"+"IOSTATION";
         log.info("Creating Fu with color sensor: " +colorSensor);
-        if (colorSensor != null) {
-            IOStationHandshakeFU.setColorSensor(colorSensor);
-            fu = isInputStation ? new IOStationHandshakeFU.EV3InputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
-                    new IOStationHandshakeFU.EV3OutputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
-        } else {
+        //if (colorSensor != null) {
+        //    IOStationHandshakeFU.setColorSensor(colorSensor);
+        //    fu = isInputStation ? new IOStationHandshakeFU.EV3InputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
+        //            new IOStationHandshakeFU.EV3OutputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
+        //} else {
             fu = isInputStation ? new IOStationHandshakeFU.InputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true) :
                     new IOStationHandshakeFU.OutputStationHandshakeFU(opcuaBase, root, fuPrefix, getSelf(), getContext(), "DefaultServerSideHandshake", OPCUACapabilitiesAndWiringInfoBrowsenames.IS_PROVIDED, true);
-        }
+        //}
         setupOPCUANodeSet(opcuaBase, root, fuPrefix, fu.getFUActor());
         CapabilityExposingUtils.setupCapabilities(opcuaBase, root, fuPrefix, new CapabilityImplementationMetadata("DefaultStation",
                 isInputStation ? IOStationCapability.INPUTSTATION_CAPABILITY_URI : IOStationCapability.OUTPUTSTATION_CAPABILITY_URI,

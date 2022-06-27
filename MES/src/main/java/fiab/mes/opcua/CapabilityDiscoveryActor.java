@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.concurrent.ExecutionException;
 
+import fiab.opcua.client.FiabOpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
@@ -105,7 +106,8 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 
 	private void connectToServer(BrowseRequest req) {
 		try {
-			client = new OPCUAClientFactory().createClient(req.endpointURL);
+			//client = new OPCUAClientFactory().createClient(req.endpointURL);	//Deprecated
+			client = OPCUAClientFactory.createFIABClient(req.endpointURL);
 			client.connect().get();
 			this.status = DISCOVERY_STATUS.CONNECTED;
 			log.info("Connected to "+req.endpointURL);

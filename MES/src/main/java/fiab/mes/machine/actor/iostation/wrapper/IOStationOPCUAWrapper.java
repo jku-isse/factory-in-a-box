@@ -6,7 +6,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 
 import akka.actor.ActorRef;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.opcua.AbstractOPCUAWrapper;

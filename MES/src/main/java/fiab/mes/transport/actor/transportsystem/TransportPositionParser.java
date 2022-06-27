@@ -2,9 +2,9 @@ package fiab.mes.transport.actor.transportsystem;
 
 public interface TransportPositionParser {
 
-    default public String getLookupPrefix(){return "";}
+    default String getLookupPrefix(){return "";}
 
-    public TransportRoutingInterface.Position parsePosViaPortNr(String uriAsString);
+    TransportRoutingInterface.Position parsePosViaPortNr(String uriAsString);
 
-    public TransportRoutingInterface.Position parseLastIPPos(String uriAsString);
+    TransportRoutingInterface.Position parseLastIPPos(String uriAsString);
 }

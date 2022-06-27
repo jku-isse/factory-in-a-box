@@ -3,10 +3,18 @@ plugins {
 }
 
 group 'fiab.isse'
-version '1.0.4'
+version '1.0.5'
 
 dependencies {
     api "org.eclipse.milo:sdk-server:0.6.3"
     api "org.eclipse.milo:sdk-client:0.6.3"
     implementation project(":FIABcore")
+    implementation project(":FIABfunctionalunit")
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
 }

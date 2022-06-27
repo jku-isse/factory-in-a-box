@@ -1,10 +1,11 @@
 plugins {
     id 'java'
+    id 'application'
     id "com.github.johnrengelman.shadow" version "7.1.0"
 }
 
 group 'fiab.isse'
-version '1.0.11'
+version '1.1.0'
 
 repositories {
     maven { url "https://jitpack.io" }
@@ -12,28 +13,47 @@ repositories {
 }
 
 dependencies {
-    implementation "org.slf4j:slf4j-api:1.7.25"
-    implementation "com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3"
+    //implementation "org.slf4j:slf4j-api:1.7.25"
     implementation "com.github.oxo42:stateless4j:2.5.0"
-    //implementation "com.fasterxml.jackson.core:jackson-databind:2.9.9" moved wiringInfo to handshake
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.9.9"
     implementation "com.typesafe.akka:akka-actor_${akkaTarget}:${akkaVersion}"
     implementation "com.typesafe.akka:akka-slf4j_${akkaTarget}:${akkaVersion}"
 
-    implementation project(":FIABopcuabase")
-    implementation project(":FIABhandshake")
     implementation project(":FIABcore")
+    implementation project(":FIABopcuabase")
+    implementation project(":FIABfunctionalunit")
+    implementation project(":FIABhandshake")
+    implementation project(":FIABconveyor")
+    implementation project(":FIABhal")
 
+    testImplementation testFixtures(project(":FIABfunctionalunit"))
     testImplementation "com.typesafe.akka:akka-testkit_${akkaTarget}:${akkaVersion}"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
 
 test {
-    useJUnitPlatform()
+    //useJUnitPlatform()
+    useJUnitPlatform{
+        excludeTags("IntegrationTest")
+        excludeTags("SystemTest")
+    }
+}
+
+//Some tests need to be re-run manually, since I can't get rid of BindException for now
+tasks.register("runIntegrationTests", Test) {
+    useJUnitPlatform {
+        includeTags "IntegrationTest"
+    }
+    mustRunAfter check
 }
 
 jar {
     manifest {
-        attributes 'Main-Class': 'TurnTableApplication'
+        attributes 'Main-Class': 'TurntableApplication'
     }
+}
+
+application {
+    mainClass = 'TurntableApplication'
 }

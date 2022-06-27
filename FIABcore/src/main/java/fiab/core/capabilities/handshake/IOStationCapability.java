@@ -11,26 +11,27 @@ public interface IOStationCapability extends HandshakeCapability, OPCUABasicMach
 //	public static final String IOSTATION_PROVIDED_OPCUA_METHOD_STOP = "STOP";
 //	public static final String IOSTATION_PROVIDED_OPCUA_STATE_VAR = "STATE";
 	
-	public static final String INPUTSTATION_CAPABILITY_URI = "http://factory-in-a-box.fiab/capabilities/inputstation";
-	public static final String OUTPUTSTATION_CAPABILITY_URI = "http://factory-in-a-box.fiab/capabilities/outputstation";
+	String INPUTSTATION_CAPABILITY_URI = "http://factory-in-a-box.fiab/capabilities/inputstation";
+	String OUTPUTSTATION_CAPABILITY_URI = "http://factory-in-a-box.fiab/capabilities/outputstation";
+
+	String INPUTSTATION_CAPABILITY_ID = "InputStation";
+	String OUTPUTSTATION_CAPABILITY_ID = "OutputStation";
 		
-	public static AbstractCapability getInputStationCapability() {
+	static AbstractCapability getInputStationCapability() {
 		ComparableCapability ac = new ComparableCapability();
-		ac.setDisplayName("InputStation");
+		ac.setDisplayName(INPUTSTATION_CAPABILITY_ID);
 		ac.setID("Capability.InputStation");
 		ac.setUri(INPUTSTATION_CAPABILITY_URI);
 		ac.getCapabilities().add(HandshakeCapability.getHandshakeCapability());
 		return ac;
 	}
 	
-	public static AbstractCapability getOutputStationCapability() {
+	static AbstractCapability getOutputStationCapability() {
 		ComparableCapability ac = new ComparableCapability();
-		ac.setDisplayName("OutputStation");
+		ac.setDisplayName(OUTPUTSTATION_CAPABILITY_ID);
 		ac.setID("Capability.OutputStation");
 		ac.setUri(OUTPUTSTATION_CAPABILITY_URI);
 		ac.getCapabilities().add(HandshakeCapability.getHandshakeCapability());
 		return ac;
 	}
-	
-	
 }

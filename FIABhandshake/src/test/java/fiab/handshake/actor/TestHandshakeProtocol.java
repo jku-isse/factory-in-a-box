@@ -27,13 +27,10 @@ public class TestHandshakeProtocol {
 	
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
-		
 		system = ActorSystem.create(ROOT_SYSTEM);
 		
 	}
 
-	
-	
 	@AfterAll
 	public static void teardown() {
 	    TestKit.shutdownActorSystem(system);

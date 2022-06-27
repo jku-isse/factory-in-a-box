@@ -9,6 +9,7 @@ import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.ShopfloorStartup;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
@@ -133,13 +134,13 @@ public class TestComposedFoldingStationDiscovery {
                         knownFoldingActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
                     }
                     if (te instanceof IOStationStatusUpdateEvent) {
-                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.STOPPED))
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.STOPPED))
                             Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))
                                     .ifPresent(actor -> actor.getAkkaActor()
                                             .tell(new GenericMachineRequests.Reset(((IOStationStatusUpdateEvent) te).getMachineId()), getRef())
                                     );
-                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_EMPTY) ||
-                                ((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_LOADED)) {
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_EMPTY) ||
+                                ((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
                             idleEvents++;
                         }
                     }
@@ -200,13 +201,13 @@ public class TestComposedFoldingStationDiscovery {
                         knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
                     }
                     if (te instanceof IOStationStatusUpdateEvent) {
-                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.STOPPED))
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.STOPPED))
                             Optional.ofNullable(knownActors.get(((IOStationStatusUpdateEvent) te).getMachineId()))
                                     .ifPresent(actor -> actor.getAkkaActor()
                                             .tell(new GenericMachineRequests.Reset(((IOStationStatusUpdateEvent) te).getMachineId()), getRef())
                                     );
-                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_EMPTY) ||
-                                ((IOStationStatusUpdateEvent) te).getStatus().equals(HandshakeCapability.ServerSideStates.IDLE_LOADED)) {
+                        if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_EMPTY) ||
+                                ((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
                             idleEvents++;
                         }
                     }

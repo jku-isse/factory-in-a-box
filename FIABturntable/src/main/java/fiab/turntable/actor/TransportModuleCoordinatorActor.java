@@ -9,24 +9,24 @@ import com.google.common.collect.Sets;
 
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
-import fiab.core.capabilities.basicmachine.BasicMachineRequests;
 import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.core.capabilities.handshake.HandshakeCapability.ClientMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ClientSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerMessageTypes;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability.StateOverrideRequests;
+import fiab.core.capabilities.handshake.ClientSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
+import fiab.core.capabilities.transport.TransportDestinations;
+import fiab.core.capabilities.transport.TransportModuleRequest;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.handshake.actor.LocalEndpointStatus;
-import fiab.turntable.conveying.ConveyorStates;
-import fiab.turntable.conveying.ConveyorStatusUpdateEvent;
-import fiab.turntable.conveying.ConveyorTriggers;
-import fiab.turntable.turning.TurnRequest;
-import fiab.turntable.turning.TurnTableOrientation;
-import fiab.turntable.turning.TurningStates;
-import fiab.turntable.turning.TurningTriggers;
-import fiab.turntable.turning.TurntableStatusUpdateEvent;
+import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.conveyor.statemachine.ConveyorStates;
+import fiab.conveyor.messages.ConveyorStatusUpdateEvent;
+import fiab.conveyor.statemachine.ConveyorTriggers;
+import fiab.turntable.turning.messages.TurnRequest;
+import fiab.turntable.turning.statemachine.TurningStates;
+import fiab.turntable.turning.statemachine.TurningTriggers;
+import fiab.turntable.turning.messages.TurningStatusUpdateEvent;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -49,7 +49,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
     protected ConveyorStates convFUState = ConveyorStates.STOPPED;
     protected InternalProcess exeSubState = InternalProcess.NOPROC;
 
-    protected InternalTransportModuleRequest currentRequest;
+    protected TransportModuleRequest currentRequest;
 
     // we need to pass all actors representing server/client handshake and their capability ids
     static public Props props(IntraMachineEventBus internalMachineEventBus, ActorRef turntableFU, ActorRef converyorFU) {
@@ -59,7 +59,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
     public TransportModuleCoordinatorActor(IntraMachineEventBus machineEventBus, ActorRef turntableFU, ActorRef converyorFU) {
         this.intraEventBus = machineEventBus;
         self = getSelf();
-        intraEventBus.subscribe(self, new SubscriptionClassifier(self.path().name(), "*")); // to obtain events from turntable and conveyor
+        intraEventBus.subscribe(self, new FUSubscriptionClassifier(self.path().name(), "*")); // to obtain events from turntable and conveyor
         eps = new HandshakeEndpointInfo(self);
         this.turntableFU = turntableFU;
         this.conveyorFU = converyorFU;
@@ -101,7 +101,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                         log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
                     }
                 })
-                .match(InternalTransportModuleRequest.class, req -> {
+                .match(TransportModuleRequest.class, req -> {
                     if (currentState.equals(BasicMachineStates.IDLE)) {
                         sender().tell(new MachineStatusUpdateEvent(self.path().name(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", BasicMachineStates.STARTING), self);
                         log.info("Received TransportModuleRequest from: " + req.getCapabilityInstanceIdFrom() +
@@ -125,7 +125,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                         String localCapId = capId.lastIndexOf("~") > 0 ? capId.substring(0, capId.lastIndexOf("~")) : capId;
 
                         eps.getHandshakeEP(localCapId).ifPresent(leps -> {
-                            ((LocalEndpointStatus.LocalServerEndpointStatus) leps).setState(state);
+                            //((LocalEndpointStatus.LocalServerEndpointStatus) leps).setState(state);
                             if (state.equals(ServerSideStates.EXECUTE)) {
                                 if (exeSubState.equals(InternalProcess.HANDSHAKE_SOURCE))
                                     startLoadingOntoTurntable();
@@ -146,7 +146,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                         String localCapId = capId.lastIndexOf("~") > 0 ? capId.substring(0, capId.lastIndexOf("~")) : capId;
 
                         eps.getHandshakeEP(localCapId).ifPresent(leps -> {
-                            ((LocalEndpointStatus.LocalClientEndpointStatus) leps).setState(state);
+                            //((LocalEndpointStatus.LocalClientEndpointStatus) leps).setState(state);
                             switch (state) {
                                 case EXECUTE:
                                     if (exeSubState.equals(InternalProcess.HANDSHAKE_SOURCE))
@@ -168,7 +168,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                         log.warning(String.format("Received ClientSide Event %s from %s in non EXECUTE state: %s, ignoring", state, getSender().path().name(), currentState));
                     }
                 })
-                .match(TurntableStatusUpdateEvent.class, state -> {
+                .match(TurningStatusUpdateEvent.class, state -> {
                     ttFUState = state.getStatus();
                     switch (state.getStatus()) {
                         case IDLE:
@@ -193,23 +193,23 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                 })
                 .match(ConveyorStatusUpdateEvent.class, state -> {
                     convFUState = state.getStatus();
-                    if (state.getStatus().equals(ConveyorStates.FULLY_OCCUPIED) && exeSubState.equals(InternalProcess.CONVEYING_SOURCE)) {
+                    if (state.getStatus().equals(ConveyorStates.IDLE_FULL) && exeSubState.equals(InternalProcess.CONVEYING_SOURCE)) {
                         Optional<LocalEndpointStatus> fromEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdFrom());
                         fromEP.ifPresent(ep -> {
                             if (ep.isProvidedCapability()) {
-                                ep.getActor().tell(ServerMessageTypes.Complete, self);
+                                //ep.getActor().tell(ServerMessageTypes.Complete, self);
                             } else {
-                                ep.getActor().tell(ClientMessageTypes.Complete, self);
+                                //ep.getActor().tell(ClientMessageTypes.Complete, self);
                             }
                         });
                         turnToDestination();
-                    } else if (state.getStatus().equals(ConveyorStates.IDLE) && exeSubState.equals(InternalProcess.CONVEYING_DEST)) {
+                    } else if (state.getStatus().equals(ConveyorStates.IDLE_EMPTY) && exeSubState.equals(InternalProcess.CONVEYING_DEST)) {
                         Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdTo());
                         toEP.ifPresent(ep -> {
                             if (ep.isProvidedCapability()) {
-                                ep.getActor().tell(ServerMessageTypes.Complete, self);
+                                //ep.getActor().tell(ServerMessageTypes.Complete, self);
                             } else {
-                                ep.getActor().tell(ClientMessageTypes.Complete, self);
+                                //ep.getActor().tell(ClientMessageTypes.Complete, self);
                             }
                         });
                         // we reset later anyway, this reset here is too early, moves the turntable away too soon, unloading on receiving side, might not have fully taken over pallet
@@ -255,7 +255,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                         new Runnable() {
                             @Override
                             public void run() {
-                                if (ttFUState.equals(TurningStates.IDLE) && convFUState.equals(ConveyorStates.IDLE)) {
+                                if (ttFUState.equals(TurningStates.IDLE) && convFUState.equals(ConveyorStates.IDLE_EMPTY)) {
                                     setAndPublishState(BasicMachineStates.IDLE); // only if FUs are also resetted to Idle can we also go into Idle
                                 } else {
                                     log.info("Waiting for FUs to turn IDLE before becoming IDLE oneself");
@@ -265,7 +265,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                         }, context().system().dispatcher());
     }
 
-    private void turnToSource(InternalTransportModuleRequest req) {
+    private void turnToSource(TransportModuleRequest req) {
         log.info("Starting Transport");
         currentRequest = req;
         setAndPublishState(BasicMachineStates.STARTING);
@@ -274,7 +274,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
         Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(req.getCapabilityInstanceIdTo());
         if (fromEP.isPresent() && toEP.isPresent()) {
             setAndPublishState(BasicMachineStates.EXECUTE);
-            turntableFU.tell(new TurnRequest(resolveCapabilityToOrientation(fromEP.get())), self);
+            turntableFU.tell(new TurnRequest("TTCoord",resolveCapabilityToOrientation(fromEP.get())), self);
             setExeSubState(InternalProcess.TURNING_SOURCE);
         } else {
             log.warning("A HandshakeEndpoint could not be identified! From: " + fromEP.isPresent() + ", To: " + toEP.isPresent());
@@ -286,15 +286,15 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
         }
     }
 
-    private TurnTableOrientation resolveCapabilityToOrientation(LocalEndpointStatus les) {
+    private TransportDestinations resolveCapabilityToOrientation(LocalEndpointStatus les) {
         if (les.getCapabilityId().startsWith("NORTH"))
-            return TurnTableOrientation.NORTH;
+            return TransportDestinations.NORTH;
         else if (les.getCapabilityId().startsWith("SOUTH"))
-            return TurnTableOrientation.SOUTH;
+            return TransportDestinations.SOUTH;
         else if (les.getCapabilityId().startsWith("WEST"))
-            return TurnTableOrientation.WEST;
+            return TransportDestinations.WEST;
         else if (les.getCapabilityId().startsWith("EAST"))
-            return TurnTableOrientation.EAST;
+            return TransportDestinations.EAST;
         else
             log.error("Cannot resolve CapabilityId to TurntableOrientation: " + les.getCapabilityId());
         return null; //TODO: better handling than via null needed
@@ -309,9 +309,9 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                 setExeSubState(InternalProcess.HANDSHAKE_SOURCE);
                 // now check if localEP is client or server, then reset
                 if (leps.isProvidedCapability()) {
-                    leps.getActor().tell(ServerMessageTypes.Reset, self);
+                    //leps.getActor().tell(ServerMessageTypes.Reset, self);
                 } else {
-                    leps.getActor().tell(ClientMessageTypes.Reset, self);
+                    //leps.getActor().tell(ClientMessageTypes.Reset, self);
                 }
             });
         }
@@ -360,7 +360,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                 .scheduler()
                 .scheduleOnce(Duration.ofMillis(5000), () -> {
                     Optional<LocalEndpointStatus> toEP = eps.getHandshakeEP(currentRequest.getCapabilityInstanceIdTo());
-                    toEP.ifPresent(ep -> turntableFU.tell(new TurnRequest(resolveCapabilityToOrientation(ep)), self));
+                    toEP.ifPresent(ep -> turntableFU.tell(new TurnRequest("TTCoord",resolveCapabilityToOrientation(ep)), self));
                 }, context().system().dispatcher());
     }
 
@@ -375,10 +375,10 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
             setExeSubState(InternalProcess.HANDSHAKE_DEST);
             if (leps.isProvidedCapability()) {
                 // as the second transport part, the this server/turntable has to be loaded
-                leps.getActor().tell(StateOverrideRequests.SetLoaded, self);
-                leps.getActor().tell(ServerMessageTypes.Reset, self);
+                //leps.getActor().tell(StateOverrideRequests.SetLoaded, self);
+                //leps.getActor().tell(ServerMessageTypes.Reset, self);
             } else {
-                leps.getActor().tell(ClientMessageTypes.Reset, self);
+                //leps.getActor().tell(ClientMessageTypes.Reset, self);
             }
         });
         // when execute, immitate loading, complete second
@@ -468,14 +468,14 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
         }
 
         public void tellAllEPsToStop() {
-            handshakeEPs.values().stream()
+            /*handshakeEPs.values().stream()
                     .forEach(les -> {
                         if (les.isProvidedCapability()) {                    // if server use server msg
                             les.getActor().tell(ServerMessageTypes.Stop, self);
                         } else {
                             les.getActor().tell(ClientMessageTypes.Stop, self);
                         }
-                    });
+                    });*/
         }
 
     }

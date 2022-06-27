@@ -20,6 +20,7 @@ import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.handshake.actor.ClientHandshakeActor;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
@@ -39,10 +40,7 @@ import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
-import fiab.turntable.actor.IntraMachineEventBus;
 import fiab.turntable.actor.TransportModuleCoordinatorActor;
-import fiab.turntable.conveying.BaseBehaviorConveyorActor;
-import fiab.turntable.turning.BaseBehaviorTurntableActor;
 
 public class DefaultLayout {
 
@@ -86,19 +84,20 @@ public class DefaultLayout {
 		ioStationsInitialized = true;
 	}
 	
-	public ActorRef setupSingleTurntable(int id, IntraMachineEventBus intraEventBus, Map<String, ActorRef> clientRefs, Set<String> serverRefs) {	
-		ActorRef turntableFU = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus, null), "TT"+id+"-TurntableFU");
+	public ActorRef setupSingleTurntable(int id, IntraMachineEventBus intraEventBus, Map<String, ActorRef> clientRefs, Set<String> serverRefs) {
+		/*ActorRef turntableFU = system.actorOf(BaseBehaviorTurntableActor.props(intraEventBus, null), "TT"+id+"-TurntableFU");
 		ActorRef conveyorFU = system.actorOf(BaseBehaviorConveyorActor.props(intraEventBus, null), "TT"+id+"-ConveyorFU");
 		ActorRef ttWrapper = system.actorOf(TransportModuleCoordinatorActor.props(intraEventBus, turntableFU, conveyorFU), "TT"+id);
 		clientRefs.entrySet().stream().forEach(entry -> {
 			ActorRef client = system.actorOf(ClientHandshakeActor.props(ttWrapper, entry.getValue()), entry.getKey()+"~"+id); 
-			ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(client, false, entry.getKey()), ActorRef.noSender());
+			ttWrapper.tell(new LocalEndpointStatus.LocalClientEndpointStatus(client,  entry.getKey()), ActorRef.noSender());
 		});
 		serverRefs.stream().forEach(entry -> {
 			ActorRef server = system.actorOf(ServerSideHandshakeActor.props(ttWrapper, true), entry+"~"+id); 
-			ttWrapper.tell(new LocalEndpointStatus.LocalServerEndpointStatus(server, true, entry), ActorRef.noSender());
+			ttWrapper.tell(new LocalEndpointStatus.LocalServerEndpointStatus(server,  entry), ActorRef.noSender());
 		});
-		return ttWrapper;
+		return ttWrapper;*/
+		return null;	//FIXME
 	}
 	
 	
@@ -293,7 +292,7 @@ public class DefaultLayout {
 	
 	// Returns machine-level ActorRef of the ServerSideHandshakeActor
 	public static ActorRef setupMachineActor(ActorSelection eventBusByRef, int ipid, AbstractCapability colorCap, ActorSystem system) throws InterruptedException, ExecutionException {
-		fiab.machine.plotter.IntraMachineEventBus intraEventBus = new fiab.machine.plotter.IntraMachineEventBus();
+		IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 		final AbstractCapability cap = colorCap;
 		final Actor modelActor = getDefaultMachineActor(ipid);
 		ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper"+ipid);
@@ -307,7 +306,7 @@ public class DefaultLayout {
 
 	// Returns machine-level ActorRef of the ServerSideHandshakeActor
 	public static ActorRef setupFoldingStationActor(ActorSelection eventBusByRef, int ipid, AbstractCapability foldingCap, ActorSystem system) throws InterruptedException, ExecutionException {
-		fiab.machine.foldingstation.IntraMachineEventBus intraEventBus = new fiab.machine.foldingstation.IntraMachineEventBus();
+		IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
 		final AbstractCapability cap = foldingCap;
 		final Actor modelActor = getDefaultMachineActor(ipid);
 		ActorRef machineWrapper = system.actorOf(VirtualFoldingMachineActor.props(intraEventBus), "StationWrapper"+ipid);

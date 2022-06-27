@@ -5,10 +5,10 @@ import java.time.Duration;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import fiab.core.capabilities.StatePublisher;
-import fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates;
+import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.handshake.actor.ServerSideHandshakeActor;
 
-public class IOStationServerHandshakeActor extends ServerSideHandshakeActor{
+public class IOStationServerHandshakeActor extends ServerSideHandshakeActor {
 
 	private boolean isOutputStation;
 	

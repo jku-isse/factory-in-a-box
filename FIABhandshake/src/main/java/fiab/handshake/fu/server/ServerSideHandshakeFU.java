@@ -1,5 +1,6 @@
 package fiab.handshake.fu.server;
 
+import fiab.core.capabilities.handshake.ServerSideStates;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
@@ -67,7 +68,7 @@ public class ServerSideHandshakeFU implements StatePublisher, HandshakeFU {
 		UaFolderNode handshakeNode = base.generateFolder(rootNode, fuPrefix, "HANDSHAKE_FU_"+capInstId);	
 
 		// add method/variables to opcua
-		status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME, fiab.core.capabilities.handshake.HandshakeCapability.ServerSideStates.STOPPED);
+		status = base.generateStringVariableNode(handshakeNode, path, IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME, ServerSideStates.STOPPED);
 		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n1 = base.createPartialMethodNode(path, "INIT_HANDOVER", "Requests init");		
 		base.addMethodNode(handshakeNode, n1, new InitHandover(n1, localClient)); 		
 		org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode n2 = base.createPartialMethodNode(path, "START_HANDOVER", "Requests start");		
@@ -88,7 +89,7 @@ public class ServerSideHandshakeFU implements StatePublisher, HandshakeFU {
 		}
 
 		// let parent Actor know, that there is a new endpoint
-		parentActor.tell(new LocalEndpointStatus.LocalServerEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender()); 			 
+		//parentActor.tell(new LocalEndpointStatus.LocalServerEndpointStatus(localClient, isProvided, this.capInstId), ActorRef.noSender());
 
 		// add capabilities 
 		UaFolderNode capabilitiesFolder = base.generateFolder(handshakeNode, path, new String( OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES));
