@@ -11,4 +11,5 @@ include 'MES'
 include 'FIABhal'
 include 'FIABfunctionalunit'
 include 'FIABconveyor'
+include 'FIABroscore'
 

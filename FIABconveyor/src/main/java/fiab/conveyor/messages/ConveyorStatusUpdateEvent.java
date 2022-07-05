@@ -8,7 +8,7 @@ public class ConveyorStatusUpdateEvent extends MachineUpdateEvent {
 	
 	protected final ConveyorStates status;
 	
-	public ConveyorStatusUpdateEvent(String machineId, ConveyorStates status) {
+	public ConveyorStatusUpdateEvent(final String machineId, final ConveyorStates status) {
 		super(machineId, OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "Conveyor State has been updated");
 		this.status = status;
 	}

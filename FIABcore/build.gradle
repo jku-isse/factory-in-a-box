@@ -14,5 +14,5 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-    api "at.pro2future:CoreModel:1.0.0"
+    api "at.pro2future:coremodel:1.0.0"
 }
