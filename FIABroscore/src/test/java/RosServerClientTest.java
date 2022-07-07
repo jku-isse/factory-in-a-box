@@ -6,12 +6,16 @@ import client.ClientNode;
 import client.ROSClient;
 import example.msg.AkkaAddRequest;
 import example.msg.SumNotification;
+import internal.FIABNodeConfig;
 import org.junit.jupiter.api.Test;
+import org.ros.RosCore;
 import org.ros.exception.ServiceNotFoundException;
+import org.ros.node.NodeConfiguration;
 import rosjava_test_msgs.AddTwoInts;
 import example.server.ROSServer;
 import example.server.ServerNode;
 
+import java.net.URI;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -25,24 +29,28 @@ public class RosServerClientTest {
 
         TestKit probe = new TestKit(system);
         //This is a robot endpoint in theory
-        ROSServer server = ROSServer.newInstanceWithMaster(ServerNode.class, ROSServer.DEFAULT_PORT);
+        //ROSServer server = ROSServer.newInstanceWithMaster(ServerNode.class, ROSServer.DEFAULT_PORT);
         system.scheduler().scheduleOnce(Duration.ofSeconds(3), () -> {  //FIXME
-            ROSClient rosClient = ROSClient.newInstance(ClientNode.class);
-
+            //ROSClient rosClient = ROSClient.newInstance(ClientNode.class);
             assertDoesNotThrow(() -> {
+                NodeConfiguration nodeConfiguration = FIABNodeConfig.createNodeConfiguration("127.0.0.1",
+                        "TestNodeId", new URI("192.168.133.96"));
+
+                ROSClient rosClient = ROSClient.newInstance(ClientNode.class, nodeConfiguration);
                 //Call this for each messsage type you want to support
                 //e.g.  rosClient.createServiceClient("TurnToPos", TurnToPos._TYPE);
                 rosClient.createServiceClient("AddTwoInts", AddTwoInts._TYPE);
-            });
 
-            //Create an actor, since we have instantiated a new client and created a service client for each msg type
-            ActorRef actor = system.actorOf(ROSClientActor.props(probe.getRef(), rosClient));
-            //Tell the actor to add two numbers
-            actor.tell(new AkkaAddRequest(2, 2), probe.getRef());
+                //Create an actor, since we have instantiated a new client and created a service client for each msg type
+                ActorRef actor = system.actorOf(ROSClientActor.props(probe.getRef(), rosClient));
+                //Tell the actor to add two numbers
+                actor.tell(new AkkaAddRequest(2, 2), probe.getRef());
+            });
             //Wait for the actor to give us the result after the ros call has been successful
             SumNotification result = probe.expectMsgClass(SumNotification.class);
             //Check if the result is correct
             assertEquals(4, result.getSum());
+
         }, system.dispatcher());
     }
 }

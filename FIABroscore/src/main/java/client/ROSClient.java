@@ -25,8 +25,8 @@ public class ROSClient {
     private DefaultNode node;
     private final Map<String, ServiceClient<?, ?>> serviceClientMap;
 
-    public static ROSClient newInstance(Class<? extends NodeMain> nodeClass){
-        ROSClient rosClient = new ROSClient(nodeClass);
+    public static ROSClient newInstance(Class<? extends NodeMain> nodeClass) {
+        ROSClient rosClient = new ROSClient(nodeClass, null);
         try {
             rosClient.initClientNode().get();
         } catch (InterruptedException | ExecutionException e) {
@@ -35,10 +35,28 @@ public class ROSClient {
         return rosClient;
     }
 
-    private ROSClient(Class<? extends NodeMain> nodeClass) {
+    public static ROSClient newInstance(Class<? extends NodeMain> nodeClass, NodeConfiguration nodeConfiguration) {
+        ROSClient rosClient = new ROSClient(nodeClass, nodeConfiguration);
+        try {
+            rosClient.initClientNode().get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return rosClient;
+    }
+
+    private ROSClient(Class<? extends NodeMain> nodeClass, NodeConfiguration nodeConfiguration) {
         FIABRosLoader loader = new FIABRosLoader();
         this.serviceClientMap = new HashMap<>();
-        this.nodeConfiguration = loader.build();
+        if (nodeConfiguration == null) {
+            this.nodeConfiguration = loader.build();
+        } else {
+            this.nodeConfiguration = nodeConfiguration;
+        }
+        initRosNode(nodeClass, loader);
+    }
+
+    private void initRosNode(Class<? extends NodeMain> nodeClass, FIABRosLoader loader) {
         this.nodeMain = null;
         try {
             nodeMain = loader.loadClass(nodeClass);
@@ -47,8 +65,11 @@ public class ROSClient {
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RosRuntimeException("Unable to instantiate node: " + nodeClass.getName(), e);
         }
-        if (nodeMain != null) {
+        initNodeExecutor(nodeClass);
+    }
 
+    private void initNodeExecutor(Class<? extends NodeMain> nodeClass) {
+        if (nodeMain != null) {
             this.nodeMainExecutor = DefaultFIABNodeMainExecutor.newDefault();
         }
         if (nodeMainExecutor == null) {
@@ -66,6 +87,7 @@ public class ROSClient {
 
     /**
      * Creates a new service client and adds it to local map (K=serviceType, V=serviceClient)
+     *
      * @param serviceName
      * @param serviceType
      * @return
@@ -79,6 +101,7 @@ public class ROSClient {
 
     /**
      * Retrieve service client from map using serviceType as the id
+     *
      * @param serviceType
      * @return
      */
@@ -88,6 +111,7 @@ public class ROSClient {
 
     /**
      * This creates a new message using an available serviceClient that has a matching requestType
+     *
      * @param serviceType
      * @param requestType
      * @param <T>
