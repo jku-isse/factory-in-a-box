@@ -29,6 +29,7 @@ public class ROSServer {
 
     public static void main(String[] args) {
         ROSServer server = ROSServer.newInstanceWithMaster(ServerNode.class, ROSServer.DEFAULT_PORT);
+        //ROSServer server = ROSServer.newInstance(ServerNode.class, ROSServer.DEFAULT_PORT);   //Start server without master node
     }
 
     public static ROSServer newInstanceWithMaster(Class<? extends FIABAbstractNodeMain> nodeClass, int port){
@@ -64,8 +65,7 @@ public class ROSServer {
         //RosCore rosCore = RosCore.newPublic(11311);
         if (isMaster) {
             RosCore rosCore = RosCore.newPublic(port);
-//            rosCore.start();
-
+            rosCore.start();
         }
         FIABRosLoader loader = new FIABRosLoader();
         System.out.println("Loading node class: " + nodeClass);

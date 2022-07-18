@@ -1,6 +1,7 @@
 package client;
 
 import akka.actor.ActorRef;
+import internal.exception.ServiceClientNotFoundException;
 import internal.node.FIABNodeMain;
 import internal.DefaultFIABNodeMainExecutor;
 import internal.FIABNodeMainExecutor;
@@ -117,8 +118,12 @@ public class ROSClient {
      * @param <T>
      * @return
      */
-    public <T extends Message> T createNewMessage(String serviceType, Class<?> requestType) {
-        return (T) requestType.cast(this.serviceClientMap.get(serviceType).newMessage());
+    public <T extends Message> T createNewMessage(String serviceType, Class<?> requestType) throws ServiceClientNotFoundException {
+        if (serviceClientMap.containsKey(serviceType)) {
+            return (T) requestType.cast(this.serviceClientMap.get(serviceType).newMessage());
+        }else{
+            throw new ServiceClientNotFoundException();
+        }
     }
 
     public void shutdownClient() {

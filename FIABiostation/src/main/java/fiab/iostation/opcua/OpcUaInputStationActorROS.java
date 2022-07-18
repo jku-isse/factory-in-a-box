@@ -1,14 +1,28 @@
 package fiab.iostation.opcua;
 
 import akka.actor.Props;
+import client.ClientNode;
+import client.ROSClient;
 import fiab.functionalunit.connector.MachineEventBus;
+import fiab.handshake.server.statemachine.ServerSideHandshakeTriggers;
 import fiab.opcua.server.OPCUABase;
+import internal.FIABNodeConfig;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
+import org.ros.exception.RemoteException;
 import org.ros.namespace.GraphName;
 import org.ros.node.ConnectedNode;
+import org.ros.node.NodeConfiguration;
+import org.ros.node.service.ServiceClient;
+import org.ros.node.service.ServiceResponseListener;
+import ros_basic_machine_msg.ResetService;
+import ros_basic_machine_msg.ResetServiceRequest;
+import ros_basic_machine_msg.ResetServiceResponse;
+import ros_io_msg.EjectService;
+
+import java.net.URI;
 //import rosjava_custom_srv.MessageService;
 
-public class OpcUaInputStationActorROS extends OpcUaInputStationActor{
+public class OpcUaInputStationActorROS extends OpcUaInputStationActor {
 
 
     //@Override
@@ -16,39 +30,60 @@ public class OpcUaInputStationActorROS extends OpcUaInputStationActor{
     //    return GraphName.of("OpcUaInputStationActor/server");
     //}
 
+    protected ROSClient rosClient;
 
-    public static Props props(OPCUABase base, UaFolderNode rootNode, MachineEventBus eventBus) {
-        return Props.create(OpcUaInputStationActorROS.class, () -> new OpcUaInputStationActorROS(base, rootNode, eventBus));
+    public static Props props(ROSClient rosClient, OPCUABase base, UaFolderNode rootNode, MachineEventBus eventBus) {
+        return Props.create(OpcUaInputStationActorROS.class, () -> new OpcUaInputStationActorROS(rosClient, base, rootNode, eventBus));
     }
 
-    public OpcUaInputStationActorROS(OPCUABase base, UaFolderNode root, MachineEventBus eventBus) {
+    public OpcUaInputStationActorROS(ROSClient rosClient, OPCUABase base, UaFolderNode root, MachineEventBus eventBus) {
         super(base, root, eventBus);
+        this.rosClient = rosClient;
     }
 
     @Override
     public void doResetting() {
-        super.doResetting();   //Wait for the sensor to detect a pallet
         //Simulate behaviour of sensor waiting for pallet -> Auto reload to loaded
-        //TODO
+        ServiceClient<ResetServiceRequest, ResetServiceResponse> serviceClient;
+        serviceClient = (ServiceClient<ResetServiceRequest, ResetServiceResponse>) rosClient.getServiceClient(ResetService._TYPE);
+        //call the new request using our local msg factory and attach a responseListener
+        serviceClient.call(createResetServiceRequest(), new ServiceResponseListener<ResetServiceResponse>() {
+            //In case ROS called the service successfully
+            @Override
+            public void onSuccess(ResetServiceResponse response) {
+                log.debug("Received reset response via ROS");
+                //Tell yourself that the ROS call has succeeded.
+                stateMachine.fireIfPossible(ServerSideHandshakeTriggers.RESETTING_DONE);
+                //self().tell(new ROSCallbackNotification(response.getSuccess()), self());
+            }
+            //In case ROS failed to call the service
+            @Override
+            public void onFailure(RemoteException e) {
+                log.error("Error handler has been called");
+                stateMachine.fireIfPossible(ServerSideHandshakeTriggers.STOP);
+            }
+        });
+    }
 
+    @Override
+    public void doStopping() {
+        //TODO
+        //on success -> ServerSideHandshakeTriggers.STOPPING_DONE
+        //on fail -> ServerSideHandshakeTriggers.STOPPING_DONE  //FOR NOW
     }
 
     @Override
     public void doExecute() {
-        //super.doExecute();    //We provide our own implementation here
-        //self().tell(new TransportAreaStatusOverrideRequest(componentId, HandshakeCapability.StateOverrideRequests.SetEmpty), self());
-        //For now we just simulate it, later we can use real hardware e.g. via ROS for example
-        //TODO call ROS service
-        //Do this when done
-        //self().tell(new CompleteHandshake(componentId), self());
-        ConnectedNode connectedNode = null;
-        assert false;
-//        connectedNode.newServiceServer("add_two_ints", AddTwoInts._TYPE,
-//                new ServiceResponseBuilder<AddTwoIntsRequest, AddTwoIntsResponse>() {
-//                    public void
-//                    build(AddTwoIntsRequest request,AddTwoIntsResponse response) {response.setSum(request.getA() + request.getB());
-//                        System.out.println("Received value is :" + response.getSum());
-//                    }
-//                });
+        //TODO
+        //on success -> ServerSideHandshakeTriggers.COMPLETE
+        //on fail -> ServerSideHandshakeTriggers.STOP
+    }
+
+    /**
+     * Factory for convenient creation of messages
+     */
+    private ResetServiceRequest createResetServiceRequest() {
+        ResetServiceRequest request = rosClient.createNewMessage(ResetService._TYPE, ResetServiceRequest.class);
+        return request;
     }
 }

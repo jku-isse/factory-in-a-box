@@ -23,6 +23,7 @@ repositories {
 }
 
 dependencies {
+    implementation "com.github.oxo42:stateless4j:2.5.0"
     implementation "ch.qos.logback:logback-classic:1.2.3"
     implementation "com.typesafe.akka:akka-actor_${akkaTarget}:${akkaVersion}"
     implementation "com.typesafe.akka:akka-slf4j_${akkaTarget}:${akkaVersion}"
@@ -32,6 +33,13 @@ dependencies {
     implementation project(":FIABopcuabase")
     implementation project(":FIABfunctionalunit")
     implementation project(":FIABhandshake")
+    implementation project(":FIABroscore")
+
+    //ROS messages
+    //implementation 'org.ros.rosjava_core:rosjava:[0.3,0.4)'
+    implementation 'org.ros.rosjava_bootstrap:message_generation:0.3.0'
+    implementation "org.ros.rosjava_messages.ros_io_msg:ros_io_msg:0.1.0"
+    implementation "org.ros.rosjava_messages.ros_basic_machine_msg:ros_basic_machine_msg:0.1.0"
 
     implementation testFixtures(project(":FIABfunctionalunit"))
     testImplementation "com.typesafe.akka:akka-testkit_${akkaTarget}:${akkaVersion}"
@@ -48,9 +56,15 @@ test {
 test {
     //useJUnitPlatform()
     useJUnitPlatform{
-        excludeTags("IntegrationTest")
         excludeTags("SystemTest")
     }
+}
+
+tasks.register("runUnitTests", Test) {
+    useJUnitPlatform {
+        includeTags "UnitTest"
+    }
+    mustRunAfter check
 }
 
 //Some tests need to be re-run manually, since I can't get rid of BindException for now

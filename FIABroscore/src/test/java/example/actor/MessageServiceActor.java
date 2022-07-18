@@ -8,6 +8,12 @@ import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import client.ROSClient;
 import example.msg.*;
+import example.msg.akka.AkkaEjectDoneNotification;
+import example.msg.akka.AkkaEjectRequest;
+import example.msg.akka.AkkaResetDoneNotification;
+import example.msg.akka.AkkaResetRequest;
+import example.msg.ros.EjectRequest;
+import example.msg.ros.ResetRequest;
 import org.ros.exception.RemoteException;
 import org.ros.node.service.ServiceClient;
 import org.ros.node.service.ServiceResponseListener;
@@ -42,9 +48,12 @@ public class MessageServiceActor extends AbstractActor {
     public Receive createReceive() {
         return ReceiveBuilder.create()
                 //If we receive an add request, call the sendTwoIntsRequest to perform a ROS call
-                .match(EjectRequest.class, req -> sendEjectRequest())
-                .match(ResetRequest.class, req -> sendResetRequest())
+                .match(AkkaEjectRequest.class, req -> sendEjectRequest())
+                .match(AkkaResetRequest.class, req -> sendResetRequest())
                 //If we receive a local callback from ROS, we are done and can publish the result
+                //If we receive a local callback from ROS, we are done and can publish the result
+                .match(AkkaResetDoneNotification.class, msg -> publishResult(msg.getSuccess()))
+                .match(AkkaEjectDoneNotification.class, msg -> publishResult(msg.getSuccess()))
                 //.match(LocalRosSumCallBackNotification.class, msg -> publishResult(msg))
                 .match(ROSCallbackNotification.class, req -> log.info("Received {}", req.getOk()))
                 //All other messages are not supported, print a warning
@@ -97,10 +106,10 @@ public class MessageServiceActor extends AbstractActor {
     /**
      * Tells the parent the sum via a message
      */
-    private void publishResult(LocalRosSumCallBackNotification notification) {
-        log.debug("Publishing sum " + notification.getSum());
+    private void publishResult(boolean success) {
+        log.debug("ROS call successful? " + success);
         if (parent != null) {
-            parent.tell(new SumNotification(notification.getSum()), self());
+            parent.tell(new ROSCallbackNotification(success), self());
         }
     }
 

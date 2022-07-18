@@ -26,11 +26,21 @@ public class ServerNode extends FIABAbstractNodeMain {
     @Override
     public void onStart(ConnectedNode connectedNode) {
         //Register a new service
-        connectedNode.newServiceServer("FIAB_eject_service", ResetService._TYPE,
+        connectedNode.newServiceServer("FIAB_reset_service", ResetService._TYPE,
                 new ServiceResponseBuilder<ResetServiceRequest, ResetServiceResponse>() {
                     @Override
                     public void
                     build(ResetServiceRequest request, ResetServiceResponse response) {
+                        response.setSuccess(true);
+//                        response.setSum(request.getA() + request.getB());
+                    }
+                });
+        connectedNode.newServiceServer("FIAB_eject_service", EjectService._TYPE,
+                new ServiceResponseBuilder<EjectServiceRequest, EjectServiceResponse>() {
+                    @Override
+                    public void
+                    build(EjectServiceRequest request, EjectServiceResponse response) {
+                        response.setSuccess(true);
 //                        response.setSum(request.getA() + request.getB());
                     }
                 });
