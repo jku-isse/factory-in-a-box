@@ -18,12 +18,12 @@ import org.ros.namespace.GraphName;
 
 import java.time.Duration;
 
-public abstract class OpcUaInputStationActor extends ServerHandshakeFU {
+public class OpcUaInputStationActor extends ServerHandshakeFU {
 
     protected final String componentId = IOStationCapability.INPUTSTATION_CAPABILITY_ID;
     private final MachineEventBus eventBus;     //Currently, not in use
 
-    public abstract GraphName getDefaultNodeName();
+    //public abstract GraphName getDefaultNodeName();
 
     public static Props props(OPCUABase base, UaFolderNode rootNode, MachineEventBus eventBus) {
         return Props.create(OpcUaInputStationActor.class, () -> new OpcUaInputStationActor(base, rootNode, eventBus));
