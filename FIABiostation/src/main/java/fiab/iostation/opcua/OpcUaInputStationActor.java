@@ -14,13 +14,16 @@ import fiab.handshake.server.messages.ServerHandshakeStatusUpdateEvent;
 import fiab.handshake.server.opcua.functionalunit.ServerHandshakeFU;
 import fiab.opcua.server.OPCUABase;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
+import org.ros.namespace.GraphName;
 
 import java.time.Duration;
 
-public class OpcUaInputStationActor extends ServerHandshakeFU {
+public abstract class OpcUaInputStationActor extends ServerHandshakeFU {
 
-    private final String componentId = IOStationCapability.INPUTSTATION_CAPABILITY_ID;
+    protected final String componentId = IOStationCapability.INPUTSTATION_CAPABILITY_ID;
     private final MachineEventBus eventBus;     //Currently, not in use
+
+    public abstract GraphName getDefaultNodeName();
 
     public static Props props(OPCUABase base, UaFolderNode rootNode, MachineEventBus eventBus) {
         return Props.create(OpcUaInputStationActor.class, () -> new OpcUaInputStationActor(base, rootNode, eventBus));

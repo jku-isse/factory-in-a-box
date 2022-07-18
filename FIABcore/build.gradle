@@ -5,6 +5,14 @@ plugins {
 group = 'fiab.isse'
 version = '1.0.1'
 
+repositories {
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+    flatDir {
+        dirs '../libs'
+    }
+}
+
 dependencies {
     api "org.eclipse.emf:org.eclipse.emf.ecore:2.19.0"
     api "org.eclipse.emf:org.eclipse.emf.ecore.xmi:2.16.0"
@@ -15,4 +23,5 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     api "at.pro2future:coremodel:1.0.0"
+
 }

@@ -59,23 +59,23 @@ public class OutputStationTest {
     @Test
     public void testInputStation() {
         assertDoesNotThrow(() -> {
-            client().callStringMethodBlocking(InputStationTest.InputStationOpcUaNodes.resetNodeId);
+            client().callStringMethodBlocking(OutputStationOpcUaNodes.resetNodeId);
             expectServerSideState(ServerSideStates.RESETTING);
             expectServerSideState(ServerSideStates.IDLE_EMPTY);
 
-            client().callStringMethodBlocking(InputStationTest.InputStationOpcUaNodes.initNodeId);
+            client().callStringMethodBlocking(OutputStationOpcUaNodes.initNodeId);
             expectServerSideState(ServerSideStates.STARTING);
             expectServerSideState(ServerSideStates.PREPARING);
             expectServerSideState(ServerSideStates.READY_EMPTY);
 
-            client().callStringMethodBlocking(InputStationTest.InputStationOpcUaNodes.startNodeId);
+            client().callStringMethodBlocking(OutputStationOpcUaNodes.startNodeId);
             expectServerSideState(ServerSideStates.EXECUTE);
             expectServerSideState(ServerSideStates.COMPLETING);
             expectServerSideState(ServerSideStates.COMPLETE);
-            String state = client().readStringVariableNode(InputStationTest.InputStationOpcUaNodes.stateNodeId);
+            String state = client().readStringVariableNode(OutputStationOpcUaNodes.stateNodeId);
             assertEquals(state, ServerSideStates.COMPLETE.name());
 
-            client().callStringMethodBlocking(InputStationTest.InputStationOpcUaNodes.resetNodeId);
+            client().callStringMethodBlocking(OutputStationOpcUaNodes.resetNodeId);
             expectServerSideState(ServerSideStates.RESETTING);
             expectServerSideState(ServerSideStates.IDLE_EMPTY);
         });

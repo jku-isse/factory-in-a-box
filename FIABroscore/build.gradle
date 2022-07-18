@@ -22,6 +22,8 @@ dependencies {
     implementation 'org.ros.rosjava_core:rosjava:[0.3,0.4)'
     implementation 'org.ros.rosjava_messages:rosjava_test_msgs:0.3.0'
     implementation 'org.ros.rosjava_bootstrap:message_generation:0.3.0'
+    implementation "org.ros.rosjava_messages.ros_io_msg:ros_io_msg:0.1.0"
+    implementation "org.ros.rosjava_messages.ros_basic_machine_msg:ros_basic_machine_msg:0.1.0"
 
     implementation("com.google.guava:guava:26.0-jre")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic

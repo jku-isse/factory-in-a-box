@@ -26,6 +26,7 @@ public class ROSServer {
      * Run this method to start a local server for manual testing
      * @param args
      */
+
     public static void main(String[] args) {
         ROSServer server = ROSServer.newInstanceWithMaster(ServerNode.class, ROSServer.DEFAULT_PORT);
     }
@@ -63,7 +64,7 @@ public class ROSServer {
         //RosCore rosCore = RosCore.newPublic(11311);
         if (isMaster) {
             RosCore rosCore = RosCore.newPublic(port);
-            rosCore.start();
+//            rosCore.start();
 
         }
         FIABRosLoader loader = new FIABRosLoader();
