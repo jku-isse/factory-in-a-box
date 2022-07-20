@@ -10,6 +10,8 @@ import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdenti
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.core.capabilities.wiring.WiringInfoBuilder;
 import fiab.functionalunit.connector.FUConnector;
+import fiab.functionalunit.connector.FUSubscriptionClassifier;
+import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.handshake.client.messages.ClientHandshakeStatusUpdateEvent;
 import fiab.handshake.client.messages.WiringRequest;
 import fiab.handshake.client.messages.WiringUpdateNotification;
@@ -17,8 +19,10 @@ import fiab.handshake.client.opcua.RemoteServerHandshakeNodeIds;
 import fiab.handshake.client.opcua.functionalunit.ClientHandshakeFU;
 import fiab.handshake.connector.ServerNotificationConnector;
 import fiab.handshake.connector.ServerResponseConnector;
-import fiab.handshake.opcua.actor.StandaloneHandshakeActor;
+//import fiab.handshake.opcua.actor.StandaloneHandshakeActor;
+import fiab.handshake.server.ServerSideHandshakeActor;
 import fiab.handshake.server.messages.ServerHandshakeStatusUpdateEvent;
+import fiab.handshake.server.opcua.functionalunit.ServerHandshakeFU;
 import fiab.opcua.client.FiabOpcUaClient;
 import fiab.opcua.client.OPCUAClientFactory;
 import fiab.opcua.server.OPCUABase;
@@ -101,6 +105,7 @@ public class TestClientSideHandshakeFU {
     @AfterEach
     public void teardown() {
         infrastructure.destroyActor();
+        infrastructure.shutdownServer();
         infrastructure.disconnectClient();
     }
 
@@ -170,19 +175,19 @@ public class TestClientSideHandshakeFU {
         return new WiringInfoBuilder()
                 .setLocalCapabilityId("NORTH_CLIENT")
                 .setRemoteCapabilityId("DefaultHandshakeServerSide")
-                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (4840 + portOffset) + "/milo")
-                .setRemoteNodeId("ns=2;s=Handshake/ServerHandshake/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY")
-                .setRemoteRole("RemoteRole1")
+                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (4840 + portOffset))
+                .setRemoteNodeId("ns=2;s=ServerHandshakeMachine/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY")
+                .setRemoteRole("Required")
                 .build();
     }
 
     private static RemoteServerHandshakeNodeIds createServerHandshakeNodes(int portOffset) {
         RemoteServerHandshakeNodeIds nodeIds = new RemoteServerHandshakeNodeIds();
-        nodeIds.setEndpoint("opc.tcp://127.0.0.1:" + (4840 + portOffset) + "/milo");
-        nodeIds.setActorNode(new NodeId(2, "Handshake/ServerHandshake/HANDSHAKE_FU_DefaultServerSideHandshake"));
-        nodeIds.setStateVar(new NodeId(2, "STATE"));
-        nodeIds.setInitMethod(new NodeId(2, "Handshake/ServerHandshake/HANDSHAKE_FU_DefaultServerSideHandshake/INIT_HANDOVER"));
-        nodeIds.setStartMethod(new NodeId(2, "Handshake/ServerHandshake/HANDSHAKE_FU_DefaultServerSideHandshake/START_HANDOVER"));
+        nodeIds.setEndpoint("opc.tcp://127.0.0.1:" + (4840 + portOffset));
+        nodeIds.setActorNode(new NodeId(2, "ServerHandshakeMachine/HANDSHAKE_FU_DefaultServerSideHandshake"));
+        nodeIds.setStateVar(new NodeId(2, "ServerHandshakeMachine/HANDSHAKE_FU_DefaultServerSideHandshake/STATE"));
+        nodeIds.setInitMethod(new NodeId(2, "ServerHandshakeMachine/HANDSHAKE_FU_DefaultServerSideHandshake/INIT_HANDOVER"));
+        nodeIds.setStartMethod(new NodeId(2, "ServerHandshakeMachine/HANDSHAKE_FU_DefaultServerSideHandshake/START_HANDOVER"));
         return nodeIds;
     }
 
@@ -190,11 +195,13 @@ public class TestClientSideHandshakeFU {
         try {
             new TestKit(system) {
                 {
-                    PublicNonEncryptionBaseOpcUaServer server = new PublicNonEncryptionBaseOpcUaServer(portOffset, "ServerHS");
-                    OPCUABase opcuaBase = new OPCUABase(server.getServer(), "urn:factory-in-a-box", "ServerHandshakeMachine");
-                    new Thread(opcuaBase).start();
-                    system.actorOf(StandaloneHandshakeActor.props(opcuaBase, getRef(), "Handshake", true), "HandshakeActor" + runCount);
-                    expectMsgAnyClassOf(Duration.ofSeconds(15), ServerHandshakeStatusUpdateEvent.class, ServerSideStates.class);
+                    IntraMachineEventBus intraMachineEventBus = new IntraMachineEventBus();
+                    TestKit probe = new TestKit(system);
+                    intraMachineEventBus.subscribe(probe.getRef(), infrastructure.getTestClassifier());
+                    OPCUABase opcuaBase = OPCUABase.createAndStartLocalServer(4840 + runCount, "ServerHandshakeMachine");
+                    system.actorOf(ServerHandshakeFU.props(opcuaBase, opcuaBase.getRootNode(), "DefaultServerSideHandshake",
+                            new FUConnector(), intraMachineEventBus), "HandshakeActor" + runCount);
+                    probe.expectMsgAnyClassOf(Duration.ofSeconds(15), ServerHandshakeStatusUpdateEvent.class, ServerSideStates.class);
 
                     resetRemoteHandshake(nodeIds);
                 }
@@ -207,7 +214,7 @@ public class TestClientSideHandshakeFU {
     private void resetRemoteHandshake(RemoteServerHandshakeNodeIds nodeIds) throws Exception {
         FiabOpcUaClient client = OPCUAClientFactory.createFIABClient(nodeIds.getEndpoint());
         client.connectFIABClient().get();
-        NodeId resetNode = client.getChildNodeByBrowseName(nodeIds.getActorNode(), "Reset");
+        NodeId resetNode = client.getChildNodeByBrowseName(nodeIds.getActorNode(), "RESET");
         client.callStringMethod(resetNode);
         client.disconnect().get();
     }

@@ -2,7 +2,6 @@ package fiab.turntable.opcua;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.meta.OPCUACapabilitiesAndWiringInfoBrowsenames;
 import fiab.core.capabilities.transport.TransportModuleCapability;
@@ -11,8 +10,8 @@ import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.functionalunit.connector.MachineEventBus;
 import fiab.opcua.server.OPCUABase;
 import fiab.turntable.TurntableCoordinatorActor;
-import fiab.turntable.infrastructure.OpcUaTurntableInfrastructure;
-import fiab.turntable.infrastructure.TurntableInfrastructure;
+import fiab.turntable.infrastructure.OpcUaMachineChildFUs;
+import fiab.functionalunit.MachineChildFUs;
 import fiab.turntable.opcua.methods.UaResetTurntable;
 import fiab.turntable.opcua.methods.UaStopTurntable;
 import fiab.turntable.opcua.methods.UaTransportRequest;
@@ -23,17 +22,15 @@ import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
-import static fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers.*;
-
 public class OpcUaTurntableActor extends TurntableCoordinatorActor {
 
     public static Props propsForStandaloneTurntable(OPCUABase base, UaFolderNode rootNode, String machineId) {
         return Props.create(OpcUaTurntableActor.class, () -> new OpcUaTurntableActor(base, rootNode, machineId,
-                new MachineEventBus(), new IntraMachineEventBus(), new OpcUaTurntableInfrastructure(base)));
+                new MachineEventBus(), new IntraMachineEventBus(), new OpcUaMachineChildFUs(base)));
     }
 
     public static Props props(OPCUABase base, UaFolderNode rootNode, String machineId, MachineEventBus machineEventBus,
-                              IntraMachineEventBus intraMachineEventBus, TurntableInfrastructure infrastructure) {
+                              IntraMachineEventBus intraMachineEventBus, MachineChildFUs infrastructure) {
         return Props.create(OpcUaTurntableActor.class, () -> new OpcUaTurntableActor(base, rootNode, machineId,
                 machineEventBus, intraMachineEventBus, infrastructure));
     }
@@ -45,7 +42,7 @@ public class OpcUaTurntableActor extends TurntableCoordinatorActor {
     private ActorRef wiringActor;
 
     public OpcUaTurntableActor(OPCUABase base, UaFolderNode rootNode, String machineId,
-                               MachineEventBus machineEventBus, IntraMachineEventBus intraMachineEventBus, TurntableInfrastructure infrastructure) {
+                               MachineEventBus machineEventBus, IntraMachineEventBus intraMachineEventBus, MachineChildFUs infrastructure) {
         super(machineEventBus, intraMachineEventBus, infrastructure);
         this.base = base;
         this.rootNode = rootNode;

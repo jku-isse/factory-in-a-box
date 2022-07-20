@@ -2,6 +2,7 @@ package fiab.plotter;
 
 import akka.actor.ActorRef;
 import fiab.conveyor.statemachine.ConveyorStates;
+import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.functionalunit.observer.FUStateChangedSubject;
 import fiab.functionalunit.observer.FUStateObserver;
@@ -12,17 +13,24 @@ import java.util.Set;
 public class FUStateInfo implements FUStateChangedSubject {
 
     private final Set<FUStateObserver> observers;
+    private BasicMachineStates plottingState;
     private ConveyorStates conveyorFUState;
     private ServerSideStates handshakeFUState;
 
     public FUStateInfo(ActorRef actorRef) {
-        this(actorRef, ConveyorStates.STOPPED, ServerSideStates.STOPPED);
+        this(actorRef, BasicMachineStates.STOPPED, ConveyorStates.STOPPED, ServerSideStates.STOPPED);
     }
 
-    public FUStateInfo(ActorRef actorRef, ConveyorStates conveyorFUState, ServerSideStates handshakeFUState){
+    public FUStateInfo(ActorRef actorRef, BasicMachineStates plottingStates, ConveyorStates conveyorFUState, ServerSideStates handshakeFUState) {
         observers = new HashSet<>();
+        this.plottingState = plottingStates;
         this.conveyorFUState = conveyorFUState;
         this.handshakeFUState = handshakeFUState;
+    }
+
+    public void setPlottingState(BasicMachineStates plottingStates) {
+        this.plottingState = plottingStates;
+        notifySubscribers(plottingState);
     }
 
     public void setConveyorFUState(ConveyorStates conveyorState) {
@@ -33,6 +41,10 @@ public class FUStateInfo implements FUStateChangedSubject {
     public void setHandshakeFUState(ServerSideStates handshakeState) {
         this.handshakeFUState = handshakeState;
         notifySubscribers(handshakeState);
+    }
+
+    public BasicMachineStates getPlottingState() {
+        return plottingState;
     }
 
     public ConveyorStates getConveyorFUState() {
@@ -55,7 +67,7 @@ public class FUStateInfo implements FUStateChangedSubject {
 
     @Override
     public void notifySubscribers(Object state) {
-        for (FUStateObserver observer : observers){
+        for (FUStateObserver observer : observers) {
             observer.notifyAboutStateChange(state);
         }
     }

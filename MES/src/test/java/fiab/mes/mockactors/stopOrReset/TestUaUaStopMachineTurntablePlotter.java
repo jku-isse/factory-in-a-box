@@ -37,7 +37,7 @@ import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRouting
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 
-class TestUaStopMachineTurntable {
+class TestUaUaStopMachineTurntablePlotter {
 
 	protected static ActorSystem system;
 	public static String ROOT_SYSTEM = "routes";
@@ -47,7 +47,7 @@ class TestUaStopMachineTurntable {
 	protected static ActorRef coordActor;
 	protected static DefaultLayout layout;
 	
-	private static final Logger logger = LoggerFactory.getLogger(TestUaStopMachineTurntable.class);
+	private static final Logger logger = LoggerFactory.getLogger(TestUaUaStopMachineTurntablePlotter.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 	
 	@BeforeAll

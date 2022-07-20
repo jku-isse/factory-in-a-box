@@ -1,4 +1,4 @@
-package fiab.plotter.message;
+package fiab.plotter.plotting.message;
 
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;

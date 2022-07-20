@@ -1,7 +1,7 @@
 package fiab.plotter.plotting.opcua.methods;
 
 import akka.actor.ActorRef;
-import fiab.plotter.message.PlotImageRequest;
+import fiab.plotter.plotting.message.PlotImageRequest;
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;

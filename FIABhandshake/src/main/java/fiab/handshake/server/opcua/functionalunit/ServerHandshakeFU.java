@@ -24,6 +24,10 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 
 public class ServerHandshakeFU extends ServerSideHandshakeActor {
 
+    public static Props propsForStandaloneFU(OPCUABase base, UaFolderNode root) {
+        return props(base, root, "", new FUConnector(), new IntraMachineEventBus());
+    }
+
     public static Props propsForStandaloneFU(OPCUABase base, UaFolderNode root, String handshakeId) {
         return props(base, root, handshakeId, new FUConnector(), new IntraMachineEventBus());
     }
@@ -34,7 +38,7 @@ public class ServerHandshakeFU extends ServerSideHandshakeActor {
                 () -> new ServerHandshakeFU(base, root, handshakeId, requestBus, intraMachineEventBus));
     }
 
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    protected final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     protected OPCUABase base;
     protected UaFolderNode rootNode;
     protected UaFolderNode capabilitiesFolder;

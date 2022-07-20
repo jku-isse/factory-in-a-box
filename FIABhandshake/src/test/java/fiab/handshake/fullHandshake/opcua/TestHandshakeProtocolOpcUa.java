@@ -111,7 +111,7 @@ public class TestHandshakeProtocolOpcUa {
 
     @AfterAll
     public static void cleanup() {
-        system.terminate();
+        TestKit.shutdownActorSystem(system);
     }
 
     @Test

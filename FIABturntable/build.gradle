@@ -35,9 +35,15 @@ dependencies {
 test {
     //useJUnitPlatform()
     useJUnitPlatform{
-        excludeTags("IntegrationTest")
         excludeTags("SystemTest")
     }
+}
+
+tasks.register("runUnitTests", Test) {
+    useJUnitPlatform {
+        includeTags "UnitTest"
+    }
+    mustRunAfter check
 }
 
 //Some tests need to be re-run manually, since I can't get rid of BindException for now

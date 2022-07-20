@@ -47,6 +47,10 @@ public class FUTestInfrastructure extends ActorTestInfrastructure {
         }
     }
 
+    public void shutdownServer(){
+        opcuaBase.shutDownOpcUaBase();
+    }
+
     @Override
     public void shutdownInfrastructure() {
         super.shutdownInfrastructure();

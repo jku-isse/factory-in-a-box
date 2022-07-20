@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutionException;
 
 import static akka.pattern.Patterns.ask;
 
-public class SetCapability extends AbstractMethodInvocationHandler {
+public class UaSetPlotCapability extends AbstractMethodInvocationHandler {
 
     final Duration timeout = Duration.ofSeconds(2);
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -43,7 +43,7 @@ public class SetCapability extends AbstractMethodInvocationHandler {
             null,
             new LocalizedText("New Capability to be set")
     );
-    public SetCapability(UaMethodNode methodNode, ActorRef actor){
+    public UaSetPlotCapability(UaMethodNode methodNode, ActorRef actor){
         super(methodNode);
         this.actor = actor;
     }
@@ -62,6 +62,7 @@ public class SetCapability extends AbstractMethodInvocationHandler {
         logger.debug("Invoked PlotRequest() method of objectId={}", invocationContext.getObjectId());
         Object resp;
         try {
+            //TODO implement
             String capIdFrom = (String) inputValues[0].getValue();
             //we ignore that we could have gotten a capability we don't support
             resp = ask(actor, PlotterMessageTypes.SetCapability, timeout).toCompletableFuture().get();

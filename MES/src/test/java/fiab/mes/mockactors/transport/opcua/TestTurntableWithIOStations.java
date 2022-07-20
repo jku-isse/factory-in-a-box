@@ -2,7 +2,6 @@ package fiab.mes.mockactors.transport.opcua;
 
 import java.time.Duration;
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ProcessCore.ProcessStep;
-import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
@@ -24,15 +22,12 @@ import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
-import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 //import fiab.machine.iostation.opcua.StartupUtil;
 import fiab.mes.ShopfloorConfigurations;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
-import fiab.mes.machine.actor.iostation.wrapper.LocalIOStationActorSpawner;
 import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
@@ -43,12 +38,9 @@ import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
-import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.msg.TransportModuleRequest;
-import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
-import fiab.turntable.opcua.OPCUATurntableRootActor;
 
 public class TestTurntableWithIOStations {
 

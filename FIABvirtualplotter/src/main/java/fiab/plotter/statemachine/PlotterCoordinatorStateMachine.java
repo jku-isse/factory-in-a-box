@@ -5,13 +5,22 @@ import com.github.oxo42.stateless4j.StateMachineConfig;
 import fiab.conveyor.statemachine.ConveyorStates;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.handshake.ServerSideStates;
+import fiab.functionalunit.observer.FUStateObserver;
 import fiab.plotter.FUStateInfo;
 
-public class PlotterCoordinatorStateMachine extends StateMachine<BasicMachineStates, Object> {
+public class PlotterCoordinatorStateMachine extends StateMachine<BasicMachineStates, Object> implements FUStateObserver {
 
 
     public PlotterCoordinatorStateMachine(FUStateInfo info) {
         super(BasicMachineStates.STOPPED, new PlotterStateMachineConfig(info));
+        info.addSubscriber(this);
+    }
+
+    @Override
+    public void notifyAboutStateChange(Object currentState) {
+        if (canFire(currentState)) {
+            fire(currentState);
+        }
     }
 
     static class PlotterStateMachineConfig extends StateMachineConfig<BasicMachineStates, Object> {
@@ -41,6 +50,7 @@ public class PlotterCoordinatorStateMachine extends StateMachine<BasicMachineSta
                     .permit(PlotterTriggers.STOP, BasicMachineStates.STOPPING);
 
             configure(BasicMachineStates.STOPPING)
+                    .permitIf(BasicMachineStates.STOPPED, BasicMachineStates.STOPPED, () -> checkForStoppedTransition())
                     .permitIf(ConveyorStates.STOPPED, BasicMachineStates.STOPPED, () -> checkForStoppedTransition())
                     .permitIf(ServerSideStates.STOPPED, BasicMachineStates.STOPPED, () -> checkForStoppedTransition())
                     .permit(PlotterTriggers.STOP_DONE, BasicMachineStates.STOPPED);
@@ -50,21 +60,21 @@ public class PlotterCoordinatorStateMachine extends StateMachine<BasicMachineSta
 
             configure(BasicMachineStates.RESETTING)
                     .permitIf(ConveyorStates.IDLE_EMPTY, BasicMachineStates.IDLE, () -> checkForIdleTransition())
-                    .permitIf(ConveyorStates.IDLE_FULL, BasicMachineStates.IDLE, () -> checkForIdleTransition())
-                    .permitIf(ServerSideStates.IDLE_EMPTY, BasicMachineStates.IDLE, () -> checkForIdleTransition())
+                    .permitIf(BasicMachineStates.IDLE, BasicMachineStates.IDLE, () -> checkForIdleTransition())
                     .permit(PlotterTriggers.RESET_DONE, BasicMachineStates.IDLE)
                     .permit(ServerSideStates.IDLE_LOADED, BasicMachineStates.STOPPED)
+                    .permit(ConveyorStates.IDLE_FULL, BasicMachineStates.STOPPED)
                     .permit(PlotterTriggers.STOP, BasicMachineStates.STOPPING);
         }
 
         protected boolean checkForIdleTransition() {
-            return fuStateInfo.getHandshakeFUState() == ServerSideStates.IDLE_EMPTY
-                    && (fuStateInfo.getConveyorFUState() == ConveyorStates.IDLE_EMPTY ||
-                    fuStateInfo.getConveyorFUState() == ConveyorStates.IDLE_FULL);
+            return fuStateInfo.getPlottingState() == BasicMachineStates.IDLE
+                    && (fuStateInfo.getConveyorFUState() == ConveyorStates.IDLE_EMPTY);
         }
 
         protected boolean checkForStoppedTransition() {
             return fuStateInfo.getConveyorFUState() == ConveyorStates.STOPPED
+                    && fuStateInfo.getPlottingState() == BasicMachineStates.STOPPED
                     && fuStateInfo.getHandshakeFUState() == ServerSideStates.STOPPED;
         }
 

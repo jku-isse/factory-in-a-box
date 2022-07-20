@@ -10,11 +10,12 @@ import fiab.core.capabilities.StatePublisher;
 import fiab.core.capabilities.functionalunit.ResetRequest;
 import fiab.core.capabilities.functionalunit.StopRequest;
 import fiab.functionalunit.connector.FUConnector;
+import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.plotter.FUStateInfo;
-import fiab.plotter.message.HomingPositionReachedEvent;
-import fiab.plotter.message.PlotImageRequest;
-import fiab.plotter.message.PlottingStatusUpdateEvent;
+import fiab.plotter.plotting.message.HomingPositionReachedEvent;
+import fiab.plotter.plotting.message.PlotImageRequest;
+import fiab.plotter.plotting.message.PlottingStatusUpdateEvent;
 import fiab.plotter.plotting.statemachine.PlotterFUTriggers;
 import fiab.plotter.plotting.statemachine.PlotterStateMachine;
 
@@ -40,8 +41,9 @@ public class PlotterActor extends AbstractActor implements PlottingCapability, S
     public PlotterActor(FUConnector plottingConnector, IntraMachineEventBus intraMachineBus) {
         this.plottingConnector = plottingConnector;
         this.intraMachineBus = intraMachineBus;
-        this.stateMachine = new PlotterStateMachine(new FUStateInfo(self()));
+        this.plottingConnector.subscribe(self(), new FUSubscriptionClassifier(self().path().name(), "*"));
 
+        this.stateMachine = new PlotterStateMachine(new FUStateInfo(self()));
         addActionsToStates();
         publishCurrentState();
     }
@@ -98,6 +100,8 @@ public class PlotterActor extends AbstractActor implements PlottingCapability, S
     public void resetMotorsToHomePosition() {
         log.info("Simulating homing movement by using a delay of 1 second(s)");
         context().system().scheduler().scheduleOnce(Duration.ofSeconds(1), () -> {
+            this.currentOrderId = "";
+            this.currentImageId = "";
             self().tell(new HomingPositionReachedEvent(), self());
         }, context().dispatcher());
     }
@@ -121,7 +125,7 @@ public class PlotterActor extends AbstractActor implements PlottingCapability, S
 
     @Override
     public void setStatusValue(String newStatus) {
-        log.debug("Current State=" + newStatus);
+        log.info("Current State=" + newStatus);
     }
 
     private void publishCurrentState() {

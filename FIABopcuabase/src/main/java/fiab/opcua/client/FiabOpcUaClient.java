@@ -6,7 +6,6 @@ import fiab.functionalunit.observer.FUStateChangedSubject;
 import fiab.functionalunit.observer.FUStateObserver;
 import org.eclipse.milo.opcua.sdk.client.AddressSpace;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.eclipse.milo.opcua.sdk.client.api.UaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
@@ -74,6 +73,9 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
      * @throws UaException nodeId invalid or node has no parent
      */
     public NodeId getParentNodeId(NodeId nodeId) throws Exception {
+        if (!nodeExists(nodeId)) {
+            throw new UnsupportedOperationException("Node with id " + nodeId + " cannot be found");
+        }
         return getAddressSpace()
                 .browseNodes(nodeId, AddressSpace.BrowseOptions
                         .builder().
@@ -153,7 +155,7 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
      * @param nodeId nodeId
      * @return node is present and browse name can be read
      */
-    public boolean checkNodeIsPresent(NodeId nodeId) {
+    public boolean nodeExists(NodeId nodeId) {
         try {
             return getAddressSpace()
                     .getNode(nodeId).readBrowseName().isNotNull();

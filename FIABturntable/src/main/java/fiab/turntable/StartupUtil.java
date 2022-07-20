@@ -1,7 +1,6 @@
 package fiab.turntable;
 
 import akka.actor.ActorSystem;
-import fiab.turntable.opcua.OPCUATurntableRootActor;
 
 public class StartupUtil {
 	public static void startupWithExposedInternalControls(int portOffset, String name) {

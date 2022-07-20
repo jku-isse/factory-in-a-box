@@ -1,4 +1,4 @@
-package fiab.turntable.infrastructure;
+package fiab.functionalunit;
 
 import akka.actor.ActorContext;
 import fiab.functionalunit.connector.FUConnector;
@@ -7,11 +7,11 @@ import fiab.functionalunit.connector.IntraMachineEventBus;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class TurntableInfrastructure {
+public abstract class MachineChildFUs {
 
     protected final Map<String, FUConnector> fuConnectors;
 
-    public TurntableInfrastructure(){
+    public MachineChildFUs(){
         this.fuConnectors = new HashMap<>();
     }
 

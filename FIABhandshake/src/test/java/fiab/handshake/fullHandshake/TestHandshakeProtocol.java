@@ -296,8 +296,6 @@ public class TestHandshakeProtocol {
     }
 
     private void resetHandshakesWithEmptyServer(){
-        //TODO use eventbus for state override
-        //serverActor.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, ActorRef.noSender());
         serverRequestBus.publish(new TransportAreaStatusOverrideRequest(serverProbeId,
                 HandshakeCapability.StateOverrideRequests.SetEmpty));
         serverRequestBus.publish(new ResetRequest(serverProbeId));
@@ -310,8 +308,6 @@ public class TestHandshakeProtocol {
     }
 
     private void resetHandshakesWithLoadedServer(){
-        //TODO send state override via eventbus
-        //serverActor.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, ActorRef.noSender());
         serverRequestBus.publish(new TransportAreaStatusOverrideRequest(serverProbeId,
                 HandshakeCapability.StateOverrideRequests.SetLoaded));
         serverRequestBus.publish(new ResetRequest(serverProbeId));
@@ -327,7 +323,7 @@ public class TestHandshakeProtocol {
         clientRequestBus.publish(new PerformHandshake(clientProbeId));
         expectClientSideState(ClientSideStates.STARTING);
 
-        expectServerSideState(ServerSideStates.IDLE_EMPTY);     //duplicate idle event, since we resend the event in case of local actors. Not necessary for opcua
+        expectServerSideState(ServerSideStates.IDLE_EMPTY);
 
         expectClientSideState(ClientSideStates.INITIATING);
 
@@ -347,7 +343,7 @@ public class TestHandshakeProtocol {
         clientRequestBus.publish(new PerformHandshake(clientProbeId));
         expectClientSideState(ClientSideStates.STARTING);
 
-        expectServerSideState(ServerSideStates.IDLE_LOADED);     //duplicate idle event, since we resend the event in case of local actors. Not necessary for opcua
+        expectServerSideState(ServerSideStates.IDLE_LOADED);
 
         expectClientSideState(ClientSideStates.INITIATING);
 

@@ -29,9 +29,18 @@ dependencies {
 test {
     //useJUnitPlatform()
     useJUnitPlatform{
-        excludeTags("IntegrationTest")
+        //excludeTags("IntegrationTest")
         excludeTags("SystemTest")
+        maxParallelForks(1) //Should in theory prevent bind exceptions due to gradle starting tests in parallel by default
     }
+
+}
+
+tasks.register("runUnitTests", Test) {
+    useJUnitPlatform {
+        includeTags "UnitTest"
+    }
+    mustRunAfter check
 }
 
 //Some tests need to be re-run manually, since I can't get rid of BindException for now

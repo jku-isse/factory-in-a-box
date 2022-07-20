@@ -32,7 +32,6 @@ import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActorSpawner;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
-import fiab.turntable.opcua.OPCUATurntableRootActor;
 
 class TestTurntableOPCUADiscovery {
 

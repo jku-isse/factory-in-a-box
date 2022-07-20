@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineInWrongStateResponse;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
+import fiab.core.capabilities.plotting.PlotRequest;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
@@ -22,7 +23,7 @@ import java.util.concurrent.ExecutionException;
 
 import static akka.pattern.Patterns.ask;
 
-public class PlotRequest extends AbstractMethodInvocationHandler {
+public class UaPlotRequest extends AbstractMethodInvocationHandler {
 
 	final Duration timeout = Duration.ofSeconds(2);
 	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -46,7 +47,7 @@ public class PlotRequest extends AbstractMethodInvocationHandler {
         );
     
     
-    public PlotRequest(UaMethodNode methodNode, ActorRef actor) {
+    public UaPlotRequest(UaMethodNode methodNode, ActorRef actor) {
         super(methodNode); 
         this.actor = actor;        
     }
@@ -69,13 +70,8 @@ public class PlotRequest extends AbstractMethodInvocationHandler {
 		try {
 			String capIdFrom = (String) inputValues[0].getValue();
 			// for now we ignore that we could have gotten a image id we don't support							
-			resp = ask(actor, PlotterMessageTypes.Plot, timeout).toCompletableFuture().get();
-			if (resp instanceof MachineStatusUpdateEvent) {
-				 resp = ((MachineStatusUpdateEvent) resp).getStatus();
-			}
-			else if (resp instanceof MachineInWrongStateResponse) {
-				resp = ((MachineInWrongStateResponse) resp).getStatus();
-			}
+			resp = ask(actor, new PlotRequest(invocationContext.toString(), capIdFrom), timeout).toCompletableFuture().get();
+			resp = ((MachineStatusUpdateEvent) resp).getStatus();
 		} catch (InterruptedException | ExecutionException e) {
 			logger.error(e.getMessage());
 			resp = BasicMachineStates.UNKNOWN;

@@ -1,6 +1,7 @@
 package fiab.plotter.opcua.methods;
 
 import akka.actor.ActorRef;
+import fiab.core.capabilities.functionalunit.ResetRequest;
 import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
@@ -12,14 +13,13 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 
-public class Stop extends AbstractMethodInvocationHandler {
+public class UaResetPlotter extends AbstractMethodInvocationHandler {
 
-	final Duration timeout = Duration.ofSeconds(2);
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private final ActorRef actor;
 	
-    public Stop(UaMethodNode methodNode, ActorRef actor) {
+    public UaResetPlotter(UaMethodNode methodNode, ActorRef actor) {
         super(methodNode); 
         this.actor = actor;        
     }
@@ -36,8 +36,8 @@ public class Stop extends AbstractMethodInvocationHandler {
 
     @Override
     protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) throws UaException {        
-    	logger.debug("Invoking Stop() method of objectId={}", invocationContext.getObjectId());    	
-    	actor.tell(PlotterMessageTypes.Stop, ActorRef.noSender());
+    	logger.debug("Invoking Reset() method of objectId={}", invocationContext.getObjectId());    	
+    	actor.tell(new ResetRequest(invocationContext.toString()), ActorRef.noSender());
     	return new Variant[0]; 	    	
     }	
     

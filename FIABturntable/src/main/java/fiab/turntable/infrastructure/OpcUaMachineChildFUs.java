@@ -1,6 +1,7 @@
 package fiab.turntable.infrastructure;
 
 import akka.actor.ActorContext;
+import fiab.functionalunit.MachineChildFUs;
 import fiab.functionalunit.connector.FUConnector;
 import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.handshake.client.opcua.functionalunit.ClientHandshakeFU;
@@ -14,13 +15,13 @@ import fiab.turntable.turning.opcua.functionalunit.TurningFU;
 import static fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers.*;
 import static fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT;
 
-public class OpcUaTurntableInfrastructure extends TurntableInfrastructure {
+public class OpcUaMachineChildFUs extends MachineChildFUs {
 
     private final OPCUABase base;
     private ActorContext context;
     private IntraMachineEventBus intraMachineEventBus;
 
-    public OpcUaTurntableInfrastructure(OPCUABase base) {
+    public OpcUaMachineChildFUs(OPCUABase base) {
         super();
         this.base = base;
     }

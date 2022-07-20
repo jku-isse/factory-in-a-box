@@ -31,7 +31,7 @@ import fiab.conveyor.ConveyorCapability;
 import fiab.conveyor.messages.ConveyorStatusUpdateEvent;
 import fiab.conveyor.messages.LoadConveyorRequest;
 import fiab.conveyor.messages.UnloadConveyorRequest;
-import fiab.turntable.infrastructure.TurntableInfrastructure;
+import fiab.functionalunit.MachineChildFUs;
 import fiab.turntable.statemachine.process.ProcessStateMachine;
 import fiab.turntable.statemachine.process.ProcessStates;
 import fiab.turntable.statemachine.process.ProcessTriggers;
@@ -45,7 +45,7 @@ import fiab.turntable.turning.statemachine.TurningStates;
 
 public class TurntableCoordinatorActor extends AbstractActor implements TransportModuleCapability, StatePublisher {
 
-    public static Props props(MachineEventBus machineEventBus, IntraMachineEventBus intraMachineEventBus, TurntableInfrastructure infrastructure) {
+    public static Props props(MachineEventBus machineEventBus, IntraMachineEventBus intraMachineEventBus, MachineChildFUs infrastructure) {
         return Props.create(TurntableCoordinatorActor.class, () -> new TurntableCoordinatorActor(machineEventBus, intraMachineEventBus, infrastructure));
     }
 
@@ -59,16 +59,16 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
 
     //Track these in separate class
     protected FUStateInfo fuStateInfo;
-    protected TurntableInfrastructure turntableInfrastructure;
+    protected MachineChildFUs machineChildFUs;
 
-    public TurntableCoordinatorActor(MachineEventBus machineEventBus, IntraMachineEventBus intraMachineEventBus, TurntableInfrastructure infrastructure) {
+    public TurntableCoordinatorActor(MachineEventBus machineEventBus, IntraMachineEventBus intraMachineEventBus, MachineChildFUs infrastructure) {
         this.componentId = self().path().name();
         this.fuStateInfo = new FUStateInfo(self());
         this.machineEventBus = machineEventBus;
         this.intraMachineBus = intraMachineEventBus;
         this.stateMachine = new TurntableStateMachine(fuStateInfo);
         this.process = new ProcessStateMachine(fuStateInfo);
-        this.turntableInfrastructure = infrastructure;
+        this.machineChildFUs = infrastructure;
         init();
     }
 
@@ -77,7 +77,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
         addActionsToStates();
         addActionsToProcessSteps();
         publishCurrentState(this.stateMachine.getState());
-        turntableInfrastructure.setupInfrastructure(context(), intraMachineBus);
+        machineChildFUs.setupInfrastructure(context(), intraMachineBus);
     }
 
     private void subscribeToConnectors() {
@@ -160,7 +160,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
 
     @Override
     public void doStopping() {
-        for (FUConnector connector : turntableInfrastructure.getFuConnectors().values()) {
+        for (FUConnector connector : machineChildFUs.getFuConnectors().values()) {
             connector.publish(new StopRequest(this.componentId));
         }
         cleanupProcess();
@@ -196,7 +196,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
         //While each handshake has the local capability e.g. NORTH_CLIENT, it is necessary
         //to add HANDSHAKE_FU_ as a prefix as the handshake actor has this id
         String handshakeConnectorId = msg.getInfo().getLocalCapabilityId();
-        handshakeConn = turntableInfrastructure.getFUConnectorForCapabilityId(handshakeConnectorId);
+        handshakeConn = machineChildFUs.getFUConnectorForCapabilityId(handshakeConnectorId);
         if (handshakeConn != null) {
             handshakeConn.publish(msg);
         } else {
@@ -325,7 +325,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
     }
 
     protected FUConnector getConnectorForId(String capabilityId) {
-        return turntableInfrastructure.getFUConnectorForCapabilityId(capabilityId);
+        return machineChildFUs.getFUConnectorForCapabilityId(capabilityId);
     }
 
     protected TransportDestinations getTransportDestinationForCapability(String capabilityId) {

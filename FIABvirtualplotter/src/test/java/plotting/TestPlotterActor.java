@@ -9,9 +9,8 @@ import fiab.core.capabilities.functionalunit.StopRequest;
 import fiab.functionalunit.connector.FUConnector;
 import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.functionalunit.connector.IntraMachineEventBus;
-import fiab.plotter.message.PlotImageRequest;
-import fiab.plotter.message.PlottingStatusUpdateEvent;
-import fiab.plotter.opcua.methods.PlotRequest;
+import fiab.plotter.plotting.message.PlotImageRequest;
+import fiab.plotter.plotting.message.PlottingStatusUpdateEvent;
 import fiab.plotter.plotting.PlotterActor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TestPlotterActor {
 
     private IntraMachineEventBus intraMachineEventBus;
+    private FUConnector fuConnector;
     private ActorSystem system;
     private ActorRef plotActor;
     private TestKit probe;
@@ -33,12 +33,13 @@ public class TestPlotterActor {
     public void setup() {
         system = ActorSystem.create();
         intraMachineEventBus = new IntraMachineEventBus();
+        fuConnector = new FUConnector();
 
         probe = new TestKit(system);
         probeId = probe.getRef().path().name();
         intraMachineEventBus.subscribe(probe.getRef(), new FUSubscriptionClassifier(probeId, "*"));
 
-        plotActor = system.actorOf(PlotterActor.props(new FUConnector(), intraMachineEventBus));
+        plotActor = system.actorOf(PlotterActor.props(fuConnector, intraMachineEventBus));
         expectPlottingState(BasicMachineStates.STOPPED);
     }
 
@@ -52,11 +53,11 @@ public class TestPlotterActor {
     public void testFullPlottingResetAndStop() {
         new TestKit(system) {
             {
-                plotActor.tell(new ResetRequest(probeId), getRef());
+                fuConnector.publish(new ResetRequest(probeId));
                 expectPlottingState(BasicMachineStates.RESETTING);
                 expectPlottingState(BasicMachineStates.IDLE);
 
-                plotActor.tell(new StopRequest(probeId), getRef());
+                fuConnector.publish(new StopRequest(probeId));
                 expectPlottingState(BasicMachineStates.STOPPING);
                 expectPlottingState(BasicMachineStates.STOPPED);
             }

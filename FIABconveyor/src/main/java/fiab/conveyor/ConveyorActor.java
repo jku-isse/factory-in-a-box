@@ -134,6 +134,6 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
      */
     @Override
     public void setStatusValue(String newStatus) {
-        log.debug("Current State=" + newStatus);
+        log.info("Current State=" + newStatus);
     }
 }
