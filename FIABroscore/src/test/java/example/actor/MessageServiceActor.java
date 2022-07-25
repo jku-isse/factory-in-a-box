@@ -30,7 +30,12 @@ import ros_io_msg.EjectServiceResponse;
  */
 public class MessageServiceActor extends AbstractActor {
 
-
+    /**
+     * The usual props factory
+     * @param parent who will this actor respond to
+     * @param rosClient a fully initialized client
+     * @return props for the MessageServiceActor
+     */
     public static Props props(ActorRef parent, ROSClient rosClient) {
         return Props.create(MessageServiceActor.class, () -> new MessageServiceActor(parent, rosClient));
     }
@@ -51,11 +56,8 @@ public class MessageServiceActor extends AbstractActor {
                 .match(AkkaEjectRequest.class, req -> sendEjectRequest())
                 .match(AkkaResetRequest.class, req -> sendResetRequest())
                 //If we receive a local callback from ROS, we are done and can publish the result
-                //If we receive a local callback from ROS, we are done and can publish the result
                 .match(AkkaResetDoneNotification.class, msg -> publishResult(msg.getSuccess()))
                 .match(AkkaEjectDoneNotification.class, msg -> publishResult(msg.getSuccess()))
-                //.match(LocalRosSumCallBackNotification.class, msg -> publishResult(msg))
-                .match(ROSCallbackNotification.class, req -> log.info("Received {}", req.getOk()))
                 //All other messages are not supported, print a warning
                 .matchAny(msg -> log.warning("Cannot process message: " + msg))
                 .build();
@@ -64,7 +66,7 @@ public class MessageServiceActor extends AbstractActor {
     private void sendEjectRequest() {
         //Retrieve an existing serviceClient from the ROSClient wrapper using the type as id
         ServiceClient<EjectServiceRequest, EjectServiceResponse> serviceClient;
-        serviceClient = (ServiceClient<EjectServiceRequest, EjectServiceResponse>) rosClient.getServiceClient(EjectService._TYPE);
+        serviceClient = rosClient.getServiceClient(EjectService._TYPE);
         //call the new request using our local msg factory and attach a responseListener
         serviceClient.call(createEjectServiceRequest(), new ServiceResponseListener<EjectServiceResponse>() {
             //In case ROS called the service successfully
@@ -74,6 +76,7 @@ public class MessageServiceActor extends AbstractActor {
                 //Tell yourself that the ROS call has succeeded.
                 self().tell(new ROSCallbackNotification(true), self());
             }
+
             //In case ROS failed to call the service
             @Override
             public void onFailure(RemoteException e) {
@@ -84,10 +87,9 @@ public class MessageServiceActor extends AbstractActor {
 
     private void sendResetRequest() {
         //Retrieve an existing serviceClient from the ROSClient wrapper using the type as id
-        ServiceClient<ResetServiceRequest, ResetServiceResponse> serviceClient;
-        serviceClient = (ServiceClient<ResetServiceRequest, ResetServiceResponse>) rosClient.getServiceClient(ResetService._TYPE);
+        ServiceClient<ResetServiceRequest, ResetServiceResponse> serviceClient = rosClient.getServiceClient(ResetService._TYPE);
         //call the new request using our local msg factory and attach a responseListener
-        serviceClient.call(createResetServiceRequest(), new ServiceResponseListener<ResetServiceResponse>() {
+        serviceClient.call(createResetServiceRequest(), new ServiceResponseListener<>() {
             //In case ROS called the service successfully
             @Override
             public void onSuccess(ResetServiceResponse response) {
@@ -95,6 +97,7 @@ public class MessageServiceActor extends AbstractActor {
                 //Tell yourself that the ROS call has succeeded.
                 self().tell(new ROSCallbackNotification(response.getSuccess()), self());
             }
+
             //In case ROS failed to call the service
             @Override
             public void onFailure(RemoteException e) {
@@ -117,25 +120,21 @@ public class MessageServiceActor extends AbstractActor {
      * Factory for convenient creation of messages
      */
     private EjectServiceRequest createEjectServiceRequest() {
-        EjectServiceRequest request = rosClient.createNewMessage(EjectService._TYPE, EjectServiceRequest.class);
-        return request;
+        return rosClient.createNewMessage(EjectService._TYPE, EjectServiceRequest.class);
     }
 
     /**
      * Factory for convenient creation of messages
      */
     private ResetServiceRequest createResetServiceRequest() {
-        ResetServiceRequest request = rosClient.createNewMessage(ResetService._TYPE, ResetServiceRequest.class);
-        return request;
+        return rosClient.createNewMessage(ResetService._TYPE, ResetServiceRequest.class);
     }
 
     /**
      * Factory for convenient creation of messages
      */
-
     private StopServiceRequest createStopServiceRequest() {
-        StopServiceRequest request = rosClient.createNewMessage(StopService._TYPE, StopServiceRequest.class);
-        return request;
+        return rosClient.createNewMessage(StopService._TYPE, StopServiceRequest.class);
     }
 }
 

@@ -1,7 +1,23 @@
+/*
+ * Copyright (C) 2011 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ *
+ * NOTE: This class is a derivative of rosjava_core/RosLoader and contains modifications
+ */
 package internal;
 
 import akka.actor.ActorRef;
-import internal.node.FIABNodeMain;
 import org.ros.CommandLineVariables;
 import org.ros.EnvironmentVariables;
 import org.ros.address.InetAddressFactory;
@@ -9,6 +25,7 @@ import org.ros.exception.RosRuntimeException;
 import org.ros.namespace.GraphName;
 import org.ros.namespace.NameResolver;
 import org.ros.node.NodeConfiguration;
+import org.ros.node.NodeMain;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -50,31 +67,16 @@ public class FIABRosLoader {
     }
 
     /**
-     * @param clazz    nodeclass to instantiate
-     * @param actorRef actorRef
-     * @return an instance of {@link FIABNodeMain}
-     * @throws ClassNotFoundException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     */
-    public FIABNodeMain loadClass(Class<?> clazz, ActorRef actorRef) throws ClassNotFoundException, InstantiationException,
-            IllegalAccessException {
-        //Class<?> clazz = getClass().getClassLoader().loadClass(name);
-        FIABNodeMain nodeMain = createInstanceUsingActorRefConstructor(clazz, actorRef);
-        return nodeMain;
-    }
-
-    /**
      * @param clazz nodeclass to instantiate
-     * @return an instance of {@link FIABNodeMain}
+     * @return an instance of {@link NodeMain}
      * @throws ClassNotFoundException
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public FIABNodeMain loadClass(Class<?> clazz) throws ClassNotFoundException, InstantiationException,
+    public NodeMain loadClass(Class<?> clazz) throws ClassNotFoundException, InstantiationException,
             IllegalAccessException {
         //Class<?> clazz = getClass().getClassLoader().loadClass(name);
-        FIABNodeMain nodeMain = createInstanceUsingDefaultConstructor(clazz);
+        NodeMain nodeMain = createInstanceUsingDefaultConstructor(clazz);
         return nodeMain;
     }
 
@@ -86,10 +88,10 @@ public class FIABRosLoader {
      * @param actorRef
      * @return
      */
-    private FIABNodeMain createInstanceUsingActorRefConstructor(Class<?> clazz, ActorRef actorRef) {
+    private NodeMain createInstanceUsingActorRefConstructor(Class<?> clazz, ActorRef actorRef) {
         try {
             Constructor<?> constructor = clazz.getConstructor(ActorRef.class);
-            return (FIABNodeMain) constructor.newInstance(actorRef);
+            return (NodeMain) constructor.newInstance(actorRef);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -103,10 +105,10 @@ public class FIABRosLoader {
      * @param clazz
      * @return
      */
-    private FIABNodeMain createInstanceUsingDefaultConstructor(Class<?> clazz) {
+    private NodeMain createInstanceUsingDefaultConstructor(Class<?> clazz) {
         try {
             Constructor<?> constructor = clazz.getConstructor();
-            return (FIABNodeMain) constructor.newInstance();
+            return (NodeMain) constructor.newInstance();
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }

@@ -60,7 +60,7 @@ public class ROSClientActor extends AbstractActor {
     private void sendResetRequest() {
         //Retrieve an existing serviceClient from the ROSClient wrapper using the type as id
         ServiceClient<ResetServiceRequest, ResetServiceResponse> serviceClient;
-        serviceClient = (ServiceClient<ResetServiceRequest, ResetServiceResponse>) rosClient.getServiceClient(ResetService._TYPE);
+        serviceClient = rosClient.getServiceClient(ResetService._TYPE);
         //call the new request using our local msg factory and attach a responseListener
         serviceClient.call(createNewResetServiceRequest(), new ServiceResponseListener<ResetServiceResponse>() {
             //In case ROS called the service successfully
@@ -70,6 +70,7 @@ public class ROSClientActor extends AbstractActor {
                 //Tell yourself that the ROS call has succeeded.
                 self().tell(new AkkaResetDoneNotification((response.getSuccess())), self());
             }
+
             //In case ROS failed to call the service
             @Override
             public void onFailure(RemoteException e) {
@@ -81,7 +82,7 @@ public class ROSClientActor extends AbstractActor {
     private void sendEjectRequest() {
         //Retrieve an existing serviceClient from the ROSClient wrapper using the type as id
         ServiceClient<EjectServiceRequest, EjectServiceResponse> serviceClient;
-        serviceClient = (ServiceClient<EjectServiceRequest, EjectServiceResponse>) rosClient.getServiceClient(EjectService._TYPE);
+        serviceClient = rosClient.getServiceClient(EjectService._TYPE);
         //call the new request using our local msg factory and attach a responseListener
         serviceClient.call(createNewEjectServiceRequest(), new ServiceResponseListener<EjectServiceResponse>() {
             //In case ROS called the service successfully
@@ -91,6 +92,7 @@ public class ROSClientActor extends AbstractActor {
                 //Tell yourself that the ROS call has succeeded.
                 self().tell(new AkkaEjectDoneNotification((response.getSuccess())), self());
             }
+
             //In case ROS failed to call the service
             @Override
             public void onFailure(RemoteException e) {
@@ -101,6 +103,7 @@ public class ROSClientActor extends AbstractActor {
 
     /**
      * Tells the parent the sum via a message
+     *
      * @param success
      */
     private void publishResult(boolean success) {

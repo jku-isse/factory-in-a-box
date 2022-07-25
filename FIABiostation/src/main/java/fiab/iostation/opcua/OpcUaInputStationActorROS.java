@@ -24,12 +24,6 @@ import java.net.URI;
 
 public class OpcUaInputStationActorROS extends OpcUaInputStationActor {
 
-
-    //@Override
-    //public GraphName getDefaultNodeName() {
-    //    return GraphName.of("OpcUaInputStationActor/server");
-    //}
-
     protected ROSClient rosClient;
 
     public static Props props(ROSClient rosClient, OPCUABase base, UaFolderNode rootNode, MachineEventBus eventBus) {
@@ -45,7 +39,7 @@ public class OpcUaInputStationActorROS extends OpcUaInputStationActor {
     public void doResetting() {
         //Simulate behaviour of sensor waiting for pallet -> Auto reload to loaded
         ServiceClient<ResetServiceRequest, ResetServiceResponse> serviceClient;
-        serviceClient = (ServiceClient<ResetServiceRequest, ResetServiceResponse>) rosClient.getServiceClient(ResetService._TYPE);
+        serviceClient = rosClient.getServiceClient(ResetService._TYPE);
         //call the new request using our local msg factory and attach a responseListener
         serviceClient.call(createResetServiceRequest(), new ServiceResponseListener<ResetServiceResponse>() {
             //In case ROS called the service successfully

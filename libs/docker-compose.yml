@@ -1,0 +1,7 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  test:
+    build: .
+    volumes:
+      - ./rostest:./rostest
+    command: ['catkin_make', 'rostest/test.srv']

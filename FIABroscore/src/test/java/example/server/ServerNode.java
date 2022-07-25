@@ -16,6 +16,9 @@ import rosjava_test_msgs.AddTwoInts;
 import rosjava_test_msgs.AddTwoIntsRequest;
 import rosjava_test_msgs.AddTwoIntsResponse;
 
+/**
+ * A ServerNode that can be registered as a ROS Node
+ */
 public class ServerNode extends FIABAbstractNodeMain {
 
     @Override
@@ -31,17 +34,20 @@ public class ServerNode extends FIABAbstractNodeMain {
                     @Override
                     public void
                     build(ResetServiceRequest request, ResetServiceResponse response) {
+                        //Since we do nothing here, we just set the success flag to true
+                        //The method sends the response when the body of this method has finished executing
                         response.setSuccess(true);
-//                        response.setSum(request.getA() + request.getB());
                     }
                 });
+        //We can in the same way register many more services, like in the following example
         connectedNode.newServiceServer("FIAB_eject_service", EjectService._TYPE,
                 new ServiceResponseBuilder<EjectServiceRequest, EjectServiceResponse>() {
                     @Override
                     public void
                     build(EjectServiceRequest request, EjectServiceResponse response) {
+                        //Since we do nothing here, we just set the success flag to true
+                        //The method sends the response when the body of this method has finished executing
                         response.setSuccess(true);
-//                        response.setSum(request.getA() + request.getB());
                     }
                 });
     }

@@ -1,8 +1,6 @@
 package client;
 
-import akka.actor.ActorRef;
 import internal.exception.ServiceClientNotFoundException;
-import internal.node.FIABNodeMain;
 import internal.DefaultFIABNodeMainExecutor;
 import internal.FIABNodeMainExecutor;
 import internal.FIABRosLoader;
@@ -21,21 +19,17 @@ import java.util.concurrent.ExecutionException;
 public class ROSClient {
 
     private final NodeConfiguration nodeConfiguration;
-    private FIABNodeMain nodeMain;
+    private NodeMain nodeMain;
     private FIABNodeMainExecutor nodeMainExecutor;
     private DefaultNode node;
     private final Map<String, ServiceClient<?, ?>> serviceClientMap;
 
-    public static ROSClient newInstance(Class<? extends NodeMain> nodeClass) {
-        ROSClient rosClient = new ROSClient(nodeClass, null);
-        try {
-            rosClient.initClientNode().get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        return rosClient;
-    }
-
+    /**
+     * Creates a new ROSClient. This is a blocking operation, since the client will immediately connect to the server
+     * @param nodeClass class of the client ROS Node
+     * @param nodeConfiguration configuration for given node (where is master located?, message factories, etc.)
+     * @return connected ROSClient
+     */
     public static ROSClient newInstance(Class<? extends NodeMain> nodeClass, NodeConfiguration nodeConfiguration) {
         ROSClient rosClient = new ROSClient(nodeClass, nodeConfiguration);
         try {
@@ -57,6 +51,11 @@ public class ROSClient {
         initRosNode(nodeClass, loader);
     }
 
+    /**
+     * Starts the lifecycle of the Node
+     * @param nodeClass node class to use
+     * @param loader responsible for loading class into a Node
+     */
     private void initRosNode(Class<? extends NodeMain> nodeClass, FIABRosLoader loader) {
         this.nodeMain = null;
         try {
@@ -89,10 +88,10 @@ public class ROSClient {
     /**
      * Creates a new service client and adds it to local map (K=serviceType, V=serviceClient)
      *
-     * @param serviceName
-     * @param serviceType
-     * @return
-     * @throws ServiceNotFoundException
+     * @param serviceName the name for a service. Note that this value should be unique
+     * @param serviceType the type of the service, usually identified by MsgType._type
+     * @return new Service Client
+     * @throws ServiceNotFoundException in case the service does not exist on the server or client not connected
      */
     public ServiceClient<? extends Message, ? extends Message> createServiceClient(String serviceName, String serviceType) throws ServiceNotFoundException {
         ServiceClient<? extends Message, ? extends Message> serviceClient = node.newServiceClient(serviceName, serviceType);
@@ -103,29 +102,31 @@ public class ROSClient {
     /**
      * Retrieve service client from map using serviceType as the id
      *
-     * @param serviceType
-     * @return
+     * @param serviceType The type of the service, usually identified by MsgType._type
+     * @return serviceClient that can be implicitly cast to ServiceClient<ReqClass, RespClass>
      */
-    public ServiceClient<?, ?> getServiceClient(String serviceType) {
-        return serviceClientMap.get(serviceType);
+    public <Q, S> ServiceClient<Q, S> getServiceClient(String serviceType) {
+        return (ServiceClient<Q, S>) serviceClientMap.get(serviceType);
     }
 
     /**
      * This creates a new message using an available serviceClient that has a matching requestType
-     *
-     * @param serviceType
-     * @param requestType
-     * @param <T>
-     * @return
+     * @param serviceType The type of the service, usually identified by MsgType._type
+     * @param requestType Type of the request. Usually just add the Request Suffix e.g. MsgTypeRequest
+     * @param <T> Class of the request, usually extends Message (from the ROSjava package)
+     * @return request
      */
-    public <T extends Message> T createNewMessage(String serviceType, Class<?> requestType) throws ServiceClientNotFoundException {
+    public <T extends Message> T createNewMessage(String serviceType, Class<T> requestType) throws ServiceClientNotFoundException {
         if (serviceClientMap.containsKey(serviceType)) {
-            return (T) requestType.cast(this.serviceClientMap.get(serviceType).newMessage());
-        }else{
+            return requestType.cast(this.serviceClientMap.get(serviceType).newMessage());
+        } else {
             throw new ServiceClientNotFoundException();
         }
     }
 
+    /**
+     * Shuts down the client
+     */
     public void shutdownClient() {
         this.nodeMainExecutor.shutdown();
     }
