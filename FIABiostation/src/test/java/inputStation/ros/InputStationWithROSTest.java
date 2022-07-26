@@ -30,8 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Tag("IntegrationTest")
 public class InputStationWithROSTest {
 
-    public static final String ROS_MASTER_IP_RPI = "192.168.133.109";
-    public static final String ROS_MASTER_IP_LOCAL = "127.0.0.1";
+    public static final String ROS_MASTER_IP_RPI = "192.168.133.122";
+    public static final String ROS_MASTER_IP_LOCAL = "192.168.133.88";
     private static FUTestInfrastructure infrastructure;
 
     //Playground

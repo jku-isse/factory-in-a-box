@@ -3,6 +3,8 @@ package fiab.iostation.opcua;
 import akka.actor.Props;
 import client.ClientNode;
 import client.ROSClient;
+import fiab.core.capabilities.handshake.HandshakeCapability;
+import fiab.core.capabilities.handshake.server.TransportAreaStatusOverrideRequest;
 import fiab.functionalunit.connector.MachineEventBus;
 import fiab.handshake.server.statemachine.ServerSideHandshakeTriggers;
 import fiab.opcua.server.OPCUABase;
@@ -14,10 +16,10 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.service.ServiceClient;
 import org.ros.node.service.ServiceResponseListener;
-import ros_basic_machine_msg.ResetService;
-import ros_basic_machine_msg.ResetServiceRequest;
-import ros_basic_machine_msg.ResetServiceResponse;
+import ros_basic_machine_msg.*;
 import ros_io_msg.EjectService;
+import ros_io_msg.EjectServiceRequest;
+import ros_io_msg.EjectServiceResponse;
 
 import java.net.URI;
 //import rosjava_custom_srv.MessageService;
@@ -38,6 +40,7 @@ public class OpcUaInputStationActorROS extends OpcUaInputStationActor {
     @Override
     public void doResetting() {
         //Simulate behaviour of sensor waiting for pallet -> Auto reload to loaded
+        self().tell(new TransportAreaStatusOverrideRequest(componentId, HandshakeCapability.StateOverrideRequests.SetLoaded), self());
         ServiceClient<ResetServiceRequest, ResetServiceResponse> serviceClient;
         serviceClient = rosClient.getServiceClient(ResetService._TYPE);
         //call the new request using our local msg factory and attach a responseListener
@@ -64,6 +67,26 @@ public class OpcUaInputStationActorROS extends OpcUaInputStationActor {
         //TODO
         //on success -> ServerSideHandshakeTriggers.STOPPING_DONE
         //on fail -> ServerSideHandshakeTriggers.STOPPING_DONE  //FOR NOW
+        //Simulate behaviour of sensor waiting for pallet -> Auto reload to loaded
+        ServiceClient<StopServiceRequest, StopServiceResponse> serviceClient;
+        serviceClient = rosClient.getServiceClient(StopService._TYPE);
+        //call the new request using our local msg factory and attach a responseListener
+        serviceClient.call(createStopServiceRequest(), new ServiceResponseListener<StopServiceResponse>() {
+            //In case ROS called the service successfully
+            @Override
+            public void onSuccess(StopServiceResponse response) {
+                log.debug("Received reset response via ROS");
+                //Tell yourself that the ROS call has succeeded.
+                stateMachine.fireIfPossible(ServerSideHandshakeTriggers.STOPPING_DONE);
+                //self().tell(new ROSCallbackNotification(response.getSuccess()), self());
+            }
+            //In case ROS failed to call the service
+            @Override
+            public void onFailure(RemoteException e) {
+                log.error("Error handler has been called");
+                stateMachine.fireIfPossible(ServerSideHandshakeTriggers.STOP);
+            }
+        });
     }
 
     @Override
@@ -71,7 +94,28 @@ public class OpcUaInputStationActorROS extends OpcUaInputStationActor {
         //TODO
         //on success -> ServerSideHandshakeTriggers.COMPLETE
         //on fail -> ServerSideHandshakeTriggers.STOP
+        ServiceClient<EjectServiceRequest, EjectServiceResponse> serviceClient;
+        serviceClient = rosClient.getServiceClient(EjectService._TYPE);
+        //call the new request using our local msg factory and attach a responseListener
+        serviceClient.call(createEjectServiceRequest(), new ServiceResponseListener<EjectServiceResponse>() {
+            //In case ROS called the service successfully
+            @Override
+            public void onSuccess(EjectServiceResponse response) {
+                log.debug("Received reset response via ROS");
+                //Tell yourself that the ROS call has succeeded.
+                stateMachine.fireIfPossible(ServerSideHandshakeTriggers.COMPLETE);
+                //self().tell(new ROSCallbackNotification(response.getSuccess()), self());
+            }
+            //In case ROS failed to call the service
+            @Override
+            public void onFailure(RemoteException e) {
+                log.error("Error handler has been called");
+                stateMachine.fireIfPossible(ServerSideHandshakeTriggers.STOP);
+            }
+        });
     }
+
+
 
     /**
      * Factory for convenient creation of messages
@@ -80,4 +124,19 @@ public class OpcUaInputStationActorROS extends OpcUaInputStationActor {
         ResetServiceRequest request = rosClient.createNewMessage(ResetService._TYPE, ResetServiceRequest.class);
         return request;
     }
+
+
+    private EjectServiceRequest createEjectServiceRequest() {
+        EjectServiceRequest request = rosClient.createNewMessage(EjectService._TYPE, EjectServiceRequest.class);
+        return request;
+    }
+
+
+    private StopServiceRequest createStopServiceRequest(){
+        StopServiceRequest request = rosClient.createNewMessage(StopService._TYPE, StopServiceRequest.class);
+        return request;
+    }
 }
+
+
+

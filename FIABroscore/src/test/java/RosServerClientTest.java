@@ -25,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class RosServerClientTest {
 
-    public static final String ROS_MASTER_IP_RPI = "192.168.133.109";
-    public static final String ROS_MASTER_IP_LOCAL = "127.0.0.1";
+    public static final String ROS_MASTER_IP_RPI = "192.168.133.118";
+    public static final String ROS_MASTER_IP_LOCAL = "192.168.133.88";
 
     @Test
     public void testServerAndClient() {
