@@ -1,10 +1,17 @@
 FROM ros:kinetic-ros-core-xenial
 
+# RUN apt-get update && apt-get upgrade -y && apt install wget -y
+# RUN wget -P ./ http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-i586.tar.gz
+# RUN mkdir /usr/lib/jvm
+# RUN cd /usr/lib/jvm
+# RUN tar -xvzf ./jdk-8u151-linux-x64.tar.gz --directory /usr/lib/jvm
+# ENV JAVA_HOME="/usr/lib/jvm/java-8-oracle"
+
 # Install packages and remove package lists as they might be stale
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
 	build-essential \
-	default-jdk \
 	gradle  \
+    default-jdk \
 	maven \
 	ros-kinetic-catkin \
 	ros-kinetic-rospack \
@@ -32,9 +39,8 @@ RUN apt-get update && apt-get install -y \
 	&& rm -rf /var/lib/apt/lists/
 
 # Copy files from this pc into container
-COPY ./rostest ./rostest
-COPY ./entrypoint.sh ./entrypoint.sh
-RUN chmod u+x entrypoint.sh
+# COPY /custom_messages ./custom_messages
+
 
 # Download, install and configure rosjava
 WORKDIR /
@@ -47,10 +53,16 @@ RUN ["/bin/bash","-c","mkdir -p ~/rosjava/src &&\
     rosdep install --from-paths src -i -y &&\
     catkin_make"]
 
-RUN [ "/bin/bash","-c","source /opt/ros/kinetic/setup.bash && \
-        cd /rostest/src && catkin_init_workspace"]
+# RUN [ "/bin/bash","-c","source /opt/ros/kinetic/setup.bash && \
+#         cd /custom_messages && catkin_init_workspace"]
 
-RUN ["/bin/bash","-c", "source ~/rosjava/devel/setup.bash && cd /rostest/ && catkin_make"]
+# RUN ["/bin/bash","-c", "source ~/rosjava/devel/setup.bash && cd /custom_messages/ && catkin_make"]
 
 CMD ["bash"]
-# ENTRYPOINT . entrypoint.sh
+
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod u+x entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]
+
+# use the below command from the root folder /factory-in-a-box to build all messages automatically
+# docker run -it -v <ABS-PATH-TO>\factory-in-a-box\fiab_ros_messages:/fiab_ros_messages rosjava
