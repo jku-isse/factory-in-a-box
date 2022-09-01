@@ -20,3 +20,16 @@ allprojects {
     }
 //TODO specify build order? Gradle seems to build them in the right order for me
 }
+
+task buildRosMessages {
+    doLast {
+        exec {
+            commandLine 'cmd', '/c', 'docker run' +
+                    ' -v %cd%\\fiab_ros_messages:/fiab_ros_messages' +
+                    ' -v %cd%\\libs:/libs' +
+                    ' --rm ' +
+                    '--name rosjava ' +
+                    'rosjava\n'
+        }
+    }
+}

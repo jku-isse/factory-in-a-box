@@ -1,14 +1,7 @@
 FROM ros:kinetic-ros-core-xenial
 
-# RUN apt-get update && apt-get upgrade -y && apt install wget -y
-# RUN wget -P ./ http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-i586.tar.gz
-# RUN mkdir /usr/lib/jvm
-# RUN cd /usr/lib/jvm
-# RUN tar -xvzf ./jdk-8u151-linux-x64.tar.gz --directory /usr/lib/jvm
-# ENV JAVA_HOME="/usr/lib/jvm/java-8-oracle"
-
 # Install packages and remove package lists as they might be stale
-RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
+RUN sudo apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get install -y \
 	build-essential \
 	gradle  \
     default-jdk \
@@ -16,7 +9,7 @@ RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
 	ros-kinetic-catkin \
 	ros-kinetic-rospack \
 	python-wstool \
-	&& rm -rf /var/lib/apt/lists/
+	&& rm -rf /var/lib/apt/lists/*
 
 # Set java home
 ENV JAVA_HOME=/usr/lib/jvm/default-java
@@ -36,11 +29,7 @@ RUN apt-get update && apt-get install -y \
 	ros-kinetic-concert-msgs \
 	ros-kinetic-move-base-msgs \
 	ros-kinetic-tf2-msgs \
-	&& rm -rf /var/lib/apt/lists/
-
-# Copy files from this pc into container
-# COPY /custom_messages ./custom_messages
-
+	&& rm -rf /var/lib/apt/lists/*
 
 # Download, install and configure rosjava
 WORKDIR /
@@ -52,11 +41,6 @@ RUN ["/bin/bash","-c","mkdir -p ~/rosjava/src &&\
     rosdep update &&\
     rosdep install --from-paths src -i -y &&\
     catkin_make"]
-
-# RUN [ "/bin/bash","-c","source /opt/ros/kinetic/setup.bash && \
-#         cd /custom_messages && catkin_init_workspace"]
-
-# RUN ["/bin/bash","-c", "source ~/rosjava/devel/setup.bash && cd /custom_messages/ && catkin_make"]
 
 CMD ["bash"]
 

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<package format="2">
+  <!-- For more information refer to: http://wiki.ros.org/catkin/package.xml -->
+  <name>ros_basic_machine_msg</name>
+  <version>0.1.0</version>
+  <description>A ROS package containing the basic machine service types</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="fiab.p2f@jku.at">Mario Krizic</maintainer>
+
+  <!-- Author tags are optional, multiple are allowed, one per tag -->
+  <!-- Authors do not have to be maintainers, but could be -->
+  <!-- Example: -->
+  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+  <author>Ariharasudhan Muthusami</author>
+  <author>Mario Krizic</author>
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>LGPL-3.0</license>
+
+
+  <!-- Url tags are optional, but multiple are allowed, one per tag -->
+  <!-- Optional attribute type can be: website, bugtracker, or repository -->
+  <!-- Example: -->
+  <!-- <url type="website">http://wiki.ros.org/ros_basic_machine_msg</url> -->
+
+  <!-- The *_depend tags are used to specify dependencies -->
+  <!-- Dependencies can be catkin packages or system dependencies -->
+  <!-- Use buildtool_depend for build tool packages: -->
+  <buildtool_depend>catkin</buildtool_depend>
+  <!-- Use build_depend for packages you need at compile time: -->
+  <build_depend>message_generation</build_depend>
+  <build_depend>message_runtime</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <!-- Use build_export_depend to specify which packages are required to build libraries against this package-->
+  <build_export_depend>std_msgs</build_export_depend>
+  <!-- Use exec_depend to specify required packages needed to run code from this package-->
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>message_generation</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <!-- Use run_depend for packages you need at runtime: -->
+  <!-- Use test_depend for packages you need only for testing: -->
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

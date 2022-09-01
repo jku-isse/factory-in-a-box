@@ -1,14 +1,14 @@
 #!/bin/bash
-# Make sure no files from the fiab_ros_messages folder are opened on
-# host os or will fail with msg: Invoking "make -j16 -l16" failed
-/bin/bash -c "rm -fv /fiab_ros_messages/src/CMakeLists.txt &&\
-rm -fv /fiab_ros_messages/.catkin_workspace &&\
-rm -rfv /fiab_ros_messages/build &&\
-rm -rfv /fiab_ros_messages/devel &&\
-source /opt/ros/kinetic/setup.bash && cd /fiab_ros_messages/src && catkin_init_workspace &&\
-source ~/rosjava/devel/setup.bash && cd /fiab_ros_messages && catkin_make"
-# For some reason the first catkin_make call will create most files and fail, but succeed on the second try
-/bin/bash -c "source ~/rosjava/devel/setup.bash && cd /fiab_ros_messages && catkin_make"
-/bin/bash -c "find ./fiab_ros_messages/devel/share -name '*.jar'"
+# IMPORTANT! If catkin_make is called from a volume it will fail, therefore we create a temp dir first
+# Create a temporary folder where the messages will be built
+/bin/bash -c "mkdir ros_messages"
+# Copy the contents of our messages folder to our temp folder
+/bin/bash -c "cp -R /fiab_ros_messages/* /ros_messages"
+# Setup environment and call catkin_make to build our messages
+/bin/bash -c "source ~/rosjava/devel/setup.bash && cd /ros_messages && catkin_make"
+# Now that all messages have been built, we log all jars here so we can double check
+/bin/bash -c "find ./ros_messages/devel/share -name '*.jar'"
+# Move the jars from the temporary devel folder to the libs volume, persisting the files in the hosts file system
+/bin/bash -c "find ./ros_messages/devel/share -name '*.jar' -exec mv -t ./libs {} +"
 exit
 exec "$@"
