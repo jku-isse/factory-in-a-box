@@ -36,10 +36,7 @@ import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRouting
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import fiab.mes.productioncell.foldingstation.FoldingProductionCellCoordinator;
@@ -87,59 +84,20 @@ public class TestProductionCell {
     }
 
     @Test
-    void testProductionCellDiscovery() {
-        new TestKit(system) {
-            {
-                Set<String> urlsToBrowse = getTestLayout();   //Used for virtual testing
-                //Set<String> urlsToBrowse = getRealLayout();     //Used for testing on real machines
-                Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-                ShopfloorConfigurations.addSpawners(capURI2Spawning, new DefaultFoldingCellTransportPositionLookup(),
-                        new HardcodedFoldingCellTransportRoutingAndMapping());
-                machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
-
-                urlsToBrowse.forEach(url -> {
-                    ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-                    try {
-                        discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
-                        TimeUnit.SECONDS.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                });
-
-                int countConnEvents = 0;
-                Set<String> respondingMachines = new HashSet<>();
-                boolean isTransportFunctional = false;
-                while (countConnEvents < urlsToBrowse.size() || !isTransportFunctional || respondingMachines.size() < urlsToBrowse.size()) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
-                    logEvent(te);
-                    if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
-                        isTransportFunctional = true;
-                    }
-                    if (te instanceof MachineConnectedEvent) {
-                        countConnEvents++;
-                        knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
-                    }
-                    if (te instanceof MachineStatusUpdateEvent) {
-                        respondingMachines.add(((MachineStatusUpdateEvent) te).getMachineId());
-                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED))
-                            Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId())).ifPresent(
-                                    actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
-                            );
-                    }
-                    if (te instanceof IOStationStatusUpdateEvent) {
-                        respondingMachines.add(((IOStationStatusUpdateEvent) te).getMachineId());
-                    }
-                }
-                assertTrue(isTransportFunctional);
-                assertEquals(countConnEvents, urlsToBrowse.size());
-                assertEquals(respondingMachines.size(), urlsToBrowse.size());
-            }
-        };
+    @Tag("IntegrationTest")
+    void testProductionCellTransportToOneFoldingStationVirtual() {
+        Set<String> urlsToBrowse = getTestLayout();     //Used for virtual testing
+        transportToOneFoldingStation(urlsToBrowse);
     }
 
     @Test
+    @Tag("SystemTest")
     void testProductionCellTransportToOneFoldingStation() {
+        Set<String> urlsToBrowse = getRealLayout();       //Used for testing on real machines
+        transportToOneFoldingStation(urlsToBrowse);
+    }
+
+    private void transportToOneFoldingStation(Set<String> urlsToBrowse) {
         new TestKit(system) {
             {
                 //Set<String> urlsToBrowse = getTestLayout();     //Used for virtual testing

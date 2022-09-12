@@ -4,10 +4,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +34,7 @@ import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRouting
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 
+@Tag("IntegrationTest")
 class TestUaUaStopMachineTurntablePlotter {
 
 	protected static ActorSystem system;

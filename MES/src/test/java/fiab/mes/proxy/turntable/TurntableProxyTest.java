@@ -18,16 +18,13 @@ import fiab.mes.proxy.turntable.testutils.TurntableStationPositionParser;
 import fiab.mes.transport.msg.TransportModuleRequest;
 import fiab.opcua.server.OPCUABase;
 import fiab.turntable.TurntableFactory;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Tag("IntegrationTest")
 public class TurntableProxyTest {
 
     private ActorSystem system;

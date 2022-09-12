@@ -19,12 +19,14 @@ import fiab.mes.proxy.ioStation.inputStation.testutils.InputStationPositionParse
 import fiab.opcua.server.OPCUABase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Tag("IntegrationTest")
 public class InputStationProxyTest {
 
     private ActorSystem system;

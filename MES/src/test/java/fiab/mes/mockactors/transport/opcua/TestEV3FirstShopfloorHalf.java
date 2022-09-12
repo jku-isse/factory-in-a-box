@@ -28,6 +28,7 @@ import fiab.mes.transport.msg.TransportModuleRequest;
 import fiab.opcua.CapabilityImplementationMetadata;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Tag("SystemTest")
 public class TestEV3FirstShopfloorHalf {
 
     private static final Logger logger = LoggerFactory.getLogger(TestTurntableWithIOStations.class);

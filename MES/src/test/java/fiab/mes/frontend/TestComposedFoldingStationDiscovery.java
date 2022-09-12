@@ -29,10 +29,7 @@ import fiab.mes.productioncell.foldingstation.FoldingProductionCellCoordinator;
 import fiab.mes.transport.actor.transportsystem.FoldingTransportPositionLookup;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Tag("SystemTest")
 public class TestComposedFoldingStationDiscovery {
 
     private static ActorSystem system;

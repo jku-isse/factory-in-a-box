@@ -4,10 +4,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +35,7 @@ import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRouting
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 
+@Tag("IntegrationTest")		//FIXME startup of machines is different now
 class OrderCancelTest {
 
 	protected static ActorSystem system;
@@ -75,12 +73,10 @@ class OrderCancelTest {
 	}
 
 	@BeforeEach
-	public static void setupBeforeEach() {
+	public void setupBeforeEach() {
 		knownActors.clear();
 	}
-	
-	
-	
+
 	@Test //FIXME: machine of order 1 is suddenly not found anymore
 	void testCancelBeforeAssignment() throws Exception {
 		new TestKit(system) { 

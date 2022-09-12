@@ -27,10 +27,7 @@ import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +79,20 @@ public class TestFoldingShopfloorDiscovery {
     }
 
     @Test
+    @Tag("IntegrationTest") //FIXME boot up virtual machines before test
+    void testVirtualShopfloorParticipantDiscovery() {
+        Set<String> urlsToBrowse = getLocalhostLayout();
+        discoverShopfloorParticipants(urlsToBrowse);
+    }
+
+    @Test
+    @Tag("SystemTest")
     void testShopfloorParticipantDiscovery() {
+        Set<String> urlsToBrowse = getRealLayout();
+        discoverShopfloorParticipants(urlsToBrowse);
+    }
+
+    private void discoverShopfloorParticipants(Set<String> urlsToBrowse) {
         new TestKit(system) {
             {
                 System.out.println("test frontend responses by emitting orders with sequential process");
@@ -91,7 +101,7 @@ public class TestFoldingShopfloorDiscovery {
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
 
                 //Set<String> urlsToBrowse = getLocalhostLayout();
-                Set<String> urlsToBrowse = getRealLayout();
+                //Set<String> urlsToBrowse = getRealLayout();
                 Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
                 ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
 

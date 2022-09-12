@@ -14,7 +14,7 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.handshake.ServerSideStates;
-import fiab.handshake.actor.LocalEndpointStatus;
+//import fiab.handshake.actor.LocalEndpointStatus;
 //import fiab.machine.iostation.IOStationServerHandshakeActor;
 import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
@@ -98,8 +98,8 @@ public class VirtualIOStationActorFactory {
 								reloadPallet();
 							}
 						})
-					.match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {//ignore
-						})
+					//.match(LocalEndpointStatus.LocalServerEndpointStatus.class, les -> {//ignore
+					//	})
 					.build();		
 		}
 		

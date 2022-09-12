@@ -4,6 +4,7 @@ import java.util.List;
 
 import fiab.mes.order.ecore.ProduceFoldingProcess;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import ProcessCore.AbstractCapability;
@@ -15,6 +16,7 @@ import fiab.core.capabilities.ComparableCapability;
 import fiab.mes.order.OrderProcess.ProcessChangeImpact;
 import fiab.mes.order.OrderProcess.StepStatusEnum;
 
+@Tag("UnitTest")
 class OrderProcessTest {
 
 	OrderProcess testOrder;

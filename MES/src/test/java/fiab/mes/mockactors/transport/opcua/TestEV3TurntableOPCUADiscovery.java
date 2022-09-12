@@ -22,6 +22,7 @@ import fiab.mes.transport.actor.transportmodule.wrapper.LocalTransportModuleActo
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.opcua.CapabilityImplementationMetadata;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
+@Tag("SystemTest")
 public class TestEV3TurntableOPCUADiscovery {
 
     private static final Logger logger = LoggerFactory.getLogger(TestTurntableOPCUADiscovery.class);

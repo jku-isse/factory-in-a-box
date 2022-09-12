@@ -13,6 +13,6 @@ public class StartupUtil {
 	
 	private static void startup(int portOffset, String name, boolean exposeInternalControls) {
 		ActorSystem system = ActorSystem.create("SYSTEM_"+name);		
-        system.actorOf(OPCUATurntableRootActor.props(name, portOffset, exposeInternalControls), "TurntableRoot");
+        //system.actorOf(OPCUATurntableRootActor.props(name, portOffset, exposeInternalControls), "TurntableRoot");
         }
 }

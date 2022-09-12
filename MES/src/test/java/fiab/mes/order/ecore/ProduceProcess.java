@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import fiab.core.capabilities.folding.WellknownFoldingCapability;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import ProcessCore.AbstractCapability;
@@ -14,6 +15,7 @@ import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColors;
 import fiab.mes.capabilities.plotting.EcoreProcessUtils;
 
+@Tag("UnitTest")
 public class ProduceProcess {
 
     @Test

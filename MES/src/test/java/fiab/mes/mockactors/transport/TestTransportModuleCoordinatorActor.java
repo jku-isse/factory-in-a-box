@@ -12,6 +12,7 @@ import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.functionalunit.connector.IntraMachineEventBus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.shopfloor.DefaultLayout;
 
+@Tag("IntegrationTest")
 public class TestTransportModuleCoordinatorActor { 
 
 	protected static ActorSystem system;

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,12 +62,14 @@ class TestPlotterOPCUADiscovery {
 	}
 
 	@Test
+	@Tag("IntegrationTest")
 	void testDiscoveryIntegrationVirtualPlotter() {
 		String endpointURL = TESTPLOTTER31;
 		runDiscovery(endpointURL);
 	}
 	
 	@Test
+	@Tag("SystemTest")
 	void testDiscoveryIntegrationActualPlotter() {
 		String endpointURL = ACTUALPLOTTER31;
 		runDiscovery(endpointURL);
@@ -119,6 +122,7 @@ class TestPlotterOPCUADiscovery {
 	
 	
 	@Test //MANUAL TEST!!!, requires manually stopping and rebooting of (virtual) plotter
+	@Tag("SystemTest")
 	void testConnectionInterruption() {
 		String endpointURL = TESTPLOTTER31;
 		new TestKit(system) { 

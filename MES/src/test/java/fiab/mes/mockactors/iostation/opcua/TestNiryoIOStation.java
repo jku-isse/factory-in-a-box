@@ -26,12 +26,14 @@ import fiab.opcua.client.OPCUAClientFactory;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 
+@Tag("SystemTest")
 public class TestNiryoIOStation {
 
     private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUAWrapper.class);
@@ -60,8 +62,6 @@ public class TestNiryoIOStation {
         machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar, null);
         model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, 34);
-
-
     }
 
     @Test

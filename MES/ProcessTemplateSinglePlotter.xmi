@@ -4,7 +4,7 @@
     <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation" ID="step-0" DisplayName="Plot BLACK" InvokedCapability="Capability.Plotting.Color.BLACK">
       <InputMappings lhs="//@Capabilities.0/@Inputs.0" rhs="//@Processes.0/@Variables.0"/>
     </Steps>
-    <Variables xsi:type="at.pro2future.shopfloors.processcore:LocalVariable" Type="String" Name="Image0" Value="ACED0005740006496D61676530"/>
+    <Variables xsi:type="at.pro2future.shopfloors.processcore:LocalVariable" Type="String" Name="demo" Value="ACED000574000464656D6F"/>
   </Processes>
   <Capabilities DisplayName="Plot BLACK" uri="http://factory-in-a-box.fiab/capabilities/plot/color/BLACK" ID="Capability.Plotting.Color.BLACK">
     <Inputs Type="String" Name="RD_1"/>

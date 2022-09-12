@@ -1,12 +1,10 @@
 plugins {
     id 'java'
-    id "com.github.johnrengelman.shadow" version "7.1.0"
+    //id "com.github.johnrengelman.shadow" version "7.1.0"
     id 'application'
     id 'idea'
 }
 apply plugin: 'application'
-
-mainClassName = 'org.ros.RosRun'
 
 group 'fiab.isse'
 version '1.0.2'
@@ -36,7 +34,7 @@ dependencies {
     implementation project(":FIABroscore")
 
     //ROS messages
-    //implementation 'org.ros.rosjava_core:rosjava:[0.3,0.4)'
+    implementation 'org.ros.rosjava_core:rosjava:[0.3,0.4)'
     implementation 'org.ros.rosjava_bootstrap:message_generation:0.3.0'
     implementation "org.ros.rosjava_messages.ros_io_msg:ros_io_msg:0.1.0"
     implementation "org.ros.rosjava_messages.ros_basic_machine_msg:ros_basic_machine_msg:0.1.0"
@@ -45,7 +43,7 @@ dependencies {
     testImplementation "com.typesafe.akka:akka-testkit_${akkaTarget}:${akkaVersion}"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-    implementation 'org.ros.rosjava_core:rosjava:[0.3,0.4)'
+
 
 }
 
@@ -75,9 +73,17 @@ tasks.register("runIntegrationTests", Test) {
     mustRunAfter check
 }
 
-jar {
+jar{
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE     //Since there would be mutliple reference.conf files
     manifest {
-        attributes 'Main-Class': 'EV3IOStationApplication'
+        attributes 'Description': 'This application starts up an InputStationActor using ROS'
+        attributes 'Main-Class': 'fiab.InputStationROSApplication'
     }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    //The following lines need to be included otherwise main class cannot be found
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
 }
-

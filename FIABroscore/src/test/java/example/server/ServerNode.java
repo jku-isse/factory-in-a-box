@@ -6,9 +6,7 @@ import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.service.ServiceResponseBuilder;
 
-import ros_basic_machine_msg.ResetService;
-import ros_basic_machine_msg.ResetServiceRequest;
-import ros_basic_machine_msg.ResetServiceResponse;
+import ros_basic_machine_msg.*;
 import ros_io_msg.EjectService;
 import ros_io_msg.EjectServiceRequest;
 import ros_io_msg.EjectServiceResponse;
@@ -34,6 +32,17 @@ public class ServerNode extends FIABAbstractNodeMain {
                     @Override
                     public void
                     build(ResetServiceRequest request, ResetServiceResponse response) {
+                        //Since we do nothing here, we just set the success flag to true
+                        //The method sends the response when the body of this method has finished executing
+                        response.setSuccess(true);
+                    }
+                });
+        //Add another service to our server
+        connectedNode.newServiceServer("FIAB_stop_service", StopService._TYPE,
+                new ServiceResponseBuilder<StopServiceRequest, StopServiceResponse>() {
+                    @Override
+                    public void
+                    build(StopServiceRequest request, StopServiceResponse response) {
                         //Since we do nothing here, we just set the success flag to true
                         //The method sends the response when the body of this method has finished executing
                         response.setSuccess(true);

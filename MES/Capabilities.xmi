@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="ASCII"?>
 <at.pro2future.shopfloors.processcore:XmlRoot xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:at.pro2future.shopfloors.processcore="at.pro2future.shopfloors.processcore" DisplayName="Capabilities">
-  <Capabilities DisplayName="Plot BLACK" ID="http://factory-in-a-box.fiab/capabilities/plot/color/BLACK">
+  <Capabilities DisplayName="Plot BLACK" uri="http://factory-in-a-box.fiab/capabilities/plot/color/BLACK" ID="Capability.Plotting.Color.BLACK">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot BLUE" ID="http://factory-in-a-box.fiab/capabilities/plot/color/BLUE">
+  <Capabilities DisplayName="Plot BLUE" uri="http://factory-in-a-box.fiab/capabilities/plot/color/BLUE" ID="Capability.Plotting.Color.BLUE">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot GREEN" ID="http://factory-in-a-box.fiab/capabilities/plot/color/GREEN">
+  <Capabilities DisplayName="Plot GREEN" uri="http://factory-in-a-box.fiab/capabilities/plot/color/GREEN" ID="Capability.Plotting.Color.GREEN">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot RED" ID="http://factory-in-a-box.fiab/capabilities/plot/color/RED">
+  <Capabilities DisplayName="Plot RED" uri="http://factory-in-a-box.fiab/capabilities/plot/color/RED" ID="Capability.Plotting.Color.RED">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot CYAN" ID="http://factory-in-a-box.fiab/capabilities/plot/color/CYAN">
+  <Capabilities DisplayName="Plot CYAN" uri="http://factory-in-a-box.fiab/capabilities/plot/color/CYAN" ID="Capability.Plotting.Color.CYAN">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot GRAY" ID="http://factory-in-a-box.fiab/capabilities/plot/color/GRAY">
+  <Capabilities DisplayName="Plot GRAY" uri="http://factory-in-a-box.fiab/capabilities/plot/color/GRAY" ID="Capability.Plotting.Color.GRAY">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot DARK_GRAY" ID="http://factory-in-a-box.fiab/capabilities/plot/color/DARK_GRAY">
+  <Capabilities DisplayName="Plot DARK_GRAY" uri="http://factory-in-a-box.fiab/capabilities/plot/color/DARK_GRAY" ID="Capability.Plotting.Color.DARK_GRAY">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot LIGHT_GRAY" ID="http://factory-in-a-box.fiab/capabilities/plot/color/LIGHT_GRAY">
+  <Capabilities DisplayName="Plot LIGHT_GRAY" uri="http://factory-in-a-box.fiab/capabilities/plot/color/LIGHT_GRAY" ID="Capability.Plotting.Color.LIGHT_GRAY">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot MAGENTA" ID="http://factory-in-a-box.fiab/capabilities/plot/color/MAGENTA">
+  <Capabilities DisplayName="Plot MAGENTA" uri="http://factory-in-a-box.fiab/capabilities/plot/color/MAGENTA" ID="Capability.Plotting.Color.MAGENTA">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot ORANGE" ID="http://factory-in-a-box.fiab/capabilities/plot/color/ORANGE">
+  <Capabilities DisplayName="Plot ORANGE" uri="http://factory-in-a-box.fiab/capabilities/plot/color/ORANGE" ID="Capability.Plotting.Color.ORANGE">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot PINK" ID="http://factory-in-a-box.fiab/capabilities/plot/color/PINK">
+  <Capabilities DisplayName="Plot PINK" uri="http://factory-in-a-box.fiab/capabilities/plot/color/PINK" ID="Capability.Plotting.Color.PINK">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot WHITE" ID="http://factory-in-a-box.fiab/capabilities/plot/color/WHITE">
+  <Capabilities DisplayName="Plot WHITE" uri="http://factory-in-a-box.fiab/capabilities/plot/color/WHITE" ID="Capability.Plotting.Color.WHITE">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
-  <Capabilities DisplayName="Plot YELLOW" ID="http://factory-in-a-box.fiab/capabilities/plot/color/YELLOW">
+  <Capabilities DisplayName="Plot YELLOW" uri="http://factory-in-a-box.fiab/capabilities/plot/color/YELLOW" ID="Capability.Plotting.Color.YELLOW">
     <Inputs Type="String" Name="RD_1"/>
   </Capabilities>
 </at.pro2future.shopfloors.processcore:XmlRoot>

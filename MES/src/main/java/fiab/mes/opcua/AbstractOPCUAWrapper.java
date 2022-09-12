@@ -125,12 +125,10 @@ public abstract class AbstractOPCUAWrapper {
         });
     }
 
-
     public void stop() {
         callMethod(stopMethod);
         logger.debug("Called STOP Method on OPCUA Node: " + stopMethod.toParseableString());
     }
-
 
     public void reset() {
         callMethod(resetMethod).exceptionally(ex -> {

@@ -12,10 +12,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import fiab.mes.order.ecore.ProduceFoldingProcess;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +46,7 @@ import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
+@Tag("SystemTest")
 public class FoldingOrderEmittingTestServerWithOPCUA {
 
     private static ActorSystem system;

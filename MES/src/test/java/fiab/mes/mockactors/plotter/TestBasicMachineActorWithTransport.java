@@ -3,10 +3,7 @@ package fiab.mes.mockactors.plotter;
 import java.time.Duration;
 
 import fiab.functionalunit.connector.IntraMachineEventBus;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +66,7 @@ public class TestBasicMachineActorWithTransport {
 	}
 
 	@Test
+	@Tag("IntegrationTest")
 	void testPlotAtMachineWithServerSideAutoComplete() {
 		final AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(SupportedColors.BLACK);
 		final Actor modelActor = DefaultLayout.getDefaultMachineActor(1);

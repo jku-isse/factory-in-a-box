@@ -6,10 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +35,7 @@ import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.shopfloor.DefaultLayout;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 
+@Tag("SystemTest")
 public class OrderEmittingTestServerWithTransport {
 	
 	private static ActorSystem system;

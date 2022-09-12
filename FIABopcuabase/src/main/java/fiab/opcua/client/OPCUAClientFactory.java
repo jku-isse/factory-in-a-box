@@ -112,6 +112,19 @@ public class OPCUAClientFactory {
         return FiabOpcUaClient.createFIABClient(config);
     }
 
+    /**
+     * Creates an OpcUa Client analog to createFIABClient(String endpointUrl) and connects to it immediately
+     * NOTE: Connecting the client is a blocking task, if connection should be done in a non-blocking fashion,
+     * please consider using createFIABClientAsync(String endpointUrl) instead
+     * @param endpointUrl endpoint to connect to
+     * @return connected client
+     * @throws Exception client could not be created or connection failed
+     */
+    public static FiabOpcUaClient createFIABClientAndConnect(String endpointUrl) throws Exception{
+        OpcUaClientConfig config = createClientConfig(endpointUrl);
+        return FiabOpcUaClient.createFIABClient(config).connectFIABClient().get();
+    }
+
     private static OpcUaClientConfig createClientConfig(String endpointUrl) throws Exception {
         Path securityTempDir = Paths.get(System.getProperty("java.io.tmpdir"), "security");
         Files.createDirectories(securityTempDir);

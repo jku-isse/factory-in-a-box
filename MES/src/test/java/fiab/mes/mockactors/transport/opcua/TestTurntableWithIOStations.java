@@ -7,7 +7,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import fiab.turntable.TurntableFactory;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,9 +65,10 @@ public class TestTurntableWithIOStations {
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
         int portOffset = 2;
         boolean exposeInternalControls = false;
-        system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toS37", portOffset, exposeInternalControls), "TurntableRoot");
+        //system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toS37", portOffset, exposeInternalControls), "TurntableRoot");
+		TurntableFactory.startStandaloneTurntable(system, portOffset, "TurntableRoot");
 	}
-	
+
 	public static void startupW34toN31toS37() {
 		//FIXME
 		//fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1"); //Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
@@ -74,7 +77,8 @@ public class TestTurntableWithIOStations {
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
         int portOffset = 2;
         boolean exposeInternalControls = false;
-        system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toS37", portOffset, exposeInternalControls), "TurntableRoot");
+        //system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toS37", portOffset, exposeInternalControls), "TurntableRoot");
+		TurntableFactory.startStandaloneTurntable(system, portOffset, "TurntableRoot");
 	}
 	
 	public static void startupW34toE35() {
@@ -87,10 +91,12 @@ public class TestTurntableWithIOStations {
 		ActorSystem systemTT1 = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA1");
         int portOffsetTT1 = 2;
         boolean exposeInternalControls = false;
-        systemTT1.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toE21", portOffsetTT1, exposeInternalControls), "TurntableRoot");
+        //systemTT1.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toE21", portOffsetTT1, exposeInternalControls), "TurntableRoot");
+		TurntableFactory.startStandaloneTurntable(systemTT1, portOffsetTT1, "TurntableRoot");
         ActorSystem systemTT2 = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA2");
         int portOffsetTT2 = 3;
-        systemTT2.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW20toN32toE35", portOffsetTT2, exposeInternalControls), "TurntableRoot");
+        //systemTT2.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW20toN32toE35", portOffsetTT2, exposeInternalControls), "TurntableRoot");
+		TurntableFactory.startStandaloneTurntable(systemTT2, portOffsetTT2, "TurntableRoot");
 	
 	}
 	
@@ -109,6 +115,7 @@ public class TestTurntableWithIOStations {
 	
 // WORKS
 	@Test
+	@Tag("IntegrationTest")
 	void virtualIOandTT() {		
 		// MAKE SURE TO RUN CORRECT SHOPFLOOR LAYOUT ABOVE
 		Set<String> urlsToBrowse = new HashSet<String>();
@@ -124,6 +131,7 @@ public class TestTurntableWithIOStations {
 	}
 	
 	@Test  //Works somewhat
+	@Tag("SystemTest")
 	void realIOandRealSingleTT() {
 		Set<String> urlsToBrowse = new HashSet<String>();
 		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
@@ -201,6 +209,7 @@ public class TestTurntableWithIOStations {
 	
 	// Works
 	@Test
+	@Tag("IntegrationTest")
 	void testHandoverWithVirtualIOStationsAndTTandVirtualPlotter() {
 		new TestKit(system) { 
 			{ 
@@ -272,6 +281,7 @@ public class TestTurntableWithIOStations {
 	}
 	
 	@Test //WORKS
+	@Tag("IntegrationTest")
 	void testHandoverWithVirtualIOStationsAndTwoVirtualTTs() {
 		new TestKit(system) { 
 			{ 

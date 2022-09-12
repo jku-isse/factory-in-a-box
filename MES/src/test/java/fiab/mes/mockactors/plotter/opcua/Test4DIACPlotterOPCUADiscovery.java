@@ -20,6 +20,7 @@ import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.opcua.CapabilityImplementationMetadata;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,15 +38,15 @@ public class Test4DIACPlotterOPCUADiscovery {
     ActorSystem system;
 
     @BeforeEach
-    void setup() throws Exception{
+    void setup() throws Exception {
         system = ActorSystem.create("TEST_PLOTTER_ROOT_SYSTEM");
         //StartupUtil.startup(0, "TestPlotter", SupportedColors.BLACK);
         // assume OPCUA server (mock or otherwise is started
         machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-
     }
 
     @Test
+    @Tag("SystemTest")
     void testDiscoveryIntegrationPlotterPos31() {
         new TestKit(system) {
             {

@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
+import fiab.turntable.TurntableFactory;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,8 @@ class TestTurntableOPCUADiscovery {
 	        ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
 	        int portOffset = 2;
 	        boolean exposeInternalControls = false;
-	        system.actorOf(OPCUATurntableRootActor.props("Turntable1", portOffset, exposeInternalControls), "TurntableRoot");
+	        //system.actorOf(OPCUATurntableRootActor.props("Turntable1", portOffset, exposeInternalControls), "TurntableRoot");
+		 TurntableFactory.startStandaloneTurntable(system, portOffset, "TurntableRoot");
 	 }
 	
 	private static final Logger logger = LoggerFactory.getLogger(TestTurntableOPCUADiscovery.class);
@@ -61,16 +64,19 @@ class TestTurntableOPCUADiscovery {
 	}
 
 	@Test
+	@Tag("IntegrationTest")
 	void testDiscoveryVirtualTurntable() {
 		discoverTurntable("opc.tcp://localhost:4842/milo");
 	}
 
 	@Test
+	@Tag("SystemTest")
 	void testDiscoveryTurntableNiryo() {
 		discoverTurntable("opc.tcp://192.168.0.40:4842");
 	}
 	
 	@Test
+	@Tag("SystemTest")
 	void testDiscoveryActualTurntable() {
 		discoverTurntable("opc.tcp://192.168.0.20:4842");
 	}

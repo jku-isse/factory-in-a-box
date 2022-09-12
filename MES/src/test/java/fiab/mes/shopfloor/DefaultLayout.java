@@ -21,9 +21,6 @@ import fiab.core.capabilities.plotting.WellknownPlotterCapability.SupportedColor
 import fiab.core.capabilities.transport.TransportModuleCapability;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.functionalunit.connector.IntraMachineEventBus;
-import fiab.handshake.actor.ClientHandshakeActor;
-import fiab.handshake.actor.LocalEndpointStatus;
-import fiab.handshake.actor.ServerSideHandshakeActor;
 import fiab.machine.foldingstation.VirtualFoldingMachineActor;
 import fiab.machine.plotter.VirtualPlotterCoordinatorActor;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
@@ -52,9 +49,7 @@ public class DefaultLayout {
 	
 	public static final boolean engageAutoReload = true;
 	public static final boolean disengageAutoReload = false;
-	
-	
-	
+
 	boolean ioStationsInitialized = false;
 	
 	public DefaultLayout(ActorSystem system, boolean doStartupMachineEventBus) {

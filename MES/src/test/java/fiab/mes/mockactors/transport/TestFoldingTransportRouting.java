@@ -4,10 +4,12 @@ import fiab.mes.transport.actor.transportsystem.HardcodedFoldingTransportRouting
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+@Tag("UnitTest")
 public class TestFoldingTransportRouting {
 
     @Test

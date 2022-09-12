@@ -5,10 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.Duration;
 import java.util.HashMap;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +69,7 @@ class TestTransportSystemCoordinatorActor {
 
 	
 	@Test //WORKS
+	@Tag("IntegrationTest")
 	void testCoordinatorWithSingleTTLayout() throws Exception {
 		new TestKit(system) { 
 			{ 				
@@ -114,6 +112,7 @@ class TestTransportSystemCoordinatorActor {
 	}
 	
 	@Test //WORKS
+	@Tag("IntegrationTest")
 	void testCoordinatorWithDualTTLayout() throws Exception {
 		new TestKit(system) { 
 			{ 				

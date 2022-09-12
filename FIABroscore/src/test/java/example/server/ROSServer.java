@@ -30,7 +30,7 @@ public class ROSServer {
     /**
      * Starts a ROS Server node with local master node
      * @param nodeClass class of the server
-     * @param port port of the server. Default port for ROS is 113311
+     * @param port port of the server. Default port for ROS is 11311
      * @return ROSServer
      */
     public static ROSServer newInstanceWithMaster(Class<? extends FIABAbstractNodeMain> nodeClass, int port){
@@ -46,7 +46,7 @@ public class ROSServer {
     /**
      * Starts a ROS Server node with already running local master node
      * @param nodeClass class of the server
-     * @param port port of the server. Default port for ROS is 113311
+     * @param port port of the server. Default port for ROS is 11311
      * @return ROSServer
      */
     public static ROSServer newInstance(Class<? extends FIABAbstractNodeMain> nodeClass, int port){

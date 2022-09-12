@@ -8,7 +8,7 @@ import fiab.opcua.server.OPCUABase;
 
 public class OutputStationFactory {
 
-    public static ActorRef startStandaloneOutputStation(ActorSystem system, MachineEventBus machineEventBus, int port, String machineName) {
+    public static ActorRef startOutputStation(ActorSystem system, MachineEventBus machineEventBus, int port, String machineName) {
         OPCUABase base = OPCUABase.createAndStartLocalServer(port, machineName);
         return system.actorOf(OpcUaOutputStationActor.props(base, base.getRootNode(), machineEventBus), machineName);
     }

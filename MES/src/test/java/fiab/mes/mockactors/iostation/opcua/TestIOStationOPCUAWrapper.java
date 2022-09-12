@@ -2,10 +2,11 @@ package fiab.mes.mockactors.iostation.opcua;
 
 import java.time.Duration;
 
+import fiab.functionalunit.connector.MachineEventBus;
+import fiab.iostation.InputStationFactory;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,80 +33,96 @@ import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.opcua.client.OPCUAClientFactory;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@Tag("IntegrationTest")
 class TestIOStationOPCUAWrapper {
 
-	private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUAWrapper.class);
-	
-	InterMachineEventBus intraEventBus;
-	AbstractCapability capability;
-	Actor model;
-	IOStationOPCUAWrapper wrapper;
-	ActorRef machine;
-	ActorRef machineEventBus;
-	ActorSystem system;
+    private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUAWrapper.class);
 
-	@BeforeEach
-	void setup() throws Exception{
-		system = ActorSystem.create("TEST_ROOT_SYSTEM");
-		// assume OPCUA server (mock or otherwise is started
-		NodeId capabilitImpl = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU");
-		NodeId resetMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/RESET");
-		NodeId stopMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STOP");
-		NodeId stateVar = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STATE");
-		OpcUaClient client = new OPCUAClientFactory().createClient("opc.tcp://localhost:4840/milo");
-		client.connect().get();
-		boolean isInputStation = true;
-		capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
-		intraEventBus = new InterMachineEventBus();
-		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-		wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar, null);
-		model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, 34);
-		
+    InterMachineEventBus intraEventBus;
+    AbstractCapability capability;
+    Actor model;
+    IOStationOPCUAWrapper wrapper;
+    ActorRef machine;
+    ActorRef machineEventBus;
+    ActorSystem system;
 
-	}
+    public static void main(String[] args) {
+        ActorSystem system = ActorSystem.create("TEST_ROOT_SYSTEM");
+        InputStationFactory.startStandaloneInputStation(system, 4840, "InputStation");
+    }
 
-	@Test
-	void testReset() throws Exception {
-		wrapper.reset();
-	}
+    @BeforeAll
+    static void init() {
+        InputStationFactory.startStandaloneInputStation(ActorSystem.create("VirtualRemote"), 4840, "InputStation");
+    }
 
-	@Test
-	void testSubscribeState() throws InterruptedException {
-		wrapper.subscribeToStatus();
-		Thread.sleep(10000);
-	}
+    @BeforeEach
+    void setup() throws Exception {
+        system = ActorSystem.create("TEST_ROOT_SYSTEM");
+        // assume OPCUA server (mock or otherwise is started
+        NodeId capabilitImpl = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU");
+        NodeId resetMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/RESET");
+        NodeId stopMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STOP");
+        NodeId stateVar = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STATE");
+        OpcUaClient client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:4840");
+        boolean isInputStation = true;
+        capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
+        intraEventBus = new InterMachineEventBus();
+        machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar, null);
+        model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, 34);
+    }
 
-	@Test
-	void testActorIntegration() {
-		new TestKit(system) { 
-			{ 
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName());
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				boolean doRun = true;
-				int countConnEvents = 0;
-				while ( countConnEvents < 1 || doRun) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
-					logEvent(te);
-					if (te instanceof MachineConnectedEvent) {
-						countConnEvents++; 
-					}
-					if (te instanceof MachineStatusUpdateEvent) {
-						if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED)) 
-							getLastSender().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef());
-					}
-					if (te instanceof IOStationStatusUpdateEvent) {
-						if (((IOStationStatusUpdateEvent) te).getStatus().equals(ServerSideStates.IDLE_LOADED)) {
-							doRun = false;
-						}
-					}
-				}
-			}};
-	}
-	
-	private void logEvent(TimedEvent event) {
-		logger.info(event.toString());
-	}
+    @Test
+    void testReset() {
+        wrapper.reset();
+    }
 
+    @Test
+    void testSubscribeState() throws InterruptedException {
+        assertDoesNotThrow(() -> {
+            wrapper.subscribeToStatus();
+        });
+        //wrapper.subscribeToStatus();
+        //Thread.sleep(10000);
+    }
+
+    @Test
+    void testMachineConnectedEvent() {
+        new TestKit(system) {
+            {
+                final ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+                eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
+
+                machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName());
+            }
+        };
+    }
+
+    @Test
+    void testActorIntegration() {
+        new TestKit(system) {
+            {
+                final ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+                eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
+                //Create the proxy and wait for connected event
+                machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName());
+                expectMsgClass(Duration.ofSeconds(10), MachineConnectedEvent.class);
+                //Check whether the status gets forwarded
+                IOStationStatusUpdateEvent ioStationStatusUpdateEvent = expectMsgClass(IOStationStatusUpdateEvent.class);
+                assertEquals(ServerSideStates.STOPPED, ioStationStatusUpdateEvent.getStatus());
+                //Reset and wait for idle loaded status to know we are done
+                getLastSender().tell(new GenericMachineRequests.Reset(ioStationStatusUpdateEvent.getMachineId()), getRef());
+                ioStationStatusUpdateEvent = expectMsgClass(IOStationStatusUpdateEvent.class);
+                assertEquals(ServerSideStates.RESETTING, ioStationStatusUpdateEvent.getStatus());
+
+                ioStationStatusUpdateEvent = expectMsgClass(IOStationStatusUpdateEvent.class);
+                assertEquals(ServerSideStates.IDLE_LOADED, ioStationStatusUpdateEvent.getStatus());
+            }
+        };
+    }
 
 }

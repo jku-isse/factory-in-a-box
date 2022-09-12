@@ -42,6 +42,7 @@ import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 
+@Tag("SystemTest")
 public class OrderEmittingTestServerWithOPCUA {
 
     private static ActorSystem system;

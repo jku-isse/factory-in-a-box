@@ -9,10 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,7 +93,8 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 	}
 	
 	@Test // WORKS!!! YES
-	void virtualIOandTT() {
+	@Tag("IntegrationTest")
+	void testVirtualIOandTT() {
 		Set<String> urlsToBrowse = new HashSet<String>();
 		urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34
 		// we provided wiring info to TT1 for outputstation at SOUTH_CLIENT for testing purpose, for two turntable setup needs changing
@@ -110,6 +108,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 	}
 	
 	@Test //WORKS
+	@Tag("IntegrationTest")
 	void virtualIOandTwoTTs() {
 		// !!! CAREFULL TO LOAD CORRECT LAYOUT
 		Set<String> urlsToBrowse = new HashSet<String>();
@@ -180,6 +179,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 	
 	// Works
 	@Test
+	@Tag("IntegrationTest")
 	void testHandoverWithVirtualIOStationsAndTTandVirtualPlotter() {
 		new TestKit(system) { 
 			{ 
@@ -255,6 +255,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 	
 	
 	@Test //FIXME to adapt
+	@Tag("SystemTest")
 	void testHandoverWithRealIOStationsAndTTandPlotter() {
 		new TestKit(system) { 
 			{ 

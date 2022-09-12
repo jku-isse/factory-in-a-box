@@ -121,8 +121,7 @@ public class OpcUaInputStationActorROS extends OpcUaInputStationActor {
      * Factory for convenient creation of messages
      */
     private ResetServiceRequest createResetServiceRequest() {
-        ResetServiceRequest request = rosClient.createNewMessage(ResetService._TYPE, ResetServiceRequest.class);
-        return request;
+        return rosClient.createNewMessage(ResetService._TYPE, ResetServiceRequest.class);
     }
 
 
