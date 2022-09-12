@@ -60,6 +60,7 @@ test {
     //useJUnitPlatform()
     useJUnitPlatform{
         excludeTags("SystemTest")
+        excludeTags("AcceptanceTest")
     }
 }
 
