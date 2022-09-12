@@ -39,6 +39,7 @@ import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 
+@Tag("AcceptanceTest")
 public class VoestDemo {
 
     private static ActorSystem system;
