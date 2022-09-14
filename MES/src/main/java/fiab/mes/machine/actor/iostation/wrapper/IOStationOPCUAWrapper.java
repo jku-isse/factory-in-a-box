@@ -1,5 +1,6 @@
 package fiab.mes.machine.actor.iostation.wrapper;
 
+import fiab.functionalunit.connector.MachineEventBus;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
@@ -7,15 +8,15 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 
 import akka.actor.ActorRef;
 import fiab.core.capabilities.handshake.ServerSideStates;
-import fiab.mes.eventbus.InterMachineEventBus;
+//import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.opcua.AbstractOPCUAWrapper;
 
 public class IOStationOPCUAWrapper extends AbstractOPCUAWrapper implements IOStationWrapperInterface {
 	
-	protected InterMachineEventBus intraMachineBus; 
+	protected MachineEventBus intraMachineBus;
 	
-	public IOStationOPCUAWrapper(InterMachineEventBus intraMachineBus, OpcUaClient client, NodeId capabilityImplNode,
+	public IOStationOPCUAWrapper(MachineEventBus intraMachineBus, OpcUaClient client, NodeId capabilityImplNode,
 			NodeId stopMethod, NodeId resetMethod, NodeId stateVar, ActorRef spawner) {
 		super(client, capabilityImplNode,stopMethod,resetMethod,stateVar, spawner);
 		this.intraMachineBus = intraMachineBus;

@@ -2,6 +2,7 @@ package fiab.mes.mockactors.iostation.opcua;
 
 import java.time.Duration;
 
+import fiab.functionalunit.connector.MachineEventBus;
 import fiab.iostation.InputStationFactory;
 import fiab.opcua.client.FiabOpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -18,7 +19,7 @@ import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.mes.eventbus.InterMachineEventBus;
+//import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.SubscribeMessage;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
@@ -38,7 +39,7 @@ class TestIOStationOPCUAWrapper {
 
     private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUAWrapper.class);
 
-    InterMachineEventBus intraEventBus;
+    MachineEventBus intraEventBus;
     AbstractCapability capability;
     Actor model;
 
@@ -72,7 +73,7 @@ class TestIOStationOPCUAWrapper {
 
         remoteMachine = InputStationFactory.startStandaloneInputStation(system, 4840, "InputStation");
         // assume OPCUA server (mock or otherwise is started
-        intraEventBus = new InterMachineEventBus();
+        intraEventBus = new MachineEventBus();
         client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:4840");
         //machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar, null);

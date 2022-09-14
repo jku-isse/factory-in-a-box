@@ -12,7 +12,8 @@ import fiab.core.capabilities.events.TimedEvent;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.handshake.ServerSideStates;
-import fiab.mes.eventbus.InterMachineEventBus;
+import fiab.functionalunit.connector.MachineEventBus;
+//import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.eventbus.SubscribeMessage;
@@ -38,7 +39,7 @@ public class TestNiryoIOStation {
 
     private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUAWrapper.class);
 
-    InterMachineEventBus intraEventBus;
+    MachineEventBus intraEventBus;
     AbstractCapability capability;
     Actor model;
     IOStationOPCUAWrapper wrapper;
@@ -58,7 +59,7 @@ public class TestNiryoIOStation {
         client.connect().get();
         boolean isInputStation = true;
         capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
-        intraEventBus = new InterMachineEventBus();
+        intraEventBus = new MachineEventBus();
         machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar, null);
         model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, 34);

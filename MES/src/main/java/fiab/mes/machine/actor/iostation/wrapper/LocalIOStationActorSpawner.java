@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import fiab.functionalunit.connector.MachineEventBus;
 import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
@@ -34,7 +35,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.pattern.Patterns;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.mes.eventbus.InterMachineEventBus;
+//import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.machine.msg.MachineDisconnectedEvent;
@@ -115,7 +116,7 @@ public class LocalIOStationActorSpawner extends AbstractActor {
         final ActorSelection eventBusByRef = context().actorSelection("/user/" + transportPositionParser.getLookupPrefix()+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         AbstractCapability capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
         TransportRoutingInterface.Position selfPos = resolvePosition(info);
-        InterMachineEventBus intraEventBus = new InterMachineEventBus();
+        MachineEventBus intraEventBus = new MachineEventBus();
         IOStationOPCUAWrapper wrapper = new IOStationOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), stopMethod, resetMethod, stateVar, getSelf());
         machine = this.context().actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName() + selfPos.getPos());
 

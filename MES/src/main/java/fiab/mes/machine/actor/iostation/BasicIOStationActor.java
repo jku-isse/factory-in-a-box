@@ -16,7 +16,8 @@ import akka.event.LoggingAdapter;
 import fiab.core.capabilities.basicmachine.events.MachineUpdateEvent;
 import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.mes.eventbus.InterMachineEventBus;
+import fiab.functionalunit.connector.MachineEventBus;
+//import fiab.mes.eventbus.InterMachineEventBus;
 import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.general.HistoryTracker;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
@@ -40,7 +41,7 @@ public class BasicIOStationActor extends AbstractActor {
 	protected AbstractCapability cap;
 	protected ServerSideStates currentState = ServerSideStates.UNKNOWN;
 	protected IOStationWrapperInterface hal;
-	protected InterMachineEventBus intraBus;
+	protected MachineEventBus intraBus;
 	protected boolean doAutoReset = true;
 	protected boolean isInputStation = false;
 	protected boolean isOutputStation = false;
@@ -52,11 +53,11 @@ public class BasicIOStationActor extends AbstractActor {
 	protected RegisterProcessStepRequest reservedForOrder = null;
 	
 	
-	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, IOStationWrapperInterface hal, InterMachineEventBus intraBus) {	    
+	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, IOStationWrapperInterface hal, MachineEventBus intraBus) {
 		return Props.create(BasicIOStationActor.class, () -> new BasicIOStationActor(machineEventBus, cap, modelActor, hal, intraBus));
 	}
 	
-	public BasicIOStationActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, IOStationWrapperInterface hal, InterMachineEventBus intraBus) {
+	public BasicIOStationActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, IOStationWrapperInterface hal, MachineEventBus intraBus) {
 		this.cap = cap;
 		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;

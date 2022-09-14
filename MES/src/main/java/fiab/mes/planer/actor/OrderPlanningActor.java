@@ -149,7 +149,7 @@ public class OrderPlanningActor extends AbstractActor {
                 .build();
     }
 
-    private void getEventBusAndSubscribe() throws Exception {
+    protected void getEventBusAndSubscribe() throws Exception {
         SubscribeMessage orderSub = new SubscribeMessage(getSelf(), new MESSubscriptionClassifier(WELLKNOWN_LOOKUP_NAME, "*"));
         orderEventBus = this.context().actorSelection("/user/" + OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         orderEventBus.tell(orderSub, getSelf());

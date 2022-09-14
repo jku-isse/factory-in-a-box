@@ -19,7 +19,6 @@ public class MachineEventBus extends ScanningEventBus<MachineEvent, ActorRef, FU
     @Override
     public int compareClassifiers(FUSubscriptionClassifier a, FUSubscriptionClassifier b) {
         return a.getTopic().compareTo(b.getTopic());
-
     }
 
     @Override

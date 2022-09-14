@@ -5,23 +5,25 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import fiab.functionalunit.connector.MachineEventBus;
 import fiab.mes.machine.msg.OrderRelocationNotification;
 
+//Switched to MachineEventbus from FIABfunctionalunit to remove code duplication and enable interoperability
 public class InterMachineEventBusWrapperActor extends AbstractActor {
 
 	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	public static final String WRAPPER_ACTOR_LOOKUP_NAME = "InterMachineEventBusWrapperActor";
-	private InterMachineEventBus meb;
+	private MachineEventBus meb;
 
-	public InterMachineEventBusWrapperActor(InterMachineEventBus bus) {
-		meb = bus == null ? new InterMachineEventBus() : bus;
+	public InterMachineEventBusWrapperActor(MachineEventBus bus) {
+		meb = bus == null ? new MachineEventBus() : bus;
 	}
 
 	public static Props props() {
 		return Props.create(InterMachineEventBusWrapperActor.class, () -> new InterMachineEventBusWrapperActor(null));
 	}
 	
-	public static Props propsWithPreparedBus(InterMachineEventBus bus) {
+	public static Props propsWithPreparedBus(MachineEventBus bus) {
 		return Props.create(InterMachineEventBusWrapperActor.class, () -> new InterMachineEventBusWrapperActor(bus));
 	}
 

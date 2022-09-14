@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import akka.event.japi.ScanningEventBus;
 import fiab.core.capabilities.basicmachine.events.MachineEvent;
 
+@Deprecated	//Will use MachineEventBus from FIABFunctionalUnit instead
 public class InterMachineEventBus extends ScanningEventBus<MachineEvent, ActorRef, MESSubscriptionClassifier> {
 
 
