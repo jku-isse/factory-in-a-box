@@ -55,10 +55,10 @@ public class TestBasicIOStationActorWithTransport {
 				// we subscribe to the intereventbus to observe basic io station behavior
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				//parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
-				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1000), MachineConnectedEvent.class));
+				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class));
 				boolean doRun = true;
 				while (doRun) {
-					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(1000), IOStationStatusUpdateEvent.class);
+					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(30), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
 					if (mue.getStatus().equals(ServerSideStates.RESETTING)) {
 						parts.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, getRef()); 
@@ -83,10 +83,10 @@ public class TestBasicIOStationActorWithTransport {
 				// we subscribe to the intereventbus to observe basic io station behavior
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				//parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
-				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(1000), MachineConnectedEvent.class));
+				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class));
 				boolean doRun = true;
 				while (doRun) {
-					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(1000), IOStationStatusUpdateEvent.class);
+					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(30), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
 					if (mue.getStatus().equals(ServerSideStates.RESETTING)) {
 						parts.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, getRef()); 

@@ -142,7 +142,7 @@ public class TestProductionCell {
                 boolean isProcessAssigned = false;
                 int countIdleEvents = 0;
                 while (/*!isPlannerFunctional ||*/ countConnEvents < urlsToBrowse.size() || !isTransportFunctional || countIdleEvents < urlsToBrowse.size()) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofMinutes(10), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
                     logEvent(te);
                     /*if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -193,7 +193,7 @@ public class TestProductionCell {
                         akkaActorBackedCoreModelAbstractActor.getAkkaActor()
                                 .tell(new RegisterProcessStepRequest("Test", step.getID(), step, getRef()), getRef()));
                 while (!foldingComplete) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofMinutes(10), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof MachineStatusUpdateEvent) {
                         if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.COMPLETE)) {

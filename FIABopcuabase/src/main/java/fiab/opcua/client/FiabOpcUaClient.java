@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -321,6 +322,18 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
     public void unsubscribeFromStatus() {
         getSubscriptionManager().clearSubscriptions();
         log.info("Cleared Subscriptions");
+    }
+
+    /**
+     *
+     */
+    public void disconnectClient(){
+        try {
+            disconnect().get();
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Error while disconnecting client, please check the stackTrace for possible causes");
+            e.printStackTrace();
+        }
     }
 
     /**

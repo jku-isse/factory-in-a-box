@@ -99,7 +99,7 @@ class TestPlotterOPCUADiscovery {
 				boolean doRun = true;
 				int countConnEvents = 0;
 				while (countConnEvents < 1 || doRun) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class);
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent) {
 						countConnEvents++; 
@@ -148,7 +148,7 @@ class TestPlotterOPCUADiscovery {
 				boolean doRun = true;
 				int countConnEvents = 0;
 				while (countConnEvents < 1 || doRun) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), TimedEvent.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent) {
 						countConnEvents++; 
