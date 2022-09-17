@@ -21,7 +21,6 @@ public class DefaultTransportPositionLookup implements TransportPositionLookupIn
 	
 	@Override
 	public Position getPositionForActor(AkkaActorBackedCoreModelAbstractActor actor) {
-		
 		Position pos = parseLastIPPos(actor.getModelActor().getUri());
 		if (pos != TransportRoutingInterface.UNKNOWN_POSITION)
 			lookupTable.put(pos, actor);

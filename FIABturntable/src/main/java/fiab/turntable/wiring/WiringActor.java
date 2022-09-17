@@ -39,6 +39,7 @@ public class WiringActor extends AbstractActor {
         this.parent = parent;
         log.info("WiringActor started. Searching applicable wiring for machine with name " + machineName);
         this.cachedWiringInfo = readWiringInfoFromFile(machineName);
+        log.info("Applying wiring info from file");
         applyWiringInfo();
     }
 

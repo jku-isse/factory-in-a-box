@@ -46,13 +46,14 @@ public class TestHandshakeProtocol {
     private ActorRef serverActor;
     private ActorRef clientActor;
 
-    @BeforeAll
+    /*@BeforeAll
     public static void init() {
         system = ActorSystem.create();
-    }
+    }*/
 
     @BeforeEach
     public void setup() {
+        system = ActorSystem.create();
         serverIntraMachineBus = new IntraMachineEventBus();
         serverRequestBus = new FUConnector();
         responseConnector = new ServerResponseConnector();
@@ -69,12 +70,13 @@ public class TestHandshakeProtocol {
         serverActor.tell(PoisonPill.getInstance(), ActorRef.noSender());
         serverIntraMachineBus.unsubscribe(serverProbe.getRef());
         clientIntraMachineBus.unsubscribe(clientProbe.getRef());
+        TestKit.shutdownActorSystem(system);
     }
 
-    @AfterAll
+    /*@AfterAll
     public static void cleanup(){
         system.terminate();
-    }
+    }*/
 
     private void setupServerClientStructure() {
         setupServerStructure();

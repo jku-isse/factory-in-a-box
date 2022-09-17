@@ -10,6 +10,7 @@ import example.msg.akka.AkkaResetRequest;
 import example.server.ROSServer;
 import example.server.ServerNode;
 import internal.FIABNodeConfig;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.ros.exception.ServiceNotFoundException;
 import org.ros.node.NodeConfiguration;
@@ -23,6 +24,7 @@ import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("IntegrationTest")
 public class RosServerClientTest {
 
     public static final String ROS_MASTER_IP_RPI = "192.168.133.118";
@@ -35,7 +37,7 @@ public class RosServerClientTest {
         TestKit probe = new TestKit(system);
         //This is a robot endpoint in theory
         ROSServer server = ROSServer.newInstanceWithMaster(ServerNode.class, ROSServer.DEFAULT_PORT);
-        system.scheduler().scheduleOnce(Duration.ofSeconds(3), () -> {  //FIXME
+        system.scheduler().scheduleOnce(Duration.ofSeconds(3), () -> {  //FIXME server startup is async. Remove waiting
             //ROSClient rosClient = ROSClient.newInstance(ClientNode.class);
             assertDoesNotThrow(() -> {
 

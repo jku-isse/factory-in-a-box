@@ -39,11 +39,12 @@ public class TestRemoteHandshakeProxy {
 
     @BeforeAll
     public static void init() {
-        system = ActorSystem.create();
+
     }
 
     @BeforeEach
     public void setup() {
+        system = ActorSystem.create();
         requestBus = new FUConnector();
         responseConnector = new ServerResponseConnector();
         notificationConnector = new ServerNotificationConnector();
@@ -64,11 +65,13 @@ public class TestRemoteHandshakeProxy {
         notificationConnector = null;
         proxy.tell(PoisonPill.getInstance(), ActorRef.noSender());
         proxy = null;
+        TestKit.shutdownActorSystem(system);
     }
 
     @AfterAll
     public static void cleanup() {
-        system.terminate();
+        //system.terminate();
+
     }
 
     @Test

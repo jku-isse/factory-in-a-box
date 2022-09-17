@@ -70,8 +70,8 @@ public class OpcUaPlotterCoordinatorActor extends PlotterCoordinatorActor {
         // add capabilities
         UaFolderNode capabilitiesFolder = opcuaBase.generateFolder(rootNode, OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES);
         UaFolderNode capability1 = opcuaBase.generateFolder(capabilitiesFolder, OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);
-        opcuaBase.generateStringVariableNode(capability1, OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE, PLOTTING_CAPABILITY_BASE_URI);
         opcuaBase.generateStringVariableNode(capability1, OPCUACapabilitiesAndWiringInfoBrowsenames.ID, supportedColor);
+        opcuaBase.generateStringVariableNode(capability1, OPCUACapabilitiesAndWiringInfoBrowsenames.TYPE, PLOTTING_CAPABILITY_BASE_URI + supportedColor);
         opcuaBase.generateStringVariableNode(capability1, OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE, OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED);
     }
 

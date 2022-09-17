@@ -2,6 +2,7 @@ package fiab.mes.mockactors.iostation.opcua;
 
 import java.time.Duration;
 
+import akka.actor.PoisonPill;
 import fiab.functionalunit.connector.MachineEventBus;
 import fiab.iostation.InputStationFactory;
 import fiab.opcua.client.FiabOpcUaClient;
@@ -30,6 +31,7 @@ import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.opcua.client.OPCUAClientFactory;
+import testutils.PortUtils;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,7 +48,7 @@ class TestIOStationOPCUAWrapper {
     IOStationOPCUAWrapper wrapper;
     ActorRef machineProxy;
     ActorRef remoteMachine;
-    //ActorRef machineEventBus;
+    ActorRef machineEventBusWrapper;
     ActorSystem system;
 
     FiabOpcUaClient client;
@@ -56,10 +58,10 @@ class TestIOStationOPCUAWrapper {
         InputStationFactory.startStandaloneInputStation(system, 4840, "InputStation");
     }*/
 
-    @BeforeAll
+    /*@BeforeAll
     static void init() {
         //inputStation = InputStationFactory.startStandaloneInputStation(ActorSystem.create("VirtualRemote"), 4840, "InputStation");
-    }
+    }*/
 
     @BeforeEach
     void setup() throws Exception {
@@ -70,24 +72,20 @@ class TestIOStationOPCUAWrapper {
         system = ActorSystem.create("TEST_ROOT_SYSTEM");
         boolean isInputStation = true;
         capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
-
-        remoteMachine = InputStationFactory.startStandaloneInputStation(system, 4840, "InputStation");
+        int remoteIp = PortUtils.findNextFreePort();
+        remoteMachine = InputStationFactory.startStandaloneInputStation(system, remoteIp, "InputStation");
         // assume OPCUA server (mock or otherwise is started
         intraEventBus = new MachineEventBus();
-        client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:4840");
-        //machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:" + remoteIp);
+        machineEventBusWrapper = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar, null);
         model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, 34);
     }
 
     @AfterEach
     void teardown() {
+        client.disconnectClient();
         TestKit.shutdownActorSystem(system);
-        /*intraEventBus = null;
-        wrapper = null;
-        model = null;
-        capability = null;
-        client.disconnectClient();*/
     }
 
     /*@Test
@@ -112,6 +110,7 @@ class TestIOStationOPCUAWrapper {
                 eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
                 machineProxy = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, wrapper, intraEventBus), model.getActorName());
+                expectMsgClass(Duration.ofSeconds(10), MachineConnectedEvent.class);
             }
         };
     }
@@ -129,7 +128,7 @@ class TestIOStationOPCUAWrapper {
                 IOStationStatusUpdateEvent ioStationStatusUpdateEvent = expectMsgClass(IOStationStatusUpdateEvent.class);
                 assertEquals(ServerSideStates.STOPPED, ioStationStatusUpdateEvent.getStatus());
                 //Reset and wait for idle loaded status to know we are done
-                getLastSender().tell(new GenericMachineRequests.Reset(ioStationStatusUpdateEvent.getMachineId()), getRef());
+                machineProxy.tell(new GenericMachineRequests.Reset(ioStationStatusUpdateEvent.getMachineId()), getRef());
                 ioStationStatusUpdateEvent = expectMsgClass(IOStationStatusUpdateEvent.class);
                 assertEquals(ServerSideStates.RESETTING, ioStationStatusUpdateEvent.getStatus());
 

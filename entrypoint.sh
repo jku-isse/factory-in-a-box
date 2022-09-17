@@ -1,4 +1,6 @@
 #!/bin/bash
+# If building on a windows machine, you might need to convert this file from crlf to lf file endings
+# When crlf file endings are used (as when pulling from git), running the container will fail with: no such file or dir
 # IMPORTANT! If catkin_make is called from a volume it will fail, therefore we create a temp dir first
 # Create a temporary folder where the messages will be built
 /bin/bash -c "mkdir ros_messages"

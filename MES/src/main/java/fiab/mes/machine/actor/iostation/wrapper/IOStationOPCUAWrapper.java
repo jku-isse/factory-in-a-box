@@ -27,9 +27,9 @@ public class IOStationOPCUAWrapper extends AbstractOPCUAWrapper implements IOSta
 		logger.debug(
 				"subscription value received: item={}, value={}",
 				item.getReadValueId().getNodeId(), value.getValue());
-		if( value.getValue().isNotNull() ) {
+		if(value.getValue().isNotNull() ) {
 			String stateAsString = value.getValue().getValue().toString();
-			//System.out.println(stateAsString);
+			logger.info(stateAsString);
 			try {
 				ServerSideStates state = ServerSideStates.valueOf(stateAsString);
 				if (this.intraMachineBus != null) {

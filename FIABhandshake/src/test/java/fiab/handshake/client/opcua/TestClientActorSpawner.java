@@ -33,13 +33,14 @@ public class TestClientActorSpawner {
     private WiringInfo wiringInfo;
     private static OPCUABase serverOpcUaBase;
 
-    @BeforeAll
+    /*@BeforeAll
     public static void init(){
         serverOpcUaBase = OPCUABase.createAndStartLocalServer(4840, "HandshakeServerDevice");
-    }
+    }*/
 
     @BeforeEach
     public void setup() {
+        serverOpcUaBase = OPCUABase.createAndStartLocalServer(4840, "HandshakeServerDevice");
         system = ActorSystem.create();
         probe = new TestKit(system);
         system.actorOf(ServerHandshakeFU.propsForStandaloneFU(serverOpcUaBase, serverOpcUaBase.getRootNode()), "ServerHandshake");
@@ -50,12 +51,13 @@ public class TestClientActorSpawner {
     @AfterEach
     public void teardown() {
         TestKit.shutdownActorSystem(system);
-    }
-
-    @AfterAll
-    public static void cleanup(){
         serverOpcUaBase.shutDownOpcUaBase();
     }
+
+    /*@AfterAll
+    public static void cleanup(){
+        serverOpcUaBase.shutDownOpcUaBase();
+    }*/
 
     @Test
     public void testActorSpawnerCreatesClient() {
@@ -105,7 +107,7 @@ public class TestClientActorSpawner {
                 spawner.tell(new ClientSpawnerMessages.CreateNewClient(wiringInfo), probe.getRef());
                 system.scheduler()
                         //If this test passes try decreasing the delay before looking for other errors
-                        .scheduleOnce(Duration.ofMillis(500),    //50 ms lets the spawner do something, but not complete
+                        .scheduleOnce(Duration.ofMillis(100),    //50 ms lets the spawner do something, but not complete
                                 () -> spawner.tell(new ClientSpawnerMessages.CancelClientCreation(), probe.getRef()),
                                 system.dispatcher());
 

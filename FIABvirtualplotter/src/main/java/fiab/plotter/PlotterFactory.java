@@ -10,16 +10,14 @@ import fiab.plotter.opcua.OpcUaPlotterCoordinatorActor;
 
 public class PlotterFactory {
 
-    public static ActorRef startupStandalonePlotter(int port, String name) {
-        ActorSystem system = ActorSystem.create("PlotterActorSystem");
+    public static ActorRef startStandalonePlotter(ActorSystem system, int port, String name, WellknownPlotterCapability.SupportedColors color) {
         OPCUABase opcuaBase = OPCUABase.createAndStartLocalServer(port, name);
         ActorRef plotter = system.actorOf(OpcUaPlotterCoordinatorActor.props(opcuaBase, opcuaBase.getRootNode(),
-                WellknownPlotterCapability.SupportedColors.BLACK, new MachineEventBus(), new IntraMachineEventBus()), name);
+                color, new MachineEventBus(), new IntraMachineEventBus()), name);
         return plotter;
     }
 
-    public static ActorRef startupStandalonePlotter(int port, MachineEventBus machineEventBus, String name) {
-        ActorSystem system = ActorSystem.create("PlotterActorSystem");
+    public static ActorRef startPlotter(ActorSystem system, MachineEventBus machineEventBus, int port, String name, WellknownPlotterCapability.SupportedColors color) {
         OPCUABase opcuaBase = OPCUABase.createAndStartLocalServer(4840, "Plotter");
         ActorRef plotter = system.actorOf(OpcUaPlotterCoordinatorActor.props(opcuaBase, opcuaBase.getRootNode(),
                 WellknownPlotterCapability.SupportedColors.BLACK, machineEventBus, new IntraMachineEventBus()), "TestPlotter");

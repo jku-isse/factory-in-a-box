@@ -27,9 +27,9 @@ import fiab.opcua.server.OPCUABase;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.junit.jupiter.api.*;
+import testutils.PortUtils;
 
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TestHandshakeProtocolOpcUa {
 
     private static ActorSystem system;
-    private static final AtomicInteger runCounter = new AtomicInteger(0);
+    //private static final AtomicInteger runCounter = new AtomicInteger(0);
 
     private IntraMachineEventBus serverIntraMachineBus;
     private FUConnector serverRequestBus;
@@ -60,7 +60,9 @@ public class TestHandshakeProtocolOpcUa {
 
     private WiringInfo wiringInfo;
     private WiringInfo invalidInfo;
-    private int currentRunCount;
+    //private int currentRunCount;
+    private int serverPort;
+    private int clientPort;
 
     //Playground
     public static void main(String[] args) {
@@ -83,21 +85,28 @@ public class TestHandshakeProtocolOpcUa {
         clientHs.tell(new WiringRequest("Test", createServerHandshakeWiringInfo(0)), ActorRef.noSender());
     }
 
-    @BeforeAll
+    /*@BeforeAll
     public static void init() {
         system = ActorSystem.create();
-    }
+    }*/
 
     @BeforeEach
     public void setup() {
+        system = ActorSystem.create();
         serverIntraMachineBus = new IntraMachineEventBus();
         serverRequestBus = new FUConnector();
 
         clientIntraMachineBus = new IntraMachineEventBus();
         clientRequestBus = new FUConnector();
-        this.currentRunCount = runCounter.get();
-        setupServerClientStructure(this.currentRunCount);
-        runCounter.addAndGet(2);
+        //this.currentRunCount = runCounter.get();
+        //setupServerClientStructure(this.currentRunCount);
+        //runCounter.addAndGet(2);
+        serverPort = PortUtils.findNextFreePort();
+        System.out.println("Locator chose server port: " + serverPort);
+        setupServerStructure(serverPort);
+        clientPort = PortUtils.findNextFreePort();
+        System.out.println("Locator chose client port " + clientPort);
+        setupClientStructure(clientPort);
     }
 
     @AfterEach
@@ -107,12 +116,13 @@ public class TestHandshakeProtocolOpcUa {
 
         serverOpcUaBase.shutDownOpcUaBase();
         clientOpcUaBase.shutdown();
-    }
-
-    @AfterAll
-    public static void cleanup() {
         TestKit.shutdownActorSystem(system);
     }
+
+    /*@AfterAll
+    public static void cleanup() {
+        TestKit.shutdownActorSystem(system);
+    }*/
 
     @Test
     public void testFullHandshakeCycleWithEmptyServer() {
@@ -166,11 +176,11 @@ public class TestHandshakeProtocolOpcUa {
         clientProbe.expectMsgClass(WiringUpdateNotification.class);
         assertDoesNotThrow(() -> {
             FiabOpcUaClient serverClient;   //Client to access server handshake nodes
-            serverClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + (4840 + currentRunCount));
+            serverClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + serverPort);
             serverClient.connectFIABClient().get();
 
             FiabOpcUaClient clientClient;   //Client to access client handshake nodes
-            clientClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + (4841 + currentRunCount));
+            clientClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + clientPort);
             clientClient.connectFIABClient().get();
             //We reset both handshake components
             clientClient.callStringMethodBlocking(ClientHsOpcUaNodes.resetNodeId);
@@ -213,13 +223,13 @@ public class TestHandshakeProtocolOpcUa {
         clientProbe.expectMsgClass(WiringUpdateNotification.class);
         assertDoesNotThrow(() -> {
             FiabOpcUaClient serverClient;   //Client to access server handshake nodes
-            serverClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + (4840 + currentRunCount));
+            serverClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + serverPort);
             serverClient.connectFIABClient().get();
 
             serverClient.callStringMethodBlocking(ServerHsOpcUaNodes.setLoadedId);
 
             FiabOpcUaClient clientClient;   //Client to access client handshake nodes
-            clientClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + (4841 + currentRunCount));
+            clientClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + clientPort);
             clientClient.connectFIABClient().get();
             //We reset both handshake components
             clientClient.callStringMethodBlocking(ClientHsOpcUaNodes.resetNodeId);
@@ -301,7 +311,7 @@ public class TestHandshakeProtocolOpcUa {
     public void testRewiringViaOpcUaSuccessful() {
         assertDoesNotThrow(() -> {
             FiabOpcUaClient client;   //Client to access client handshake nodes
-            client = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + (4841 + currentRunCount));
+            client = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + clientPort);
             client.connectFIABClient().get();
             String response;
             //Try connecting to server using invalid wiring
@@ -334,7 +344,7 @@ public class TestHandshakeProtocolOpcUa {
     private void executeFullHandshakeProtocolServer(boolean isServerEmpty) {
         assertDoesNotThrow(() -> {
             FiabOpcUaClient serverClient;   //Client to access server handshake nodes
-            serverClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + (4840 + currentRunCount));
+            serverClient = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + serverPort);
             serverClient.connectFIABClient().get();
             if (isServerEmpty) {
                 serverClient.callStringMethodBlocking(ServerHsOpcUaNodes.setEmptyId);
@@ -378,15 +388,15 @@ public class TestHandshakeProtocolOpcUa {
         });
     }
 
-    private void setupServerClientStructure(int portOffset) {
-        wiringInfo = createServerHandshakeWiringInfo(portOffset);
-        invalidInfo = createInvalidServerHandshakeWiringInfo(portOffset);
-        setupServerStructure(portOffset);
-        setupClientStructure(portOffset + 1);
-    }
+    //private void setupServerClientStructure(int portOffset) {
+    //    setupServerStructure(portOffset);
+    //    setupClientStructure(portOffset + 1);
+    //}
 
-    private void setupServerStructure(int portOffset) {
-        serverOpcUaBase = OPCUABase.createAndStartLocalServer(4840 + portOffset, "HandshakeServerDevice");
+    private void setupServerStructure(int port) {
+        wiringInfo = createServerHandshakeWiringInfo(port);
+        invalidInfo = createInvalidServerHandshakeWiringInfo(port);
+        serverOpcUaBase = OPCUABase.createAndStartLocalServer(port, "HandshakeServerDevice");
         serverProbe = new TestKit(system);
         serverProbeId = serverProbe.getRef().path().name();
         serverIntraMachineBus.subscribe(serverProbe.getRef(), new FUSubscriptionClassifier(serverProbeId, "*"));
@@ -396,8 +406,8 @@ public class TestHandshakeProtocolOpcUa {
         expectServerSideState(ServerSideStates.STOPPED);
     }
 
-    private void setupClientStructure(int portOffset) {
-        clientOpcUaBase = OPCUABase.createAndStartLocalServer(4840 + portOffset, "HandshakeClientDevice");
+    private void setupClientStructure(int port) {
+        clientOpcUaBase = OPCUABase.createAndStartLocalServer(port, "HandshakeClientDevice");
         clientProbe = new TestKit(system);
         clientProbeId = clientProbe.getRef().path().name();
         clientIntraMachineBus.subscribe(clientProbe.getRef(), new FUSubscriptionClassifier(clientProbeId, "*"));
@@ -419,11 +429,11 @@ public class TestHandshakeProtocolOpcUa {
         assertEquals(state, event.getStatus());
     }
 
-    private static WiringInfo createInvalidServerHandshakeWiringInfo(int portOffset) {
+    private static WiringInfo createInvalidServerHandshakeWiringInfo(int port) {
         return new WiringInfoBuilder()
                 .setLocalCapabilityId("WEST_CLIENT")
                 .setRemoteCapabilityId("NonExistentHandshakeServerSide")
-                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (4840 + portOffset))
+                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (port))
                 .setRemoteNodeId("ns=2;s=Device/HANDSHAKE_FU_SERVER/CAPABILITIES/CAPABILITY")
                 .setRemoteRole("RemoteRole1")
                 .build();
@@ -433,17 +443,17 @@ public class TestHandshakeProtocolOpcUa {
         return new WiringInfoBuilder()
                 .setLocalCapabilityId("NORTH_CLIENT")
                 .setRemoteCapabilityId("DefaultHandshakeServerSide")
-                .setRemoteEndpointURL("opc.tcp://127.0.0.1:4800")
+                .setRemoteEndpointURL("opc.tcp://127.0.0.1:4839")   //PortLocator util starts at 4840
                 .setRemoteNodeId("ns=2;s=HandshakeServerDevice/HANDSHAKE_FU_NORTH_SERVER/CAPABILITIES/CAPABILITY")
                 .setRemoteRole("RemoteRole1")
                 .build();
     }
 
-    private static WiringInfo createServerHandshakeWiringInfo(int portOffset) {
+    private static WiringInfo createServerHandshakeWiringInfo(int port) {
         return new WiringInfoBuilder()
                 .setLocalCapabilityId("NORTH_CLIENT")
                 .setRemoteCapabilityId("DefaultHandshakeServerSide")
-                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (4840 + portOffset))
+                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (port))
                 .setRemoteNodeId("ns=2;s=HandshakeServerDevice/HANDSHAKE_FU_NORTH_SERVER/CAPABILITIES/CAPABILITY")
                 .setRemoteRole("RemoteRole1")
                 .build();

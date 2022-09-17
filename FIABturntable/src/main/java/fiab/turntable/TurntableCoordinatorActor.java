@@ -192,6 +192,8 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
     }
 
     protected void handleWiringRequest(WiringRequest msg) {
+        log.info("Applying wiringInfo for local hs cap: {}, to endpoint at: {}",
+                msg.getInfo().getLocalCapabilityId(), msg.getInfo().getRemoteEndpointURL());
         FUConnector handshakeConn;
         //While each handshake has the local capability e.g. NORTH_CLIENT, it is necessary
         //to add HANDSHAKE_FU_ as a prefix as the handshake actor has this id

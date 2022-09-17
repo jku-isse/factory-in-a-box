@@ -55,7 +55,7 @@ public class VoestDemo {
 
     public static void main(String args[]) {
         // Dual TT tests:
-        TestTurntableWithIOStations.startupW34toE35();
+        new TestTurntableWithIOStations().startupW34toE35();
     }
 
 

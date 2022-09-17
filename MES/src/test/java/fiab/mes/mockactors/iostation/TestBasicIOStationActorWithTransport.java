@@ -34,7 +34,6 @@ public class TestBasicIOStationActorWithTransport {
 	
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
-		
 		system = ActorSystem.create(ROOT_SYSTEM);
 		ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 	}
@@ -80,9 +79,8 @@ public class TestBasicIOStationActorWithTransport {
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
 				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, false, 35);
 				// we subscribe to the intereventbus to observe basic io station behavior
-				// we subscribe to the intereventbus to observe basic io station behavior
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				//parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
+				parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
 				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class));
 				boolean doRun = true;
 				while (doRun) {
@@ -91,8 +89,6 @@ public class TestBasicIOStationActorWithTransport {
 					if (mue.getStatus().equals(ServerSideStates.RESETTING)) {
 						parts.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, getRef()); 
 					}
-					
-					
 					if (mue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
 						doRun = false;
 					}

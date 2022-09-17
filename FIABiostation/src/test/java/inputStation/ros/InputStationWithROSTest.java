@@ -19,6 +19,7 @@ import org.ros.node.NodeConfiguration;
 import ros_basic_machine_msg.ResetService;
 import ros_io_msg.EjectService;
 import testutils.FUTestInfrastructure;
+import testutils.PortUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,7 +28,7 @@ import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Tag("IntegrationTest")
+@Tag("SystemTest")
 public class InputStationWithROSTest {
 
     public static final String ROS_MASTER_IP_RPI = "192.168.133.122";
@@ -56,13 +57,10 @@ public class InputStationWithROSTest {
         }
     }
 
-    @BeforeAll
-    public static void init() {
-        infrastructure = new FUTestInfrastructure(4848);
-    }
-
     @BeforeEach
     public void setup() {
+        int opcuaServerPort = PortUtils.findNextFreePort();
+        infrastructure = new FUTestInfrastructure(opcuaServerPort);
         String rosMasterIp = ROS_MASTER_IP_LOCAL;
         infrastructure.subscribeToMachineEventBus();
         OPCUABase opcuaBase = infrastructure.getServer();
@@ -75,7 +73,7 @@ public class InputStationWithROSTest {
             rosClient.createServiceClient("FIAB_reset_service", ResetService._TYPE);
             rosClient.createServiceClient("FIAB_eject_service", EjectService._TYPE);
             infrastructure.initializeActor(OpcUaInputStationActorROS.props(rosClient, opcuaBase, opcuaBase.getRootNode(), infrastructure.getMachineEventBus()),
-                    "InputStation" + infrastructure.getAndIncrementRunCount());
+                    "InputStation" + opcuaServerPort);
         } catch (URISyntaxException | ServiceNotFoundException e) {
             e.printStackTrace();
         }

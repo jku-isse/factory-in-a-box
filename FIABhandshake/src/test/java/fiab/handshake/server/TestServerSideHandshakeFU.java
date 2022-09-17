@@ -14,6 +14,7 @@ import fiab.opcua.server.OPCUABase;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.junit.jupiter.api.*;
 import testutils.FUTestInfrastructure;
+import testutils.PortUtils;
 
 import java.time.Duration;
 
@@ -37,13 +38,14 @@ public class TestServerSideHandshakeFU {
                 "ServerHandshakeFU" + infrastructure.getAndIncrementRunCount());
     }
 
-    @BeforeAll
+    /*@BeforeAll
     public static void init(){
         infrastructure = new FUTestInfrastructure(4846);
-    }
+    }*/
 
     @BeforeEach
     public void setup(){
+        infrastructure = new FUTestInfrastructure(PortUtils.findNextFreePort());
         FUConnector requestConnector = new FUConnector();
         infrastructure.subscribeToIntraMachineEventBus();
         OPCUABase opcuaBase = infrastructure.getServer();

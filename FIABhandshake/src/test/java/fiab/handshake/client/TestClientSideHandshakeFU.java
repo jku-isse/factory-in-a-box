@@ -4,13 +4,11 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
 import fiab.core.capabilities.handshake.ClientSideStates;
-import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.core.capabilities.wiring.WiringInfoBuilder;
 import fiab.functionalunit.connector.FUConnector;
-import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.handshake.client.messages.ClientHandshakeStatusUpdateEvent;
 import fiab.handshake.client.messages.WiringRequest;
@@ -20,17 +18,17 @@ import fiab.handshake.client.opcua.functionalunit.ClientHandshakeFU;
 import fiab.handshake.connector.ServerNotificationConnector;
 import fiab.handshake.connector.ServerResponseConnector;
 //import fiab.handshake.opcua.actor.StandaloneHandshakeActor;
-import fiab.handshake.server.ServerSideHandshakeActor;
 import fiab.handshake.server.messages.ServerHandshakeStatusUpdateEvent;
 import fiab.handshake.server.opcua.functionalunit.ServerHandshakeFU;
 import fiab.opcua.client.FiabOpcUaClient;
 import fiab.opcua.client.OPCUAClientFactory;
 import fiab.opcua.server.OPCUABase;
-import fiab.opcua.server.PublicNonEncryptionBaseOpcUaServer;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.junit.jupiter.api.*;
 import testutils.FUTestInfrastructure;
+import testutils.PortUtils;
 
+import java.io.IOException;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -48,12 +46,14 @@ public class TestClientSideHandshakeFU {
 
     private WiringInfo wiringInfo;
     private RemoteServerHandshakeNodeIds remoteServerHandshakeNodeIds;
-    private int runCount;
+    //private int runCount;
+    private int localPort;
+    private int remotePort;
 
     public static void main(String[] args) {
-        FUTestInfrastructure testInfrastructure = new FUTestInfrastructure(4841);
+        FUTestInfrastructure testInfrastructure = new FUTestInfrastructure(4840);
         new TestClientSideHandshakeFU()
-                .startupRemoteHandshakeServer(testInfrastructure.getSystem(), createServerHandshakeNodes(0), 0);
+                .startupRemoteHandshakeServer(testInfrastructure.getSystem(), createServerHandshakeNodes(4841), 4841);
         FUConnector clientConnector = new FUConnector();
         FUConnector remoteFUConnector = new FUConnector();
         ServerResponseConnector responseConnector = new ServerResponseConnector();
@@ -65,22 +65,26 @@ public class TestClientSideHandshakeFU {
                         clientConnector, testInfrastructure.getIntraMachineEventBus(), remoteFUConnector,
                         responseConnector, notificationConnector),
                 "ClientHandshakeFU" + testInfrastructure.getAndIncrementRunCount());
-        testInfrastructure.getActorRef().tell(new WiringRequest("", createServerHandshakeWiringInfo(0)),
+        testInfrastructure.getActorRef().tell(new WiringRequest("", createServerHandshakeWiringInfo(4841)),
                 ActorRef.noSender());
 
     }
 
-    @BeforeAll
-    public static void setup() {
+    /*@BeforeAll
+    public static void init() {
         infrastructure = new FUTestInfrastructure(4850);
         infrastructure.subscribeToIntraMachineEventBus();
-    }
+    }*/
 
     @BeforeEach
-    public void init() {
-        runCount = infrastructure.getAndIncrementRunCount();
-        remoteServerHandshakeNodeIds = createServerHandshakeNodes(runCount);
-        startupRemoteHandshakeServer(infrastructure.getSystem(), remoteServerHandshakeNodeIds, runCount);
+    public void setup() throws IOException {
+        localPort = PortUtils.findNextFreePort();
+        infrastructure = new FUTestInfrastructure(localPort);
+        infrastructure.subscribeToIntraMachineEventBus();
+        //runCount = infrastructure.getAndIncrementRunCount();
+        remotePort = PortUtils.findNextFreePort();
+        remoteServerHandshakeNodeIds = createServerHandshakeNodes(remotePort);
+        startupRemoteHandshakeServer(infrastructure.getSystem(), remoteServerHandshakeNodeIds, remotePort);
 
         clientConnector = new FUConnector();
         remoteFUConnector = new FUConnector();
@@ -93,9 +97,9 @@ public class TestClientSideHandshakeFU {
                         TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT,
                         clientConnector, infrastructure.getIntraMachineEventBus(), remoteFUConnector,
                         responseConnector, notificationConnector),
-                "ClientHandshakeFU" + runCount);
+                "ClientHandshakeFU");
         expectClientSideState(ClientSideStates.STOPPED);
-        wiringInfo = createServerHandshakeWiringInfo(runCount);
+        wiringInfo = createServerHandshakeWiringInfo(remotePort);
 
         actorRef().tell(new WiringRequest(infrastructure.eventSourceId, wiringInfo), probe().getRef());
         probe().expectMsgClass(WiringUpdateNotification.class);
@@ -107,12 +111,13 @@ public class TestClientSideHandshakeFU {
         infrastructure.destroyActor();
         infrastructure.shutdownServer();
         infrastructure.disconnectClient();
-    }
-
-    @AfterAll
-    public static void cleanup() {
         infrastructure.shutdownInfrastructure();
     }
+
+    /*@AfterAll
+    public static void cleanup() {
+        infrastructure.shutdownInfrastructure();
+    }*/
 
     @Test
     public void testResetSuccess() {
@@ -171,19 +176,19 @@ public class TestClientSideHandshakeFU {
         assertEquals(clientSideState, machineStatusUpdateEvent.getStatus());
     }
 
-    private static WiringInfo createServerHandshakeWiringInfo(int portOffset) {
+    private static WiringInfo createServerHandshakeWiringInfo(int remotePort) {
         return new WiringInfoBuilder()
                 .setLocalCapabilityId("NORTH_CLIENT")
                 .setRemoteCapabilityId("DefaultHandshakeServerSide")
-                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (4840 + portOffset))
+                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (remotePort))
                 .setRemoteNodeId("ns=2;s=ServerHandshakeMachine/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY")
                 .setRemoteRole("Required")
                 .build();
     }
 
-    private static RemoteServerHandshakeNodeIds createServerHandshakeNodes(int portOffset) {
+    private static RemoteServerHandshakeNodeIds createServerHandshakeNodes(int remotePort) {
         RemoteServerHandshakeNodeIds nodeIds = new RemoteServerHandshakeNodeIds();
-        nodeIds.setEndpoint("opc.tcp://127.0.0.1:" + (4840 + portOffset));
+        nodeIds.setEndpoint("opc.tcp://127.0.0.1:" + (remotePort));
         nodeIds.setActorNode(new NodeId(2, "ServerHandshakeMachine/HANDSHAKE_FU_DefaultServerSideHandshake"));
         nodeIds.setStateVar(new NodeId(2, "ServerHandshakeMachine/HANDSHAKE_FU_DefaultServerSideHandshake/STATE"));
         nodeIds.setInitMethod(new NodeId(2, "ServerHandshakeMachine/HANDSHAKE_FU_DefaultServerSideHandshake/INIT_HANDOVER"));
@@ -191,16 +196,16 @@ public class TestClientSideHandshakeFU {
         return nodeIds;
     }
 
-    private void startupRemoteHandshakeServer(ActorSystem system, RemoteServerHandshakeNodeIds nodeIds, int portOffset) {
+    private void startupRemoteHandshakeServer(ActorSystem system, RemoteServerHandshakeNodeIds nodeIds, int remotePort) {
         try {
             new TestKit(system) {
                 {
                     IntraMachineEventBus intraMachineEventBus = new IntraMachineEventBus();
                     TestKit probe = new TestKit(system);
                     intraMachineEventBus.subscribe(probe.getRef(), infrastructure.getTestClassifier());
-                    OPCUABase opcuaBase = OPCUABase.createAndStartLocalServer(4840 + runCount, "ServerHandshakeMachine");
+                    OPCUABase opcuaBase = OPCUABase.createAndStartLocalServer(remotePort, "ServerHandshakeMachine");
                     system.actorOf(ServerHandshakeFU.props(opcuaBase, opcuaBase.getRootNode(), "DefaultServerSideHandshake",
-                            new FUConnector(), intraMachineEventBus), "HandshakeActor" + runCount);
+                            new FUConnector(), intraMachineEventBus), "HandshakeActor");
                     probe.expectMsgAnyClassOf(Duration.ofSeconds(15), ServerHandshakeStatusUpdateEvent.class, ServerSideStates.class);
 
                     resetRemoteHandshake(nodeIds);

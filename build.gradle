@@ -14,11 +14,11 @@ allprojects {
         }
     }
     ext {
-        //TODO add more common version numbers accross modules
+        //add more common version numbers accross modules here
         akkaTarget = '2.12' //Change to 2.13 if possible. This is the scala version
         akkaVersion = '2.6.17'
     }
-//TODO specify build order? Gradle seems to build them in the right order for me
+//Explicitly specify build order? Gradle seems to build them in the right order for me
 }
 
 task buildRosMessages {

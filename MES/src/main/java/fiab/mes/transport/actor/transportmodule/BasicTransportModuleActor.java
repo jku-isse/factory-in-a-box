@@ -75,7 +75,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 	public Receive createReceive() {
 		return receiveBuilder()
 				// map from positions to capabilityInstances local to the transport module 
-		        .match(TransportModuleRequest.class, req -> {	//FIXME
+		        .match(TransportModuleRequest.class, req -> {	//FIXME convert between mes and core transportReq
 		        	log.info(String.format("Received TransportModuleRequest from %s to %s for order %s",
 							req.getCapabilityInstanceIdFrom(), req.getCapabilityInstanceIdTo(), req.getOrderId()));
 		        	if (currentState.equals(BasicMachineStates.IDLE)) {
@@ -136,7 +136,7 @@ public class BasicTransportModuleActor extends AbstractActor{
 			reservedForTReq = new TransportModuleRequest(capFrom.get(), capTo.get(), req.getOrderId(), req.getRequestId());
 			hal.transport(reservedForTReq);
 		} else {
-			log.warning(String.format("TransportModuleRequest %s from %s to %s cannt be resolved to local capabilities", req.getOrderId(), positionSource, positionDestination));
+			log.warning(String.format("TransportModuleRequest %s from %s to %s cannot be resolved to local capabilities", req.getOrderId(), positionSource, positionDestination));
 			//TODO: return error message to sender			
 		}
 	}

@@ -73,7 +73,7 @@ class TestUaUaStopMachineTurntablePlotter {
 	}
 
 	@BeforeEach
-	public static void setupBeforeEach() {
+	public void setupBeforeEach() {
 		knownActors.clear();
 	}
 	
@@ -111,7 +111,7 @@ class TestUaUaStopMachineTurntablePlotter {
 				boolean sentStop = false;
 				boolean machineStopped = false;
 				while (!order1Done || !machineStopped) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof OrderEvent) {
 						OrderEvent oe = (OrderEvent) te;

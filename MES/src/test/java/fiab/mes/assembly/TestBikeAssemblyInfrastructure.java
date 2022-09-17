@@ -3,31 +3,20 @@ package fiab.mes.assembly;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.BasicMachineStates;
-import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import fiab.core.capabilities.events.TimedEvent;
+import fiab.core.capabilities.plotting.WellknownPlotterCapability;
 import fiab.functionalunit.connector.MachineEventBus;
 import fiab.mes.assembly.monitoring.actor.AssemblyMonitoringActor;
 import fiab.mes.assembly.order.actor.BikeAssemblyOrderPlanningActor;
 import fiab.mes.assembly.transport.actor.DummyTransportSystemCoordinatorActor;
 import fiab.mes.eventbus.*;
 import fiab.mes.machine.MachineEntryActor;
-import fiab.mes.machine.msg.GenericMachineRequests;
-import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
-import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.order.actor.OrderEntryActor;
 import fiab.mes.order.ecore.ProduceProcess;
-import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
-import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.shopfloor.DefaultLayout;
-import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.plotter.PlotterFactory;
 import org.junit.jupiter.api.*;
-
-import java.time.Duration;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -68,7 +57,7 @@ public class TestBikeAssemblyInfrastructure {
         new TestKit(system) {
             {
                 new DefaultLayout(system, false).setupIOStations(34, 35);
-                PlotterFactory.startupStandalonePlotter(4840, machineEventBus, "");
+                PlotterFactory.startPlotter(system, machineEventBus,4840, "ChangeToSomethingDifferent", WellknownPlotterCapability.SupportedColors.BLACK);
                 monitorEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
                 RegisterProcessRequest req = createSinglePrintRedOrder("Test", getRef());
                 orderEntryActor.tell(req, getRef());

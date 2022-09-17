@@ -76,7 +76,6 @@ public class BasicMachineActor extends AbstractActor{
 		this.self = self();
 		this.externalHistory = new HistoryTracker(machineId.getId());
 		init();
-
 	}
 	
 	@Override
@@ -318,7 +317,7 @@ public class BasicMachineActor extends AbstractActor{
             	} else if (currentState.equals(BasicMachineStates.COMPLETING) 
             			|| currentState.equals(BasicMachineStates.STOPPING) ) {
             		// we only recheck later of we are still in states leading to complete or stopped
-            		doAutoResetAfterXseconds() ;          		
+            		doAutoResetAfterXseconds();
             	} else { // noop             		
             	}
             }

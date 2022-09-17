@@ -9,6 +9,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import fiab.iostation.InputStationFactory;
+import fiab.iostation.OutputStationFactory;
+import fiab.mes.transport.msg.TransportSystemStatusMessage;
+import fiab.turntable.TurntableFactory;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +57,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 	public static void main(String args[]) {
 		//Single TTtests:  TestTurntableWithIOStations.startupW34toN31toS37();
 		// Dual TT tests:
-		TestTurntableWithIOStations.startupW34toE35();
+		new TestTurntableWithIOStations().startupW34toE35();
 	}
 	
 	
@@ -79,10 +83,14 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 		OrderProcess op = new OrderProcess(p);
 		op.activateProcess();
 		step = op.getAvailableSteps().get(0);
+		//startup TT wiring WEST(34) to SOUTH(37)
+		InputStationFactory.startStandaloneInputStation(system,4840, "VirtualInputStation1");
+		OutputStationFactory.startStandaloneOutputStation(system,4847, "VirtualOutputStation1");
+		TurntableFactory.startStandaloneTurntable(system, 4842, "Turntable1");
 	}
 
 	@BeforeEach
-	public static void setupBeforeEach() {
+	public void setupBeforeEach() {
 		knownActors.clear();
 	}
 	
@@ -96,10 +104,10 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 	@Tag("IntegrationTest")
 	void testVirtualIOandTT() {
 		Set<String> urlsToBrowse = new HashSet<String>();
-		urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34
+		urlsToBrowse.add("opc.tcp://localhost:4840"); //Pos34
 		// we provided wiring info to TT1 for outputstation at SOUTH_CLIENT for testing purpose, for two turntable setup needs changing
-		urlsToBrowse.add("opc.tcp://localhost:4847/milo");	// POS SOUTH 37				
-		urlsToBrowse.add("opc.tcp://localhost:4842/milo");		// Pos20
+		urlsToBrowse.add("opc.tcp://localhost:4847");	// POS SOUTH 37
+		urlsToBrowse.add("opc.tcp://localhost:4842");		// Pos20
 		
 		
 		Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
@@ -142,7 +150,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 				boolean didReactOnIdle = false;
 				boolean doRun = true;				
 				while (machines.size() < urlsToBrowse.size() || doRun) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class, TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent) {						
 						machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());						

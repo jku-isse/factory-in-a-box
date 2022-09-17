@@ -120,7 +120,7 @@ public class TestFoldingShopfloorDiscovery {
                 boolean isPlannerFunctional = false;
                 boolean isTransportFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
