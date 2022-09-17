@@ -1,0 +1,9 @@
+{
+  "NORTH_CLIENT": {
+    "localCapabilityId": "NORTH_CLIENT",
+    "remoteCapabilityId": "NORTH_SERVER",
+    "remoteEndpointURL": "opc.tcp://127.0.0.1:4841",
+    "remoteNodeId": "ns=2;s=HandshakeDevice/HANDSHAKE_FU_NORTH_SERVER/CAPABILITIES/CAPABILITY",
+    "remoteRole": "RemoteRole1"
+  }
+}
