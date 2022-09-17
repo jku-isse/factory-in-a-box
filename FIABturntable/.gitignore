@@ -28,7 +28,6 @@ hs_err_pid*
 
 /src/.gradle/
 /src/build/
-/src/test/
 
 #IntelliJ Files
 
