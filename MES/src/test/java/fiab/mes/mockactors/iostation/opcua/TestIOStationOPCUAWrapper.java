@@ -65,7 +65,7 @@ class TestIOStationOPCUAWrapper {
 
     @BeforeEach
     void setup() throws Exception {
-        NodeId capabilitImpl = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU");
+        NodeId capabilityImpl = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU");
         NodeId resetMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/RESET");
         NodeId stopMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STOP");
         NodeId stateVar = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STATE");
@@ -78,7 +78,7 @@ class TestIOStationOPCUAWrapper {
         intraEventBus = new MachineEventBus();
         client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:" + remoteIp);
         machineEventBusWrapper = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-        wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilitImpl, stopMethod, resetMethod, stateVar, null);
+        wrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilityImpl, stopMethod, resetMethod, stateVar, null);
         model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, 34);
     }
 

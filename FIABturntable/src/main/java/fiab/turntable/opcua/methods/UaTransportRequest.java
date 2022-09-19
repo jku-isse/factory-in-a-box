@@ -5,7 +5,7 @@ import static akka.pattern.Patterns.ask;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
-import fiab.core.capabilities.transport.TransportModuleRequest;
+import fiab.core.capabilities.transport.TransportRequest;
 import org.eclipse.milo.opcua.sdk.core.ValueRanks;
 import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
@@ -94,7 +94,7 @@ public class UaTransportRequest extends AbstractMethodInvocationHandler {
 			String capIdTo = (String) inputValues[1].getValue();
 			String orderId = (String) inputValues[2].getValue();
 			String reqId = (String) inputValues[3].getValue();
-			TransportModuleRequest itmr = new TransportModuleRequest(capIdFrom, capIdTo, orderId, reqId);
+			TransportRequest itmr = new TransportRequest(capIdFrom, capIdTo, orderId, reqId);
 			
 			resp = ask(actor, itmr, timeout).toCompletableFuture().get();
 			if (resp instanceof MachineStatusUpdateEvent) {

@@ -25,6 +25,7 @@ import fiab.mes.opcua.CapabilityDiscoveryActor;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.opcua.CapabilityImplementationMetadata;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -40,8 +41,9 @@ import java.util.Map;
 class TestIOStationOPCUADiscovery {
 
     public static void main(String args[]) {
-        //StartupUtil.startupInputstation(0, "VirtualInputStation1");
-        //StartupUtil.startupOutputstation(1, "VirtualOutputStation1");
+        ActorSystem system = ActorSystem.create();
+        InputStationFactory.startInputStation(system, new MachineEventBus(), 4840, "InputStation");
+        OutputStationFactory.startOutputStation(system, new MachineEventBus(), 4841, "OutputStation");
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TestIOStationOPCUADiscovery.class);
@@ -59,7 +61,11 @@ class TestIOStationOPCUADiscovery {
         system = ActorSystem.create("TEST_ROOT_SYSTEM");
         // assume OPCUA server (mock or otherwise is started
         machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+    }
 
+    @AfterEach
+    void teardown(){
+        TestKit.shutdownActorSystem(system);
     }
 
     @Test

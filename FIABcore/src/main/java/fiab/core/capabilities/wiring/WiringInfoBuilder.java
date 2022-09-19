@@ -8,6 +8,10 @@ public class WiringInfoBuilder {
     private String remoteNodeId;
     private String remoteRole;
 
+    public static WiringInfoBuilder create(){
+        return new WiringInfoBuilder();
+    }
+
     public WiringInfoBuilder(){
         this.localCapabilityId = "";
         this.remoteCapabilityId = "";

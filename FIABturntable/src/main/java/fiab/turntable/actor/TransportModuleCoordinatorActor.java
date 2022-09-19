@@ -16,7 +16,7 @@ import fiab.core.capabilities.handshake.HandshakeCapability.ClientMessageTypes;
 import fiab.core.capabilities.handshake.ClientSideStates;
 import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.core.capabilities.transport.TransportDestinations;
-import fiab.core.capabilities.transport.TransportModuleRequest;
+import fiab.core.capabilities.transport.TransportRequest;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.functionalunit.connector.IntraMachineEventBus;
@@ -49,7 +49,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
     protected ConveyorStates convFUState = ConveyorStates.STOPPED;
     protected InternalProcess exeSubState = InternalProcess.NOPROC;
 
-    protected TransportModuleRequest currentRequest;
+    protected TransportRequest currentRequest;
 
     // we need to pass all actors representing server/client handshake and their capability ids
     static public Props props(IntraMachineEventBus internalMachineEventBus, ActorRef turntableFU, ActorRef converyorFU) {
@@ -101,7 +101,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                         log.warning("Trying to update Handshake Endpoints in nonupdateable state: " + currentState);
                     }
                 })
-                .match(TransportModuleRequest.class, req -> {
+                .match(TransportRequest.class, req -> {
                     if (currentState.equals(BasicMachineStates.IDLE)) {
                         sender().tell(new MachineStatusUpdateEvent(self.path().name(), OPCUABasicMachineBrowsenames.STATE_VAR_NAME, "", BasicMachineStates.STARTING), self);
                         log.info("Received TransportModuleRequest from: " + req.getCapabilityInstanceIdFrom() +
@@ -265,7 +265,7 @@ public class TransportModuleCoordinatorActor extends AbstractActor {
                         }, context().system().dispatcher());
     }
 
-    private void turnToSource(TransportModuleRequest req) {
+    private void turnToSource(TransportRequest req) {
         log.info("Starting Transport");
         currentRequest = req;
         setAndPublishState(BasicMachineStates.STARTING);

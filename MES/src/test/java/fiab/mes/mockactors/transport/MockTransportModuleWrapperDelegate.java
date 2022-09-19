@@ -1,6 +1,6 @@
 package fiab.mes.mockactors.transport;
 
-import fiab.core.capabilities.transport.TransportModuleRequest;
+import fiab.core.capabilities.transport.TransportRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +20,7 @@ public class MockTransportModuleWrapperDelegate implements TransportModuleWrappe
 	}
 	
 	@Override
-	public void transport(TransportModuleRequest req) {
+	public void transport(TransportRequest req) {
 		logger.info("transport called");
 		wrapper.tell(req, ActorRef.noSender());
 	}

@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 //import org.eclipse.milo.opcua.sdk.client.api.AddressSpace;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.functionalunit.connector.MachineEventBus;
 import fiab.mes.transport.actor.transportmodule.InternalCapabilityToPositionMapping;
 import fiab.mes.transport.actor.transportsystem.*;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
@@ -110,7 +111,7 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
     private void spawnNewTransportActor(CapabilityImplInfo info, Actor model, TransportModuleOPCUAnodes nodeIds) {
         final ActorSelection eventBusByRef = context().actorSelection("/user/" +transportPositionParser.getLookupPrefix()+ InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         AbstractCapability capability = TransportModuleCapability.getTransportCapability();
-        IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
+        MachineEventBus intraEventBus = new MachineEventBus();
         Position selfPos = resolvePosition(info);
         TransportModuleOPCUAWrapper hal = new TransportModuleOPCUAWrapper(intraEventBus, info.getClient(), info.getActorNode(), nodeIds.stopMethod, nodeIds.resetMethod, nodeIds.stateVar, nodeIds.transportMethod, getSelf());
         machine = this.context().actorOf(BasicTransportModuleActor.props(eventBusByRef, capability, model, hal, selfPos, intraEventBus, new DefaultTransportPositionLookup(), env), model.getActorName() + selfPos.getPos());

@@ -3,6 +3,7 @@ package fiab.mes.mockactors.plotter;
 import java.time.Duration;
 
 import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.functionalunit.connector.MachineEventBus;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,7 @@ public class TestBasicMachineActorWithTransport {
 				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
 				
-				IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
+				MachineEventBus intraEventBus = new MachineEventBus();
 				//intraEventBus.subscribe(getRef(), new SubscriptionClassifier("TestClass", "*"));
 				ActorRef machineWrapper = system.actorOf(VirtualPlotterCoordinatorActor.props(intraEventBus), "MachineWrapper1");
 				ActorSelection serverSide = system.actorSelection("/user/MachineWrapper1/ServerSideHandshakeMock");

@@ -38,7 +38,6 @@ public class TestBasicIOStationActorWithTransport {
 		ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 	}
 
-	
 	@AfterAll
 	public static void teardown() {
 	    TestKit.shutdownActorSystem(system);
@@ -49,10 +48,11 @@ public class TestBasicIOStationActorWithTransport {
 	void testBasicInputStationToIdleEmpty() {
 		new TestKit(system) { 
 			{
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getMockedInputStation(system, eventBusByRef,true, 34);
-				// we subscribe to the intereventbus to observe basic io station behavior
+				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+
+				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getInputStationForPosition(system, eventBusByRef,true, 34);
+				// we subscribe to the intereventbus to observe basic io station behavior
 				//parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
 				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class));
 				boolean doRun = true;
@@ -60,10 +60,8 @@ public class TestBasicIOStationActorWithTransport {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(30), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
 					if (mue.getStatus().equals(ServerSideStates.RESETTING)) {
-						parts.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, getRef()); 
+						parts.proxy.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, getRef());
 					}
-					
-					
 					if (mue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 						doRun = false;
 					}
@@ -76,10 +74,11 @@ public class TestBasicIOStationActorWithTransport {
 	void testBasicOutputStationToIdleEmpty() {
 		new TestKit(system) { 
 			{
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		    	
-				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getMockedOutputStation(system, eventBusByRef, false, 35);
-				// we subscribe to the intereventbus to observe basic io station behavior
+				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+
+				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getOutputStationForPosition(system, eventBusByRef, false, 35);
+				// we subscribe to the intereventbus to observe basic io station behavior
 				parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
 				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class));
 				boolean doRun = true;
@@ -87,7 +86,7 @@ public class TestBasicIOStationActorWithTransport {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(30), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
 					if (mue.getStatus().equals(ServerSideStates.RESETTING)) {
-						parts.wrapper.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, getRef()); 
+						parts.proxy.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, getRef());
 					}
 					if (mue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
 						doRun = false;

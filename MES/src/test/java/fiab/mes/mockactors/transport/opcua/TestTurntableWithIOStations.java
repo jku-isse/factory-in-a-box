@@ -52,21 +52,19 @@ public class TestTurntableWithIOStations {
     ActorSystem system;
     ProcessStep step;
 
+    //Playground
     public static void main(String args[]) {
-        //startupW34toN31toS37();
-        //startupW34toE35();
-        //startupW34toS37();
+        startupW34toN31toS37();
     }
 
-    public void startupW34toS37() {
+    public static void startupW34toS37() {
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
-        InputStationFactory.startStandaloneInputStation(system,4840, "VirtualInputStation1");
-        OutputStationFactory.startStandaloneOutputStation(system,4847, "VirtualOutputStation1");
-        TurntableFactory.startStandaloneTurntable(system, 4842, "Turntable1");
+        InputStationFactory.startStandaloneInputStation(system, 4840, "VirtualInputStation1");
+        OutputStationFactory.startStandaloneOutputStation(system, 4847, "VirtualOutputStation1");
+        TurntableFactory.startStandaloneTurntable(system, 4842, "TurntableVirtualW34toS37");
     }
 
-    public void startupW34toN31toS37() {
-        //FIXME
+    public static void startupW34toN31toS37() {
         //fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1"); //Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
         //fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
         //fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK);
@@ -74,15 +72,14 @@ public class TestTurntableWithIOStations {
         //int portOffset = 2;
         //boolean exposeInternalControls = false;
         //system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toS37", portOffset, exposeInternalControls), "TurntableRoot");
-        InputStationFactory.startStandaloneInputStation(system,4840, "VirtualInputStation1");
-        OutputStationFactory.startStandaloneOutputStation(system,4847, "VirtualOutputStation1");
+        InputStationFactory.startStandaloneInputStation(system, 4840, "VirtualInputStation1");
+        OutputStationFactory.startStandaloneOutputStation(system, 4847, "VirtualOutputStation1");
         PlotterFactory.startStandalonePlotter(system, 4845, "VirtualPlotter31", SupportedColors.BLACK);
-        TurntableFactory.startStandaloneTurntable(system, 4842, "TurntableRoot");
+        TurntableFactory.startStandaloneTurntable(system, 4842, "TurntableVirtualW34toN31toS37");
     }
 
-    public void startupW34toE35() {
+    public static void startupW34toE35() {
         // !!! Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
-        //FIXME
         //StartupUtil.startupInputstation(0, "VirtualInputStation1");
         //StartupUtil.startupOutputstation(1, "VirtualOutputStation1");
         //fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK); //NORTH TT1
@@ -91,18 +88,17 @@ public class TestTurntableWithIOStations {
         //int portOffsetTT1 = 2;
         //boolean exposeInternalControls = false;
         //systemTT1.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toE21", portOffsetTT1, exposeInternalControls), "TurntableRoot");
-        InputStationFactory.startStandaloneInputStation(system, 4840, "VirtualInputStation1");
-        OutputStationFactory.startStandaloneOutputStation(system, 4841, "VirtualOutputStation1");
-        PlotterFactory.startStandalonePlotter(system,4845, "VirtualPlotter31", SupportedColors.BLACK);    //NORTH TT1
-        PlotterFactory.startStandalonePlotter(system,4846, "VirtualPlotter32", SupportedColors.BLACK);    //NORTH TT2
+        InputStationFactory.startStandaloneInputStation(systemTT1, 4840, "VirtualInputStation1");
+        OutputStationFactory.startStandaloneOutputStation(systemTT1, 4841, "VirtualOutputStation1");
+        PlotterFactory.startStandalonePlotter(systemTT1, 4845, "VirtualPlotter31", SupportedColors.BLACK);    //NORTH TT1
+        PlotterFactory.startStandalonePlotter(systemTT1, 4846, "VirtualPlotter32", SupportedColors.BLACK);    //NORTH TT2
         TurntableFactory.startStandaloneTurntable(systemTT1, 4842, "TurntableRoot");
         ActorSystem systemTT2 = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA2");
         //int portOffsetTT2 = 3;
         //systemTT2.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW20toN32toE35", portOffsetTT2, exposeInternalControls), "TurntableRoot");
-        TurntableFactory.startStandaloneTurntable(systemTT2, 4843, "TurntableRoot");
+        TurntableFactory.startStandaloneTurntable(systemTT2, 4843, "TurntableVirtualW20toN32toE35");
 
     }
-
 
     @BeforeEach
     void setup() throws Exception {
@@ -116,8 +112,6 @@ public class TestTurntableWithIOStations {
         step = op.getAvailableSteps().get(0);
     }
 
-
-    // WORKS
     @Test
     @Tag("IntegrationTest")
     void virtualIOandTT() {
@@ -196,7 +190,6 @@ public class TestTurntableWithIOStations {
                             machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
                         } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !didReactOnIdle) {
                             logger.info("Sending TEST transport request to: " + msue.getMachineId());
-                            //FIXME This test fails because the MES uses a different req type than defined in core pkg!
                             TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), posFrom, posTo, "Order1", "TReq1");
                             machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
                             didReactOnIdle = true;
@@ -211,24 +204,23 @@ public class TestTurntableWithIOStations {
         return true;
     }
 
-
-    // Works
     @Test
     @Tag("IntegrationTest")
     void testHandoverWithVirtualIOStationsAndTTandVirtualPlotter() {
         new TestKit(system) {
             {
+                startupW34toN31toS37();
                 // MAKE SURE TO RUN CORRECT SHOPFLOOR LAYOUT ABOVE
                 final ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
                 eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
                 // setup discoveryactor
                 Set<String> urlsToBrowse = new HashSet<String>();
-                urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34
+                urlsToBrowse.add("opc.tcp://localhost:4840"); //Pos34
                 // we provided wiring info to TT1 for outputstation at SOUTH_CLIENT for testing purpose, for two turntable setup needs changing
-                urlsToBrowse.add("opc.tcp://localhost:4847/milo");    // POS SOUTH 37
-                urlsToBrowse.add("opc.tcp://localhost:4842/milo");        // Pos20
+                urlsToBrowse.add("opc.tcp://localhost:4847");    // POS SOUTH 37
+                urlsToBrowse.add("opc.tcp://localhost:4842");        // Pos20
                 // virtual plotter
-                urlsToBrowse.add("opc.tcp://localhost:4845/milo");    // POS NORTH 31
+                urlsToBrowse.add("opc.tcp://localhost:4845");    // POS NORTH 31
 
                 Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
                 ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
@@ -237,48 +229,54 @@ public class TestTurntableWithIOStations {
                     discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
                 });
                 HashMap<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
-
+                String ttMachineId="";
+                String plotterMachineId="";
+                String outputStationId="";
                 boolean didReactOnIdle = false;
                 boolean doRun = true;
                 boolean plotterReady = false;
                 boolean turntableReady = false;
                 while (machines.size() < urlsToBrowse.size() || doRun) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class);
                     logEvent(te);
                     if (te instanceof MachineConnectedEvent) {
-                        machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+                        MachineConnectedEvent event = ((MachineConnectedEvent) te);
+                        machines.put(event.getMachineId(), event.getMachine());
+                        if(event.getMachineId().toLowerCase(Locale.ROOT).contains("turntable")) ttMachineId = event.getMachineId();
+                        if(event.getMachineId().toLowerCase(Locale.ROOT).contains("plot")) plotterMachineId = event.getMachineId();
+                        if(event.getMachineId().toLowerCase(Locale.ROOT).contains("output")) outputStationId = event.getMachineId();
                     }
                     if (te instanceof MachineStatusUpdateEvent) {
                         MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
                         if (msue.getStatus().equals(BasicMachineStates.STOPPED)) {
                             machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
-                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals("opc.tcp://localhost:4845/milo/VirtualPlotter31/Plotting_FU")) {
+                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals(plotterMachineId)) {
                             sendPlotRegister(machines.get(msue.getMachineId()).getAkkaActor(), getRef());
-                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals("TurntableVirtualW34toN31toS37/Turntable_FU")) {
+                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals(ttMachineId)) {
                             turntableReady = true;
                         } else if (msue.getStatus().equals(BasicMachineStates.COMPLETING) &&
-                                msue.getMachineId().equals("opc.tcp://localhost:4845/milo/VirtualPlotter31/Plotting_FU")) {
+                                msue.getMachineId().equals(plotterMachineId)) {
                             //now do unloading
-                            sendTransportRequestNorth31ToSouth37(machines.get("TurntableVirtualW34toN31toS37/Turntable_FU"), getRef());
+                            sendTransportRequestNorth31ToSouth37(machines.get(ttMachineId), getRef());
                         }
                     }
                     if (te instanceof ReadyForProcessEvent) {
                         assert (((ReadyForProcessEvent) te).isReady());
                         plotterReady = true;
-                        sendPlotRequest(machines.get("opc.tcp://localhost:4845/milo/VirtualPlotter31/Plotting_FU").getAkkaActor(), getRef());
+                        sendPlotRequest(machines.get(plotterMachineId).getAkkaActor(), getRef());
                     }
 
                     if (te instanceof IOStationStatusUpdateEvent) {
                         IOStationStatusUpdateEvent iosue = (IOStationStatusUpdateEvent) te;
                         if ((iosue.getStatus().equals(ServerSideStates.COMPLETE) || iosue.getStatus().equals(ServerSideStates.COMPLETING)) &&
-                                iosue.getMachineId().equals("VirtualOutputStation1/IOSTATION")) {
+                                iosue.getMachineId().equals(outputStationId)) {
                             logger.info("Completing test upon receiving COMPLETE/ING from: " + iosue.getMachineId());
                             doRun = false;
                         }
                     }
                     if (plotterReady && turntableReady && !didReactOnIdle) {
                         logger.info("Sending TEST transport request to Turntable1");
-                        sendTransportRequestWest34ToNorth31(machines.get("TurntableVirtualW34toN31toS37/Turntable_FU"), getRef());
+                        sendTransportRequestWest34ToNorth31(machines.get(ttMachineId), getRef());
                         didReactOnIdle = true;
                     }
                 }
@@ -286,7 +284,7 @@ public class TestTurntableWithIOStations {
         };
     }
 
-    @Test //WORKS
+    @Test
     @Tag("IntegrationTest")
     void testHandoverWithVirtualIOStationsAndTwoVirtualTTs() {
         new TestKit(system) {
@@ -296,13 +294,13 @@ public class TestTurntableWithIOStations {
                 eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
                 // setup discoveryactor
                 Set<String> urlsToBrowse = new HashSet<String>();
-                urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Pos34 input station
-                urlsToBrowse.add("opc.tcp://localhost:4841/milo");    // POS EAST of TT2, Pos 35 output station
-                urlsToBrowse.add("opc.tcp://localhost:4842/milo");        // TT1 Pos20
-                urlsToBrowse.add("opc.tcp://localhost:4843/milo");        // TT2 Pos21
+                urlsToBrowse.add("opc.tcp://localhost:4840"); //Pos34 input station
+                urlsToBrowse.add("opc.tcp://localhost:4841");    // POS EAST of TT2, Pos 35 output station
+                urlsToBrowse.add("opc.tcp://localhost:4842");        // TT1 Pos20
+                urlsToBrowse.add("opc.tcp://localhost:4843");        // TT2 Pos21
                 // virtual plotters
-                urlsToBrowse.add("opc.tcp://localhost:4845/milo");    // POS NORTH of TT1 31
-                urlsToBrowse.add("opc.tcp://localhost:4846/milo");    // POS NORTH of TT2 32
+                urlsToBrowse.add("opc.tcp://localhost:4845");    // POS NORTH of TT1 31
+                urlsToBrowse.add("opc.tcp://localhost:4846");    // POS NORTH of TT2 32
 
                 Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
                 ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
@@ -317,7 +315,7 @@ public class TestTurntableWithIOStations {
                 boolean turntableReady1 = false;
                 boolean turntableReady2 = false;
                 while (machines.size() < urlsToBrowse.size() || doRun) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class);
                     logEvent(te);
                     if (te instanceof MachineConnectedEvent) {
                         machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
@@ -335,7 +333,7 @@ public class TestTurntableWithIOStations {
                     if (te instanceof IOStationStatusUpdateEvent) {
                         IOStationStatusUpdateEvent iosue = (IOStationStatusUpdateEvent) te;
                         if ((iosue.getStatus().equals(ServerSideStates.COMPLETE) || iosue.getStatus().equals(ServerSideStates.COMPLETING)) &&
-                                iosue.getMachineId().equals("VirtualOutputStation1/IOSTATION")) {
+                                iosue.getMachineId().equals("VirtualOutputStation1N")) {
                             logger.info("Completing test upon receiving COMPLETE/ING from: " + iosue.getMachineId());
                             doRun = false;
                         }

@@ -1,7 +1,8 @@
 package fiab.mes.transport.actor.transportmodule.wrapper;
 
-import fiab.core.capabilities.transport.TransportModuleRequest;
+import fiab.core.capabilities.transport.TransportRequest;
 import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.functionalunit.connector.MachineEventBus;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
@@ -17,9 +18,9 @@ import fiab.mes.opcua.AbstractOPCUAWrapper;
 public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements TransportModuleWrapperInterface {
 
 	protected NodeId transportMethod;
-	protected IntraMachineEventBus intraMachineBus;
+	protected MachineEventBus intraMachineBus;
 	
-	public TransportModuleOPCUAWrapper(IntraMachineEventBus intraMachineBus, OpcUaClient client,
+	public TransportModuleOPCUAWrapper(MachineEventBus intraMachineBus, OpcUaClient client,
 			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId transportMethod, ActorRef spawner) {
 		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar, spawner);
 		this.intraMachineBus = intraMachineBus;
@@ -28,7 +29,7 @@ public class TransportModuleOPCUAWrapper extends AbstractOPCUAWrapper implements
 
 	
 	@Override
-	public void transport(TransportModuleRequest req) {
+	public void transport(TransportRequest req) {
 		Variant[] inputArgs = new Variant[]{new Variant(req.getCapabilityInstanceIdFrom()),
 				new Variant(req.getCapabilityInstanceIdTo()),
 				new Variant(req.getOrderId()),

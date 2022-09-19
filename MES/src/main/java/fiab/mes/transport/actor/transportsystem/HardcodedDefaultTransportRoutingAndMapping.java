@@ -63,7 +63,7 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 		edgeNodeMapping.put(pos22, pos23); // 22 to 23
 		edgeNodeMapping.put(pos23, pos22);
 		edgeNodeMapping.put(pos23, pos20); //TT1 to 23
-		edgeNodeMapping.put(pos20, pos23);
+		//edgeNodeMapping.put(pos20, pos23);		//Overrides 20 to 21?
 		// router ports, note that 22 and 23 are not router position but rather just placeholders for single TT usecases
 		routerConnections.put(pos20, new HashSet<Position>(Arrays.asList(pos31,pos34,pos37,pos21,pos23)));
 		routerConnections.put(pos21, new HashSet<Position>(Arrays.asList(pos32,pos35,pos38,pos20,pos22)));
@@ -76,7 +76,7 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 		if (!edgeNodeMapping.containsKey(fromMachine))
 			throw new RoutingException("Source position not known", RoutingException.Error.UNKNOWN_POSITION);
 		if (!edgeNodeMapping.containsKey(toMachine))
-			throw new RoutingException("Source position not known", RoutingException.Error.UNKNOWN_POSITION);
+			throw new RoutingException("Destination position not known", RoutingException.Error.UNKNOWN_POSITION);
 		
 		List<Position> route = new ArrayList<Position>();
 		route.add(fromMachine);
@@ -154,7 +154,7 @@ public class HardcodedDefaultTransportRoutingAndMapping implements TransportRout
 		pos21cap.put(pos22, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT); //when using a server at TT1 pos, instead of TT1
 		pos21cap.put(pos38, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_CLIENT);
 		pos21cap.put(pos32, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_CLIENT);
-		pos21cap.put(pos21, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF);		
+		pos21cap.put(pos21, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF);
 	}
 	
 	

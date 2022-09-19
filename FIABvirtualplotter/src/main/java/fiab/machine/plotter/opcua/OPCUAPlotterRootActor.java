@@ -2,6 +2,7 @@ package fiab.machine.plotter.opcua;
 
 import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.functionalunit.connector.MachineEventBus;
 import fiab.machine.plotter.MachineCapabilityUpdateEvent;
 import fiab.machine.plotter.opcua.methods.SetCapability;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
@@ -76,7 +77,7 @@ public class OPCUAPlotterRootActor extends AbstractActor {
         UaFolderNode ttNode = opcuaBase.generateFolder(root, machineName, "Plotting_FU");
         String fuPrefix = machineName + "/" + "Plotting_FU";
 
-        IntraMachineEventBus intraEventBus = new IntraMachineEventBus();
+        MachineEventBus intraEventBus = new MachineEventBus();
         intraEventBus.subscribe(getSelf(), new FUSubscriptionClassifier("Plotter Module", "*"));
         plotterCoordinator = context().actorOf(VirtualPlotterCoordinatorActor.propsForLateHandshakeBinding(intraEventBus), machineName);
         plotterCoordinator.tell(PlotterMessageTypes.SubscribeState, getSelf());

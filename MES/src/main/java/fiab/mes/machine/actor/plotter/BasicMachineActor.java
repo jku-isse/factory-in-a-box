@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.functionalunit.connector.MachineEventBus;
 import org.eclipse.emf.common.util.EList;
 
 import ActorCoreModel.Actor;
@@ -52,7 +53,7 @@ public class BasicMachineActor extends AbstractActor{
 	protected AbstractCapability cap;
 	protected BasicMachineStates currentState;
 	protected PlottingMachineWrapperInterface hal;
-	protected IntraMachineEventBus intraBus;
+	protected MachineEventBus intraBus;
 	
 	protected List<RegisterProcessStepRequest> orders = new ArrayList<>();
 	private String lastOrder;
@@ -63,11 +64,11 @@ public class BasicMachineActor extends AbstractActor{
 	//private List<MachineEvent> externalHistory = new ArrayList<MachineEvent>();
 	//private List<MachineEvent> internalHistory = new ArrayList<MachineEvent>();
 	
-	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {	    
+	static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, MachineEventBus intraBus) {
 		return Props.create(BasicMachineActor.class, () -> new BasicMachineActor(machineEventBus, cap, modelActor, hal, intraBus));
 	}
 	
-	public BasicMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, IntraMachineEventBus intraBus) {
+	public BasicMachineActor(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, PlottingMachineWrapperInterface hal, MachineEventBus intraBus) {
 		this.cap = cap;
 		this.machineId = new AkkaActorBackedCoreModelAbstractActor(modelActor.getID(), modelActor, self());
 		this.eventBusByRef = machineEventBus;

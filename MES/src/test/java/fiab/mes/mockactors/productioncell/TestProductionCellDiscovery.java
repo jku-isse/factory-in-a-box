@@ -132,12 +132,12 @@ public class TestProductionCellDiscovery {
 
     public Set<String> getTestLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4847/milo"); //Input West of TT
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4848/milo"); //InternalTT
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4847"); //Input West of TT
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4848"); //InternalTT
 
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4849/milo"); //Folding1
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4850/milo"); //Folding2
-        urlsToBrowse.add("opc.tcp://127.0.0.1:4851/milo"); //Folding3
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4849"); //Folding1
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4850"); //Folding2
+        urlsToBrowse.add("opc.tcp://127.0.0.1:4851"); //Folding3
         return urlsToBrowse;
     }
 

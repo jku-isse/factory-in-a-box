@@ -1,65 +1,73 @@
 package fiab.mes.mockactors.iostation;
 
-import java.time.Duration;
-
 import ActorCoreModel.Actor;
 import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.AbstractActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
-import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.handshake.ServerSideStates;
-//import fiab.handshake.actor.LocalEndpointStatus;
-//import fiab.machine.iostation.IOStationServerHandshakeActor;
 import fiab.functionalunit.connector.MachineEventBus;
 import fiab.iostation.InputStationFactory;
 import fiab.iostation.OutputStationFactory;
-//import fiab.mes.eventbus.InterMachineEventBus;
-import fiab.machine.iostation.IOStationServerHandshakeActor;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
-import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
-import fiab.opcua.server.OPCUABase;
-import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
+import fiab.mes.machine.actor.iostation.wrapper.IOStationOPCUAWrapper;
+import fiab.opcua.client.FiabOpcUaClient;
+import fiab.opcua.client.OPCUAClientFactory;
+import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import testutils.PortUtils;
 
 public class VirtualIOStationActorFactory {
 
-    public static VirtualIOStationActorFactory getMockedInputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
+    public static VirtualIOStationActorFactory getInputStationForPosition(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
         return new VirtualIOStationActorFactory(system, true, eventBusByRef, doAutoReload, ipId);
     }
 
-    public static VirtualIOStationActorFactory getMockedOutputStation(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
+    public static VirtualIOStationActorFactory getOutputStationForPosition(ActorSystem system, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
         return new VirtualIOStationActorFactory(system, false, eventBusByRef, doAutoReload, ipId);
     }
-
 
     public static String WRAPPER_POSTFIX = "Wrapper";
 
     public ActorRef machine;
-    public ActorRef wrapper;
+    public ActorRef proxy;
     public MachineEventBus intraEventBus;
     public AbstractCapability capability;
     public Actor model;
+    public int opcUaPort;
+    public String machineName;
     //private static AtomicInteger actorCount = new AtomicInteger();
     public static boolean doAutoComplete = true;
 
     private VirtualIOStationActorFactory(ActorSystem system, boolean isInputStation, ActorSelection eventBusByRef, boolean doAutoReload, int ipId) {
-        model = getDefaultIOStationActor(isInputStation, ipId);
+        model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, ipId);
+        String actorName = model.getActorName();
+        machineName = isInputStation ? "InputStation" + ipId : "OutputStation" + ipId;
+        opcUaPort = PortUtils.findNextFreePort();
+
+        if (isInputStation) {
+            capability = IOStationCapability.getInputStationCapability();
+            machine = InputStationFactory.startStandaloneInputStation(system, opcUaPort, machineName);
+        } else {
+            machineName = "OutputStation";
+            capability = IOStationCapability.getOutputStationCapability();
+            machine = OutputStationFactory.startStandaloneOutputStation(system, opcUaPort, machineName);
+        }
+        NodeId capabilityImpl = NodeId.parse("ns=2;s=" + machineName + "/HANDSHAKE_FU");
+        NodeId resetMethod = NodeId.parse("ns=2;s=" + machineName + "/HANDSHAKE_FU/RESET");
+        NodeId stopMethod = NodeId.parse("ns=2;s=" + machineName + "/HANDSHAKE_FU/STOP");
+        NodeId stateVar = NodeId.parse("ns=2;s=" + machineName + "/HANDSHAKE_FU/STATE");
+
+        // assume OPCUA server (mock or otherwise is started
         intraEventBus = new MachineEventBus();
-        //ActorRef parent = system.actorOf(ParentActor.props(isInputStation, doAutoReload, intraEventBus), model.getActorName() + "PARENT");
-        //FIXME
-        String actorName = model.getActorName() + WRAPPER_POSTFIX;
-        wrapper = isInputStation ? InputStationFactory.startInputStation(system, intraEventBus, ipId, actorName) :
-                OutputStationFactory.startOutputStation(system, intraEventBus, ipId, actorName);
-        //wrapper = isInputStation ? system.actorOf(IOStationServerHandshakeActor.propsForInputstation(parent, doAutoComplete, null), model.getActorName()+WRAPPER_POSTFIX)
-        //		: system.actorOf(IOStationServerHandshakeActor.propsForOutputstation(parent, doAutoComplete, null), model.getActorName()+WRAPPER_POSTFIX);
-        MockIOStationWrapperDelegate delegate = new MockIOStationWrapperDelegate(wrapper);
-        capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();
-        machine = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, delegate, intraEventBus), model.getActorName());
+        FiabOpcUaClient client;
+        try {
+            client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:" + opcUaPort);
+            model = VirtualIOStationActorFactory.getDefaultIOStationActor(isInputStation, ipId);
+            IOStationOPCUAWrapper opcuaWrapper = new IOStationOPCUAWrapper(intraEventBus, client, capabilityImpl, stopMethod, resetMethod, stateVar, null);
+            proxy = system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, model, opcuaWrapper, intraEventBus), model.getActorName()+WRAPPER_POSTFIX);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static Actor getDefaultIOStationActor(boolean isInputStation, int id) {
@@ -74,7 +82,7 @@ public class VirtualIOStationActorFactory {
         return actor;
     }
 
-    public static class ParentActor extends AbstractActor {
+    /*public static class ParentActor extends AbstractActor {
 
         private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
@@ -129,7 +137,7 @@ public class VirtualIOStationActorFactory {
                             }, context().system().dispatcher());
         }
 
-    }
+    }*/
 
 
 }

@@ -17,7 +17,7 @@ import fiab.core.capabilities.handshake.client.CompleteHandshake;
 import fiab.core.capabilities.handshake.client.PerformHandshake;
 import fiab.core.capabilities.transport.TransportDestinations;
 import fiab.core.capabilities.transport.TransportModuleCapability;
-import fiab.core.capabilities.transport.TransportModuleRequest;
+import fiab.core.capabilities.transport.TransportRequest;
 import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.functionalunit.connector.FUConnector;
 import fiab.functionalunit.connector.FUSubscriptionClassifier;
@@ -55,7 +55,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
     protected IntraMachineEventBus intraMachineBus;
     protected StateMachine<BasicMachineStates, Object> stateMachine;
     protected StateMachine<ProcessStates, Object> process;
-    protected TransportModuleRequest currentRequest;
+    protected TransportRequest currentRequest;
 
     //Track these in separate class
     protected FUStateInfo fuStateInfo;
@@ -92,7 +92,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
                     //This handler should be removed and ResetReq/StopReq should be used instead
                     handleLegacyStopResetRequests(req);
                 })
-                .match(TransportModuleRequest.class, req -> {
+                .match(TransportRequest.class, req -> {
                     transport(req);
                 })
                 .match(TurningStatusUpdateEvent.class, msg -> {
@@ -167,7 +167,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
     }
 
     @Override
-    public void transport(TransportModuleRequest req) {
+    public void transport(TransportRequest req) {
         fireIfPossible(TurntableTriggers.START);
         this.currentRequest = req;
         boolean isHsSourcePresent = fuStateInfo.getHandshakeEndpointInfo().getHandshakeForCapId(req.getCapabilityInstanceIdFrom()).isPresent();

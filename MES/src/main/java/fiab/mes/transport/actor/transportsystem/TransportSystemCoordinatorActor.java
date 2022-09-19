@@ -142,7 +142,6 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 			String msg = "Successfully canceled transport request "+req.getOrderId();
 			log.info(msg);
 			rtr.getRequestor().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.CANCELED ,msg), self);
-			return;
 		});
 		// otherwise the transport might have started, lets just ask to remove it manually
 		// requires stopping the transport module that will potentially deadlock waiting for a stopped machine
@@ -156,8 +155,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 				String msg = "Aborted transport in progress, please remove order from transport system "+req.getOrderId();
 				log.warning(msg);
 				rtr.getRequestor().tell(new RegisterTransportRequestStatusResponse(rtr, RegisterTransportRequestStatusResponse.ResponseType.ABORTED ,msg), self);
-				return;
-			});		
+			});
 	}
 
 	private void handleMachineUpdateEvent(MachineStatusUpdateEvent machineEvent) {
@@ -195,8 +193,9 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 	private void handleNewlyAvailableMachine(MachineConnectedEvent machineEvent) {
 		//check if a transport module is irrelevant, we just then select machines that have turntable capability		
 		//capMan.setCapabilities(machineEvent);
-		dns.getPositionForActor(machineEvent.getMachine()); // implicit coupling to hardcoded dns impl that needs first a call with actor to allow later for resolving by position
+		Position pos = dns.getPositionForActor(machineEvent.getMachine()); // implicit coupling to hardcoded dns impl that needs first a call with actor to allow later for resolving by position
 		tmut.trackIfTransportModule(machineEvent);
+		log.info("Registered machine {} at position {} ", machineEvent.getMachineId(), pos);
 		TransportSystemStatusMessage.State currState = state;
 		TransportSystemStatusMessage.State newState = TransportSystemStatusMessage.State.STOPPED;
 		if (tmut.getKnownTransportModules().size() >= expectedTTs) {

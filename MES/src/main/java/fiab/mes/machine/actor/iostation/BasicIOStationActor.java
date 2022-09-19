@@ -106,7 +106,7 @@ public class BasicIOStationActor extends AbstractActor {
                         setAndPublishSensedState(ServerSideStates.RESETTING); // not sensed, but machine would do the same (or fail, then we need to wait for machine to respond)
                         hal.reset();
                     } else {
-                        log.warning(String.format("IOStation %s received ResetRequest in non-COMPLETE or non-STOPPED state, ignoring", machineId.getId()));
+                        log.warning("IOStation {} received ResetRequest in non-COMPLETE or non-STOPPED state: {}, ignoring", machineId.getId(), currentState);
                     }
                 })
                 .match(MachineHistoryRequest.class, req -> {

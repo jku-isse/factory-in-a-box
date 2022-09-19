@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Optional;
 
+import ActorCoreModel.Actor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +52,7 @@ public class DefaultTransportPositionLookup implements TransportPositionLookupIn
 			if(lastPos == 40){
 				lastPos = 20;	//Just for testing niryo config
 			}
-			Position pos = new Position(""+lastPos);			
-			return pos;
+			return new Position(String.valueOf(lastPos));
 		} catch (URISyntaxException e) {
 			logger.warn(String.format("Unable to load URI for actor %s", uriAsString));
 			return TransportRoutingInterface.UNKNOWN_POSITION;

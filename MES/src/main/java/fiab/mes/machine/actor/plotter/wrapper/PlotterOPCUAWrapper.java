@@ -1,6 +1,7 @@
 package fiab.mes.machine.actor.plotter.wrapper;
 
 import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.functionalunit.connector.MachineEventBus;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
@@ -16,10 +17,10 @@ import fiab.mes.opcua.AbstractOPCUAWrapper;
 public class PlotterOPCUAWrapper extends AbstractOPCUAWrapper implements PlottingMachineWrapperInterface {
 
 	protected NodeId plotMethod;
-	protected IntraMachineEventBus intraMachineBus;
+	protected MachineEventBus intraMachineBus;
 	
 	
-	public PlotterOPCUAWrapper(IntraMachineEventBus intraMachineBus, OpcUaClient client,
+	public PlotterOPCUAWrapper(MachineEventBus intraMachineBus, OpcUaClient client,
 			NodeId capabilityImplNode, NodeId stopMethod, NodeId resetMethod, NodeId stateVar, NodeId plotMethod, ActorRef spawner) {
 		super(client, capabilityImplNode, stopMethod, resetMethod, stateVar, spawner);
 		this.plotMethod = plotMethod;

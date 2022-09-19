@@ -30,6 +30,7 @@ public interface TransportRoutingInterface {
 	}
 	
 	class Position {
+
 		protected String pos;
 		
 		public Position(String pos) {
@@ -62,11 +63,8 @@ public interface TransportRoutingInterface {
 				return false;
 			Position other = (Position) obj;
 			if (pos == null) {
-				if (other.pos != null)
-					return false;
-			} else if (!pos.equals(other.pos))
-				return false;
-			return true;
+				return other.pos == null;
+			} else return pos.equals(other.pos);
 		}
 		
 	}

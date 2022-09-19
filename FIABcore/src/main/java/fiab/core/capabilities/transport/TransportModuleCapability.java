@@ -19,5 +19,5 @@ public interface TransportModuleCapability extends OPCUABasicMachineBrowsenames,
 		return ac;
 	}
 
-	void transport(TransportModuleRequest req);
+	void transport(TransportRequest req);
 }

@@ -18,28 +18,29 @@ import fiab.core.capabilities.plotting.PlotterMessageTypes;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.ServerSideStates;
 import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.functionalunit.connector.MachineEventBus;
 import fiab.handshake.actor.LocalEndpointStatus;
 import fiab.handshake.actor.ServerSideHandshakeActor;
 
 public class VirtualPlotterCoordinatorActor extends AbstractActor {
 
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-    protected IntraMachineEventBus intraEventBus;
+    protected MachineEventBus intraEventBus;
     protected BasicMachineStates currentState = BasicMachineStates.STOPPING;
     protected boolean doPublishState = false;
     protected ServerSideStates handshakeStatus;
     protected ActorRef serverSide;
     protected ActorRef self;
 
-    static public Props propsForLateHandshakeBinding(IntraMachineEventBus internalMachineEventBus) {
+    static public Props propsForLateHandshakeBinding(MachineEventBus internalMachineEventBus) {
         return Props.create(VirtualPlotterCoordinatorActor.class, () -> new VirtualPlotterCoordinatorActor(internalMachineEventBus, true));
     }
 
-    static public Props props(IntraMachineEventBus internalMachineEventBus) {
+    static public Props props(MachineEventBus internalMachineEventBus) {
         return Props.create(VirtualPlotterCoordinatorActor.class, () -> new VirtualPlotterCoordinatorActor(internalMachineEventBus, false));
     }
 
-    public VirtualPlotterCoordinatorActor(IntraMachineEventBus machineEventBus, boolean doLateBinding) {
+    public VirtualPlotterCoordinatorActor(MachineEventBus machineEventBus, boolean doLateBinding) {
         this.intraEventBus = machineEventBus;
         // setup serverhandshake actor with autocomplete
 

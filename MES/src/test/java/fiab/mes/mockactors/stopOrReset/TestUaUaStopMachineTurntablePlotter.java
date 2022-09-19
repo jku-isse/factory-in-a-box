@@ -4,6 +4,9 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
 
+import fiab.functionalunit.connector.IntraMachineEventBus;
+import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +51,8 @@ class TestUaUaStopMachineTurntablePlotter {
 	private static final Logger logger = LoggerFactory.getLogger(TestUaUaStopMachineTurntablePlotter.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 	
-	@BeforeAll
-	public static void setUpBeforeClass() throws Exception {
+	@BeforeEach
+	public void setUp() throws Exception {
 		// setup shopfloor
 		// setup machines
 		// setup processes
@@ -63,18 +66,13 @@ class TestUaUaStopMachineTurntablePlotter {
 		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
 
-		
 	}
 
-	@AfterAll
-	public static void teardown() {
+	@AfterEach
+	public void teardown() {
 	    TestKit.shutdownActorSystem(system);
-	    system = null;
-	}
-
-	@BeforeEach
-	public void setupBeforeEach() {
 		knownActors.clear();
+	    system = null;
 	}
 	
 	@Test //WORKS

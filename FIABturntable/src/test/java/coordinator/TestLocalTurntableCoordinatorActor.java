@@ -34,7 +34,7 @@ import fiab.turntable.turning.messages.TurningStatusUpdateEvent;
 import testutils.ActorTestInfrastructure;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
-import fiab.core.capabilities.transport.TransportModuleRequest;
+import fiab.core.capabilities.transport.TransportRequest;
 import org.junit.jupiter.api.*;
 
 import java.time.Duration;
@@ -135,7 +135,7 @@ public class TestLocalTurntableCoordinatorActor {
         turningProbe.expectMsgClass(ResetRequest.class);
         conveyorProbe.expectMsgClass(ResetRequest.class);
         expectCoordinatorState(BasicMachineStates.IDLE);
-        actorRef().tell(new TransportModuleRequest(TRANSPORT_MODULE_NORTH_SERVER, TRANSPORT_MODULE_SOUTH_CLIENT,
+        actorRef().tell(new TransportRequest(TRANSPORT_MODULE_NORTH_SERVER, TRANSPORT_MODULE_SOUTH_CLIENT,
                 "order-1", "id-1"), ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.STARTING);
         expectCoordinatorState(BasicMachineStates.EXECUTE);
@@ -149,7 +149,7 @@ public class TestLocalTurntableCoordinatorActor {
         turningProbe.expectMsgClass(ResetRequest.class);
         conveyorProbe.expectMsgClass(ResetRequest.class);
         expectCoordinatorState(BasicMachineStates.IDLE);
-        actorRef().tell(new TransportModuleRequest(TRANSPORT_MODULE_NORTH_SERVER, TRANSPORT_MODULE_NORTH_SERVER,
+        actorRef().tell(new TransportRequest(TRANSPORT_MODULE_NORTH_SERVER, TRANSPORT_MODULE_NORTH_SERVER,
                 "TestOrder", "req1"), ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.STARTING);
         expectCoordinatorState(BasicMachineStates.EXECUTE);
@@ -181,7 +181,7 @@ public class TestLocalTurntableCoordinatorActor {
         turningProbe.expectMsgClass(ResetRequest.class);
         conveyorProbe.expectMsgClass(ResetRequest.class);
         expectCoordinatorState(BasicMachineStates.IDLE);
-        actorRef().tell(new TransportModuleRequest(TRANSPORT_MODULE_NORTH_SERVER, TRANSPORT_MODULE_SOUTH_CLIENT,
+        actorRef().tell(new TransportRequest(TRANSPORT_MODULE_NORTH_SERVER, TRANSPORT_MODULE_SOUTH_CLIENT,
                 "TestOrder", "req1"), ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.STARTING);
         expectCoordinatorState(BasicMachineStates.EXECUTE);
@@ -221,7 +221,7 @@ public class TestLocalTurntableCoordinatorActor {
         turningProbe.expectMsgClass(ResetRequest.class);
         conveyorProbe.expectMsgClass(ResetRequest.class);
         expectCoordinatorState(BasicMachineStates.IDLE);
-        actorRef().tell(new TransportModuleRequest(TRANSPORT_MODULE_SOUTH_CLIENT, TRANSPORT_MODULE_NORTH_SERVER,
+        actorRef().tell(new TransportRequest(TRANSPORT_MODULE_SOUTH_CLIENT, TRANSPORT_MODULE_NORTH_SERVER,
                 "TestOrder", "req1"), ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.STARTING);
         expectCoordinatorState(BasicMachineStates.EXECUTE);
@@ -262,7 +262,7 @@ public class TestLocalTurntableCoordinatorActor {
         turningProbe.expectMsgClass(ResetRequest.class);
         conveyorProbe.expectMsgClass(ResetRequest.class);
         expectCoordinatorState(BasicMachineStates.IDLE);
-        actorRef().tell(new TransportModuleRequest(TRANSPORT_MODULE_SOUTH_CLIENT, TRANSPORT_MODULE_SOUTH_CLIENT,
+        actorRef().tell(new TransportRequest(TRANSPORT_MODULE_SOUTH_CLIENT, TRANSPORT_MODULE_SOUTH_CLIENT,
                 "TestOrder", "req1"), ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.STARTING);
         expectCoordinatorState(BasicMachineStates.EXECUTE);
@@ -328,7 +328,7 @@ public class TestLocalTurntableCoordinatorActor {
         actorRef().tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.RESETTING);
         expectCoordinatorState(BasicMachineStates.IDLE);
-        actorRef().tell(new TransportModuleRequest("InvalidCap", TRANSPORT_MODULE_SOUTH_CLIENT,
+        actorRef().tell(new TransportRequest("InvalidCap", TRANSPORT_MODULE_SOUTH_CLIENT,
                 "TestOrder", "req1"), ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.STARTING);
         expectCoordinatorState(BasicMachineStates.STOPPING);
@@ -340,7 +340,7 @@ public class TestLocalTurntableCoordinatorActor {
         actorRef().tell(TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset, ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.RESETTING);
         expectCoordinatorState(BasicMachineStates.IDLE);
-        actorRef().tell(new TransportModuleRequest(TRANSPORT_MODULE_SOUTH_CLIENT, "InvalidCap",
+        actorRef().tell(new TransportRequest(TRANSPORT_MODULE_SOUTH_CLIENT, "InvalidCap",
                 "TestOrder", "req1"), ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.STARTING);
         expectCoordinatorState(BasicMachineStates.STOPPING);
@@ -353,7 +353,7 @@ public class TestLocalTurntableCoordinatorActor {
         turningProbe.expectMsgClass(ResetRequest.class);
         conveyorProbe.expectMsgClass(ResetRequest.class);
         expectCoordinatorState(BasicMachineStates.IDLE);
-        actorRef().tell(new TransportModuleRequest(TRANSPORT_MODULE_NORTH_SERVER, TRANSPORT_MODULE_SOUTH_CLIENT,
+        actorRef().tell(new TransportRequest(TRANSPORT_MODULE_NORTH_SERVER, TRANSPORT_MODULE_SOUTH_CLIENT,
                 "TestOrder", "req1"), ActorRef.noSender());
         expectCoordinatorState(BasicMachineStates.STARTING);
         expectCoordinatorState(BasicMachineStates.EXECUTE);

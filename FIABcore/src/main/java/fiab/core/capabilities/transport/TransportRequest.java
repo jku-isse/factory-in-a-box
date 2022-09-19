@@ -1,13 +1,13 @@
 package fiab.core.capabilities.transport;
 
-public class TransportModuleRequest {
+public class TransportRequest {
 
 	protected String capabilityInstanceIdFrom;
 	protected String capabilityInstanceIdTo;
 	protected String orderId;
 	protected String requestId;
 	
-	public TransportModuleRequest(String capabilityInstanceIdFrom, String capabilityInstanceIdTo, String orderId, String requestId) {
+	public TransportRequest(String capabilityInstanceIdFrom, String capabilityInstanceIdTo, String orderId, String requestId) {
 		super();
 		this.capabilityInstanceIdFrom = capabilityInstanceIdFrom;
 		this.capabilityInstanceIdTo = capabilityInstanceIdTo;
