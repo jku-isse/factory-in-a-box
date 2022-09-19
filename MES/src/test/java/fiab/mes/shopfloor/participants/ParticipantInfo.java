@@ -2,6 +2,9 @@ package fiab.mes.shopfloor.participants;
 
 import akka.actor.ActorRef;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
+import testutils.PortUtils;
+
+import java.util.Optional;
 
 public class ParticipantInfo {
 
@@ -22,6 +25,28 @@ public class ParticipantInfo {
         this.proxy = proxy;
     }
 
+    public ParticipantInfo(String machineId, Position position, int opcUaPort, ActorRef remoteMachine) {
+        this.machineId = machineId;
+        this.position = position;
+        this.opcUaPort = opcUaPort;
+        this.remoteMachine = remoteMachine;
+        this.proxy = null;
+    }
+
+    /**
+     * This stores the Position for a given machineId
+     * A free port will be selected that can be used for starting up the virtual participant on localhost
+     * @param machineId unique name of the machine
+     * @param position position on the shopfloor
+     */
+    public ParticipantInfo(String machineId, Position position) {
+        this.machineId = machineId;
+        this.position = position;
+        this.opcUaPort = PortUtils.findNextFreePort();  //This will automatically give us a free port we can use
+        this.remoteMachine = null;
+        this.proxy = null;
+    }
+
     public String getMachineId() {
         return machineId;
     }
@@ -34,15 +59,17 @@ public class ParticipantInfo {
         return opcUaPort;
     }
 
-    public ActorRef getRemoteMachine() {
-        return remoteMachine;
+    public Optional<ActorRef> getRemoteMachine() {
+        if(remoteMachine==null) return Optional.empty();
+        return Optional.of(remoteMachine);
     }
 
-    public ActorRef getProxy() {
-        return proxy;
+    public Optional<ActorRef> getProxy() {
+        if(proxy==null) return Optional.empty();
+        return Optional.of(proxy);
     }
 
-    public String getDiscoveryEndpoint(){
+    public String getDiscoveryEndpoint() {
         return localhostOpcUaPrefix + opcUaPort;
     }
 

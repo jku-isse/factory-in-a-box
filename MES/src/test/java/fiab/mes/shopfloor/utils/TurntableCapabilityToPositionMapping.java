@@ -2,9 +2,8 @@ package fiab.mes.shopfloor.utils;
 
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF;
 
@@ -35,5 +34,13 @@ public class TurntableCapabilityToPositionMapping {
         String capability = this.positionToCapability.get(position);
         if (capability == null) return Optional.empty();
         return Optional.of(capability);
+    }
+
+    public List<String> getAllMappedLocalCapabilities(){
+        return new ArrayList<>(capabilityToPosition.keySet());
+    }
+
+    public List<TransportRoutingInterface.Position> getAllMappedPositions(){
+        return new ArrayList<>(positionToCapability.keySet());
     }
 }

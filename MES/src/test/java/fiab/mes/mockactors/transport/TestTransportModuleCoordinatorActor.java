@@ -11,6 +11,7 @@ import fiab.core.capabilities.transport.TransportRequest;
 import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.functionalunit.connector.MachineEventBus;
+import fiab.mes.shopfloor.DefaultTestLayout;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
@@ -30,6 +31,9 @@ import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdenti
 import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
 import fiab.mes.order.OrderProcess;
 import fiab.mes.shopfloor.DefaultLayout;
+
+import static fiab.mes.shopfloor.utils.ShopfloorUtils.TURNTABLE_1;
+import static fiab.mes.shopfloor.utils.ShopfloorUtils.TURNTABLE_2;
 
 @Tag("IntegrationTest")
 public class TestTransportModuleCoordinatorActor { 
@@ -137,6 +141,40 @@ public class TestTransportModuleCoordinatorActor {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent)mue;
 						if (msue.getMachineId().equals("TT1") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT1) {
 							ttWrapper.tell(new TransportRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, "TestOrder1", "Req1"), getRef());
+							hasSentReqTT1 = true;
+						}
+						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT2) {
+							ttWrapper2.tell(new TransportRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_CLIENT, "TestOrder2", "Req2"), getRef());
+							hasSentReqTT2 = true;
+						}
+						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.COMPLETE)) {
+							doRun = false;
+						}
+					}
+				}
+			}
+		};
+	}
+
+	@Test
+	void testSetup2TTplusIONew() throws InterruptedException, ExecutionException {
+		new TestKit(system) {
+			{
+				DefaultTestLayout layout = new DefaultTestLayout(system);
+				layout.initializeDefaultLayoutWithProxies();
+				ActorRef ttWrapper1 = layout.getMachineProxyById(TURNTABLE_1);
+				ActorRef ttWrapper2 = layout.getMachineProxyById(TURNTABLE_2);
+
+				boolean hasSentReqTT1 = false;
+				boolean hasSentReqTT2 = false;
+				boolean doRun = true;
+				while (doRun) {
+					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineUpdateEvent.class);
+					logEvent(mue);
+					if (mue instanceof MachineStatusUpdateEvent) {
+						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent)mue;
+						if (msue.getMachineId().equals("TT1") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT1) {
+							ttWrapper1.tell(new TransportRequest(TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_CLIENT, TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER, "TestOrder1", "Req1"), getRef());
 							hasSentReqTT1 = true;
 						}
 						if (msue.getMachineId().equals("TT2") && msue.getStatus().equals(BasicMachineStates.IDLE) && !hasSentReqTT2) {

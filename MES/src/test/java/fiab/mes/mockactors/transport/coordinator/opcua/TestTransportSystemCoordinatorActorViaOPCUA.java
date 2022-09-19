@@ -119,7 +119,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
     @Tag("IntegrationTest")
     void virtualIOandTwoTTs() {
         DefaultTestLayout layout = new DefaultTestLayout(system);
-        layout.initializeDefaultLayout();
+        layout.initializeDefaultLayoutWithProxies();
         List<ParticipantInfo> participants = layout.getParticipants();
         Set<String> urlsToBrowse = new HashSet<String>();
         for (ParticipantInfo participantInfo : participants) {

@@ -12,6 +12,7 @@ import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.machine.actor.iostation.wrapper.IOStationOPCUAWrapper;
 import fiab.mes.shopfloor.participants.ParticipantInfo;
+import fiab.mes.shopfloor.participants.PositionMap;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.client.FiabOpcUaClient;
@@ -30,13 +31,28 @@ public class VirtualInputStationFactory {
      * Starts a new inputStation instance at an arbitrary free opcua port and a given position on the shopfloor
      * Then a proxy for machine is spawned that can be used to communicate events
      *
-     * @param system   The actor system
+     * @param system      The actor system
      * @param positionMap mapping of unique machine name/id to position
-     * @return proxy as an actorRef for virtual machine
+     * @return machine info
      */
-    public static ParticipantInfo initInputStationAndReturnInfo(ActorSystem system, String machineId, Map<String, Position> positionMap) {
-        int opcUaPort = PortUtils.findNextFreePort();
-        Position position = positionMap.getOrDefault(machineId, TransportRoutingInterface.UNKNOWN_POSITION);
+    public static ParticipantInfo initInputStationAndReturnInfo(ActorSystem system, String machineId, PositionMap positionMap) {
+        int opcUaPort = positionMap.get(machineId).getOpcUaPort();
+        Position position = positionMap.getPositionForId(machineId);
+        ActorRef remoteMachine = InputStationFactory.startStandaloneInputStation(system, opcUaPort, machineId);
+        return new ParticipantInfo(machineId, position, opcUaPort, remoteMachine);
+    }
+
+    /**
+     * Starts a new inputStation instance at an arbitrary free opcua port and a given position on the shopfloor
+     * Then a proxy for machine is spawned that can be used to communicate events
+     *
+     * @param system      The actor system
+     * @param positionMap mapping of unique machine name/id to position
+     * @return machine info with proxy
+     */
+    public static ParticipantInfo initInputStationWithProxyAndReturnInfo(ActorSystem system, String machineId, PositionMap positionMap) {
+        int opcUaPort = positionMap.get(machineId).getOpcUaPort();
+        Position position = positionMap.getPositionForId(machineId);
         ActorRef remoteMachine = InputStationFactory.startStandaloneInputStation(system, opcUaPort, machineId);
         ActorRef proxy = createParticipantProxy(system, machineId, opcUaPort);
         return new ParticipantInfo(machineId, position, opcUaPort, remoteMachine, proxy);
@@ -66,7 +82,7 @@ public class VirtualInputStationFactory {
             MachineEventBus machineEventBus = new MachineEventBus();
             opcuaWrapper = new IOStationOPCUAWrapper(machineEventBus, client, capabilityImplNode, stopMethod, resetMethod, stateVar, null);
             //Create the model
-            Actor modelActor = createParticipantModelActor(inputStationPort);
+            Actor modelActor = createParticipantModelActor(machineId, inputStationPort);
             //Now we find the InterMachineEventBus and finally create the machine Proxy
             ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
             return system.actorOf(BasicIOStationActor.props(eventBusByRef, capability, modelActor, opcuaWrapper, machineEventBus),
@@ -83,13 +99,12 @@ public class VirtualInputStationFactory {
      * @param inputStationPort opcua port of remote machine/human
      * @return model actor
      */
-    private static Actor createParticipantModelActor(int inputStationPort) {
-        String actorId = "InputStationActor";
+    private static Actor createParticipantModelActor(String machineId, int inputStationPort) {
         Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
-        actor.setID(actorId);
-        actor.setActorName(actorId);
-        actor.setDisplayName(actorId);
-        actor.setUri(localhostOpcUaPrefix + inputStationPort + "/InputStationActor");
+        actor.setID(machineId);
+        actor.setActorName(machineId);
+        actor.setDisplayName(machineId);
+        actor.setUri(localhostOpcUaPrefix + inputStationPort + "/" + machineId);
         return actor;
     }
 }

@@ -6,27 +6,30 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import fiab.core.capabilities.handshake.IOStationCapability;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
+import fiab.core.capabilities.transport.TransportModuleCapability;
+import fiab.core.capabilities.wiring.WiringInfo;
+import fiab.core.capabilities.wiring.WiringInfoBuilder;
 import fiab.functionalunit.connector.MachineEventBus;
+import fiab.handshake.client.messages.WiringRequest;
 import fiab.iostation.OutputStationFactory;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.machine.actor.iostation.BasicIOStationActor;
 import fiab.mes.shopfloor.participants.ParticipantInfo;
+import fiab.mes.shopfloor.participants.PositionMap;
 import fiab.mes.shopfloor.utils.TransportRoutingAndMappingInterface;
+import fiab.mes.shopfloor.utils.TurntableCapabilityToPositionMapping;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleOPCUAWrapper;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookupInterface;
-import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.client.FiabOpcUaClient;
 import fiab.opcua.client.OPCUAClientFactory;
+import fiab.turntable.TurntableFactory;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import testutils.PortUtils;
 
 import java.util.Map;
 
-import static fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF;
 import static fiab.mes.shopfloor.participants.ParticipantInfo.WRAPPER_POSTFIX;
 import static fiab.mes.shopfloor.participants.ParticipantInfo.localhostOpcUaPrefix;
 
@@ -35,22 +38,66 @@ public class VirtualTurntableFactory {
     /**
      * Starts a new turntable instance at an arbitrary free opcua port and a given position on the shopfloor
      * Then a proxy for machine is spawned that can be used to communicate events
-     * @param system The actor system
-     * @param machineId unique machine name/identifier
+     *
+     * @param system      The actor system
+     * @param machineId   unique machine name/identifier
      * @param positionMap map containing names mapped to positions
-     * @param positionLookup position lookup
-     * @param routingAndMapping routing
-     * @return proxy as actorRef for virtual machine
+     * @return machine info
      */
     public static ParticipantInfo initTurntableAndReturnInfo(ActorSystem system, String machineId,
-                                                             Map<String, Position> positionMap,
-                                                             TransportPositionLookupInterface positionLookup,
+                                                             TurntableCapabilityToPositionMapping capToPositionMapping,
+                                                             PositionMap positionMap,
                                                              TransportRoutingAndMappingInterface routingAndMapping) {
-        int opcUaPort = PortUtils.findNextFreePort();
-        Position position = positionMap.getOrDefault(machineId, TransportRoutingInterface.UNKNOWN_POSITION);
-        ActorRef remoteMachine = OutputStationFactory.startStandaloneOutputStation(system, opcUaPort, machineId);
+        int opcUaPort = positionMap.get(machineId).getOpcUaPort();
+        Position position = positionMap.getPositionForId(machineId);
+        ActorRef remoteMachine = TurntableFactory.startStandaloneTurntable(system, opcUaPort, machineId);
+        wireTurntableToOtherMachines(remoteMachine, position, capToPositionMapping, positionMap, routingAndMapping);
+        return new ParticipantInfo(machineId, position, opcUaPort, remoteMachine);
+    }
+
+    /**
+     * Starts a new turntable instance at an arbitrary free opcua port and a given position on the shopfloor
+     * Then a proxy for machine is spawned that can be used to communicate events
+     *
+     * @param system            The actor system
+     * @param machineId         unique machine name/identifier
+     * @param positionMap       map containing names mapped to positions
+     * @param positionLookup    position lookup
+     * @param routingAndMapping routing
+     * @return machine info with proxy
+     */
+    public static ParticipantInfo initTurntableWithProxyAndReturnInfo(ActorSystem system, String machineId,
+                                                                      TurntableCapabilityToPositionMapping capToPositionMapping,
+                                                                      PositionMap positionMap,
+                                                                      TransportPositionLookupInterface positionLookup,
+                                                                      TransportRoutingAndMappingInterface routingAndMapping) {
+        int opcUaPort = positionMap.get(machineId).getOpcUaPort();
+        Position position = positionMap.getPositionForId(machineId);
+        ActorRef remoteMachine = TurntableFactory.startStandaloneTurntable(system, opcUaPort, machineId);
+        wireTurntableToOtherMachines(remoteMachine, position, capToPositionMapping, positionMap, routingAndMapping);
         ActorRef proxy = createParticipantProxy(system, machineId, position, opcUaPort, positionLookup, routingAndMapping);
         return new ParticipantInfo(machineId, position, opcUaPort, remoteMachine, proxy);
+    }
+
+    /**
+     * We can use the information provided in routing and mapping combined with the position and capability mapping
+     * to automatically wire the turntable to the other participants
+     */
+    private static void wireTurntableToOtherMachines(ActorRef remoteMachine,
+                                                     Position selfPos,
+                                                     TurntableCapabilityToPositionMapping capToPositionMapping,
+                                                     PositionMap positionMap,
+                                                     TransportRoutingAndMappingInterface routingAndMapping) {
+        try {
+            WiringInfo wiringInfo;
+            for (Position targetPos : capToPositionMapping.getAllMappedPositions()) {
+                if (targetPos.equals(selfPos)) continue;  //We don't need to wire ourselves
+                wiringInfo = createWiringInfoForActorAtPosition(targetPos, selfPos, positionMap, routingAndMapping);
+                remoteMachine.tell(new WiringRequest("VirtualTTFactory", wiringInfo), ActorRef.noSender());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -72,7 +119,7 @@ public class VirtualTurntableFactory {
         NodeId transportReq = NodeId.parse("ns=2;s=" + machineId + "/TransportRequest");
         NodeId stateVar = NodeId.parse("ns=2;s=" + machineId + "/STATE");
         //We get the capability
-        AbstractCapability capability = IOStationCapability.getOutputStationCapability();
+        AbstractCapability capability = TransportModuleCapability.getTransportCapability();
 
         try {
             //We create a client and connect to the machine. Then we use it in the opcua wrapper
@@ -105,5 +152,25 @@ public class VirtualTurntableFactory {
         actor.setDisplayName(machineName);
         actor.setUri(localhostOpcUaPrefix + opcUaPort + "/" + machineName);
         return actor;
+    }
+
+    private static WiringInfo createWiringInfoForActorAtPosition(Position targetPos, Position selfPos, PositionMap positionMap, TransportRoutingAndMappingInterface routing) throws Exception {
+        String localCapId = routing.getCapabilityIdForPosition(targetPos, selfPos)
+                .orElseThrow(() -> new Exception("Could not find cap id for target position " + targetPos + " in routing"));
+        String remoteMachineId = positionMap.getMachineIdForPosition(routing.getPositionForCapability(localCapId, selfPos))
+                .orElseThrow(() -> new Exception("Could not find position for capability " + localCapId + " in routing"));
+
+        String remoteCapId = "DefaultHandshakeServerSide";
+        String remoteEndpointURL = localhostOpcUaPrefix + positionMap.getOpcUaPortForId(remoteMachineId);
+        String remoteNodeId = "ns=2;" + remoteMachineId + "HANDSHAKE_FU/CAPABILITIES/CAPABILITY";
+        String remoteRole = "RemoteRole1";
+
+        return WiringInfoBuilder.create()
+                .setLocalCapabilityId(localCapId)
+                .setRemoteCapabilityId(remoteCapId)
+                .setRemoteEndpointURL(remoteEndpointURL)
+                .setRemoteNodeId(remoteNodeId)
+                .setRemoteRole(remoteRole)
+                .build();
     }
 }

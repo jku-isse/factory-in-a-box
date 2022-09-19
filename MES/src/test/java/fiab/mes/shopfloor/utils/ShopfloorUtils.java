@@ -2,9 +2,13 @@ package fiab.mes.shopfloor.utils;
 
 import com.google.common.collect.Lists;
 import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
+import fiab.mes.shopfloor.participants.ParticipantInfo;
+import fiab.mes.shopfloor.participants.PositionMap;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookupInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 public class ShopfloorUtils {
@@ -20,22 +24,6 @@ public class ShopfloorUtils {
     public static String PLOTTER_GREEN = "PLOTTER_GREEN";
     public static String PLOTTER_RED = "PLOTTER_RED";
 
-    public static Map<TransportRoutingInterface.Position, Set<TransportRoutingInterface.Position>> createRouterConnections(Map<String, TransportRoutingInterface.Position> positionMap) {
-        Map<TransportRoutingInterface.Position, Set<TransportRoutingInterface.Position>> routerConnections = new HashMap<>();
-        routerConnections.put(positionMap.get(TURNTABLE_1),
-                Set.of(positionMap.get(TURNTABLE_2),
-                        positionMap.get(INPUT_STATION),
-                        positionMap.get(PLOTTER_GREEN),
-                        positionMap.get(PLOTTER_BLACK)));
-        routerConnections.put(positionMap.get(TURNTABLE_2),
-                Set.of(positionMap.get(OUTPUT_STATION),
-                        positionMap.get(TURNTABLE_1),
-                        positionMap.get(PLOTTER_RED),
-                        positionMap.get(PLOTTER_BLUE)));
-
-        return routerConnections;
-    }
-
     public static Map<TransportRoutingInterface.Position, TransportRoutingInterface.Position> createEdgeNodeMappingFromRouterConnections(Map<TransportRoutingInterface.Position, Set<TransportRoutingInterface.Position>> routerConnections) {
         Map<TransportRoutingInterface.Position, TransportRoutingInterface.Position> edgeNodeMapping = new HashMap<>();
         Set<TransportRoutingInterface.Position> destinations = routerConnections.keySet();
@@ -48,24 +36,38 @@ public class ShopfloorUtils {
         return edgeNodeMapping;
     }
 
-    public static TransportPositionLookupAndParser createPositionToPortMapping(final Map<String, TransportRoutingInterface.Position> positionMap) {
+    public static TransportPositionLookupAndParser createPositionToPortMapping(final PositionMap positionMap) {
         //We create a new LookupInterface that returns the predefined positions in positionMap for a given actorId
+
         return new TransportPositionLookupAndParser() {
+            private final HashMap<Integer, TransportRoutingInterface.Position> parserLookupTable = new HashMap<>();
+
             @Override
             public TransportRoutingInterface.Position parsePosViaPortNr(String uriAsString) {
-                //FIXME Very ugly workaround. Would not work if there exist both TT1 and TT11 for example
-                for(String machineId : positionMap.keySet()){
-                    if(machineId.toLowerCase(Locale.ROOT).contains(machineId)) return positionMap.get(machineId);
+                try {
+                    URI uri = new URI(uriAsString);
+                    int port = uri.getPort();
+                    if (parserLookupTable.containsKey(port)) {
+                        return parserLookupTable.get(port);
+                    } else {
+                        TransportRoutingInterface.Position position = TransportRoutingInterface.UNKNOWN_POSITION;
+                        for (ParticipantInfo info : positionMap.values()) {
+                            if (port == info.getOpcUaPort()) {
+                                position = info.getPosition();
+                                parserLookupTable.put(port, position);
+                            }
+                        }
+                        return position;
+                    }
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
                 }
                 return TransportRoutingInterface.UNKNOWN_POSITION;
             }
 
             @Override
             public TransportRoutingInterface.Position parseLastIPPos(String uriAsString) {
-                for(String machineId : positionMap.keySet()){
-                    if(machineId.toLowerCase(Locale.ROOT).contains(machineId)) return positionMap.get(machineId);
-                }
-                return TransportRoutingInterface.UNKNOWN_POSITION;
+                return parsePosViaPortNr(uriAsString);
             }
 
             private final HashMap<TransportRoutingInterface.Position, AkkaActorBackedCoreModelAbstractActor> lookupTable = new HashMap<>();
@@ -73,7 +75,7 @@ public class ShopfloorUtils {
             @Override
             public TransportRoutingInterface.Position getPositionForActor(AkkaActorBackedCoreModelAbstractActor actor) {
                 //Here we get the position for a known machine id defined in positionMap and store it in lookuptable
-                TransportRoutingInterface.Position pos = positionMap.get(actor.getId());
+                TransportRoutingInterface.Position pos = positionMap.get(actor.getId()).getPosition();
                 if (pos != TransportRoutingInterface.UNKNOWN_POSITION)
                     lookupTable.put(pos, actor);
                 return pos;
@@ -86,17 +88,17 @@ public class ShopfloorUtils {
         };
     }
 
-    public static TransportRoutingAndMappingInterface createRoutesAndCapabilityMapping(Map<String, TransportRoutingInterface.Position> positionMap,
-                                                                                 Map<TransportRoutingInterface.Position, TransportRoutingInterface.Position> edgeNodeMapping,
-                                                                                 Map<TransportRoutingInterface.Position, Set<TransportRoutingInterface.Position>> routerConnections,
-                                                                                 TurntableCapabilityToPositionMapping tt1mapping,
-                                                                                 TurntableCapabilityToPositionMapping tt2mapping) {
+    public static TransportRoutingAndMappingInterface createRoutesAndCapabilityMapping(PositionMap positionMap,
+                                                                                       Map<TransportRoutingInterface.Position, TransportRoutingInterface.Position> edgeNodeMapping,
+                                                                                       Map<TransportRoutingInterface.Position, Set<TransportRoutingInterface.Position>> routerConnections,
+                                                                                       TurntableCapabilityToPositionMapping tt1mapping,
+                                                                                       TurntableCapabilityToPositionMapping tt2mapping) {
         return new TransportRoutingAndMappingInterface() {
             @Override
             public Position getPositionForCapability(String capabilityId, Position selfPos) {
-                if (selfPos.equals(positionMap.get(TURNTABLE_1))) {    //In case we are tt1
+                if (selfPos.equals(positionMap.getPositionForId(TURNTABLE_1))) {    //In case we are tt1
                     return tt1mapping.getPositionForCapability(capabilityId);
-                } else if (selfPos.equals(positionMap.get(TURNTABLE_2))) {  //In case we are tt2
+                } else if (selfPos.equals(positionMap.getPositionForId(TURNTABLE_2))) {  //In case we are tt2
                     return tt2mapping.getPositionForCapability(capabilityId);
                 }
                 return TransportRoutingAndMappingInterface.UNKNOWN_POSITION;
@@ -104,9 +106,9 @@ public class ShopfloorUtils {
 
             @Override
             public Optional<String> getCapabilityIdForPosition(Position pos, Position selfPos) {
-                if (selfPos.equals(positionMap.get(TURNTABLE_1))) {    //In case we are tt1
+                if (selfPos.equals(positionMap.getPositionForId(TURNTABLE_1))) {    //In case we are tt1
                     return tt1mapping.getCapabilityForPosition(pos);
-                } else if (selfPos.equals(positionMap.get(TURNTABLE_2))) {  //In case we are tt2
+                } else if (selfPos.equals(positionMap.getPositionForId(TURNTABLE_2))) {  //In case we are tt2
                     return tt2mapping.getCapabilityForPosition(pos);
                 }
                 return Optional.empty();
@@ -114,7 +116,7 @@ public class ShopfloorUtils {
 
             @Override
             public List<Position> calculateRoute(Position fromMachine, Position toMachine) throws RoutingException {
-                if (!routerConnections.containsKey(fromMachine) || !routerConnections.getOrDefault(fromMachine, new HashSet<>()).contains(fromMachine))
+                if (!edgeNodeMapping.containsKey(fromMachine))
                     throw new RoutingException("Source position not known", RoutingException.Error.UNKNOWN_POSITION);
                 if (!edgeNodeMapping.containsKey(toMachine))
                     throw new RoutingException("Destination position not known", RoutingException.Error.UNKNOWN_POSITION);
@@ -131,6 +133,8 @@ public class ShopfloorUtils {
                 route.add(toMachine);
                 return route;
             }
+
+
 
             private boolean isDirectlyConnected(Position pos1, Position pos2) {
                 return (edgeNodeMapping.get(pos1).equals(pos2) || edgeNodeMapping.get(pos2).equals(pos1));
