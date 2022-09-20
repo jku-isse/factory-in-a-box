@@ -74,8 +74,6 @@ public class DefaultLayout {
         eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
     }
 
-    ;
-
     public void setupIOStations(int inStationPortOffset, int outStationPortOffset) {
         partsIn = VirtualIOStationActorFactory.getInputStationForPosition(system, eventBusByRef, engageAutoReload, inStationPortOffset);
         partsIn.proxy.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, ActorRef.noSender());

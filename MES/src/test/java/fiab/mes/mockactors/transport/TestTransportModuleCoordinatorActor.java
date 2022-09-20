@@ -12,10 +12,7 @@ import fiab.functionalunit.connector.FUSubscriptionClassifier;
 import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.functionalunit.connector.MachineEventBus;
 import fiab.mes.shopfloor.DefaultTestLayout;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,26 +35,24 @@ import static fiab.mes.shopfloor.utils.ShopfloorUtils.TURNTABLE_2;
 @Tag("IntegrationTest")
 public class TestTransportModuleCoordinatorActor { 
 
-	protected static ActorSystem system;
-	protected static ActorRef machine;
-	public static String ROOT_SYSTEM = "TEST_TTINTEGRATION";
+	protected ActorSystem system;
+	protected ActorRef machine;
+	private ActorRef interMachineEventBus;
+	public final String ROOT_SYSTEM = "TEST_TTINTEGRATION";
 	protected OrderProcess op;
 	
 	private static final Logger logger = LoggerFactory.getLogger(TestTransportModuleCoordinatorActor.class);
 	
-	@BeforeAll
-	static void setUpBeforeClass() throws Exception {		
+	@BeforeEach
+	public void setup() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
 	}
 
-	
-	@AfterAll
-	public static void teardown() {
+	@AfterEach
+	public void teardown() {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;
 	}
-
-	
 
 	@Test
 	void testSetupMinimalShopfloor() throws InterruptedException, ExecutionException {
@@ -82,7 +77,7 @@ public class TestTransportModuleCoordinatorActor {
 				boolean hasSentReq = false;
 				boolean doRun = true;
 				while (doRun) {
-					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineUpdateEvent.class);
+					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(30), MachineUpdateEvent.class);
 					logEvent(mue);
 					if (mue instanceof MachineStatusUpdateEvent) {
 						if (((MachineStatusUpdateEvent) mue).getStatus().equals(BasicMachineStates.IDLE) && !hasSentReq) {
@@ -135,7 +130,7 @@ public class TestTransportModuleCoordinatorActor {
 				boolean hasSentReqTT2 = false;
 				boolean doRun = true;
 				while (doRun) {
-					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineUpdateEvent.class);
+					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(30), MachineUpdateEvent.class);
 					logEvent(mue);
 					if (mue instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent)mue;
@@ -160,7 +155,7 @@ public class TestTransportModuleCoordinatorActor {
 	void testSetup2TTplusIONew() throws InterruptedException, ExecutionException {
 		new TestKit(system) {
 			{
-				DefaultTestLayout layout = new DefaultTestLayout(system);
+				DefaultTestLayout layout = new DefaultTestLayout(system, interMachineEventBus);
 				layout.initializeDefaultLayoutWithProxies();
 				ActorRef ttWrapper1 = layout.getMachineProxyById(TURNTABLE_1);
 				ActorRef ttWrapper2 = layout.getMachineProxyById(TURNTABLE_2);
@@ -169,7 +164,7 @@ public class TestTransportModuleCoordinatorActor {
 				boolean hasSentReqTT2 = false;
 				boolean doRun = true;
 				while (doRun) {
-					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(3600), MachineUpdateEvent.class);
+					MachineUpdateEvent mue = expectMsgClass(Duration.ofSeconds(30), MachineUpdateEvent.class);
 					logEvent(mue);
 					if (mue instanceof MachineStatusUpdateEvent) {
 						MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent)mue;

@@ -107,8 +107,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 	private void connectToServer(BrowseRequest req) {
 		try {
 			//client = new OPCUAClientFactory().createClient(req.endpointURL);	//Deprecated
-			client = OPCUAClientFactory.createFIABClient(req.endpointURL);
-			client.connect().get();
+			client = OPCUAClientFactory.createFIABClientAndConnect(req.endpointURL);
 			this.status = DISCOVERY_STATUS.CONNECTED;
 			log.info("Connected to "+req.endpointURL);
 			getActorCapabilities(req, client, Identifiers.RootFolder);

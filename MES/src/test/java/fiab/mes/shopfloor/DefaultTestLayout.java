@@ -1,6 +1,7 @@
 package fiab.mes.shopfloor;
 
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import fiab.core.capabilities.basicmachine.events.MachineStatusUpdateEvent;
 import fiab.core.capabilities.functionalunit.ResetRequest;
@@ -23,6 +24,7 @@ import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import org.apache.commons.httpclient.methods.multipart.Part;
 
+import java.time.Duration;
 import java.util.*;
 
 import static fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers.*;
@@ -35,7 +37,7 @@ public class DefaultTestLayout {
 
     public static void main(String[] args) {
         ActorSystem system = ActorSystem.create("Playground");
-        DefaultTestLayout layout = new DefaultTestLayout(system);
+        DefaultTestLayout layout = new DefaultTestLayout(system, system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME));
         layout.initializeDefaultLayout();
         //layout.initializeDefaultLayoutWithProxies();
         layout.printParticipantInfos();
@@ -52,10 +54,10 @@ public class DefaultTestLayout {
 
 
     //Don't forget to call initialize!!!
-    public DefaultTestLayout(ActorSystem system) {
+    public DefaultTestLayout(ActorSystem system, ActorRef interMachineEventBus) {
         this.system = system;
         this.participants = new ArrayList<>();
-        interMachineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        this.interMachineEventBus = interMachineEventBus;
 
         positionMap = createPositionMapForDefaultLayout();
         positionLookup = ShopfloorUtils.createPositionToPortMapping(positionMap);
@@ -71,12 +73,14 @@ public class DefaultTestLayout {
     public void initializeDefaultLayout() {
         participants.add(VirtualInputStationFactory.initInputStationAndReturnInfo(system, INPUT_STATION, positionMap));
         participants.add(VirtualOutputStationFactory.initOutputStationAndReturnInfo(system, OUTPUT_STATION, positionMap));
-        participants.add(VirtualTurntableFactory.initTurntableAndReturnInfo(system, TURNTABLE_1, tt1mapping, positionMap, transportRouting));
-        participants.add(VirtualTurntableFactory.initTurntableAndReturnInfo(system, TURNTABLE_2, tt2mapping, positionMap, transportRouting));
+
         participants.add(VirtualPlotterFactory.initPlotterAndReturnInfo(system, PLOTTER_BLACK, SupportedColors.BLACK, positionMap));
         participants.add(VirtualPlotterFactory.initPlotterAndReturnInfo(system, PLOTTER_BLUE, SupportedColors.BLUE, positionMap));
         participants.add(VirtualPlotterFactory.initPlotterAndReturnInfo(system, PLOTTER_GREEN, SupportedColors.GREEN, positionMap));
         participants.add(VirtualPlotterFactory.initPlotterAndReturnInfo(system, PLOTTER_RED, SupportedColors.RED, positionMap));
+
+        participants.add(VirtualTurntableFactory.initTurntableAndReturnInfo(system, TURNTABLE_1, tt1mapping, positionMap, transportRouting));
+        participants.add(VirtualTurntableFactory.initTurntableAndReturnInfo(system, TURNTABLE_2, tt2mapping, positionMap, transportRouting));
     }
 
     public void initializeDefaultLayoutWithProxies() {
@@ -133,10 +137,6 @@ public class DefaultTestLayout {
 
     public TransportRoutingAndMappingInterface getTransportRoutingAndMapping() {
         return transportRouting;
-    }
-
-    public ActorRef getInterMachineEventBus() {
-        return interMachineEventBus;
     }
 
     public void subscribeToMachineEventBus(ActorRef subscriber, String subscriberName) {

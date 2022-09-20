@@ -70,8 +70,6 @@ public class TurntableProxyTest {
         };
     }
 
-    //TODO find out how to easily test full transport
-
     private void expectMachineStatusUpdate(TestKit probe, BasicMachineStates state){
         MachineStatusUpdateEvent event = probe.expectMsgClass(Duration.ofSeconds(10), MachineStatusUpdateEvent.class);
         assertEquals(state, event.getStatus());

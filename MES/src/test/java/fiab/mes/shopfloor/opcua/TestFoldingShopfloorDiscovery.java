@@ -166,20 +166,20 @@ public class TestFoldingShopfloorDiscovery {
 
     public Set<String> getLocalhostLayout() {
         Set<String> urlsToBrowse = new HashSet<String>();
-        urlsToBrowse.add("opc.tcp://localhost:4840/milo"); //Input
-        urlsToBrowse.add("opc.tcp://localhost:4841/milo"); //Plot
-        urlsToBrowse.add("opc.tcp://localhost:4842/milo"); //Output
-        urlsToBrowse.add("opc.tcp://localhost:4843/milo"); //TT1
-        urlsToBrowse.add("opc.tcp://localhost:4844/milo"); //TT2
-        urlsToBrowse.add("opc.tcp://localhost:4845/milo"); //Plot
-        urlsToBrowse.add("opc.tcp://localhost:4846/milo"); //Plot
+        urlsToBrowse.add("opc.tcp://localhost:4840"); //Input
+        urlsToBrowse.add("opc.tcp://localhost:4841"); //Plot
+        urlsToBrowse.add("opc.tcp://localhost:4842"); //Output
+        urlsToBrowse.add("opc.tcp://localhost:4843"); //TT1
+        urlsToBrowse.add("opc.tcp://localhost:4844"); //TT2
+        urlsToBrowse.add("opc.tcp://localhost:4845"); //Plot
+        urlsToBrowse.add("opc.tcp://localhost:4846"); //Plot
 
-        urlsToBrowse.add("opc.tcp://localhost:4849/milo"); //Fold
-        urlsToBrowse.add("opc.tcp://localhost:4850/milo"); //Fold
-        urlsToBrowse.add("opc.tcp://localhost:4851/milo"); //Fold
-        urlsToBrowse.add("opc.tcp://localhost:4852/milo"); //Transit
-        urlsToBrowse.add("opc.tcp://localhost:4853/milo"); //TT3
-        urlsToBrowse.add("opc.tcp://localhost:4854/milo"); //Output
+        urlsToBrowse.add("opc.tcp://localhost:4849"); //Fold
+        urlsToBrowse.add("opc.tcp://localhost:4850"); //Fold
+        urlsToBrowse.add("opc.tcp://localhost:4851"); //Fold
+        urlsToBrowse.add("opc.tcp://localhost:4852"); //Transit
+        urlsToBrowse.add("opc.tcp://localhost:4853"); //TT3
+        urlsToBrowse.add("opc.tcp://localhost:4854"); //Output
         return urlsToBrowse;
     }
 

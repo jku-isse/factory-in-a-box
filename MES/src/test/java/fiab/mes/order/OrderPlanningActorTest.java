@@ -4,6 +4,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
 
+import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.shopfloor.DefaultTestLayout;
+import fiab.mes.shopfloor.utils.TransportPositionLookupAndParser;
+import fiab.mes.shopfloor.utils.TransportRoutingAndMappingInterface;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
@@ -41,53 +45,53 @@ class OrderPlanningActorTest {
 	protected static ActorRef orderEventBus;
 	protected static ActorRef orderPlanningActor;
 	protected static ActorRef coordActor;
-	protected static DefaultLayout layout;
+	protected static DefaultTestLayout layout;
 	
 	private static final Logger logger = LoggerFactory.getLogger(OrderPlanningActorTest.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 	
-	@BeforeAll
-	public static void setUpBeforeClass() throws Exception {
+	@BeforeEach
+	public void setup() throws Exception {
 		// setup shopfloor
 		// setup machines
 		// setup processes
 		// setup order actors?
 		// add processes to orderplanning actor
 		system = ActorSystem.create(ROOT_SYSTEM);
-		HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-		DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
-		layout = new DefaultLayout(system);
+		//HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
+		//DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
+		//layout = new DefaultLayout(system);
+		ActorRef interMachineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		layout = new DefaultTestLayout(system, interMachineEventBus);
+		TransportRoutingAndMappingInterface routing = layout.getTransportRoutingAndMapping();
+		TransportPositionLookupAndParser dns = layout.getTransportPositionLookup();
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
-
-		
+		knownActors.clear();
 	}
 
-	@AfterAll
-	public static void teardown() {
+	@AfterEach
+	public void teardown() {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;
 	}
-
-	@BeforeEach
-	public void setupBeforeEach() {
-		knownActors.clear();
-	}
 	
 	
-	@Test //WORKS
-	void testInitOrderPlannerWithTransport() throws Exception {
+	@Test
+	void testInitOrderPlannerWithTransport() {
 		new TestKit(system) { 
 			{ 															
 				String oid = "Order1";
-				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
-				layout.setupTwoTurntableWith2MachinesAndIO();				
+				//layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				//layout.setupTwoTurntableWith2MachinesAndIO();
+				layout.subscribeToMachineEventBus(getRef(), "Tester");
+				layout.initializeDefaultLayoutWithProxies();
 				orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", oid)), getRef() );
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
 						 isPlannerFunctional = true;
@@ -108,13 +112,15 @@ class OrderPlanningActorTest {
 		};
 	}
 	
-	@Test //WORKS
-	void testInitOrderPlannerWithSingleStepProcessAndTransport() throws Exception {
+	@Test
+	void testInitOrderPlannerWithSingleStepProcessAndTransport() {
 		new TestKit(system) { 
 			{ 															
 				String oid = "Order1";
-				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
-				layout.setupTwoTurntableWith2MachinesAndIO();	
+				//layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				//layout.setupTwoTurntableWith2MachinesAndIO();
+				layout.subscribeToMachineEventBus(getRef(), "Tester");
+				layout.initializeDefaultLayoutWithProxies();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -158,8 +164,10 @@ class OrderPlanningActorTest {
 	void testInitOrderPlannerWithMultipleSingleStepProcessesAndTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
-				layout.setupTwoTurntableWith2MachinesAndIO();	
+				//layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				//layout.setupTwoTurntableWith2MachinesAndIO();
+				layout.subscribeToMachineEventBus(getRef(), "Tester");
+				layout.initializeDefaultLayoutWithProxies();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -217,8 +225,10 @@ class OrderPlanningActorTest {
 	void testInitOrderPlannerWithMultipleParallelSingleStepProcessesAndTransport() throws Exception {
 		new TestKit(system) { 
 			{ 															
-				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );							
-				layout.setupTwoTurntableWith2MachinesAndIO();	
+				//layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				//layout.setupTwoTurntableWith2MachinesAndIO();
+				layout.subscribeToMachineEventBus(getRef(), "Tester");
+				layout.initializeDefaultLayoutWithProxies();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -277,8 +287,10 @@ class OrderPlanningActorTest {
 		new TestKit(system) {
 			{
 				String oid = "Order1";
-				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				layout.setupTwoTurntableWith2FoldingStationsAndIO();
+				//layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				//layout.setupTwoTurntableWith2FoldingStationsAndIO();
+				layout.subscribeToMachineEventBus(getRef(), "Tester");
+				layout.initializeDefaultLayoutWithProxies();
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {

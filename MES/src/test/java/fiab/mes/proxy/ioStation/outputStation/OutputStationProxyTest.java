@@ -63,10 +63,13 @@ public class OutputStationProxyTest {
 
                 MachineConnectedEvent event = expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
 
-                expectIOStatusUpdate(this, ServerSideStates.STOPPED);
+                //expectIOStatusUpdate(this, ServerSideStates.STOPPED);
                 //Automatic reset from proxy is called here
-                expectIOStatusUpdate(this, ServerSideStates.RESETTING);
-                expectIOStatusUpdate(this, ServerSideStates.IDLE_EMPTY);
+                //expectIOStatusUpdate(this, ServerSideStates.RESETTING);
+                //expectIOStatusUpdate(this, ServerSideStates.IDLE_EMPTY);
+                fishForMessage(Duration.ofSeconds(30), "Wait for resetting to finish", msg ->
+                        msg instanceof IOStationStatusUpdateEvent &&
+                                ((IOStationStatusUpdateEvent) msg).getStatus() == ServerSideStates.IDLE_EMPTY);
 
                 actor.tell(new StopRequest(getRef().path().name()), ActorRef.noSender());
                 //expectIOStatusUpdate(this, ServerSideStates.STOPPING);    proxy ignores stopping
@@ -86,9 +89,12 @@ public class OutputStationProxyTest {
 
                 expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
 
-                expectIOStatusUpdate(this, ServerSideStates.STOPPED);
-                expectIOStatusUpdate(this, ServerSideStates.RESETTING);
-                expectIOStatusUpdate(this, ServerSideStates.IDLE_EMPTY);
+                //expectIOStatusUpdate(this, ServerSideStates.STOPPED);
+                //expectIOStatusUpdate(this, ServerSideStates.RESETTING);
+                //expectIOStatusUpdate(this, ServerSideStates.IDLE_EMPTY);
+                fishForMessage(Duration.ofSeconds(30), "Wait for resetting to finish", msg ->
+                        msg instanceof IOStationStatusUpdateEvent &&
+                                ((IOStationStatusUpdateEvent) msg).getStatus() == ServerSideStates.IDLE_EMPTY);
 
                 actor.tell(new InitiateHandoverRequest(getRef().path().name()), getRef());
                 //expectIOStatusUpdate(this, ServerSideStates.PREPARING);      //Seems to be skipped by proxy

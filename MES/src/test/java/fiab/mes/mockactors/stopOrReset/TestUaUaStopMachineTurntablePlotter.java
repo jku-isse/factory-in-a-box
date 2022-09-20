@@ -68,7 +68,8 @@ class TestUaUaStopMachineTurntablePlotter {
         //HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
         //DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
         //layout = new DefaultLayout(system);
-        layout = new DefaultTestLayout(system);
+        ActorRef interMachineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        layout = new DefaultTestLayout(system, interMachineEventBus);
         orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         coordActor = system.actorOf(TransportSystemCoordinatorActor.props(layout.getTransportRoutingAndMapping(), layout.getTransportPositionLookup(), 2), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
         orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
@@ -94,7 +95,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < 8) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -119,7 +120,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 boolean sentStop = false;
                 boolean machineStopped = false;
                 while (!order1Done || !machineStopped) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(600), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof OrderEvent) {
                         OrderEvent oe = (OrderEvent) te;
@@ -159,7 +160,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < 8) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -184,7 +185,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 boolean sentStop = false;
                 boolean machineStopped = false;
                 while (!order1Done || !machineStopped) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof OrderEvent) {
                         OrderEvent oe = (OrderEvent) te;
@@ -223,7 +224,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < 8) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -248,7 +249,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 boolean sentStop = false;
                 boolean machineStopped = false;
                 while (!order1Done || !machineStopped) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof OrderEvent) {
                         OrderEvent oe = (OrderEvent) te;

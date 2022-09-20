@@ -5,13 +5,12 @@ import ProcessCore.AbstractCapability;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
-import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.transport.TransportModuleCapability;
+import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.core.capabilities.wiring.WiringInfoBuilder;
 import fiab.functionalunit.connector.MachineEventBus;
 import fiab.handshake.client.messages.WiringRequest;
-import fiab.iostation.OutputStationFactory;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.shopfloor.participants.ParticipantInfo;
 import fiab.mes.shopfloor.participants.PositionMap;
@@ -20,20 +19,25 @@ import fiab.mes.shopfloor.utils.TurntableCapabilityToPositionMapping;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
 import fiab.mes.transport.actor.transportmodule.wrapper.TransportModuleOPCUAWrapper;
 import fiab.mes.transport.actor.transportsystem.TransportPositionLookupInterface;
-import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.opcua.client.FiabOpcUaClient;
 import fiab.opcua.client.OPCUAClientFactory;
 import fiab.turntable.TurntableFactory;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import testutils.PortUtils;
 
-import java.util.Map;
+import java.util.List;
 
 import static fiab.mes.shopfloor.participants.ParticipantInfo.WRAPPER_POSTFIX;
 import static fiab.mes.shopfloor.participants.ParticipantInfo.localhostOpcUaPrefix;
 
 public class VirtualTurntableFactory {
+
+    public static List<String> serverHandshakeCapabilities = List.of(
+            TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SELF,    //We include ourselves as well
+            TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_NORTH_SERVER,
+            TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_EAST_SERVER,
+            TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_SOUTH_SERVER,
+            TurntableModuleWellknownCapabilityIdentifiers.TRANSPORT_MODULE_WEST_SERVER);
 
     /**
      * Starts a new turntable instance at an arbitrary free opcua port and a given position on the shopfloor
@@ -93,6 +97,7 @@ public class VirtualTurntableFactory {
             for (Position targetPos : capToPositionMapping.getAllMappedPositions()) {
                 if (targetPos.equals(selfPos)) continue;  //We don't need to wire ourselves
                 wiringInfo = createWiringInfoForActorAtPosition(targetPos, selfPos, positionMap, routingAndMapping);
+                if(serverHandshakeCapabilities.contains(wiringInfo.getLocalCapabilityId())) continue;   //We skip server nodes
                 remoteMachine.tell(new WiringRequest("VirtualTTFactory", wiringInfo), ActorRef.noSender());
             }
         } catch (Exception e) {

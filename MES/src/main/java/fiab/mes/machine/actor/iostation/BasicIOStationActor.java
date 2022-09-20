@@ -48,9 +48,6 @@ public class BasicIOStationActor extends AbstractActor {
     private String lastOrder;
     protected RegisterProcessStepRequest reservedForOrder = null;
 
-    //These state updates are published before the actual machine sets it's state
-    private Set<ServerSideStates> aheadOfTimeStateUpdates = Set.of(ServerSideStates.RESETTING, ServerSideStates.STOPPING);
-
     static public Props props(ActorSelection machineEventBus, AbstractCapability cap, Actor modelActor, IOStationWrapperInterface hal, MachineEventBus intraBus) {
         return Props.create(BasicIOStationActor.class, () -> new BasicIOStationActor(machineEventBus, cap, modelActor, hal, intraBus));
     }
@@ -151,7 +148,7 @@ public class BasicIOStationActor extends AbstractActor {
     private void processIOStationStatusUpdateEvent(IOStationStatusUpdateEvent mue) {
         if (mue.getParameterName().equals(IOStationCapability.OPCUA_STATE_SERVERSIDE_VAR_NAME)) {
             ServerSideStates newState = mue.getStatus();
-            if (!aheadOfTimeStateUpdates.contains(newState)) {
+            if (currentState != newState) {
                 setAndPublishSensedState(newState);    //Avoid sending duplicate events
             }
             switch (newState) {
@@ -174,7 +171,6 @@ public class BasicIOStationActor extends AbstractActor {
                     break;
                 default:
                     break;
-
             }
         }
     }

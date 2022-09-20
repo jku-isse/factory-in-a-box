@@ -112,14 +112,15 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
 
         Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
         ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-        runTransportInputToOutputStation(capURI2Spawning, urlsToBrowse, 1);
+        runTransportInputToOutputStation(capURI2Spawning, urlsToBrowse, 1); //FIXME Transport unit sees two input stations here? Probably spawners are incorrect
     }
 
     @Test
     @Tag("IntegrationTest")
     void virtualIOandTwoTTs() {
-        DefaultTestLayout layout = new DefaultTestLayout(system);
-        layout.initializeDefaultLayoutWithProxies();
+        DefaultTestLayout layout = new DefaultTestLayout(system, machineEventBus);
+        //layout.initializeDefaultLayoutWithProxies();
+        layout.initializeDefaultLayout();
         List<ParticipantInfo> participants = layout.getParticipants();
         Set<String> urlsToBrowse = new HashSet<String>();
         for (ParticipantInfo participantInfo : participants) {
@@ -164,10 +165,12 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
                     if (te instanceof MachineConnectedEvent) {
                         MachineConnectedEvent connectedEvent = ((MachineConnectedEvent) te);
                         machines.put(connectedEvent.getMachineId(), connectedEvent.getMachine());
-                        if (connectedEvent.getMachineId().toLowerCase(Locale.ROOT).contains("input"))
+                        if (connectedEvent.getMachineId().toLowerCase(Locale.ROOT).contains("input")) {
                             inputStationId = connectedEvent.getMachineId();
-                        if (connectedEvent.getMachineId().toLowerCase(Locale.ROOT).contains("output"))
-                            outputStationId = connectedEvent.getMachineId();
+                        }
+                        if (connectedEvent.getMachineId().toLowerCase(Locale.ROOT).contains("output")) {
+                            logger.info("Storing {} as outputStationId", connectedEvent.getMachineId());
+                        }
                     }
                     if (te instanceof MachineStatusUpdateEvent) {
                         MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
@@ -175,6 +178,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
                             machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
                         } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !didReactOnIdle) {
                             logger.info("Sending TEST transport request to: " + msue.getMachineId());
+                            //FIXME check why the id is null here
                             RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get(inputStationId), knownActors.get(outputStationId), "TestOrder1", getRef());
                             coordActor.tell(rtr, getRef());
                             didReactOnIdle = true;
@@ -199,10 +203,10 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
         return true;
     }
 
-    // Works
     @Test
     @Tag("IntegrationTest")
     void testHandoverWithVirtualIOStationsAndTTandVirtualPlotter() {
+        //FIXME how does this even spawn an actor if no opcua machines are running?
         new TestKit(system) {
             {
                 final ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -230,7 +234,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
                 boolean plotterReady = false;
                 boolean turntableReady = false;
                 while (machines.size() < urlsToBrowse.size() || doRun) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class, RegisterTransportRequestStatusResponse.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class, RegisterTransportRequestStatusResponse.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof MachineConnectedEvent) {
                         machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());

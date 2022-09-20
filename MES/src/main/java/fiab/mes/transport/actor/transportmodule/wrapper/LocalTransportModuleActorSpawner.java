@@ -96,7 +96,7 @@ public class LocalTransportModuleActorSpawner extends AbstractActor {
         try {
             TransportModuleOPCUAnodes nodeIds = retrieveNodeIds(req.getInfo());
             if (!nodeIds.isComplete()) {
-                log.error("Error obtaining methods and variables from OPCUA for spawning actor: " + nodeIds.toString());
+                log.error("Error obtaining methods and variables from OPCUA for spawning actor: " + nodeIds);
                 return;
             }
             log.info("Successfully retrieved node infos " + nodeIds);

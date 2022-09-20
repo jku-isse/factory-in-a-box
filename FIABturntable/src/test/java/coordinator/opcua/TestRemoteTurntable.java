@@ -1,24 +1,24 @@
 package coordinator.opcua;
 
+import akka.actor.ActorSystem;
 import fiab.opcua.client.FiabOpcUaClient;
 import fiab.opcua.client.OPCUAClientFactory;
+import fiab.turntable.TurntableFactory;
 import org.junit.jupiter.api.*;
 
 @Tag("SystemTest")
-public class TestRemoteTurntable {
+public class TestRemoteTurntable {  //TODO test remote machine
 
     private FiabOpcUaClient client;
 
     @BeforeAll
     public static void init(){
-        //TODO
     }
 
     @BeforeEach
     public void setup(){
         try {
-            client = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:4840");
-            client.connectFIABClient().get();
+            client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:4840");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -26,7 +26,7 @@ public class TestRemoteTurntable {
 
     @AfterEach
     public void teardown(){
-
+        client.disconnectClient();
     }
 
     @AfterAll
@@ -38,4 +38,6 @@ public class TestRemoteTurntable {
     public void testRemoteReset(){
 
     }
+
+
 }

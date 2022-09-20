@@ -231,7 +231,7 @@ public class BasicMachineActor extends AbstractActor{
 	private void plotUponLockForOrder(LockForOrder lockReq) {
 		if (currentState == BasicMachineStates.IDLE) {
     		// we need to extract from the reservedOrder the step, and from the step the input properties		        	
-			if (reservedForOrder != null || reservedForOrder.getProcessStepId().equals(lockReq.getStepId())) {
+			if (reservedForOrder != null || lockReq.getStepId().equals(reservedForOrder.getProcessStepId())) {
 				String imgName = "demo";
 				try {
 					imgName = extractInputFromProcessStep(reservedForOrder.getProcessStep());
