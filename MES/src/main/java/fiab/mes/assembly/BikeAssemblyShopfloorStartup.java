@@ -24,7 +24,7 @@ import java.util.concurrent.CompletionStage;
 
 public class BikeAssemblyShopfloorStartup extends AllDirectives {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         String jsonDiscoveryFile = System.getProperty("jsondiscoveryfile");
         System.out.println(jsonDiscoveryFile);
         int expectedTTs = Integer.parseInt(System.getProperty("expectedTTs", "0"));
@@ -40,7 +40,7 @@ public class BikeAssemblyShopfloorStartup extends AllDirectives {
                 .thenAccept(unbound -> system.terminate()); // and shutdown when done
     }
 
-    public static CompletionStage<ServerBinding> startup(String jsonDiscoveryFile, int expectedTTs, ActorSystem system) {
+    public static CompletionStage<ServerBinding> startup(String jsonDiscoveryFile, int expectedTTs, ActorSystem system) throws Exception {
         // boot up server using the route as defined below
         final Http http = Http.get(system);
 

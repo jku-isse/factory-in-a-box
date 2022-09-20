@@ -15,6 +15,9 @@ import fiab.mes.order.actor.OrderEntryActor;
 import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.shopfloor.DefaultLayout;
+import fiab.opcua.client.FiabOpcUaClient;
+import fiab.opcua.client.OPCUAClientFactory;
+import fiab.opcua.server.OPCUABase;
 import fiab.plotter.PlotterFactory;
 import org.junit.jupiter.api.*;
 
@@ -31,19 +34,25 @@ public class TestBikeAssemblyInfrastructure {
 
     @BeforeEach
     public void setup() {
-        system = ActorSystem.create("BikeTestActorSystem");
-        //BikeAssemblyInfrastructure shopfloor = new BikeAssemblyInfrastructure(system);
-        orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-        machineEventBus = new MachineEventBus();
-        ActorRef machineEventBusWrapper = system.actorOf(InterMachineEventBusWrapperActor.propsWithPreparedBus(machineEventBus), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-        monitorEventBus = system.actorOf(AssemblyMonitoringEventBusWrapperActor.props(), AssemblyMonitoringEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        try {
+            system = ActorSystem.create("BikeTestActorSystem");
+            OPCUABase server = OPCUABase.createAndStartLocalServer(4840, "MonitoringServer");
 
-        ActorRef transportActor = system.actorOf(DummyTransportSystemCoordinatorActor.props(), DummyTransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
-        ActorRef monitoringActor = system.actorOf(AssemblyMonitoringActor.props(), AssemblyMonitoringActor.WELLKNOWN_LOOKUP_NAME);
-        orderPlanningActor = system.actorOf(BikeAssemblyOrderPlanningActor.props(), BikeAssemblyOrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
+            //BikeAssemblyInfrastructure shopfloor = new BikeAssemblyInfrastructure(system);
+            orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+            machineEventBus = new MachineEventBus();
+            ActorRef machineEventBusWrapper = system.actorOf(InterMachineEventBusWrapperActor.propsWithPreparedBus(machineEventBus), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+            monitorEventBus = system.actorOf(AssemblyMonitoringEventBusWrapperActor.props(), AssemblyMonitoringEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 
-        orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
-        ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
+            ActorRef transportActor = system.actorOf(DummyTransportSystemCoordinatorActor.props(), DummyTransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+            ActorRef monitoringActor = system.actorOf(AssemblyMonitoringActor.props(server), AssemblyMonitoringActor.WELLKNOWN_LOOKUP_NAME);
+            orderPlanningActor = system.actorOf(BikeAssemblyOrderPlanningActor.props(), BikeAssemblyOrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
+
+            orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
+            ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @AfterEach
@@ -57,7 +66,7 @@ public class TestBikeAssemblyInfrastructure {
         new TestKit(system) {
             {
                 new DefaultLayout(system, false).setupIOStations(34, 35);
-                PlotterFactory.startPlotter(system, machineEventBus,4840, "ChangeToSomethingDifferent", WellknownPlotterCapability.SupportedColors.BLACK);
+                PlotterFactory.startPlotter(system, machineEventBus, 4840, "ChangeToSomethingDifferent", WellknownPlotterCapability.SupportedColors.BLACK);
                 monitorEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
                 RegisterProcessRequest req = createSinglePrintRedOrder("Test", getRef());
                 orderEntryActor.tell(req, getRef());
