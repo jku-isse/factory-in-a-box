@@ -6,48 +6,47 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.basicmachine.events.MachineEvent;
 import fiab.functionalunit.connector.MachineEventBus;
+import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.eventbus.SubscribeMessage;
+import fiab.mes.eventbus.UnsubscribeMessage;
 import fiab.mes.machine.msg.OrderRelocationNotification;
+import fiab.mes.order.msg.RegisterProcessRequest;
 
-//TODO change once we know which messages we actually need to support
-public class AssemblyMonitoringEventBusWrapperActor  extends AbstractActor {
+public class AssemblyMonitoringEventBusWrapperActor extends AbstractActor {
 
-    private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     public static final String WRAPPER_ACTOR_LOOKUP_NAME = "AssemblyMonitoringEventBusWrapperActor";
-    private MachineEventBus meb;
+    private final AssemblyMonitoringEventBus meb;
 
-    public AssemblyMonitoringEventBusWrapperActor(MachineEventBus bus) {
-        meb = bus == null ? new MachineEventBus() : bus;
+    public AssemblyMonitoringEventBusWrapperActor(AssemblyMonitoringEventBus bus) {
+        meb = bus == null ? new AssemblyMonitoringEventBus() : bus;
     }
 
     public static Props props() {
-        return Props.create(InterMachineEventBusWrapperActor.class, () -> new InterMachineEventBusWrapperActor(null));
+        return Props.create(AssemblyMonitoringEventBusWrapperActor.class, () -> new AssemblyMonitoringEventBusWrapperActor(null));
     }
 
-    public static Props propsWithPreparedBus(MachineEventBus bus) {
-        return Props.create(InterMachineEventBusWrapperActor.class, () -> new InterMachineEventBusWrapperActor(bus));
+    public static Props propsWithPreparedBus(AssemblyMonitoringEventBus bus) {
+        return Props.create(AssemblyMonitoringEventBusWrapperActor.class, () -> new AssemblyMonitoringEventBusWrapperActor(bus));
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(SubscribeMessage.class, msg -> {
-                    log.info("Subscribe from: "+msg.getSubscriber().path().toString());
+                    log.info("Subscribe from: " + msg.getSubscriber().path().toString());
                     meb.subscribe(msg.getSubscriber(), msg.getSubscriptionClassifier());
                 })
                 .match(UnsubscribeMessage.class, msg -> {
-                    log.info("Unsubscribe from: "+msg.getSubscriber().path().toString());
+                    log.info("Unsubscribe from: " + msg.getSubscriber().path().toString());
                     if (msg.getSubscriptionClassifier() == null) {
                         meb.unsubscribe(msg.getSubscriber());
                     } else {
                         meb.unsubscribe(msg.getSubscriber(), msg.getSubscriptionClassifier());
                     }
                 })
-                .match(MachineEvent.class, e -> {
-                    log.debug("Received Publish Event: "+e.toString() );
-                    meb.publish(e);
-                })
-                .match(OrderRelocationNotification.class, msg -> {
-                    log.info("Relocation notification for Order: " + msg.getOrderId());
+                .match(RegisterProcessRequest.class, msg -> {
+                    log.debug("Received Publish Event: " + msg.toString());
                     meb.publish(msg);
                 })
                 .build();

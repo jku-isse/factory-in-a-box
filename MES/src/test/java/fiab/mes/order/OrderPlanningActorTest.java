@@ -143,7 +143,7 @@ class OrderPlanningActorTest {
 				subscribeAndRegisterSinglePrintRedOrder(oid, getRef());
 				boolean orderDone = false;
 				while (!orderDone) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof OrderEvent && ((OrderEvent) te).getEventType().equals(OrderEvent.OrderEventType.REMOVED)) {
 						orderDone = true;

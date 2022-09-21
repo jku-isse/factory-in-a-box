@@ -20,6 +20,9 @@ import fiab.opcua.client.OPCUAClientFactory;
 import fiab.opcua.server.OPCUABase;
 import fiab.plotter.PlotterFactory;
 import org.junit.jupiter.api.*;
+import org.kie.api.KieServices;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -37,6 +40,9 @@ public class TestBikeAssemblyInfrastructure {
         try {
             system = ActorSystem.create("BikeTestActorSystem");
             OPCUABase server = OPCUABase.createAndStartLocalServer(4840, "MonitoringServer");
+            KieServices ks = KieServices.get();
+            KieContainer kc = ks.getKieClasspathContainer();
+            KieSession kieSession = kc.newKieSession("MonitoringKeySession");
 
             //BikeAssemblyInfrastructure shopfloor = new BikeAssemblyInfrastructure(system);
             orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -45,7 +51,7 @@ public class TestBikeAssemblyInfrastructure {
             monitorEventBus = system.actorOf(AssemblyMonitoringEventBusWrapperActor.props(), AssemblyMonitoringEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 
             ActorRef transportActor = system.actorOf(DummyTransportSystemCoordinatorActor.props(), DummyTransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
-            ActorRef monitoringActor = system.actorOf(AssemblyMonitoringActor.props(server), AssemblyMonitoringActor.WELLKNOWN_LOOKUP_NAME);
+            ActorRef monitoringActor = system.actorOf(AssemblyMonitoringActor.props(server, kieSession), AssemblyMonitoringActor.WELLKNOWN_LOOKUP_NAME);
             orderPlanningActor = system.actorOf(BikeAssemblyOrderPlanningActor.props(), BikeAssemblyOrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
 
             orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);

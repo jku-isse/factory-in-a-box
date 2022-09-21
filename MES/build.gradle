@@ -11,6 +11,9 @@ repositories {
     maven {
         url "https://github.com/rosjava/rosjava_mvn_repo/raw/master"
     }
+    flatDir {
+        dirs '/libs'
+    }
 }
 
 dependencies {
@@ -40,11 +43,17 @@ dependencies {
 
     implementation "org.junit.platform:junit-platform-commons:1.5.2"
 
+    //Drools engine
+    implementation "org.kie:kie-ci:7.1.0.Beta1"
+    implementation "org.drools:drools-decisiontables:7.1.0.Beta1"
+
     //ROS messages
     implementation 'org.ros.rosjava_core:rosjava:[0.3,0.4)'
     implementation 'org.ros.rosjava_bootstrap:message_generation:0.3.0'
     implementation "org.ros.rosjava_messages.ros_io_msg:ros_io_msg:0.1.0"
     implementation "org.ros.rosjava_messages.ros_basic_machine_msg:ros_basic_machine_msg:0.1.0"
+
+    implementation "at.pro2future:ProcessUtil:0.0.1-SNAPSHOT"
 
     testImplementation "org.slf4j:slf4j-simple:1.7.28"
     testImplementation "com.typesafe.akka:akka-testkit_${akkaTarget}:${akkaVersion}"

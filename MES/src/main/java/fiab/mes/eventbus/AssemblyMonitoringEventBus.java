@@ -2,13 +2,14 @@ package fiab.mes.eventbus;
 
 import akka.actor.ActorRef;
 import akka.event.japi.ScanningEventBus;
+import fiab.mes.eventbus.MESSubscriptionClassifier;
 import fiab.mes.order.msg.OrderEvent;
+import fiab.mes.order.msg.RegisterProcessRequest;
 
-//TODO change OrderEvent to some event that we actually care about while monitoring
-public class AssemblyMonitoringEventBus extends ScanningEventBus<OrderEvent, ActorRef, MESSubscriptionClassifier> {
+public class AssemblyMonitoringEventBus extends ScanningEventBus<RegisterProcessRequest, ActorRef, MESSubscriptionClassifier> {
 
     @Override
-    public void publish(OrderEvent event, ActorRef subscriber) {
+    public void publish(RegisterProcessRequest event, ActorRef subscriber) {
         subscriber.tell(event, ActorRef.noSender());
     }
 
@@ -23,12 +24,12 @@ public class AssemblyMonitoringEventBus extends ScanningEventBus<OrderEvent, Act
     }
 
     @Override
-    public boolean matches(MESSubscriptionClassifier classifier, OrderEvent event) {
-        if (classifier.eventSource.equals(event.getMachineId()))
-            return false; // we dont notify sender of event
+    public boolean matches(MESSubscriptionClassifier classifier, RegisterProcessRequest event) {
+        if (classifier.eventSource.equals(event.getRequestor().path().name()))
+            return false; // we don't notify sender of event
         if (classifier.topic.equals("*"))
             return true;
         else
-            return classifier.topic.equals(event.getOrderId());
+            return classifier.topic.equals(event.getRequestor().path().name());
     }
 }

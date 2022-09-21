@@ -1,0 +1,20 @@
+package fiab.mes.assembly.monitoring;
+
+import fiab.mes.assembly.monitoring.message.PartsPickedNotification
+
+rule "Part to Step Allocation"
+
+    when 
+        PartsPickedNotification(partId == "Cookie")
+    then
+        System.out.println("Cookie was picked and that was the right choice");
+
+end
+
+rule "Object to Printer"
+
+    when
+        Object()
+    then
+        System.out.println("Hurray!");
+     end

@@ -11,9 +11,9 @@ import fiab.mes.machine.msg.OrderRelocationNotification;
 //Switched to MachineEventbus from FIABfunctionalunit to remove code duplication and enable interoperability
 public class InterMachineEventBusWrapperActor extends AbstractActor {
 
-	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+	private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	public static final String WRAPPER_ACTOR_LOOKUP_NAME = "InterMachineEventBusWrapperActor";
-	private MachineEventBus meb;
+	private final MachineEventBus meb;
 
 	public InterMachineEventBusWrapperActor(MachineEventBus bus) {
 		meb = bus == null ? new MachineEventBus() : bus;
