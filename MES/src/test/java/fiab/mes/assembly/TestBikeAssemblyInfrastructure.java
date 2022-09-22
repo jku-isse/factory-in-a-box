@@ -35,6 +35,28 @@ public class TestBikeAssemblyInfrastructure {
     protected ActorRef orderPlanningActor;
     protected ActorRef orderEntryActor;
 
+    public static void main(String[] args) {
+        ActorSystem system = ActorSystem.create("Playground");
+        OPCUABase server = OPCUABase.createAndStartLocalServer(4840, "MonitoringServer");
+        KieServices ks = KieServices.get();
+        KieContainer kc = ks.getKieClasspathContainer();
+        KieSession kieSession = kc.newKieSession("MonitoringKeySession");
+
+        //BikeAssemblyInfrastructure shopfloor = new BikeAssemblyInfrastructure(system);
+        ActorRef orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        MachineEventBus machineEventBus = new MachineEventBus();
+        ActorRef machineEventBusWrapper = system.actorOf(InterMachineEventBusWrapperActor.propsWithPreparedBus(machineEventBus), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+        ActorRef monitorEventBus = system.actorOf(AssemblyMonitoringEventBusWrapperActor.props(), AssemblyMonitoringEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+
+        ActorRef transportActor = system.actorOf(DummyTransportSystemCoordinatorActor.props(), DummyTransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef monitoringActor = system.actorOf(AssemblyMonitoringActor.props(server, kieSession), AssemblyMonitoringActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef orderPlanningActor = system.actorOf(BikeAssemblyOrderPlanningActor.props(), BikeAssemblyOrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
+
+        ActorRef orderEntryActor = system.actorOf(OrderEntryActor.props(), OrderEntryActor.WELLKNOWN_LOOKUP_NAME);
+        ActorRef machineEntryActor = system.actorOf(MachineEntryActor.props(), MachineEntryActor.WELLKNOWN_LOOKUP_NAME);
+
+    }
+
     @BeforeEach
     public void setup() {
         try {

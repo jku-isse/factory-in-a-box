@@ -52,6 +52,10 @@ public class TestMonitoringActor {
     private ActorRef monitoringActor;
     private ActorRef monitorEventBus;
 
+    public static void main(String[] args) {
+
+    }
+
     @BeforeEach
     public void setup() {
         system = ActorSystem.create("MonitoringUnitTest");
