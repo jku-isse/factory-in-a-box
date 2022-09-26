@@ -11,11 +11,7 @@
                                               xmlns:at.pro2future.shopfloors.processcore="at.pro2future.shopfloors.processcore"
                                               xmlns:at.pro2future.shopfloors.partcore="at.pro2future.shopfloors.partcore"
                                               xmlns:at.pro2future.shopfloors.variabilityextension="at.pro2future.shopfloors.variabilityextension">
-  <ExtensionContent
-      xsi:type="at.pro2future.shopfloors.processcore:XmlRoot">
-    <ExtensionContent
-        xsi:type="at.pro2future.shopfloors.processcore:Process"
-        ID="001">
+       <Processes>
       <Steps
               xsi:type="at.pro2future.shopfloors:AssemblyHumanStep"
               ID="0"
@@ -99,7 +95,8 @@
       <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="4"/>
     </extensions>
       </Steps>
-    </ExtensionContent>
+  </Processes>
+
     <ExtensionContent
         xsi:type="at.pro2future.shopfloors.partcore:PartExtension">
       <Parts
@@ -111,6 +108,7 @@
           ID="33"
           PositionId="33"/>
     </ExtensionContent>
+
     <ExtensionContent
         xsi:type="at.pro2future.shopfloors.partprocesscoremodel:PartUsageExtension">
       <PartUsageList
@@ -122,7 +120,7 @@
           ProcessStep="3"
           Amount="1"/>
     </ExtensionContent>
-  </ExtensionContent>
+
   <Capabilities DisplayName="Plot BLACK" uri="" ID="PickUp.Screw">
     <Inputs Type="String" Name="Screw"/>
   </Capabilities>
