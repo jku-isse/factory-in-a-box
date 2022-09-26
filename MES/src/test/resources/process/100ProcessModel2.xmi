@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="ASCII"?>
+<at.pro2future.shopfloors.processcore:XmlRoot xmi:version="2.0"
+                                              xmlns:xmi="http://www.omg.org/XMI"
+                                              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                              xmlns:at.pro2future.shopfloors="at.pro2future.shopfloors.extensions.assemblyline"
+                                              xmlns:at.pro2future.shopfloors.actorcore="at.pro2future.shopfloors.actorcore"
+                                              xmlns:at.pro2future.shopfloors.actorprocesscoremodel="at.pro2future.shopfloors.actorprocess"
+                                              xmlns:at.pro2future.shopfloors.instanceextension="at.pro2future.shopfloors.instanceextension"
+                                              xmlns:at.pro2future.shopfloors.partprocesscoremodel="at.pro2future.shopfloors.partprocess"
+                                              xmlns:at.pro2future.shopfloors.priorityextension="at.pro2future.shopfloors.priorityextension"
+                                              xmlns:at.pro2future.shopfloors.processcore="at.pro2future.shopfloors.processcore"
+                                              xmlns:at.pro2future.shopfloors.partcore="at.pro2future.shopfloors.partcore"
+                                              xmlns:at.pro2future.shopfloors.variabilityextension="at.pro2future.shopfloors.variabilityextension">
+  <ExtensionContent
+          xsi:type="at.pro2future.shopfloors.processcore:XmlRoot">
+    <ExtensionContent
+            xsi:type="at.pro2future.shopfloors.processcore:Process"
+            ID="901706">
+      <Steps
+              xsi:type="at.pro2future.shopfloors.extensions.assemblyline:AssemblyHumanStep"
+              ID="741395"
+              Name="Mounting of the wheel"
+              Description=""
+              EstimatedDurationInMin="2.5"/>
+      <Steps
+              xsi:type="at.pro2future.shopfloors.extensions.assemblyline:AssemblyHumanStep"
+              ID="267913"
+              Name="Mounting of the Cylinder"
+              EstimatedDurationInMin="2.5"/>
+      <Steps>
+        <extensions>
+          <content
+                  xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation"
+                  ID=""
+                  InvocedCapability="12"/>
+        </extensions>
+      </Steps>
+    </ExtensionContent>
+    <ExtensionContent
+            xsi:type="at.pro2future.shopfloors.partcore:PartExtension">
+      <Parts
+              Name="wheel"
+              ID="1278545"/>
+      <Parts
+              Name="Cylinder"
+              ID="002145"/>
+      <Parts
+              Name="Hydraulic Pump"
+              ID="128634"/>
+      <Parts
+              Name="Hydraulic Hoses"
+              ID="347862"/>
+    </ExtensionContent>
+    <ExtensionContent
+            xsi:type="at.pro2future.shopfloors.partprocesscoremodel:PartUsageExtension">
+      <PartUsageList
+              xsi:type="at.pro2future.shopfloors.extensions.assemblyline:AssemblyPartUsage"
+              UsedPart="1278545"
+              ProcessStep="741395"
+              Amount="1"
+              Unit=""/>
+      <PartUsageList
+              xsi:type="at.pro2future.shopfloors.extensions.assemblyline:AssemblyPartUsage"
+              UsedPart="002145"
+              ProcessStep="267913"
+              Amount="1"
+              Unit=""/>
+    </ExtensionContent>
+    <Capabilities
+            Label="1"
+            ID="12"/>
+  </ExtensionContent>
+</all:Content>
