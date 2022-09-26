@@ -54,13 +54,13 @@
     <ExtensionContent
             xsi:type="at.pro2future.shopfloors.partprocesscoremodel:PartUsageExtension">
       <PartUsageList
-              xsi:type="at.pro2future.shopfloors.extensions.assemblyline:AssemblyPartUsage"
+<!--              xsi:type="at.pro2future.shopfloors.extensions.assemblyline:AssemblyPartUsage"-->
               UsedPart="1278545"
               ProcessStep="741395"
               Amount="1"
               Unit=""/>
       <PartUsageList
-              xsi:type="at.pro2future.shopfloors.extensions.assemblyline:AssemblyPartUsage"
+<!--              xsi:type="at.pro2future.shopfloors.extensions.assemblyline:AssemblyPartUsage"-->
               UsedPart="002145"
               ProcessStep="267913"
               Amount="1"
@@ -70,4 +70,4 @@
             Label="1"
             ID="12"/>
   </ExtensionContent>
-</all:Content>
+  "</at.pro2future.shopfloors.processcore:XmlRoot>"
