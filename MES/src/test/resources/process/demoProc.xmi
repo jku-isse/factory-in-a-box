@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="ASCII"?>
+<at.pro2future.shopfloors.processcore:XmlRoot xmi:version="2.0"
+                                              xmlns:xmi="http://www.omg.org/XMI"
+                                              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                              xmlns:at.pro2future.shopfloors="at.pro2future.shopfloors.extensions.assemblyline"
+                                              xmlns:at.pro2future.shopfloors.actorcore="at.pro2future.shopfloors.actorcore"
+                                              xmlns:at.pro2future.shopfloors.actorprocesscoremodel="at.pro2future.shopfloors.actorprocess"
+                                              xmlns:at.pro2future.shopfloors.instanceextension="at.pro2future.shopfloors.instanceextension"
+                                              xmlns:at.pro2future.shopfloors.partprocesscoremodel="at.pro2future.shopfloors.partprocess"
+                                              xmlns:at.pro2future.shopfloors.priorityextension="at.pro2future.shopfloors.priorityextension"
+                                              xmlns:at.pro2future.shopfloors.processcore="at.pro2future.shopfloors.processcore"
+                                              xmlns:at.pro2future.shopfloors.partcore="at.pro2future.shopfloors.partcore"
+                                              xmlns:at.pro2future.shopfloors.variabilityextension="at.pro2future.shopfloors.variabilityextension">
+  <ExtensionContent
+      xsi:type="at.pro2future.shopfloors.processcore:XmlRoot">
+    <ExtensionContent
+        xsi:type="at.pro2future.shopfloors.processcore:Process"
+        ID="001">
+      <Steps
+              xsi:type="at.pro2future.shopfloors:AssemblyHumanStep"
+              ID="0"
+              Name="Start Node"
+              Description=""
+              EstimatedDurationInMin="2.5"
+              StepName="0">
+        <extensions>
+          <content
+                  xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension"
+                  currentState="INITIAL"/>
+        </extensions>
+      </Steps>
+      <Steps
+          xsi:type="at.pro2future.shopfloors:AssemblyHumanStep"
+          ID="1"
+          Name="Mounting of the Wheel Cover"
+          Description=""
+          EstimatedDurationInMin="2.5"
+          StepName="1">
+        <extensions>
+          <content
+              xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension"
+              currentState="INITIAL"/>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="0"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation"
+             ID="2" DisplayName="Plot GREEN" InvokedCapability="PickUp.Screw">
+<!--        <InputMappings lhs="//@Capabilities.2/@Inputs.0" rhs="//@Processes.0/@Variables.2"/>-->
+        <extensions>
+          <content
+              xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension"
+              currentState="INITIAL"/>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="0"/>
+        </extensions>
+      </Steps>
+      <Steps
+          xsi:type="at.pro2future.shopfloors:AssemblyHumanStep"
+          ID="3"
+          Name="Mounting of the Wheel"
+          Description="3"
+          EstimatedDurationInMin="2.5"
+          StepName="3"
+          Title="">
+        <extensions>
+          <content
+              xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension"
+              currentState="INITIAL"/>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="1 2"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation"
+             ID="4" DisplayName="Plot GREEN" InvokedCapability="PickUp.Nut">
+<!--        <InputMappings lhs="//@Capabilities.2/@Inputs.0" rhs="//@Processes.0/@Variables.2"/>-->
+        <extensions>
+          <content
+              xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension"
+              currentState="INITIAL"/>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="2"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors.processcore:CapabilityInvocation"
+             ID="2" DisplayName="Plot GREEN" InvokedCapability="PickUp.Nut">
+<!--        <InputMappings lhs="//@Capabilities.2/@Inputs.0" rhs="//@Processes.0/@Variables.2"/>-->
+        <extensions>
+          <content
+              xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension"
+              currentState="INITIAL"/>
+        </extensions>
+
+    <extensions>
+      <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="4"/>
+    </extensions>
+      </Steps>
+    </ExtensionContent>
+    <ExtensionContent
+        xsi:type="at.pro2future.shopfloors.partcore:PartExtension">
+      <Parts
+          Name="Wheel Cover"
+          ID="11"
+          PositionId="11"/>
+      <Parts
+          Name="Wheel"
+          ID="33"
+          PositionId="33"/>
+    </ExtensionContent>
+    <ExtensionContent
+        xsi:type="at.pro2future.shopfloors.partprocesscoremodel:PartUsageExtension">
+      <PartUsageList
+          UsedPart="11"
+          ProcessStep="1"
+          Amount="1"/>
+      <PartUsageList
+          UsedPart="33"
+          ProcessStep="3"
+          Amount="1"/>
+    </ExtensionContent>
+  </ExtensionContent>
+  <Capabilities DisplayName="Plot BLACK" uri="" ID="PickUp.Screw">
+    <Inputs Type="String" Name="Screw"/>
+  </Capabilities>
+  <Capabilities DisplayName="Plot BLUE" uri="" ID="PickUp.Nut">
+    <Inputs Type="String" Name="Nut"/>
+  </Capabilities>
+</at.pro2future.shopfloors.processcore:XmlRoot>
