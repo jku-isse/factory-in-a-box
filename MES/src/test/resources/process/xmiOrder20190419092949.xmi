@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="ASCII"?>
+<at.pro2future.shopfloors.processcore:XmlRoot xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:at.pro2future.shopfloors="at.pro2future.shopfloors.extensions.assemblyline" xmlns:at.pro2future.shopfloors.actorcore="at.pro2future.shopfloors.actorcore" xmlns:at.pro2future.shopfloors.actorprocesscoremodel="at.pro2future.shopfloors.actorprocess" xmlns:at.pro2future.shopfloors.instanceextension="at.pro2future.shopfloors.instanceextension" xmlns:at.pro2future.shopfloors.partprocesscoremodel="at.pro2future.shopfloors.partprocess" xmlns:at.pro2future.shopfloors.priorityextension="at.pro2future.shopfloors.priorityextension" xmlns:at.pro2future.shopfloors.processcore="at.pro2future.shopfloors.processcore">
+  <ExtensionContent xsi:type="at.pro2future.shopfloors.partprocesscoremodel:PartUsageExtension">
+    <PartUsageList ProcessStep="10000000943" Amount="4">
+      <extensions>
+        <content xsi:type="at.pro2future.shopfloors.instanceextension:PartUsageInstanceExtension"/>
+      </extensions>
+      <UsedPart href="files/150/150_Priority-Rev5.xmi#100196924_1322371806_100823925_1322371806_100499509_1322371806"/>
+    </PartUsageList>
+    <PartUsageList ProcessStep="10000000943" Amount="7">
+      <extensions>
+        <content xsi:type="at.pro2future.shopfloors.instanceextension:PartUsageInstanceExtension"/>
+      </extensions>
+      <UsedPart href="files/150/150_Priority-Rev5.xmi#100196924_1322371806_100823925_1322371806_100296308_1322371806"/>
+    </PartUsageList>
+    <PartUsageList ProcessStep="10000000943" Amount="1">
+      <extensions>
+        <content xsi:type="at.pro2future.shopfloors.instanceextension:PartUsageInstanceExtension"/>
+      </extensions>
+      <UsedPart href="files/150/150_Priority-Rev5.xmi#100196924_1322371806_100823925_1322371806_100030026_1322371806"/>
+    </PartUsageList>
+  </ExtensionContent>
+  <Processes>
+      <Steps xsi:type="at.pro2future.shopfloors:AssemblyHumanStep" ID="00000000" DisplayName="startNode" Name="startNode" Description="startNode" StepName="startNode">
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension">
+            <Type href="files/150/150_Priority-Rev5.xmi#00000000"/>
+          </content>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors:AssemblyHumanStep" ID="10000000268-1" Name="CPALM.....AA.L....5" Description="" EstimatedDurationInMin="0.59">
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension">
+            <Type href="files/150/150_Priority-Rev5.xmi#10000000268-1"/>
+          </content>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="00000000"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors:AssemblyHumanStep" ID="10000000291-1" Name="CPALM.....AA.B....5" Description="" EstimatedDurationInMin="0.3">
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension">
+            <Type href="files/150/150_Priority-Rev5.xmi#10000000291-1"/>
+          </content>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="00000000"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors:AssemblyHumanStep" ID="10000000944-1" Name="CPALM.....F..TMW.S5" Description="" EstimatedDurationInMin="0.34">
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension">
+            <Type href="files/150/150_Priority-Rev5.xmi#10000000944-1"/>
+          </content>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="10000000291-1 10000000268-1"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors:AssemblyHumanStep" ID="10000000943" Name="CPALM.....FG.M...S5" Description="" EstimatedDurationInMin="1.46">
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension">
+            <Type href="files/150/150_Priority-Rev5.xmi#10000000943"/>
+          </content>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="00000000"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors:AssemblyHumanStep" ID="10000000949" Name="CPALME12..HSABS..S5" Description="" EstimatedDurationInMin="0.65">
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension">
+            <Type href="files/150/150_Priority-Rev5.xmi#10000000949"/>
+          </content>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="00000000"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors:AssemblyHumanStep" ID="10000000952" Name="CPALME12..HSAMF..S5" Description="" EstimatedDurationInMin="5.63">
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension">
+            <Type href="files/150/150_Priority-Rev5.xmi#10000000952"/>
+          </content>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="10000000943 10000000949 00000000"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors:AssemblyHumanStep" ID="10000000965" Name="CPALME12..HSNMF..S5" Description="" EstimatedDurationInMin="1.94">
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension">
+            <Type href="files/150/150_Priority-Rev5.xmi#10000000965"/>
+          </content>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="10000000943 10000000949 00000000"/>
+        </extensions>
+      </Steps>
+      <Steps xsi:type="at.pro2future.shopfloors:AssemblyHumanStep" ID="10000000968" Name="CPALME12..HSTMF..O5" Description="" EstimatedDurationInMin="1.14">
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.instanceextension:StepInstanceExtension">
+            <Type href="files/150/150_Priority-Rev5.xmi#10000000968"/>
+          </content>
+        </extensions>
+        <extensions>
+          <content xsi:type="at.pro2future.shopfloors.priorityextension:PriorityExtension" preceedingSteps="10000000965 10000000952"/>
+        </extensions>
+      </Steps>
+  </Processes>
+</at.pro2future.shopfloors.processcore:XmlRoot>
