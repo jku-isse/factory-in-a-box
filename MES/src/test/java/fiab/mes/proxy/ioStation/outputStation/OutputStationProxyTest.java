@@ -58,7 +58,7 @@ public class OutputStationProxyTest {
                 //Start listening to machine events
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
-                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), machineEventBus, new InputStationPositionParser());
+                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), new InputStationPositionParser());
                 discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:4840");
 
                 MachineConnectedEvent event = expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
@@ -84,7 +84,7 @@ public class OutputStationProxyTest {
             {
                 //Start listening to machine events
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
-                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), machineEventBus, new InputStationPositionParser());
+                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), new InputStationPositionParser());
                 discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:4840");
 
                 expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected

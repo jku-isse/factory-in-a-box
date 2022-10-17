@@ -57,7 +57,7 @@ public class OutputStationTest {
     }
 
     @Test
-    public void testInputStation() {
+    public void testOutputStation() {
         assertDoesNotThrow(() -> {
             client().callStringMethodBlocking(OutputStationOpcUaNodes.resetNodeId);
             expectServerSideState(ServerSideStates.RESETTING);
@@ -96,11 +96,11 @@ public class OutputStationTest {
     }
 
     static class OutputStationOpcUaNodes {
-        static final NodeId resetNodeId = NodeId.parse("ns=2;s=TestDevice/HANDSHAKE_FU/RESET");
-        static final NodeId stopNodeId = NodeId.parse("ns=2;s=TestDevice/HANDSHAKE_FU/STOP");
-        static final NodeId stateNodeId = NodeId.parse("ns=2;s=TestDevice/HANDSHAKE_FU/STATE");
-        static final NodeId initNodeId = NodeId.parse("ns=2;s=TestDevice/HANDSHAKE_FU/INIT_HANDOVER");
-        static final NodeId startNodeId = NodeId.parse("ns=2;s=TestDevice/HANDSHAKE_FU/START_HANDOVER");
-        static final NodeId completeNodeId = NodeId.parse("ns=2;s=TestDevice/HANDSHAKE_FU/COMPLETE");
+        static final NodeId resetNodeId = NodeId.parse("ns=2;s=TestDevice/RESET");
+        static final NodeId stopNodeId = NodeId.parse("ns=2;s=TestDevice/STOP");
+        static final NodeId stateNodeId = NodeId.parse("ns=2;s=TestDevice/STATE");
+        static final NodeId initNodeId = NodeId.parse("ns=2;s=TestDevice/INIT_HANDOVER");
+        static final NodeId startNodeId = NodeId.parse("ns=2;s=TestDevice/START_HANDOVER");
+        static final NodeId completeNodeId = NodeId.parse("ns=2;s=TestDevice/COMPLETE");
     }
 }

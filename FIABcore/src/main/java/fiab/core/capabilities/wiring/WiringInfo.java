@@ -1,5 +1,7 @@
 package fiab.core.capabilities.wiring;
 
+import java.util.Objects;
+
 public class WiringInfo {
 
     private String localCapabilityId;
@@ -90,5 +92,27 @@ public class WiringInfo {
         return remoteRole;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WiringInfo that = (WiringInfo) o;
+        return Objects.equals(localCapabilityId, that.localCapabilityId) && Objects.equals(remoteCapabilityId, that.remoteCapabilityId) && Objects.equals(remoteEndpointURL, that.remoteEndpointURL) && Objects.equals(remoteNodeId, that.remoteNodeId) && Objects.equals(remoteRole, that.remoteRole);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(localCapabilityId, remoteCapabilityId, remoteEndpointURL, remoteNodeId, remoteRole);
+    }
+
+    @Override
+    public String toString() {
+        return "WiringInfo{" +
+                "localCapabilityId='" + localCapabilityId + '\'' +
+                ", remoteCapabilityId='" + remoteCapabilityId + '\'' +
+                ", remoteEndpointURL='" + remoteEndpointURL + '\'' +
+                ", remoteNodeId='" + remoteNodeId + '\'' +
+                ", remoteRole='" + remoteRole + '\'' +
+                '}';
+    }
 }

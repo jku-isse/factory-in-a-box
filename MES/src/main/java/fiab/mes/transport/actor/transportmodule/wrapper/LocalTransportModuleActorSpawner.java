@@ -40,7 +40,7 @@ import scala.concurrent.duration.FiniteDuration;
 
 
 public class LocalTransportModuleActorSpawner extends AbstractActor {
-    private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     ActorRef machine;
     ActorRef discovery;

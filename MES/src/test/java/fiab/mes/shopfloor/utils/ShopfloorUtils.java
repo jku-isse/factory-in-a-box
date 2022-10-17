@@ -13,16 +13,16 @@ import java.util.*;
 
 public class ShopfloorUtils {
 
-    public static String OUTPUT_STATION = "OUTPUT_STATION";
-    public static String INPUT_STATION = "INPUT_STATION";
+    public static final String OUTPUT_STATION = "OUTPUT_STATION";
+    public static final String INPUT_STATION = "INPUT_STATION";
 
-    public static String TURNTABLE_1 = "TURNTABLE_1";
-    public static String TURNTABLE_2 = "TURNTABLE_2";
+    public static final String TURNTABLE_1 = "TURNTABLE_1";
+    public static final String TURNTABLE_2 = "TURNTABLE_2";
 
-    public static String PLOTTER_BLACK = "PLOTTER_BLACK";
-    public static String PLOTTER_BLUE = "PLOTTER_BLUE";
-    public static String PLOTTER_GREEN = "PLOTTER_GREEN";
-    public static String PLOTTER_RED = "PLOTTER_RED";
+    public static final String PLOTTER_BLACK = "PLOTTER_BLACK";
+    public static final String PLOTTER_BLUE = "PLOTTER_BLUE";
+    public static final String PLOTTER_GREEN = "PLOTTER_GREEN";
+    public static final String PLOTTER_RED = "PLOTTER_RED";
 
     public static Map<TransportRoutingInterface.Position, TransportRoutingInterface.Position> createEdgeNodeMappingFromRouterConnections(Map<TransportRoutingInterface.Position, Set<TransportRoutingInterface.Position>> routerConnections) {
         Map<TransportRoutingInterface.Position, TransportRoutingInterface.Position> edgeNodeMapping = new HashMap<>();
@@ -75,7 +75,7 @@ public class ShopfloorUtils {
             @Override
             public TransportRoutingInterface.Position getPositionForActor(AkkaActorBackedCoreModelAbstractActor actor) {
                 //Here we get the position for a known machine id defined in positionMap and store it in lookuptable
-                TransportRoutingInterface.Position pos = positionMap.get(actor.getId()).getPosition();
+                TransportRoutingInterface.Position pos = positionMap.get(actor.getModelActor().getActorName()).getPosition();
                 if (pos != TransportRoutingInterface.UNKNOWN_POSITION)
                     lookupTable.put(pos, actor);
                 return pos;
@@ -133,8 +133,6 @@ public class ShopfloorUtils {
                 route.add(toMachine);
                 return route;
             }
-
-
 
             private boolean isDirectlyConnected(Position pos1, Position pos2) {
                 return (edgeNodeMapping.get(pos1).equals(pos2) || edgeNodeMapping.get(pos2).equals(pos1));

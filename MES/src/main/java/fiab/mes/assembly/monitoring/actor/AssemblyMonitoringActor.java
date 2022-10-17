@@ -1,11 +1,14 @@
 package fiab.mes.assembly.monitoring.actor;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.event.japi.ScanningEventBus;
 import akka.japi.pf.ReceiveBuilder;
+import fiab.core.capabilities.events.TimedEvent;
 import fiab.mes.assembly.monitoring.actor.opcua.methods.NotifyPartPicked;
 import fiab.mes.assembly.monitoring.message.PartsPickedNotification;
 import fiab.mes.assembly.order.message.ExtendedRegisterProcessRequest;
@@ -54,6 +57,9 @@ public class AssemblyMonitoringActor extends AbstractActor {
                     log.info(notification.toString());
                     kieSession.insert(notification);
                     kieSession.fireAllRules();
+                    //orderEventBus.tell(notification, self());
+                    ActorSelection testEventBus = context().actorSelection("/user/" + TestEventBusActor.WRAPPER_ACTOR_LOOKUP_NAME);
+                    testEventBus.tell(notification, self());
                 })
                 .match(ExtendedRegisterProcessRequest.class, req -> {
                     log.info(req.getRootOrderId());
@@ -87,5 +93,74 @@ public class AssemblyMonitoringActor extends AbstractActor {
 
     public void publishOnPlanerEventBus(Object msg) {
         monitoringEventBus.tell(msg, self());
+    }
+
+
+    //The classes below will be deleted and should not be used after the demo
+    public static class TestEventBusActor extends AbstractActor{
+
+        private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+
+        public static final String WRAPPER_ACTOR_LOOKUP_NAME = "TestEventBus";
+        private TestEventBus oeb;
+
+        public TestEventBusActor() {
+            oeb = new TestEventBus();
+        }
+
+        public static Props props() {
+            return Props.create(TestEventBusActor.class, () -> new TestEventBusActor());
+        }
+
+        @Override
+        public Receive createReceive() {
+            return receiveBuilder()
+                    .match(SubscribeMessage.class, msg -> {
+                        log.info("Subscribe from: "+msg.getSubscriber().path().toString());
+                        oeb.subscribe(msg.getSubscriber(), msg.getSubscriptionClassifier());
+                    })
+                    .match(UnsubscribeMessage.class, msg -> {
+                        log.info("Unsubscribe from: "+msg.getSubscriber().path().toString());
+                        if (msg.getSubscriptionClassifier() == null) {
+                            oeb.unsubscribe(msg.getSubscriber());
+                        } else {
+                            oeb.unsubscribe(msg.getSubscriber(), msg.getSubscriptionClassifier());
+                        }
+                    })
+                    .match(PartsPickedNotification.class, pn -> {
+                        log.debug("Received Publish Event: "+pn.toString() );
+                        oeb.publish(pn);
+                    })
+                    .build();
+        }
+    }
+
+    static class TestEventBus extends ScanningEventBus<TimedEvent, ActorRef, MESSubscriptionClassifier> {
+
+
+        @Override
+        public void publish(TimedEvent event, ActorRef subscriber) {
+            subscriber.tell(event, ActorRef.noSender());
+        }
+
+        @Override
+        public int compareSubscribers(ActorRef a, ActorRef b) {
+            return a.compareTo(b);
+        }
+
+        @Override
+        public int compareClassifiers(MESSubscriptionClassifier a, MESSubscriptionClassifier b) {
+            return a.getTopic().compareTo(b.getTopic());
+        }
+
+        @Override
+        public boolean matches(MESSubscriptionClassifier classifier, TimedEvent event) {
+            //if (classifier.getEventSource().equals(event.getMachineId()))
+            //    return false; // we dont notify sender of event
+            if (classifier.getTopic().equals("*"))
+                return true;
+            else
+                return true;    //For this use case only tester is subscriber, so always send msg
+        }
     }
 }

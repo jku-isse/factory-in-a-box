@@ -16,6 +16,8 @@ import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.proxy.testutil.DiscoveryUtil;
 import fiab.mes.proxy.ioStation.inputStation.testutils.InputStationPositionParser;
+import fiab.mes.shopfloor.layout.DefaultTestLayout;
+import fiab.mes.shopfloor.utils.ShopfloorUtils;
 import fiab.opcua.server.OPCUABase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -58,7 +61,7 @@ public class InputStationProxyTest {
                 //Start listening to machine events
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
-                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), machineEventBus, new InputStationPositionParser());
+                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), new InputStationPositionParser());
                 discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:4840");
 
                 expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
@@ -86,7 +89,7 @@ public class InputStationProxyTest {
             {
                 //Start listening to machine events
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
-                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), machineEventBus, new InputStationPositionParser());
+                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), new InputStationPositionParser());
                 discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:4840");
 
                 expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
@@ -104,6 +107,32 @@ public class InputStationProxyTest {
                 expectIOStatusUpdate(this, ServerSideStates.EXECUTE);
                 //expectIOStatusUpdate(this, ServerSideStates.COMPLETING);     //Seems to be skipped by proxy
                 expectIOStatusUpdate(this, ServerSideStates.COMPLETE);
+            }
+        };
+    }
+
+    @Test
+    public void testLayoutProxyConfiguration(){
+        new TestKit(system){
+            {
+                String inputStationId = ShopfloorUtils.INPUT_STATION;
+                DefaultTestLayout layout = new DefaultTestLayout(system, machineEventBus);
+                layout.subscribeToInterMachineEventBus(getRef(), getRef().path().name());
+                layout.initializeParticipantsForId(Set.of(inputStationId));
+                layout.runDiscovery(getRef());
+
+                expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
+                IOStationStatusUpdateEvent statusUpdate = expectMsgClass(IOStationStatusUpdateEvent.class);
+                assertEquals(ServerSideStates.STOPPED, statusUpdate.getStatus());
+
+                ActorRef ttProxy = layout.getMachineById(inputStationId);   //FIXME use machine conn event instead to retrieve proxy
+
+                ttProxy.tell(new GenericMachineRequests.Reset("Tester"), getRef());
+
+                fishForMessage(Duration.ofSeconds(10), "InputStation successfully reset", msg ->
+                        msg instanceof IOStationStatusUpdateEvent &&
+                                ((IOStationStatusUpdateEvent) msg).getStatus() == ServerSideStates.IDLE_LOADED);
+
             }
         };
     }

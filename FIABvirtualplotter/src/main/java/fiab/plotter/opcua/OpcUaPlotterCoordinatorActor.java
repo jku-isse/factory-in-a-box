@@ -53,6 +53,12 @@ public class OpcUaPlotterCoordinatorActor extends PlotterCoordinatorActor {
         childFUs.setupInfrastructure(context(), intraMachineEventBus);
     }
 
+    @Override
+    public void postStop() throws Exception {
+        super.postStop();
+        opcuaBase.shutDownOpcUaBaseAsync().thenAccept(a -> log.info("Successfully shut down opc ua server for machine {}", componentId));
+    }
+
     protected void setupOpcUaNodeSet(UaFolderNode rootNode) {
         UaMethodNode resetNode = opcuaBase.createPartialMethodNode(rootNode, OPCUABasicMachineBrowsenames.RESET_REQUEST, "Requests reset");
         opcuaBase.addMethodNode(rootNode, resetNode, new UaResetPlotter(resetNode, self()));

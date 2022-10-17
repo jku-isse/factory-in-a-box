@@ -65,10 +65,10 @@ class TestIOStationOPCUAWrapper {
 
     @BeforeEach
     void setup() throws Exception {
-        NodeId capabilityImpl = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU");
-        NodeId resetMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/RESET");
-        NodeId stopMethod = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STOP");
-        NodeId stateVar = NodeId.parse("ns=2;s=InputStation/HANDSHAKE_FU/STATE");
+        NodeId capabilityImpl = NodeId.parse("ns=2;s=InputStation");
+        NodeId resetMethod = NodeId.parse("ns=2;s=InputStation/RESET");
+        NodeId stopMethod = NodeId.parse("ns=2;s=InputStation/STOP");
+        NodeId stateVar = NodeId.parse("ns=2;s=InputStation/STATE");
         system = ActorSystem.create("TEST_ROOT_SYSTEM");
         boolean isInputStation = true;
         capability = isInputStation ? IOStationCapability.getInputStationCapability() : IOStationCapability.getOutputStationCapability();

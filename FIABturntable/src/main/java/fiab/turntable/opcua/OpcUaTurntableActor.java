@@ -51,6 +51,12 @@ public class OpcUaTurntableActor extends TurntableCoordinatorActor {
         setupOpcUaNodeSet(rootNode);
     }
 
+    @Override
+    public void postStop() throws Exception {
+        super.postStop();
+        base.shutDownOpcUaBaseAsync().thenAccept(a -> log.info("Successfully shut down opc ua server for machine {}", machineId));
+    }
+
     protected void setupOpcUaNodeSet(UaFolderNode rootNode) {
         UaMethodNode n1 = base.createPartialMethodNode(rootNode, TurntableModuleWellknownCapabilityIdentifiers.SimpleMessageTypes.Reset.toString(), "Requests reset");
         base.addMethodNode(rootNode, n1, new UaResetTurntable(n1, self()));

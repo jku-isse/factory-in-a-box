@@ -48,7 +48,7 @@ public class InputStationDiscoveryTest {
                 //Start listening to machine events
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
-                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), machineEventBus, new InputStationPositionParser());
+                DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), new InputStationPositionParser());
 
                 discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:4840");
 

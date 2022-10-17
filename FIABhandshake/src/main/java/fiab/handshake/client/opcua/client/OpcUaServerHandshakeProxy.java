@@ -50,7 +50,7 @@ public class OpcUaServerHandshakeProxy extends AbstractActor implements FUStateO
         this.responseConnector = responseConnector;
         this.notificationConnector = notificationConnector;
         this.componentId = self().path().name();
-        this.spawnerActor = context().actorOf(ClientSpawnerActor.props());
+        this.spawnerActor = context().actorOf(ClientSpawnerActor.props(), componentId + "ClientSpawnerActor");
         this.waitingForClientInstance = false;
         FUSubscriptionClassifier classifier = new FUSubscriptionClassifier(componentId, "*");
         remoteRequestBus.subscribe(self(), classifier);

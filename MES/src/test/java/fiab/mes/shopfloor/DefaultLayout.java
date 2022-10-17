@@ -42,6 +42,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
+@Deprecated
 public class DefaultLayout {
 
     public ActorSystem system;

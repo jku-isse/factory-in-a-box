@@ -21,7 +21,6 @@ public class TurntableFactory {
     }
 
     public static ActorRef startStandaloneTurntable(ActorSystem system, OPCUABase opcuaBase){
-        //TODO add name to actor for easier debugging
         return system.actorOf(OpcUaTurntableActor.props(opcuaBase, opcuaBase.getRootNode(), opcuaBase.getMachineName(),
                 new MachineEventBus(), new IntraMachineEventBus(), new OpcUaMachineChildFUs(opcuaBase)), opcuaBase.getMachineName());
     }

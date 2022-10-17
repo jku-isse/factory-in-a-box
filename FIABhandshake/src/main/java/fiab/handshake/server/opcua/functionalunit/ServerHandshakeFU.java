@@ -85,7 +85,7 @@ public class ServerHandshakeFU extends ServerSideHandshakeActor {
         addCapabilities(rootNode);
     }
 
-    private void addServerHandshakeOpcUaMethods(UaFolderNode serverFuNode) {
+    protected void addServerHandshakeOpcUaMethods(UaFolderNode serverFuNode) {
         UaMethodNode resetNode = base.createPartialMethodNode(serverFuNode,
                 HandshakeCapability.OPCUA_INTERNAL_SERVERSIDE_RESET_REQUEST, "Requests Reset");
         base.addMethodNode(serverFuNode, resetNode, new UaResetServerHandshake(resetNode, self()));
@@ -109,14 +109,14 @@ public class ServerHandshakeFU extends ServerSideHandshakeActor {
         base.addMethodNode(serverFuNode, setLoadedNode, new UaSetLoaded(setEmptyNode, self()));
     }
 
-    protected void addCapabilities(UaFolderNode clientFuNode) {
-        capabilitiesFolder = base.generateFolder(clientFuNode,
+    protected void addCapabilities(UaFolderNode serverFuNode) {
+        capabilitiesFolder = base.generateFolder(serverFuNode,
                 OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITIES);
 
         addServerSideHandshakeCapability(capabilitiesFolder);
     }
 
-    private void addServerSideHandshakeCapability(UaFolderNode capabilitiesFolder) {
+    protected void addServerSideHandshakeCapability(UaFolderNode capabilitiesFolder) {
         String capabilityId = !capabilityInstanceId.isBlank() ? capabilityInstanceId : "DefaultHandshakeServerSide";
         UaFolderNode serverHandshakeCapNode = base.generateFolder(capabilitiesFolder,
                 OPCUACapabilitiesAndWiringInfoBrowsenames.CAPABILITY);

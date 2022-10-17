@@ -85,6 +85,7 @@ public class TestProductionCell {
 
     @Test
     @Tag("IntegrationTest")
+    @Disabled("Production Cell is not ready for overall integration yet")
     void testProductionCellTransportToOneFoldingStationVirtual() {
         Set<String> urlsToBrowse = getTestLayout();     //Used for virtual testing
         transportToOneFoldingStation(urlsToBrowse);

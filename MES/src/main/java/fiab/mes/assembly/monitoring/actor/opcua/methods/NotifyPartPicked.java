@@ -60,7 +60,7 @@ public class NotifyPartPicked extends AbstractMethodInvocationHandler {
         logger.debug("Invoking NotifyPartPicked() method of objectId={}", invocationContext.getObjectId());
         String senderId = invocationContext.getObjectId().toParseableString();
         //return collectWiringInfo(senderId, inputValues);
-        if(inputValues.length != 3){
+        if (inputValues.length != 3) {
             return wrappedResponse("Invalid number of parameters");
         }
         String partId = inputValues[0].getValue().toString();

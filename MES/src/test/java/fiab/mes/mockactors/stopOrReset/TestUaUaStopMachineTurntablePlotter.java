@@ -4,10 +4,8 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
 
-import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.mockactors.iostation.VirtualIOStationActorFactory;
-import fiab.mes.shopfloor.DefaultTestLayout;
+import fiab.mes.shopfloor.layout.DefaultTestLayout;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
@@ -34,9 +32,6 @@ import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
-import fiab.mes.shopfloor.DefaultLayout;
-import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
-import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 
 import static fiab.mes.shopfloor.utils.ShopfloorUtils.PLOTTER_GREEN;
@@ -65,9 +60,6 @@ class TestUaUaStopMachineTurntablePlotter {
         // setup order actors?
         // add processes to orderplanning actor
         system = ActorSystem.create(ROOT_SYSTEM);
-        //HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-        //DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
-        //layout = new DefaultLayout(system);
         ActorRef interMachineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
         layout = new DefaultTestLayout(system, interMachineEventBus);
         orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -83,15 +75,12 @@ class TestUaUaStopMachineTurntablePlotter {
         system = null;
     }
 
-    @Test
+    @Test   //FIXME only passes when run individually
     void testStopMachineWhenUnassigned() {
         new TestKit(system) {
             {
-                //layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-                //layout.setupTwoTurntableWith2MachinesAndIO();
-                layout.subscribeToMachineEventBus(getRef(), "Tester");
-                layout.initializeDefaultLayoutWithProxies();
-                layout.resetParticipants();
+                layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+                layout.initializeAndDiscoverParticipants(getRef());
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < 8) {
@@ -112,7 +101,7 @@ class TestUaUaStopMachineTurntablePlotter {
                     }
                 }
 
-                String unassignedMachineId = PLOTTER_GREEN;
+                String unassignedMachineId = layout.getParticipantForId(PLOTTER_GREEN).getProxyMachineId();
 
                 String oid1 = "Order1";
                 subscribeAndRegisterPrintGreenAndRedOrder(oid1, getRef());
@@ -134,7 +123,7 @@ class TestUaUaStopMachineTurntablePlotter {
                         }
                     }
                     if (te instanceof MachineStatusUpdateEvent) {
-                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED) && !sentStop)
+                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED) /*&& !sentStop*/)
                             Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId())).ifPresent(
                                     actor -> actor.getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
                             );
@@ -153,14 +142,12 @@ class TestUaUaStopMachineTurntablePlotter {
     void testStopMachineWhenAssigned() throws Exception {
         new TestKit(system) {
             {
-                //layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-                //layout.setupTwoTurntableWith2MachinesAndIO();
-                layout.subscribeToMachineEventBus(getRef(), "Tester");
-                layout.initializeDefaultLayout();
+                layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+                layout.initializeAndDiscoverParticipants(getRef());
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < 8) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -177,7 +164,7 @@ class TestUaUaStopMachineTurntablePlotter {
                     }
                 }
 
-                String assignedMachineId = "MockMachineActor31";
+                String assignedMachineId = layout.getParticipantForId(PLOTTER_RED).getProxyMachineId();
 
                 String oid1 = "Order1";
                 subscribeAndRegisterPrintGreenAndRedOrder(oid1, getRef());
@@ -217,10 +204,8 @@ class TestUaUaStopMachineTurntablePlotter {
     void testStopMachineWhenPlotting() {
         new TestKit(system) {
             {
-                //layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-                //layout.setupTwoTurntableWith2MachinesAndIO();
-                layout.subscribeToMachineEventBus(getRef(), "Tester");
-                layout.initializeDefaultLayoutWithProxies();
+                layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+                layout.initializeAndDiscoverParticipants(getRef());
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < 8) {
@@ -241,7 +226,7 @@ class TestUaUaStopMachineTurntablePlotter {
                     }
                 }
 
-                String assignedMachineId = PLOTTER_RED;
+                String assignedMachineId = layout.getParticipantForId(PLOTTER_RED).getProxyMachineId();
 
                 String oid1 = "Order1";
                 subscribeAndRegisterPrintGreenAndRedOrder(oid1, getRef());

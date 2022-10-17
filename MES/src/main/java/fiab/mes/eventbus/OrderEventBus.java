@@ -10,7 +10,6 @@ public class OrderEventBus extends ScanningEventBus<OrderEvent, ActorRef, MESSub
 	@Override
 	public void publish(OrderEvent event, ActorRef subscriber) {
 		subscriber.tell(event, ActorRef.noSender());
-		
 	}
 
 	@Override

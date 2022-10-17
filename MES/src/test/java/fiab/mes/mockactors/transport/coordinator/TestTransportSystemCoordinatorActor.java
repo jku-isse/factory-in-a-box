@@ -1,10 +1,15 @@
 package fiab.mes.mockactors.transport.coordinator;
 
+import static fiab.mes.shopfloor.utils.ShopfloorUtils.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.util.HashMap;
 
+import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
+import fiab.mes.shopfloor.layout.DefaultTestLayout;
+import fiab.mes.shopfloor.layout.ShopfloorLayout;
+import fiab.mes.shopfloor.layout.SingleTurntableLayout;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
@@ -39,12 +44,12 @@ class TestTransportSystemCoordinatorActor {
 	protected static ActorRef machineEventBus;
 	protected static ActorRef orderEventBus;
 	protected static ActorRef coordActor;
-	HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-	DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
+	//HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
+	//DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
 //	static VirtualIOStationActorFactory partsIn;
 //	static VirtualIOStationActorFactory partsOut;
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
-	static DefaultLayout layout;
+	static ShopfloorLayout layout;
 //	private static boolean engageAutoReload = true;
 //	private static boolean disengageAutoReload = false;
 	
@@ -53,8 +58,9 @@ class TestTransportSystemCoordinatorActor {
 		// setup shopfloor
 		// setup machines				
 		system = ActorSystem.create(ROOT_SYSTEM);
-		layout = new DefaultLayout(system);
-		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);		
+		//layout = new DefaultLayout(system);
+		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 	}
 	
 	@AfterEach
@@ -68,26 +74,31 @@ class TestTransportSystemCoordinatorActor {
 	@Tag("IntegrationTest")
 	void testCoordinatorWithSingleTTLayout() throws Exception {
 		new TestKit(system) { 
-			{ 				
-				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), "TransportCoordinator");				
-				//setupTwoTurntableWithIOShopfloor();
-				layout.setupSingleTT21withIOEast35West20();
+			{
+				layout = new SingleTurntableLayout(system, machineEventBus);
+				layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(layout.getTransportRoutingAndMapping(), layout.getTransportPositionLookup(), 1), "TransportCoordinator");
+				layout.initializeAndDiscoverParticipants(getRef());
 				int countConnEvents = 0;
 				boolean transportReady = false;
-				while (countConnEvents < 3 && !transportReady) {
+				while (countConnEvents < layout.getParticipants().size() && !transportReady) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, TransportSystemStatusMessage.class);
 					logEvent(te);
-					if (te instanceof MachineConnectedEvent)
+					if (te instanceof MachineConnectedEvent) {
 						countConnEvents++;
+						MachineConnectedEvent connectedEvent = ((MachineConnectedEvent) te);
+						knownActors.put(connectedEvent.getMachineId(), connectedEvent.getMachine());
+					}
 					if(te instanceof TransportSystemStatusMessage){
 						if(((TransportSystemStatusMessage) te).getState() == TransportSystemStatusMessage.State.FULLY_OPERATIONAL){
 							transportReady = true;
 						}
 					}
 				}
-	//			assert(dns.getActorForPosition(new Position("21")).get().equals(knownActors.get("MockTurntableActor21")));
-				RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get("InputStationActor20"), knownActors.get("OutputStationActor35"), "TestOrder1", getRef());
+				String inputStationId = layout.getParticipantForId(INPUT_STATION).getProxyMachineId();
+				String outputStationId = layout.getParticipantForId(OUTPUT_STATION).getProxyMachineId();
+				String turntableId = layout.getParticipantForId(TURNTABLE_1).getProxyMachineId();
+				RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get(inputStationId), knownActors.get(outputStationId), "TestOrder1", getRef());
 				coordActor.tell(rtr, getRef());
 				
 				boolean transportDone = false;
@@ -95,8 +106,8 @@ class TestTransportSystemCoordinatorActor {
 				while(!transportDone) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineStatusUpdateEvent.class, IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class, TransportSystemStatusMessage.class);
 					logEvent(te);
-					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId().equals("MockTurntableActor21") && !resetTT) {
-						knownActors.get("MockTurntableActor21").getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());
+					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId().equals(turntableId) && !resetTT) {
+						knownActors.get(turntableId).getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());
 						resetTT = true;
 					}
 					if (te instanceof RegisterTransportRequestStatusResponse) {
@@ -113,24 +124,27 @@ class TestTransportSystemCoordinatorActor {
 		};
 	}
 	
-	@Test
+	@Test	//FIXME only passes when test run individually
 	@Tag("IntegrationTest")
-	void testCoordinatorWithDualTTLayout() throws Exception {
+	void testCoordinatorWithDualTTLayout() {
 		new TestKit(system) { 
-			{ 				
-				layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), "TransportCoordinator");				
-				//setupTwoTurntableWithIOShopfloor();
-				layout.setupDualTT2021withIOEast35West34();
+			{
+				layout = new DefaultTestLayout(system, machineEventBus);
+				layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+				coordActor = system.actorOf(TransportSystemCoordinatorActor.props(layout.getTransportRoutingAndMapping(), layout.getTransportPositionLookup(), 1), "TransportCoordinator");
+				layout.initializeAndDiscoverParticipants(getRef());
 				int countConnEvents = 0;
-				while (countConnEvents < 4) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class);
+				while (countConnEvents < layout.getParticipants().size()) {
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent)
 						countConnEvents++;					
 				}
-	//			assert(dns.getActorForPosition(new Position("21")).get().equals(knownActors.get("MockTurntableActor21")));
-				RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get("InputStationActor34"), knownActors.get("OutputStationActor35"), "TestOrder1", getRef());
+				String inputStationId = layout.getParticipantForId(INPUT_STATION).getProxyMachineId();
+				String outputStationId = layout.getParticipantForId(OUTPUT_STATION).getProxyMachineId();
+				String turntableId = layout.getParticipantForId(TURNTABLE_1).getProxyMachineId();
+				String turntable2Id = layout.getParticipantForId(TURNTABLE_2).getProxyMachineId();
+				RegisterTransportRequest rtr = new RegisterTransportRequest(knownActors.get(inputStationId), knownActors.get(outputStationId), "TestOrder1", getRef());
 				coordActor.tell(rtr, getRef());
 				
 				boolean transportDone = false;
@@ -139,12 +153,12 @@ class TestTransportSystemCoordinatorActor {
 				while(!transportDone) {
 					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineStatusUpdateEvent.class, IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class);
 					logEvent(te);
-					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId().equals("MockTurntableActor20") && !resetTT1) {
-						knownActors.get("MockTurntableActor20").getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());
+					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId().equals(turntableId) && !resetTT1) {
+						knownActors.get(turntableId).getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());
 						resetTT1 = true;
 					}
-					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId().equals("MockTurntableActor21") && !resetTT2) {
-						knownActors.get("MockTurntableActor21").getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());
+					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId().equals(turntable2Id) && !resetTT2) {
+						knownActors.get(turntable2Id).getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());
 						resetTT2 = true;
 					}
 					if (te instanceof RegisterTransportRequestStatusResponse) {
