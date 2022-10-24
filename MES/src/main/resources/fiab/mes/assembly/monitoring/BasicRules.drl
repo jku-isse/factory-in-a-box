@@ -1,20 +1,33 @@
 package fiab.mes.assembly.monitoring;
 
 import fiab.mes.assembly.monitoring.message.PartsPickedNotification
+import ProcessCore.XmlRoot
+import ProcessCore.ProcessStep
+import fiab.mes.assembly.monitoring.DroolsUtil
+import java.util.ArrayList;
+import InstanceExtensionModel.States;
+import InstanceExtensionModel.StepInstanceExtension;
+import fiab.mes.order.OrderProcess;
 
-rule "Part to Step Allocation"
+rule "Cookie to Step Allocation"
 
     when 
-        PartsPickedNotification(partId == "Cookie")
+        $event: PartsPickedNotification(partId == "Cookie")
     then
         System.out.println("Cookie was picked and that was the right choice");
+        System.out.println($event);
 
 end
 
-rule "Object to Printer"
+
+rule "Part to Step Allocation"
 
     when
-        Object()
+        $xmlRoot : XmlRoot()
+        $orderProc: OrderProcess()
+        $event: PartsPickedNotification()
     then
         System.out.println("Hurray!");
-     end
+        DroolsUtil.activateStepafterPartNotif($xmlRoot, $orderProc, $event.getPartId());
+
+end
