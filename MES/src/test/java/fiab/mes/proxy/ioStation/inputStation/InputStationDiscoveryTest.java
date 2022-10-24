@@ -14,6 +14,7 @@ import fiab.mes.proxy.testutil.DiscoveryUtil;
 import fiab.mes.proxy.ioStation.inputStation.testutils.InputStationPositionParser;
 import fiab.opcua.server.OPCUABase;
 import org.junit.jupiter.api.*;
+import testutils.PortUtils;
 
 
 import java.util.concurrent.ExecutionException;
@@ -26,11 +27,13 @@ public class InputStationDiscoveryTest {
     private ActorSystem system;
     private ActorRef machineEventBus;
     private OPCUABase opcuaBase;
+    private int port;
 
     @BeforeEach
     public void setup() {
         system = ActorSystem.create("TestSystem");
-        opcuaBase = OPCUABase.createAndStartLocalServer(4840, "VirtualInputStation");
+        port = PortUtils.findNextFreePort();
+        opcuaBase = OPCUABase.createAndStartLocalServer(port, "VirtualInputStation");
         InputStationFactory.startStandaloneInputStation(system, opcuaBase);
         machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
     }
@@ -50,7 +53,7 @@ public class InputStationDiscoveryTest {
 
                 DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), new InputStationPositionParser());
 
-                discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:4840");
+                discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:"+port);
 
                 expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
                 expectMsgClass(IOStationStatusUpdateEvent.class);

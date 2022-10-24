@@ -54,19 +54,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestTransportSystemCoordinatorActorViaOPCUA {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestTransportSystemCoordinatorActorViaOPCUA.class);
+    private final Logger logger = LoggerFactory.getLogger(TestTransportSystemCoordinatorActorViaOPCUA.class);
 
-    protected static ActorSystem system;
-    public static String ROOT_SYSTEM = "TEST_TRANSPORTSYSTEM";
-    protected static ActorRef orderEventBus;
-    protected static ActorRef machineEventBus;
-    protected static ActorRef coordActor;
-    protected static ProcessStep step;
-    //HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-    //DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
+    protected ActorSystem system;
+    public String ROOT_SYSTEM = "TEST_TRANSPORTSYSTEM";
+    protected ActorRef orderEventBus;
+    protected ActorRef machineEventBus;
+    protected ActorRef coordActor;
+    protected ProcessStep step;
 
-    static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
-
+    HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 
     @BeforeEach
     public void setup() throws Exception {
@@ -83,7 +80,6 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
     public void teardown() {
         knownActors.clear();
         TestKit.shutdownActorSystem(system);
-        system = null;
     }
 
     @Test
@@ -97,7 +93,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
                 Map<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
                 coordActor = system.actorOf(TransportSystemCoordinatorActor.props(layout.getTransportRoutingAndMapping(), layout.getTransportPositionLookup(), layout.getAmountOfTransportUnits()), "TransportCoordinator");
                 while (machines.size() < layout.getParticipants().size()) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, TransportSystemStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof MachineConnectedEvent) {
                         MachineConnectedEvent connectedEvent = ((MachineConnectedEvent) te);
@@ -120,7 +116,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
                 Map<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
                 coordActor = system.actorOf(TransportSystemCoordinatorActor.props(layout.getTransportRoutingAndMapping(), layout.getTransportPositionLookup(), layout.getAmountOfTransportUnits()), "TransportCoordinator");
                 while (machines.size() < layout.getParticipants().size()) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, TransportSystemStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof MachineConnectedEvent) {
                         MachineConnectedEvent connectedEvent = ((MachineConnectedEvent) te);
@@ -149,7 +145,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
                 boolean plotterReady = false;
                 boolean turntableReady = false;
                 while (machines.size() < layout.getParticipants().size() || doRun) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class, RegisterTransportRequestStatusResponse.class, TransportSystemStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class, RegisterTransportRequestStatusResponse.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof MachineConnectedEvent) {
                         machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
@@ -219,7 +215,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
                 boolean plotterReady = false;
                 boolean turntableReady = false;
                 while (machines.size() < urlsToBrowse.size() || doRun) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(300), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class, RegisterTransportRequestStatusResponse.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class, RegisterTransportRequestStatusResponse.class);
                     logEvent(te);
                     if (te instanceof MachineConnectedEvent) {
                         machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
@@ -268,7 +264,7 @@ class TestTransportSystemCoordinatorActorViaOPCUA {
         boolean transportSuccessful = false, transportIssued = false;
         boolean turntableIdle = false, inputIdle = false, outputIdle = false;
         while (!transportSuccessful) {
-            TimedEvent te = testKit.expectMsgAnyClassOf(Duration.ofSeconds(30), IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class, TransportSystemStatusMessage.class);
+            TimedEvent te = testKit.expectMsgAnyClassOf(Duration.ofSeconds(15), IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class, TransportSystemStatusMessage.class);
             logEvent(te);
             if (te instanceof MachineStatusUpdateEvent) {
                 MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;

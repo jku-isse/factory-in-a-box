@@ -21,6 +21,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import testutils.PortUtils;
 
 import java.time.Duration;
 
@@ -33,11 +34,14 @@ public class OutputStationProxyTest {
     private ActorRef machineEventBus;
     private ActorRef actor;
     private OPCUABase opcuaBase;
+    private String endpoint;
 
     @BeforeEach
     public void setup() {
         system = ActorSystem.create("TestSystem");
-        opcuaBase = OPCUABase.createAndStartLocalServer(4840, "VirtualOutputStation");
+        int port = PortUtils.findNextFreePort();
+        endpoint = "opc.tcp://127.0.0.1:" + port;
+        opcuaBase = OPCUABase.createAndStartLocalServer(port, "VirtualOutputStation");
         actor = OutputStationFactory.startStandaloneOutputStation(system, opcuaBase);
         machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
     }
@@ -59,7 +63,7 @@ public class OutputStationProxyTest {
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
                 DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), new InputStationPositionParser());
-                discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:4840");
+                discoveryUtil.discoverCapabilityForEndpoint(endpoint);
 
                 MachineConnectedEvent event = expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
 
@@ -85,7 +89,7 @@ public class OutputStationProxyTest {
                 //Start listening to machine events
                 machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
                 DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), new InputStationPositionParser());
-                discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:4840");
+                discoveryUtil.discoverCapabilityForEndpoint(endpoint);
 
                 expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
 

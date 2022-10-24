@@ -65,7 +65,7 @@ public class ServerHandshakeFU extends ServerSideHandshakeActor {
 
     private void createClientProxy() {
         Props proxyProps = ClientProxyActor.props(serverRequestBus, responseConnector);
-        this.clientProxy = context().actorOf(proxyProps, "ClientProxy");
+        this.clientProxy = context().actorOf(proxyProps, HandshakeCapability.SERVER_CAPABILITY_ID + capabilityInstanceId + "ClientProxy");
     }
 
     private String createBasePathForFU(UaFolderNode serverRootNode) {

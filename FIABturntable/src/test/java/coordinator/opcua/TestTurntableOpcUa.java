@@ -20,6 +20,7 @@ import fiab.turntable.opcua.OpcUaTurntableActor;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.junit.jupiter.api.*;
 import testutils.FUTestInfrastructure;
+import testutils.PortUtils;
 
 import java.time.Duration;
 
@@ -30,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Tag("IntegrationTest")
 public class TestTurntableOpcUa {
 
-    private static FUTestInfrastructure testFixture;
+    private FUTestInfrastructure testFixture;
     private TestKit remoteHandshakeProbe;
     private IntraMachineEventBus remoteIntraMachineBus;
     private ActorRef serverHandshakeActor;
@@ -51,25 +52,21 @@ public class TestTurntableOpcUa {
                 "RemoteHandshakeServer", new FUConnector(), fixture.getIntraMachineEventBus()));
     }
 
-    @BeforeAll
-    public static void init() {
-        testFixture = new FUTestInfrastructure(4840);
-    }
-
     @BeforeEach
     public void setup() {
-        int portOffset = testFixture.getAndIncrementRunCount() + 1; //Skip 4840 since this is the port of the Turntable
+        testFixture = new FUTestInfrastructure(PortUtils.findNextFreePort());
+        int port = testFixture.getPort() + testFixture.getAndIncrementRunCount() + 1; //Skip 4840 since this is the port of the Turntable
         remoteIntraMachineBus = new IntraMachineEventBus();
-        OPCUABase base = OPCUABase.createAndStartLocalServer(4840+portOffset, "RemoteDevice");
+        OPCUABase base = OPCUABase.createAndStartLocalServer(port, "RemoteDevice");
         serverHandshakeActor = testFixture.getSystem().actorOf(ServerHandshakeFU.props(base, base.getRootNode(),
                 "RemoteHandshakeServer", new FUConnector(), remoteIntraMachineBus));
         remoteHandshakeProbe = new TestKit(testFixture.getSystem());
         remoteIntraMachineBus.subscribe(remoteHandshakeProbe.getRef(), testFixture.getTestClassifier());
 
-        wiringInfoNorth = createServerHandshakeWiringInfo(TRANSPORT_MODULE_NORTH_CLIENT, portOffset);
-        wiringInfoEast = createServerHandshakeWiringInfo(TRANSPORT_MODULE_EAST_CLIENT, portOffset);
-        wiringInfoSouth = createServerHandshakeWiringInfo(TRANSPORT_MODULE_SOUTH_CLIENT, portOffset);
-        wiringInfoWest = createServerHandshakeWiringInfo(TRANSPORT_MODULE_WEST_CLIENT, portOffset);
+        wiringInfoNorth = createServerHandshakeWiringInfo(TRANSPORT_MODULE_NORTH_CLIENT, port);
+        wiringInfoEast = createServerHandshakeWiringInfo(TRANSPORT_MODULE_EAST_CLIENT, port);
+        wiringInfoSouth = createServerHandshakeWiringInfo(TRANSPORT_MODULE_SOUTH_CLIENT, port);
+        wiringInfoWest = createServerHandshakeWiringInfo(TRANSPORT_MODULE_WEST_CLIENT, port);
 
         testFixture.getMachineEventBus().subscribe(testFixture.getProbe().getRef(), testFixture.getTestClassifier());
         OpcUaMachineChildFUs ttComponents = new OpcUaMachineChildFUs(testFixture.getServer());
@@ -82,12 +79,6 @@ public class TestTurntableOpcUa {
 
     @AfterEach
     public void teardown() {
-        testFixture.destroyActor();
-        testFixture.disconnectClient();
-    }
-
-    @AfterAll
-    public static void cleanup() {
         testFixture.shutdownInfrastructure();
     }
 
@@ -230,11 +221,11 @@ public class TestTurntableOpcUa {
         assertEquals(coordinatorState, machineStatusUpdateEvent.getStatus());
     }
 
-    private static WiringInfo createServerHandshakeWiringInfo(String localCapabilityId, int portOffset) {
+    private static WiringInfo createServerHandshakeWiringInfo(String localCapabilityId, int port) {
         return new WiringInfoBuilder()
                 .setLocalCapabilityId(localCapabilityId)
                 .setRemoteCapabilityId("RemoteHandshakeServer")
-                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (4840 + portOffset))
+                .setRemoteEndpointURL("opc.tcp://127.0.0.1:" + (port))
                 .setRemoteNodeId("ns=2;s=RemoteDevice/HANDSHAKE_FU_RemoteHandshakeServer/CAPABILITIES/CAPABILITY")
                 .setRemoteRole("RemoteRole1")
                 .build();

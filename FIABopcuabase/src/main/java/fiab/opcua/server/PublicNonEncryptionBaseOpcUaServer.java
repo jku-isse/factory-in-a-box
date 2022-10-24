@@ -35,7 +35,7 @@ public class PublicNonEncryptionBaseOpcUaServer {
     private final OpcUaServer server;
 
     public PublicNonEncryptionBaseOpcUaServer(int number, String serverName) throws Exception {
-        TCP_BIND_PORT = 4840+number;
+        TCP_BIND_PORT = number;
 
         UsernameIdentityValidator identityValidator = new UsernameIdentityValidator(
                 true,
@@ -90,8 +90,7 @@ public class PublicNonEncryptionBaseOpcUaServer {
             for (String hostname : hostnames) {
                 EndpointConfiguration.Builder builder = EndpointConfiguration.newBuilder()
                         .setBindAddress(bindAddress)
-                        .setHostname(hostname)
-                        .setPath("/milo")       //This can be deleted in the future
+                        .setHostname(hostname)   //This can be deleted in the future
                         .addTokenPolicies(
                                 USER_TOKEN_POLICY_ANONYMOUS,
                                 USER_TOKEN_POLICY_USERNAME

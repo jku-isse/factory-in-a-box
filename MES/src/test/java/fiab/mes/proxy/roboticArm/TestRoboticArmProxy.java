@@ -28,6 +28,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import testutils.PortUtils;
 
 import java.time.Duration;
 
@@ -38,14 +39,17 @@ public class TestRoboticArmProxy {
     ActorSystem system;
     MachineEventBus intraMachineEventBus;
     MockRoboticArm mockRoboticArm;
+    String endpoint;
 
     public static void main(String[] args) {
-        new MockRoboticArm();
+        new MockRoboticArm(4840);
     }
 
     @BeforeEach
     public void setup() {
-        mockRoboticArm = new MockRoboticArm();
+        int port = PortUtils.findNextFreePort();
+        endpoint = "opc.tcp://127.0.0.1:" + port;
+        mockRoboticArm = new MockRoboticArm(port);
         system = ActorSystem.create("TestRoboticArmProxy");
         intraMachineEventBus = new MachineEventBus();
         system.actorOf(InterMachineEventBusWrapperActor.propsWithPreparedBus(intraMachineEventBus), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
@@ -98,7 +102,7 @@ public class TestRoboticArmProxy {
 
                 intraMachineEventBus.subscribe(getRef(), new MESSubscriptionClassifier("Tester", "*"));
                 ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-                FiabOpcUaClient client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:4840");
+                FiabOpcUaClient client = OPCUAClientFactory.createFIABClientAndConnect(endpoint);
                 RoboticArmWrapperInterface hal = new RoboticArmOpcUaWrapper(intraMachineEventBus, client, capabilityImplNode, resetMethod, stopMethod, pickMethod, stateVar, null);
                 ActorRef proxy = system.actorOf(RoboticArmProxy.props(eventBusByRef, prepareRoboticArmCapability(),
                         createParticipantModelActor("RoboticArm", 4840), hal, new MachineEventBus()));
@@ -122,7 +126,7 @@ public class TestRoboticArmProxy {
 
                 intraMachineEventBus.subscribe(getRef(), new MESSubscriptionClassifier("Tester", "*"));
                 ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-                FiabOpcUaClient client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:4840");
+                FiabOpcUaClient client = OPCUAClientFactory.createFIABClientAndConnect(endpoint);
                 RoboticArmWrapperInterface hal = new RoboticArmOpcUaWrapper(intraMachineEventBus, client, capabilityImplNode, stopMethod, resetMethod, pickMethod, stateVar, null);
                 ActorRef proxy = system.actorOf(RoboticArmProxy.props(eventBusByRef, prepareRoboticArmCapability(),
                         createParticipantModelActor("RoboticArm", 4840), hal, new MachineEventBus()));

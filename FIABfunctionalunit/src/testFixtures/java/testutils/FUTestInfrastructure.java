@@ -12,7 +12,7 @@ public class FUTestInfrastructure extends ActorTestInfrastructure {
     protected OPCUABase opcuaBase;
     protected FiabOpcUaClient opcUaClient;
 
-    public FUTestInfrastructure(int port){
+    public FUTestInfrastructure(int port) {
         super();
         this.port = port;
         opcuaBase = OPCUABase.createAndStartLocalServer(port, "TestDevice");
@@ -23,15 +23,19 @@ public class FUTestInfrastructure extends ActorTestInfrastructure {
         }
     }
 
+    public int getPort() {
+        return port;
+    }
+
     public OPCUABase getServer() {
         return opcuaBase;
     }
 
-    public FiabOpcUaClient getClient(){
+    public FiabOpcUaClient getClient() {
         return opcUaClient;
     }
 
-    public void connectClient(){
+    public void connectClient() {
         try {
             opcUaClient.connect().get();
         } catch (InterruptedException | ExecutionException e) {
@@ -39,7 +43,7 @@ public class FUTestInfrastructure extends ActorTestInfrastructure {
         }
     }
 
-    public void disconnectClient(){
+    public void disconnectClient() {
         try {
             opcUaClient.disconnect().get();
         } catch (InterruptedException | ExecutionException e) {
@@ -47,7 +51,7 @@ public class FUTestInfrastructure extends ActorTestInfrastructure {
         }
     }
 
-    public void shutdownServer(){
+    public void shutdownServer() {
         opcuaBase.shutDownOpcUaBase();
     }
 

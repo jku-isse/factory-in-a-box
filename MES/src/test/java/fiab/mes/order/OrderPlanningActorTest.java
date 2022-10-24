@@ -37,15 +37,15 @@ import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 @Tag("IntegrationTest")		//FIXME startup of machines is different now
 class OrderPlanningActorTest {
 
-	protected static ActorSystem system;
-	public static String ROOT_SYSTEM = "routes";	
-	protected static ActorRef orderEventBus;
-	protected static ActorRef orderPlanningActor;
-	protected static ActorRef coordActor;
-	protected static DefaultTestLayout layout;
+	protected ActorSystem system;
+	public String ROOT_SYSTEM = "routes";
+	protected ActorRef orderEventBus;
+	protected ActorRef orderPlanningActor;
+	protected ActorRef coordActor;
+	protected DefaultTestLayout layout;
 	
-	private static final Logger logger = LoggerFactory.getLogger(OrderPlanningActorTest.class);
-	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
+	private final Logger logger = LoggerFactory.getLogger(OrderPlanningActorTest.class);
+	HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 	
 	@BeforeEach
 	public void setup() throws Exception {
@@ -59,8 +59,9 @@ class OrderPlanningActorTest {
 		layout = new DefaultTestLayout(system, interMachineEventBus);
 		TransportRoutingAndMappingInterface routing = layout.getTransportRoutingAndMapping();
 		TransportPositionLookupAndParser dns = layout.getTransportPositionLookup();
-		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);
 		knownActors.clear();
 	}
@@ -68,9 +69,7 @@ class OrderPlanningActorTest {
 	@AfterEach
 	public void teardown() {
 	    TestKit.shutdownActorSystem(system);
-	    system = null;
 	}
-	
 	
 	@Test
 	void testInitOrderPlannerWithTransport() {
@@ -185,7 +184,7 @@ class OrderPlanningActorTest {
 				boolean order1Done = false;
 				boolean order2Done = false;
 				while (!order1Done || !order2Done) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof OrderEvent) {
 						OrderEvent oe = (OrderEvent) te;

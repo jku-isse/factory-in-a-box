@@ -14,6 +14,7 @@ import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.handshake.client.ClientSideHandshakeActor;
 import fiab.handshake.client.messages.WiringRequest;
 import fiab.handshake.client.messages.WiringUpdateNotification;
+import fiab.handshake.client.opcua.UaWiringInfoNodes;
 import fiab.handshake.client.opcua.client.OpcUaServerHandshakeProxy;
 import fiab.handshake.client.opcua.methods.*;
 import fiab.handshake.client.statemachine.ClientSideHandshakeTriggers;
@@ -200,62 +201,4 @@ public class ClientHandshakeFU extends ClientSideHandshakeActor {
         }
     }
 
-    //TODO move to own java file
-    static class UaWiringInfoNodes {
-        private UaVariableNode localCapabilityIdNode;
-        private UaVariableNode remoteCapabilityIdNode;
-        private UaVariableNode remoteCapabilityURLNode;
-        private UaVariableNode remoteNodeIdNode;
-        private UaVariableNode remoteRoleNode;
-
-        public UaVariableNode getLocalCapabilityIdNode() {
-            return localCapabilityIdNode;
-        }
-
-        public void setLocalCapabilityIdNode(UaVariableNode localCapabilityIdNode) {
-            this.localCapabilityIdNode = localCapabilityIdNode;
-        }
-
-        public UaVariableNode getRemoteCapabilityIdNode() {
-            return remoteCapabilityIdNode;
-        }
-
-        public void setRemoteCapabilityIdNode(UaVariableNode remoteCapabilityIdNode) {
-            this.remoteCapabilityIdNode = remoteCapabilityIdNode;
-        }
-
-        public UaVariableNode getRemoteCapabilityURLNode() {
-            return remoteCapabilityURLNode;
-        }
-
-        public void setRemoteCapabilityURLNode(UaVariableNode remoteCapabilityURLNode) {
-            this.remoteCapabilityURLNode = remoteCapabilityURLNode;
-        }
-
-        public UaVariableNode getRemoteNodeIdNode() {
-            return remoteNodeIdNode;
-        }
-
-        public void setRemoteNodeIdNode(UaVariableNode remoteNodeIdNode) {
-            this.remoteNodeIdNode = remoteNodeIdNode;
-        }
-
-        public UaVariableNode getRemoteRoleNode() {
-            return remoteRoleNode;
-        }
-
-        public void setRemoteRoleNode(UaVariableNode remoteRoleNode) {
-            this.remoteRoleNode = remoteRoleNode;
-        }
-    }
-
-    //private WiringInfo createServerHandshakeWiringInfo(){
-    //        return new WiringInfoBuilder()
-    //                .setLocalCapabilityId("NORTH_CLIENT")
-    //                .setRemoteCapabilityId("DefaultHandshakeServerSide")
-    //                .setRemoteEndpointURL("opc.tcp://127.0.0.1:4840/milo")
-    //                .setRemoteNodeId("ns=2;s=Handshake/ServerHandshake/HANDSHAKE_FU_DefaultServerSideHandshake/CAPABILITIES/CAPABILITY")
-    //                .setRemoteRole("RemoteRole1")
-    //                .build();
-    //    }
 }

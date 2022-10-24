@@ -40,17 +40,17 @@ import static fiab.mes.shopfloor.utils.ShopfloorUtils.PLOTTER_RED;
 @Tag("IntegrationTest")
 class TestUaUaStopMachineTurntablePlotter {
 
-    protected static ActorSystem system;
-    public static String ROOT_SYSTEM = "routes";
-    protected static ActorRef machineEventBus;
-    protected static ActorRef orderEventBus;
-    protected static ActorRef orderPlanningActor;
-    protected static ActorRef coordActor;
+    protected ActorSystem system;
+    public String ROOT_SYSTEM = "routes";
+    protected ActorRef machineEventBus;
+    protected ActorRef orderEventBus;
+    protected ActorRef orderPlanningActor;
+    protected ActorRef coordActor;
     //protected static DefaultLayout layout;
-    protected static DefaultTestLayout layout;
+    protected DefaultTestLayout layout;
 
-    private static final Logger logger = LoggerFactory.getLogger(TestUaUaStopMachineTurntablePlotter.class);
-    static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(TestUaUaStopMachineTurntablePlotter.class);
+    HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -72,10 +72,9 @@ class TestUaUaStopMachineTurntablePlotter {
     public void teardown() {
         TestKit.shutdownActorSystem(system);
         knownActors.clear();
-        system = null;
     }
 
-    @Test   //FIXME only passes when run individually
+    @Test   //FIXME only passes reliably when run individually
     void testStopMachineWhenUnassigned() {
         new TestKit(system) {
             {
@@ -84,7 +83,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < 8) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -109,7 +108,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 boolean sentStop = false;
                 boolean machineStopped = false;
                 while (!order1Done || !machineStopped) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), TimedEvent.class);
                     logEvent(te);
                     if (te instanceof OrderEvent) {
                         OrderEvent oe = (OrderEvent) te;
@@ -138,8 +137,7 @@ class TestUaUaStopMachineTurntablePlotter {
     }
 
     @Test
-        //FIXME: stopping is sent and acknoledged, but order is correctly processed til end, nevertheless
-    void testStopMachineWhenAssigned() throws Exception {
+    void testStopMachineWhenAssigned() {
         new TestKit(system) {
             {
                 layout.subscribeToInterMachineEventBus(getRef(), "Tester");
@@ -147,7 +145,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < 8) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -200,7 +198,7 @@ class TestUaUaStopMachineTurntablePlotter {
         };
     }
 
-    @Test
+    @Test   //FIXME only passes reliably when run individually
     void testStopMachineWhenPlotting() {
         new TestKit(system) {
             {
@@ -209,7 +207,7 @@ class TestUaUaStopMachineTurntablePlotter {
                 int countConnEvents = 0;
                 boolean isPlannerFunctional = false;
                 while (!isPlannerFunctional || countConnEvents < 8) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
                     logEvent(te);
                     if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
                         isPlannerFunctional = true;
@@ -266,22 +264,6 @@ class TestUaUaStopMachineTurntablePlotter {
         };
     }
 
-
-    public OrderProcess subscribeAndRegisterSinglePrintRedOrder(String oid, ActorRef testProbe) {
-        orderEventBus.tell(new SubscribeMessage(testProbe, new MESSubscriptionClassifier("OrderMock", oid)), testProbe);
-        OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleRedStepProcess(oid));
-        RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
-        orderPlanningActor.tell(req, testProbe);
-        return op1;
-    }
-
-    public void subscribeAndRegisterSinglePrintGreenOrder(String oid, ActorRef testProbe) {
-        orderEventBus.tell(new SubscribeMessage(testProbe, new MESSubscriptionClassifier("OrderMock", oid)), testProbe);
-        OrderProcess op1 = new OrderProcess(ProduceProcess.getSingleGreenStepProcess(oid));
-        RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, testProbe);
-        orderPlanningActor.tell(req, testProbe);
-    }
-
     public OrderProcess subscribeAndRegisterPrintGreenAndRedOrder(String oid, ActorRef testProbe) {
         orderEventBus.tell(new SubscribeMessage(testProbe, new MESSubscriptionClassifier("OrderMock", oid)), testProbe);
         OrderProcess op1 = new OrderProcess(ProduceProcess.getRedAndGreenStepProcess(oid));
@@ -292,15 +274,7 @@ class TestUaUaStopMachineTurntablePlotter {
 
     private void logEvent(TimedEvent event) {
         logger.info(event.toString());
-        System.out.println(event);   //FIXME remove this
     }
-
-//	public static ActorRef getMachineMockActor(int id, SupportedColors color) {
-//		ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-//		Actor modelActor = TestMockMachineActor.getDefaultMachineActor(id);
-//		AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(color);
-//		return system.actorOf(MockMachineActor.props(eventBusByRef, cap, modelActor));
-//	}
 
     private boolean matches(OrderEvent e, String orderId, OrderEventType type) {
         return (e.getEventType().equals(type) && e.getOrderId().equals(orderId));

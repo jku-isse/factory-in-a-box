@@ -23,8 +23,8 @@ public class MockRoboticArm {
     private final OPCUABase base;
     private UaVariableNode stateVariable;
 
-    public MockRoboticArm() {
-        this.base = OPCUABase.createAndStartLocalServer(4840, "Niryo");
+    public MockRoboticArm(int port) {
+        this.base = OPCUABase.createAndStartLocalServer(port, "Niryo");
         initServerStructure();
     }
 

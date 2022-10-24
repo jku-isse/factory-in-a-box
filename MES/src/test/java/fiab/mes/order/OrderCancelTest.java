@@ -173,7 +173,7 @@ class OrderCancelTest {
 				subscribeAndRegisterSinglePrintRedOrder(oid2, getRef());
 				boolean order1Done = false;
 				while (!order1Done ) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof OrderEvent) {
 						OrderEvent oe = (OrderEvent) te;
@@ -233,7 +233,7 @@ class OrderCancelTest {
 				boolean order2Done = false;
 				
 				while (!order1Done || !order2Done ) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof OrderEvent) {
 						OrderEvent oe = (OrderEvent) te;

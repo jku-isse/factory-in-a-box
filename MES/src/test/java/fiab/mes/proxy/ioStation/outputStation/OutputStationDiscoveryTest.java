@@ -14,6 +14,7 @@ import fiab.mes.proxy.testutil.DiscoveryUtil;
 import fiab.mes.proxy.ioStation.outputStation.testutils.OutputStationPositionParser;
 import fiab.opcua.server.OPCUABase;
 import org.junit.jupiter.api.*;
+import testutils.PortUtils;
 
 @Tag("IntegrationTest")
 public class OutputStationDiscoveryTest {
@@ -21,11 +22,14 @@ public class OutputStationDiscoveryTest {
     private ActorSystem system;
     private ActorRef machineEventBus;
     private OPCUABase opcuaBase;
+    private String endpoint;
 
     @BeforeEach
     public void setup() {
         system = ActorSystem.create("TestSystem");
-        opcuaBase = OPCUABase.createAndStartLocalServer(4840, "VirtualOutputStation");
+        int port = PortUtils.findNextFreePort();
+        endpoint = "opc.tcp://127.0.0.1:" + port;
+        opcuaBase = OPCUABase.createAndStartLocalServer(port, "VirtualOutputStation");
         OutputStationFactory.startStandaloneOutputStation(system, opcuaBase);
         machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
     }
@@ -45,7 +49,7 @@ public class OutputStationDiscoveryTest {
 
                 DiscoveryUtil discoveryUtil = new DiscoveryUtil(system, getRef(), new OutputStationPositionParser());
 
-                discoveryUtil.discoverCapabilityForEndpoint("opc.tcp://127.0.0.1:4840");
+                discoveryUtil.discoverCapabilityForEndpoint(endpoint);
 
                 expectMsgClass(MachineConnectedEvent.class);        //First we get notified that we are connected
                 expectMsgClass(IOStationStatusUpdateEvent.class);   //Then we check whether we can receive status updates

@@ -29,11 +29,15 @@ import fiab.mes.order.ecore.ProduceProcess;
 import fiab.mes.order.msg.LockForOrder;
 import fiab.mes.order.msg.ReadyForProcessEvent;
 import fiab.mes.order.msg.RegisterProcessStepRequest;
+import fiab.mes.shopfloor.layout.DefaultTestLayout;
+import fiab.mes.shopfloor.layout.ShopfloorLayout;
+import fiab.mes.shopfloor.layout.SingleTurntableLayout;
 import fiab.mes.transport.actor.transportsystem.TransportRoutingInterface.Position;
 import fiab.mes.transport.msg.TransportModuleRequest;
 import fiab.opcua.CapabilityImplementationMetadata.ProvOrReq;
 import fiab.plotter.PlotterFactory;
 import fiab.turntable.TurntableFactory;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -43,41 +47,16 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.*;
 
-//FIXME
+import static fiab.mes.shopfloor.utils.ShopfloorUtils.*;
+
 public class TestTurntableWithIOStations {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestTurntableWithIOStations.class);
+    private final Logger logger = LoggerFactory.getLogger(TestTurntableWithIOStations.class);
 
     MachineEventBus machineEventBus;
     ActorRef machineEventBusWrapper;
     ActorSystem system;
     ProcessStep step;
-
-    //Playground
-    public static void main(String args[]) {
-        startupW34toN31toS37();
-    }
-
-    public static void startupW34toS37() {
-        ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
-        InputStationFactory.startStandaloneInputStation(system, 4840, "VirtualInputStation1");
-        OutputStationFactory.startStandaloneOutputStation(system, 4847, "VirtualOutputStation1");
-        TurntableFactory.startStandaloneTurntable(system, 4842, "TurntableVirtualW34toS37");
-    }
-
-    public static void startupW34toN31toS37() {
-        //fiab.machine.iostation.opcua.StartupUtil.startupInputstation(0, "VirtualInputStation1"); //Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
-        //fiab.machine.iostation.opcua.StartupUtil.startupOutputstation(7, "VirtualOutputStation1");
-        //fiab.machine.plotter.opcua.StartupUtil.startup(5, "VirtualPlotter31", SupportedColors.BLACK);
-        ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPCUA");
-        //int portOffset = 2;
-        //boolean exposeInternalControls = false;
-        //system.actorOf(OPCUATurntableRootActor.props("TurntableVirtualW34toN31toS37", portOffset, exposeInternalControls), "TurntableRoot");
-        InputStationFactory.startStandaloneInputStation(system, 4840, "VirtualInputStation1");
-        OutputStationFactory.startStandaloneOutputStation(system, 4847, "VirtualOutputStation1");
-        PlotterFactory.startStandalonePlotter(system, 4845, "VirtualPlotter31", SupportedColors.BLACK);
-        TurntableFactory.startStandaloneTurntable(system, 4842, "TurntableVirtualW34toN31toS37");
-    }
 
     public static void startupW34toE35() {
         // !!! Names are reflected in Nodeset, do not change without propagating to wiringinfo.json
@@ -102,49 +81,193 @@ public class TestTurntableWithIOStations {
     }
 
     @BeforeEach
-    void setup() throws Exception {
+    void setup() {
         system = ActorSystem.create("TEST_ROOT_SYSTEM");
         // assume OPCUA server (mock or otherwise is started
         machineEventBus = new MachineEventBus();
         machineEventBusWrapper = system.actorOf(InterMachineEventBusWrapperActor.propsWithPreparedBus(machineEventBus), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-        ProcessCore.Process p = ProduceProcess.getSequential4ColorProcess("P1-");
-        OrderProcess op = new OrderProcess(p);
-        op.activateProcess();
-        step = op.getAvailableSteps().get(0);
+    }
+
+    @AfterEach
+    void teardown() {
+        TestKit.shutdownActorSystem(system);
     }
 
     @Test
     @Tag("IntegrationTest")
     void virtualIOandTT() {
-        // MAKE SURE TO RUN CORRECT SHOPFLOOR LAYOUT ABOVE
-        startupW34toS37();
-        Set<String> urlsToBrowse = new HashSet<String>();
-        urlsToBrowse.add("opc.tcp://localhost:4840"); //Pos34
-        // we provided wiring info to TT1 for outputstation at SOUTH_CLIENT for testing purpose, for two turntable setup needs changing
-        urlsToBrowse.add("opc.tcp://localhost:4847");    // POS SOUTH 37
-        urlsToBrowse.add("opc.tcp://localhost:4842");        // Pos20
-
-
-        Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-        ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-        runTransport34to37TestWith(capURI2Spawning, urlsToBrowse);
-    }
-
-    @Test  //Works somewhat
-    @Tag("SystemTest")
-    void realIOandRealSingleTT() {
-        Set<String> urlsToBrowse = new HashSet<String>();
-        urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
-        urlsToBrowse.add("opc.tcp://192.168.0.35:4840");    // POS EAST 35/ outputstation
-        urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");        // Pos20 TT
-        Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-        ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
+        OrderProcess op = createRedGreenProcess();
+        step = op.getAvailableSteps().get(0);
         Position posFrom = new Position("34");
-        Position posTo = new Position("35");
-        runTransportTestWith(capURI2Spawning, urlsToBrowse, posFrom, posTo);
+        Position posTo = new Position("21");    //Since there is no second turntable, the output station uses this position
+        new TestKit(system) {
+            {
+                ShopfloorLayout layout = new SingleTurntableLayout(system, machineEventBusWrapper);
+                layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+                layout.initializeAndDiscoverParticipantsForId(getRef(), INPUT_STATION, OUTPUT_STATION, TURNTABLE_1);
+
+                HashMap<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
+
+                boolean didReactOnIdle = false;
+                boolean doRun = true;
+                while (doRun) {
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ServerHandshakeStatusUpdateEvent.class);
+                    logEvent(te);
+                    if (te instanceof MachineConnectedEvent) {
+                        machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+                    }
+                    if (te instanceof MachineStatusUpdateEvent) {
+                        MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
+                        if (msue.getStatus().equals(BasicMachineStates.STOPPED)) {
+                            machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
+                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && !didReactOnIdle) {
+                            logger.info("Sending TEST transport request to: " + msue.getMachineId());
+                            TransportModuleRequest req = new TransportModuleRequest(machines.get(msue.getMachineId()), posFrom, posTo, "Order1", "TReq1");
+                            machines.get(msue.getMachineId()).getAkkaActor().tell(req, getRef());
+                            didReactOnIdle = true;
+                        } else if (msue.getStatus().equals(BasicMachineStates.COMPLETE) || msue.getStatus().equals(BasicMachineStates.COMPLETING)) {
+                            logger.info("Completing test upon receiving COMPLETE/ING from: " + msue.getMachineId());
+                            doRun = false;
+                        }
+                    }
+                }
+            }
+        };
     }
 
-//	@Test  //FIXME: hardware centric not ok
+    @Test
+    @Tag("IntegrationTest")
+    void testHandoverWithVirtualIOStationsAndTTandVirtualPlotter() {
+        OrderProcess op = createRedGreenProcess();
+        step = op.getAvailableSteps().get(0);
+        new TestKit(system) {
+            {
+                ShopfloorLayout layout = new SingleTurntableLayout(system, machineEventBusWrapper);
+                layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+                layout.initializeAndDiscoverParticipantsForId(getRef(), INPUT_STATION, OUTPUT_STATION, TURNTABLE_1, PLOTTER_RED);
+                HashMap<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
+                String ttMachineId = layout.getParticipantForId(TURNTABLE_1).getProxyMachineId();
+                String plotterMachineId = layout.getParticipantForId(PLOTTER_RED).getProxyMachineId();
+                String outputStationId = layout.getParticipantForId(OUTPUT_STATION).getProxyMachineId();
+                boolean didReactOnIdle = false;
+                boolean doRun = true;
+                boolean plotterReady = false;
+                boolean turntableReady = false;
+                while (machines.size() < layout.getParticipants().size() || doRun) {
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class);
+                    logEvent(te);
+                    if (te instanceof MachineConnectedEvent) {
+                        MachineConnectedEvent event = ((MachineConnectedEvent) te);
+                        machines.put(event.getMachineId(), event.getMachine());
+                    }
+                    if (te instanceof MachineStatusUpdateEvent) {
+                        MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
+                        if (msue.getStatus().equals(BasicMachineStates.STOPPED)) {
+                            machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
+                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals(plotterMachineId)) {
+                            sendPlotRegister(machines.get(msue.getMachineId()).getAkkaActor(), getRef());
+                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals(ttMachineId)) {
+                            turntableReady = true;
+                        } else if (msue.getStatus().equals(BasicMachineStates.COMPLETING) &&
+                                msue.getMachineId().equals(plotterMachineId)) {
+                            //now do unloading
+                            //sendTransportRequestNorth31ToEast21(machines.get(ttMachineId), getRef());
+                            AkkaActorBackedCoreModelAbstractActor turntable = machines.get(ttMachineId);
+                            TransportModuleRequest req = new TransportModuleRequest(turntable, new Position("37"), new Position("21"), "Order1", "TReq1");
+                            turntable.getAkkaActor().tell(req, getRef());
+                        }
+                    }
+                    if (te instanceof ReadyForProcessEvent) {
+                        assert (((ReadyForProcessEvent) te).isReady());
+                        plotterReady = true;
+                        sendPlotRequest(machines.get(plotterMachineId).getAkkaActor(), getRef());
+                    }
+
+                    if (te instanceof IOStationStatusUpdateEvent) {
+                        IOStationStatusUpdateEvent iosue = (IOStationStatusUpdateEvent) te;
+                        if ((iosue.getStatus().equals(ServerSideStates.COMPLETE) || iosue.getStatus().equals(ServerSideStates.COMPLETING)) &&
+                                iosue.getMachineId().equals(outputStationId)) {
+                            logger.info("Completing test upon receiving COMPLETE/ING from: " + iosue.getMachineId());
+                            doRun = false;
+                        }
+                    }
+                    if (plotterReady && turntableReady && !didReactOnIdle) {
+                        logger.info("Sending TEST transport request to Turntable1");
+                        AkkaActorBackedCoreModelAbstractActor turntable = machines.get(ttMachineId);
+                        TransportModuleRequest req = new TransportModuleRequest(turntable, new Position("37"), new Position("21"), "Order1", "TReq1");
+                        turntable.getAkkaActor().tell(req, getRef());
+                        didReactOnIdle = true;
+                    }
+                }
+            }
+        };
+    }
+
+    @Test
+    @Tag("IntegrationTest")
+    void testHandoverWithVirtualIOStationsAndTwoVirtualTTs() {
+        OrderProcess op = create4ColorProcess();
+        step = op.getAvailableSteps().get(0);
+        new TestKit(system) {
+            {
+                ShopfloorLayout layout = new DefaultTestLayout(system, machineEventBusWrapper);
+                layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+                layout.initializeAndDiscoverParticipantsForId(getRef(),
+                        INPUT_STATION, OUTPUT_STATION,
+                        TURNTABLE_1, TURNTABLE_2,
+                        PLOTTER_RED, PLOTTER_GREEN);
+                HashMap<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
+
+                String turntable1Id = layout.getParticipantForId(TURNTABLE_1).getProxyMachineId();
+                String turntable2Id = layout.getParticipantForId(TURNTABLE_2).getProxyMachineId();
+                String outputStationId = layout.getParticipantForId(OUTPUT_STATION).getProxyMachineId();
+                boolean didReactOnIdle = false;
+                boolean doRun = true;
+                boolean turntableReady1 = false;
+                boolean turntableReady2 = false;
+                while (machines.size() < layout.getParticipants().size() || doRun) {
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class);
+                    logEvent(te);
+                    if (te instanceof MachineConnectedEvent) {
+                        machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+                    }
+                    if (te instanceof MachineStatusUpdateEvent) {
+                        MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
+                        if (msue.getStatus().equals(BasicMachineStates.STOPPED)) {
+                            machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
+                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals(turntable1Id)) {
+                            turntableReady1 = true;
+                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals(turntable2Id)) {
+                            turntableReady2 = true;
+                        }
+                    }
+                    if (te instanceof IOStationStatusUpdateEvent) {
+                        IOStationStatusUpdateEvent iosue = (IOStationStatusUpdateEvent) te;
+                        if ((iosue.getStatus().equals(ServerSideStates.COMPLETE) || iosue.getStatus().equals(ServerSideStates.COMPLETING)) &&
+                                iosue.getMachineId().equals(outputStationId)) {
+                            logger.info("Completing test upon receiving COMPLETE/ING from: " + iosue.getMachineId());
+                            doRun = false;
+                        }
+                    }
+                    if (turntableReady1 && turntableReady2 && !didReactOnIdle) {
+                        logger.info("Sending TEST transport request to Turntable1");
+                        AkkaActorBackedCoreModelAbstractActor tt1 = machines.get(turntable1Id);
+                        TransportModuleRequest req = new TransportModuleRequest(tt1, new Position("34"), new Position("21"), "Order1", "TReq1");
+                        tt1.getAkkaActor().tell(req, getRef());
+                        logger.info("Sending TEST transport request to Turntable2");
+                        AkkaActorBackedCoreModelAbstractActor tt2 = machines.get(turntable2Id);
+                        TransportModuleRequest req2 = new TransportModuleRequest(tt2, new Position("20"), new Position("35"), "Order1", "TReq2");
+                        tt2.getAkkaActor().tell(req2, getRef());
+                        didReactOnIdle = true;
+                    }
+                }
+            }
+        };
+    }
+
+
+    //	@Test  //FIXME: hardware centric not ok
+//  @Tag("SystemTest")
 //	void realIOandRealSingleTTAndPLotter() {
 //		Set<String> urlsToBrowse = new HashSet<String>();
 //		urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
@@ -158,29 +281,34 @@ public class TestTurntableWithIOStations {
 //		runTransportTestWith(capURI2Spawning, urlsToBrowse, posFrom, posTo);
 //	}
 
-    private boolean runTransport34to37TestWith(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse) {
+    @Test  //Works somewhat
+    @Tag("SystemTest")
+    void realIOandRealSingleTT() {
+        ShopfloorLayout layout = new SingleTurntableLayout(system, machineEventBusWrapper);
+        Set<String> urlsToBrowse = new HashSet<String>();
+        urlsToBrowse.add("opc.tcp://192.168.0.34:4840"); //Pos34 west inputstation
+        urlsToBrowse.add("opc.tcp://192.168.0.35:4840");    // POS EAST 35/ outputstation
+        urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");        // Pos20 TT
+        Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
+        ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
         Position posFrom = new Position("34");
-        Position posTo = new Position("37");
-        return runTransportTestWith(capURI2Spawning, urlsToBrowse, posFrom, posTo);
+        Position posTo = new Position("35");
+        runTransportTestWith(posFrom, posTo);
     }
 
-    private boolean runTransportTestWith(Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning, Set<String> urlsToBrowse, Position posFrom, Position posTo) {
+    //FIXME this will not work anymore, but only used for one system test.
+    private boolean runTransportTestWith(Position posFrom, Position posTo) {
         new TestKit(system) {
             {
-                final ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-                eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
-
-                urlsToBrowse.stream().forEach(url -> {
-                    ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-                    discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
-                });
+                ShopfloorLayout layout = new SingleTurntableLayout(system, machineEventBusWrapper);
+                layout.subscribeToInterMachineEventBus(getRef(), "Tester");
 
                 HashMap<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
 
                 boolean didReactOnIdle = false;
                 boolean doRun = true;
                 while (doRun) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ServerHandshakeStatusUpdateEvent.class);
+                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ServerHandshakeStatusUpdateEvent.class);
                     logEvent(te);
                     if (te instanceof MachineConnectedEvent) {
                         machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
@@ -205,158 +333,22 @@ public class TestTurntableWithIOStations {
         return true;
     }
 
-    @Test
-    @Tag("IntegrationTest")
-    void testHandoverWithVirtualIOStationsAndTTandVirtualPlotter() {
-        new TestKit(system) {
-            {
-                startupW34toN31toS37();
-                // MAKE SURE TO RUN CORRECT SHOPFLOOR LAYOUT ABOVE
-                final ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-                eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
-                // setup discoveryactor
-                Set<String> urlsToBrowse = new HashSet<String>();
-                urlsToBrowse.add("opc.tcp://localhost:4840"); //Pos34
-                // we provided wiring info to TT1 for outputstation at SOUTH_CLIENT for testing purpose, for two turntable setup needs changing
-                urlsToBrowse.add("opc.tcp://localhost:4847");    // POS SOUTH 37
-                urlsToBrowse.add("opc.tcp://localhost:4842");        // Pos20
-                // virtual plotter
-                urlsToBrowse.add("opc.tcp://localhost:4845");    // POS NORTH 31
-
-                Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-                ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-                urlsToBrowse.stream().forEach(url -> {
-                    ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-                    discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
-                });
-                HashMap<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
-                String ttMachineId="";
-                String plotterMachineId="";
-                String outputStationId="";
-                boolean didReactOnIdle = false;
-                boolean doRun = true;
-                boolean plotterReady = false;
-                boolean turntableReady = false;
-                while (machines.size() < urlsToBrowse.size() || doRun) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class);
-                    logEvent(te);
-                    if (te instanceof MachineConnectedEvent) {
-                        MachineConnectedEvent event = ((MachineConnectedEvent) te);
-                        machines.put(event.getMachineId(), event.getMachine());
-                        if(event.getMachineId().toLowerCase(Locale.ROOT).contains("turntable")) ttMachineId = event.getMachineId();
-                        if(event.getMachineId().toLowerCase(Locale.ROOT).contains("plot")) plotterMachineId = event.getMachineId();
-                        if(event.getMachineId().toLowerCase(Locale.ROOT).contains("output")) outputStationId = event.getMachineId();
-                    }
-                    if (te instanceof MachineStatusUpdateEvent) {
-                        MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-                        if (msue.getStatus().equals(BasicMachineStates.STOPPED)) {
-                            machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
-                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals(plotterMachineId)) {
-                            sendPlotRegister(machines.get(msue.getMachineId()).getAkkaActor(), getRef());
-                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals(ttMachineId)) {
-                            turntableReady = true;
-                        } else if (msue.getStatus().equals(BasicMachineStates.COMPLETING) &&
-                                msue.getMachineId().equals(plotterMachineId)) {
-                            //now do unloading
-                            sendTransportRequestNorth31ToSouth37(machines.get(ttMachineId), getRef());
-                        }
-                    }
-                    if (te instanceof ReadyForProcessEvent) {
-                        assert (((ReadyForProcessEvent) te).isReady());
-                        plotterReady = true;
-                        sendPlotRequest(machines.get(plotterMachineId).getAkkaActor(), getRef());
-                    }
-
-                    if (te instanceof IOStationStatusUpdateEvent) {
-                        IOStationStatusUpdateEvent iosue = (IOStationStatusUpdateEvent) te;
-                        if ((iosue.getStatus().equals(ServerSideStates.COMPLETE) || iosue.getStatus().equals(ServerSideStates.COMPLETING)) &&
-                                iosue.getMachineId().equals(outputStationId)) {
-                            logger.info("Completing test upon receiving COMPLETE/ING from: " + iosue.getMachineId());
-                            doRun = false;
-                        }
-                    }
-                    if (plotterReady && turntableReady && !didReactOnIdle) {
-                        logger.info("Sending TEST transport request to Turntable1");
-                        sendTransportRequestWest34ToNorth31(machines.get(ttMachineId), getRef());
-                        didReactOnIdle = true;
-                    }
-                }
-            }
-        };
+    private OrderProcess create4ColorProcess() {
+        //BLACK, BLUE, GREEN, RED
+        ProcessCore.Process p = ProduceProcess.getSequential4ColorProcess("P1-");
+        OrderProcess op = new OrderProcess(p);
+        op.activateProcess();
+        return op;
     }
 
-    @Test
-    @Tag("IntegrationTest")
-    void testHandoverWithVirtualIOStationsAndTwoVirtualTTs() {
-        new TestKit(system) {
-            {
-                // MAKE SURE TO RUN CORRECT SHOPFLOOR LAYOUT ABOVE
-                final ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-                eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
-                // setup discoveryactor
-                Set<String> urlsToBrowse = new HashSet<String>();
-                urlsToBrowse.add("opc.tcp://localhost:4840"); //Pos34 input station
-                urlsToBrowse.add("opc.tcp://localhost:4841");    // POS EAST of TT2, Pos 35 output station
-                urlsToBrowse.add("opc.tcp://localhost:4842");        // TT1 Pos20
-                urlsToBrowse.add("opc.tcp://localhost:4843");        // TT2 Pos21
-                // virtual plotters
-                urlsToBrowse.add("opc.tcp://localhost:4845");    // POS NORTH of TT1 31
-                urlsToBrowse.add("opc.tcp://localhost:4846");    // POS NORTH of TT2 32
-
-                Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-                ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-                urlsToBrowse.stream().forEach(url -> {
-                    ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-                    discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
-                });
-                HashMap<String, AkkaActorBackedCoreModelAbstractActor> machines = new HashMap<>();
-
-                boolean didReactOnIdle = false;
-                boolean doRun = true;
-                boolean turntableReady1 = false;
-                boolean turntableReady2 = false;
-                while (machines.size() < urlsToBrowse.size() || doRun) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, ReadyForProcessEvent.class);
-                    logEvent(te);
-                    if (te instanceof MachineConnectedEvent) {
-                        machines.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
-                    }
-                    if (te instanceof MachineStatusUpdateEvent) {
-                        MachineStatusUpdateEvent msue = (MachineStatusUpdateEvent) te;
-                        if (msue.getStatus().equals(BasicMachineStates.STOPPED)) {
-                            machines.get(msue.getMachineId()).getAkkaActor().tell(new GenericMachineRequests.Reset(msue.getMachineId()), getRef());
-                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals("TurntableVirtualW34toN31toE21/Turntable_FU")) {
-                            turntableReady1 = true;
-                        } else if (msue.getStatus().equals(BasicMachineStates.IDLE) && msue.getMachineId().equals("TurntableVirtualW20toN32toE35/Turntable_FU")) {
-                            turntableReady2 = true;
-                        }
-                    }
-                    if (te instanceof IOStationStatusUpdateEvent) {
-                        IOStationStatusUpdateEvent iosue = (IOStationStatusUpdateEvent) te;
-                        if ((iosue.getStatus().equals(ServerSideStates.COMPLETE) || iosue.getStatus().equals(ServerSideStates.COMPLETING)) &&
-                                iosue.getMachineId().equals("VirtualOutputStation1N")) {
-                            logger.info("Completing test upon receiving COMPLETE/ING from: " + iosue.getMachineId());
-                            doRun = false;
-                        }
-                    }
-                    if (turntableReady1 && turntableReady2 && !didReactOnIdle) {
-                        logger.info("Sending TEST transport request to Turntable1");
-                        AkkaActorBackedCoreModelAbstractActor tt1 = machines.get("TurntableVirtualW34toN31toE21/Turntable_FU");
-                        TransportModuleRequest req = new TransportModuleRequest(tt1, new Position("34"), new Position("21"), "Order1", "TReq1");
-                        tt1.getAkkaActor().tell(req, getRef());
-                        logger.info("Sending TEST transport request to Turntable2");
-                        AkkaActorBackedCoreModelAbstractActor tt2 = machines.get("TurntableVirtualW20toN32toE35/Turntable_FU");
-                        TransportModuleRequest req2 = new TransportModuleRequest(tt2, new Position("20"), new Position("35"), "Order1", "TReq2");
-                        tt2.getAkkaActor().tell(req2, getRef());
-                        didReactOnIdle = true;
-                    }
-                }
-            }
-        };
+    private OrderProcess createRedGreenProcess() {
+        ProcessCore.Process p = ProduceProcess.getRedAndGreenStepProcess("P1-");
+        OrderProcess op = new OrderProcess(p);
+        op.activateProcess();
+        return op;
     }
 
     private void sendPlotRequest(ActorRef plotter, ActorRef self) {
-
         LockForOrder lfo = new LockForOrder("Step1", "Order1");
         plotter.tell(lfo, self);
     }
@@ -366,19 +358,8 @@ public class TestTurntableWithIOStations {
         plotter.tell(req, self);
     }
 
-    private void sendTransportRequestWest34ToNorth31(AkkaActorBackedCoreModelAbstractActor tt, ActorRef self) {
-        TransportModuleRequest req = new TransportModuleRequest(tt, new Position("34"), new Position("31"), "Order1", "TReq1");
-        tt.getAkkaActor().tell(req, self);
-    }
-
-    private void sendTransportRequestNorth31ToSouth37(AkkaActorBackedCoreModelAbstractActor tt, ActorRef self) {
-        TransportModuleRequest req = new TransportModuleRequest(tt, new Position("31"), new Position("37"), "Order1", "TReq2");
-        tt.getAkkaActor().tell(req, self);
-    }
-
     private void logEvent(TimedEvent event) {
         logger.info(event.toString());
     }
-
 
 }

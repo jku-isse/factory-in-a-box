@@ -37,28 +37,21 @@ import fiab.mes.transport.msg.RegisterTransportRequestStatusResponse;
 
 class TestTransportSystemCoordinatorActor {
 
-	private static final Logger logger = LoggerFactory.getLogger(TestTransportSystemCoordinatorActor.class);
+	private final Logger logger = LoggerFactory.getLogger(TestTransportSystemCoordinatorActor.class);
 	
-	protected static ActorSystem system;
-	public static String ROOT_SYSTEM = "TEST_TRANSPORTSYSTEM";
-	protected static ActorRef machineEventBus;
-	protected static ActorRef orderEventBus;
-	protected static ActorRef coordActor;
-	//HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-	//DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
-//	static VirtualIOStationActorFactory partsIn;
-//	static VirtualIOStationActorFactory partsOut;
-	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
-	static ShopfloorLayout layout;
-//	private static boolean engageAutoReload = true;
-//	private static boolean disengageAutoReload = false;
+	protected ActorSystem system;
+	public String ROOT_SYSTEM = "TEST_TRANSPORTSYSTEM";
+	protected ActorRef machineEventBus;
+	protected ActorRef orderEventBus;
+	protected ActorRef coordActor;
+	HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
+	ShopfloorLayout layout;
 	
 	@BeforeEach
 	public void setup() throws Exception {
 		// setup shopfloor
 		// setup machines				
 		system = ActorSystem.create(ROOT_SYSTEM);
-		//layout = new DefaultLayout(system);
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 	}
@@ -67,7 +60,6 @@ class TestTransportSystemCoordinatorActor {
 	public void teardown() {
 		knownActors.clear();
 	    TestKit.shutdownActorSystem(system);
-	    system = null;
 	}
 
 	@Test
@@ -82,7 +74,7 @@ class TestTransportSystemCoordinatorActor {
 				int countConnEvents = 0;
 				boolean transportReady = false;
 				while (countConnEvents < layout.getParticipants().size() && !transportReady) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, TransportSystemStatusMessage.class);
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent) {
 						countConnEvents++;
@@ -104,7 +96,7 @@ class TestTransportSystemCoordinatorActor {
 				boolean transportDone = false;
 				boolean resetTT = false;
 				while(!transportDone) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineStatusUpdateEvent.class, IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class, TransportSystemStatusMessage.class);
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineStatusUpdateEvent.class, IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class, TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId().equals(turntableId) && !resetTT) {
 						knownActors.get(turntableId).getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());
@@ -135,7 +127,7 @@ class TestTransportSystemCoordinatorActor {
 				layout.initializeAndDiscoverParticipants(getRef());
 				int countConnEvents = 0;
 				while (countConnEvents < layout.getParticipants().size()) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, TransportSystemStatusMessage.class);
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof MachineConnectedEvent)
 						countConnEvents++;					
@@ -151,7 +143,7 @@ class TestTransportSystemCoordinatorActor {
 				boolean resetTT1 = false;
 				boolean resetTT2 = false;
 				while(!transportDone) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineStatusUpdateEvent.class, IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class);
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineStatusUpdateEvent.class, IOStationStatusUpdateEvent.class, RegisterTransportRequestStatusResponse.class);
 					logEvent(te);
 					if (te instanceof MachineStatusUpdateEvent && ((MachineStatusUpdateEvent) te).getMachineId().equals(turntableId) && !resetTT1) {
 						knownActors.get(turntableId).getAkkaActor().tell(new GenericMachineRequests.Reset(((MachineEvent) te).getMachineId()), getRef());

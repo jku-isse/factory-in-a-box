@@ -13,6 +13,7 @@ public class TurntableApplication {
         String ttName = args[0];
 
         ActorSystem system = ActorSystem.create("ROOT_SYSTEM_TURNTABLE_OPC_UA");
-        ActorRef actor = TurntableFactory.startTurntable(system, new MachineEventBus(), 4840, ttName);
+        //ActorRef actor = TurntableFactory.startTurntable(system, new MachineEventBus(), 4840, ttName);
+        ActorRef actorRef = TurntableFactory.startDiscoverableTurntable(system, 4840, ttName);
     }
 }
