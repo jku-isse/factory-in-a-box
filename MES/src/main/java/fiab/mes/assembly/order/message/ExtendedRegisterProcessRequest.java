@@ -3,18 +3,23 @@ package fiab.mes.assembly.order.message;
 import ProcessCore.XmlRoot;
 import akka.actor.ActorRef;
 import fiab.mes.order.OrderProcess;
+import fiab.mes.order.msg.RegisterProcessRequest;
 
-public class ExtendedRegisterProcessRequest {
+public class ExtendedRegisterProcessRequest extends RegisterProcessRequest {
 
-    protected final String rootOrderId;
     protected final XmlRoot xmlRoot;
-    protected final ActorRef orderActor;
 
-    public ExtendedRegisterProcessRequest(String rootOrderId, XmlRoot xmlRoot, ActorRef requestor) {
-        this.rootOrderId = rootOrderId;
+    public ExtendedRegisterProcessRequest(String rootOrderId, OrderProcess process, XmlRoot xmlRoot, ActorRef requestor) {
+        super(rootOrderId, process, requestor);
         this.xmlRoot = xmlRoot;
-        this.orderActor = requestor;
     }
+
+//    public ExtendedRegisterProcessRequest(String rootOrderId, XmlRoot xmlRoot, ActorRef requestor) {
+//        super();
+//        this.rootOrderId = rootOrderId;
+//        this.xmlRoot = xmlRoot;
+//        this.orderActor = requestor;
+//    }
 
     public String getRootOrderId() {
         return rootOrderId;
