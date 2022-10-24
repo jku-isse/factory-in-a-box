@@ -73,6 +73,8 @@ test {
     }
 }
 
+//Runs only tests that are tagged as Unit tests
+//Should only test a specific functionality or a single component
 tasks.register("runUnitTests", Test) {
     useJUnitPlatform {
         includeTags "UnitTest"
@@ -80,10 +82,29 @@ tasks.register("runUnitTests", Test) {
     mustRunAfter check
 }
 
-//Some tests need to be re-run manually, since I can't get rid of BindException for now
+//Runs only tests that are tagged as Integration tests
+//Used when multiple software components are tested together
 tasks.register("runIntegrationTests", Test) {
     useJUnitPlatform {
         includeTags "IntegrationTest"
+    }
+    mustRunAfter check
+}
+
+//Runs only tests that are tagged as System tests
+//Reserved for tests that require actual hardware to be deployed and available, require manual setup and run manually
+tasks.register("runSystemTests", Test) {
+    useJUnitPlatform {
+        includeTags "SystemTest"
+    }
+    mustRunAfter check
+}
+
+//Runs only tests that are tagged as Acceptance tests
+//Reserved for demos where we showcase some functionality of the factory in a box. Run and set up manually
+tasks.register("runAcceptanceTests", Test) {
+    useJUnitPlatform {
+        includeTags "AcceptanceTest"
     }
     mustRunAfter check
 }

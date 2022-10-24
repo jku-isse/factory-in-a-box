@@ -41,8 +41,8 @@ public class PlotterCoordinatorActor extends AbstractActor implements WellknownP
                 () -> new PlotterCoordinatorActor(machineEventBus, intraMachineEventBus, childFUs));
     }
 
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-    private final String componentId;
+    protected final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    protected final String componentId;
     protected final PlotterCoordinatorStateMachine stateMachine;
     private MachineEventBus machineEventBus;
     private IntraMachineEventBus intraMachineEventBus;

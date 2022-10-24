@@ -46,12 +46,12 @@ public class ClientSpawnerActor extends AbstractActor {
 
     private void handleCreationRequest(ClientSpawnerMessages.CreateNewClient msg) {
         sender = sender();
-        clientCreationTask = createClientAsync(msg.getNodeIds().getRemoteEndpointURL())
+        clientCreationTask = createClientAsync(msg.getWiringInfo().getRemoteEndpointURL())
                 .thenApply(client -> {
                     RemoteServerHandshakeNodeIds nodeIds = new RemoteServerHandshakeNodeIds();
                     nodeIds.setClient(client);
-                    nodeIds.setEndpoint(msg.getNodeIds().getRemoteEndpointURL());
-                    nodeIds.setCapabilityImplNode(NodeId.parse(msg.getNodeIds().getRemoteNodeId()));
+                    nodeIds.setEndpoint(msg.getWiringInfo().getRemoteEndpointURL());
+                    nodeIds.setCapabilityImplNode(NodeId.parse(msg.getWiringInfo().getRemoteNodeId()));
                     return nodeIds;
                 })
                 .thenApply(nodeIds -> prepareApplyingWiringInfo(nodeIds))
@@ -66,6 +66,7 @@ public class ClientSpawnerActor extends AbstractActor {
                 })
                 .exceptionally((ex) -> {
                     sender.tell(new ClientSpawnerMessages.ClientCreationFailed(), self());
+                    log.warning("Client creation failed with {}, no client was spawned for {}", ex.getCause(),msg.getWiringInfo());
                     ex.printStackTrace();
                     return null;
                 });

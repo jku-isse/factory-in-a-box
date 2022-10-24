@@ -53,9 +53,9 @@ public class VoestDemo {
     static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 //	private static OrderProcess process;
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         // Dual TT tests:
-        new TestTurntableWithIOStations().startupW34toE35();
+        TestTurntableWithIOStations.startupW34toE35();
     }
 
 
@@ -202,8 +202,8 @@ public class VoestDemo {
         urlsToBrowse.add("opc.tcp://192.168.0.37:4840"); //Pos37 TT1 south plotter
         urlsToBrowse.add("opc.tcp://192.168.0.38:4840"); //Pos38 TT2 south plotter
         urlsToBrowse.add("opc.tcp://192.168.0.35:4840");    // POS EAST 35/ outputstation
-        urlsToBrowse.add("opc.tcp://192.168.0.21:4842/milo");    // POS 21 TT2
-        urlsToBrowse.add("opc.tcp://192.168.0.20:4842/milo");        // Pos20 TT1
+        urlsToBrowse.add("opc.tcp://192.168.0.21:4840");    // POS 21 TT2
+        urlsToBrowse.add("opc.tcp://192.168.0.20:4840");        // Pos20 TT1
         return urlsToBrowse;
     }
 

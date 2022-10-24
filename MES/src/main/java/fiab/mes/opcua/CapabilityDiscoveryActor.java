@@ -196,7 +196,7 @@ public class CapabilityDiscoveryActor extends AbstractActor {
 
 	private boolean isCapabilitiesFolder(ReferenceDescription n) throws InterruptedException, ExecutionException {
 		QualifiedName bName = n.getBrowseName();
-		if (bName.getName().equalsIgnoreCase(CAPABILITIES)) {
+		if (bName.getName() != null && bName.getName().equalsIgnoreCase(CAPABILITIES)) {
 			log.info("Found Capabilities Node with id: "+n.getNodeId().toParseableString());
 			return true;			
 		} else

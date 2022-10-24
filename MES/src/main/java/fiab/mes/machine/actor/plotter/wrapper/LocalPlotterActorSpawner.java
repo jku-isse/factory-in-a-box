@@ -89,7 +89,7 @@ public class LocalPlotterActorSpawner extends AbstractActor {
         try {
             PlotterOPCUAnodes nodeIds = retrieveNodeIds(req.getInfo());
             if (!nodeIds.isComplete()) {
-                log.error("Error obtaining methods and variables from OPCUA for spawning actor, shutting down: " + nodeIds.toString());
+                log.error("Error obtaining methods and variables from OPCUA for spawning actor, shutting down: " + nodeIds);
                 getSelf().tell(Kill.getInstance(), self());
                 return;
             }

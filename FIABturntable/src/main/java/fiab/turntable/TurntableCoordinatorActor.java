@@ -49,7 +49,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
         return Props.create(TurntableCoordinatorActor.class, () -> new TurntableCoordinatorActor(machineEventBus, intraMachineEventBus, infrastructure));
     }
 
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    protected final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private final String componentId;
     protected MachineEventBus machineEventBus;
     protected IntraMachineEventBus intraMachineBus;
@@ -111,7 +111,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
                     handleWiringRequest(msg);
                 })
                 .match(WiringUpdateNotification.class, msg ->{
-                    //TODO?
+                    //TODO, maybe just reuse WiringRequest?
                 })
                 .build();
     }

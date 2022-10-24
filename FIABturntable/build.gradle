@@ -7,6 +7,9 @@ plugins {
 group 'fiab.isse'
 version '1.1.0'
 
+akkaTarget = '2.12' //Change to 2.13 if possible. This is the scala version
+akkaVersion = '2.6.17'
+
 repositories {
     maven { url "https://jitpack.io" }
     mavenCentral()
@@ -34,7 +37,7 @@ dependencies {
 
 test {
     //useJUnitPlatform()
-    useJUnitPlatform{
+    useJUnitPlatform {
         excludeTags("SystemTest")
     }
 }
@@ -58,6 +61,25 @@ jar {
     manifest {
         attributes 'Main-Class': 'TurntableApplication'
     }
+    //from {
+    //    configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    //}
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'TurntableApplication'
+    }
+    archiveClassifier = "all"
+    duplicatesStrategy "include"
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    from {
+        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
 }
 
 application {

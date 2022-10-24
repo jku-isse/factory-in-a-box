@@ -50,6 +50,7 @@ public class InterMachineEventBusWrapperActor extends AbstractActor {
 					log.info("Relocation notification for Order: " + msg.getOrderId());
 					meb.publish(msg);
 				})
+				.matchAny(msg -> log.warning("Received unsupported message: {}", msg))
 		.build();
 	}
 

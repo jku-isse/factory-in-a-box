@@ -91,16 +91,19 @@ public class TestTurntableWiringOpcUa {
     }
 
     @Test
+    @Disabled("Not implemented")
     public void testSaveWiringToFileSuccessful(){
         //TODO
     }
 
     @Test
+    @Disabled("Not implemented")
     public void testApplyNewWiring(){
         //TODO
     }
 
     @Test
+    @Disabled("Not implemented")
     public void testDeleteWiring(){
         //TODO
     }

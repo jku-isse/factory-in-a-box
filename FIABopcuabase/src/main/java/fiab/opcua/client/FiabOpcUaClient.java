@@ -46,13 +46,14 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
     }
 
     /**
-     * Factory method that creates a client based on a config
+     * Factory method that creates a client based on a config.
+     *
      *
      * @param config containing securityTempDir, endpoints, certificates, etc.
      * @return new Client
      * @throws Exception client could not be created
      */
-    public static FiabOpcUaClient createFIABClient(OpcUaClientConfig config) throws Exception {
+    static FiabOpcUaClient createFIABClient(OpcUaClientConfig config) throws Exception {
         UaStackClient stackClient = UaStackClient.create(config);
         return new FiabOpcUaClient(config, stackClient);
     }
@@ -93,9 +94,8 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
      *
      * @param browseName browse name of the node
      * @return nodeId of the node
-     * @throws UaException when nodeId could not be found in address space
      */
-    public NodeId getNodeIdForBrowseName(String browseName) throws UaException {
+    public NodeId getNodeIdForBrowseName(String browseName) {
         NodeId result = browseRecursive(Identifiers.ObjectsFolder, browseName);
         if (result == null) {
             throw new NoSuchElementException("Could not find node for browseName " + browseName);
@@ -191,8 +191,9 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
      */
     public CompletableFuture<String> callStringMethod(NodeId methodId, Variant... inputArgs) throws Exception {
         NodeId parentId = getParentNodeId(methodId);
-        CallMethodRequest request = new CallMethodRequest(parentId, methodId, inputArgs);
-
+        //If we use the NodeId directly, the client has no reference to it and fails to find Node -> method call fails!
+        NodeId methodNodeId = getNodeForId(methodId).getNodeId();
+        CallMethodRequest request = new CallMethodRequest(parentId, methodNodeId, inputArgs);
         return call(request).thenCompose(result -> {
             StatusCode statusCode = result.getStatusCode();
             log.info("Method call on node" + methodId + " returned statusCode " + statusCode);
@@ -249,13 +250,6 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
      * @throws Exception node not found or method call fails
      */
     public String callStringMethodBlocking(NodeId methodId, Variant... inputArgs) throws Exception {
-        /*NodeId parentId = getParentNodeId(methodId);
-        CallMethodResult callResult = call(new CallMethodRequest(parentId, methodId, inputArgs)).get();
-        if (callResult.getStatusCode().isBad())
-            throw new UaException(callResult.getStatusCode());
-
-        Optional<Variant> result = Arrays.stream(callResult.getOutputArguments()).findFirst();
-        return result.orElseGet(() -> new Variant("")).getValue().toString();*/
         return callStringMethod(methodId, inputArgs).get();
     }
 

@@ -2,10 +2,10 @@ package fiab.mes.mockactors.iostation;
 
 import java.time.Duration;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import fiab.mes.machine.AkkaActorBackedCoreModelAbstractActor;
+import fiab.mes.shopfloor.layout.ShopfloorLayout;
+import fiab.mes.shopfloor.layout.SingleTurntableLayout;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,23 +23,27 @@ import fiab.mes.machine.msg.GenericMachineRequests;
 import fiab.mes.machine.msg.IOStationStatusUpdateEvent;
 import fiab.mes.machine.msg.MachineConnectedEvent;
 
+import static fiab.mes.shopfloor.utils.ShopfloorUtils.INPUT_STATION;
+import static fiab.mes.shopfloor.utils.ShopfloorUtils.OUTPUT_STATION;
+
 @Tag("IntegrationTest")
 public class TestBasicIOStationActorWithTransport { 
 
-	protected static ActorSystem system;
-	protected static ActorRef machine;
-	public static String ROOT_SYSTEM = "routes";
+	protected ActorSystem system;
+	protected ActorRef machine;
+	public String ROOT_SYSTEM = "routes";
+	private ActorRef interMachineEventBus;
 	
 	private static final Logger logger = LoggerFactory.getLogger(TestBasicIOStationActorWithTransport.class);
 	
-	@BeforeAll
-	static void setUpBeforeClass() throws Exception {
+	@BeforeEach
+	public void setUpBeforeClass() throws Exception {
 		system = ActorSystem.create(ROOT_SYSTEM);
-		ActorRef machineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
+		interMachineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 	}
 
-	@AfterAll
-	public static void teardown() {
+	@AfterEach
+	public void teardown() {
 	    TestKit.shutdownActorSystem(system);
 	    system = null;
 	}
@@ -48,19 +52,20 @@ public class TestBasicIOStationActorWithTransport {
 	void testBasicInputStationToIdleEmpty() {
 		new TestKit(system) { 
 			{
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				ShopfloorLayout layout = new SingleTurntableLayout(system, interMachineEventBus);
+				layout.subscribeToInterMachineEventBus(getRef(), getRef().path().name());
+				layout.initializeAndDiscoverParticipantsForId(getRef(), INPUT_STATION);
 
-				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getInputStationForPosition(system, eventBusByRef,true, 34);
-				// we subscribe to the intereventbus to observe basic io station behavior
-				//parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
-				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class));
+				MachineConnectedEvent connectedEvent = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class);
+				logEvent(connectedEvent);
+				AkkaActorBackedCoreModelAbstractActor inputStation = connectedEvent.getMachine();
+
 				boolean doRun = true;
 				while (doRun) {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(30), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
 					if (mue.getStatus().equals(ServerSideStates.RESETTING)) {
-						parts.proxy.tell(HandshakeCapability.StateOverrideRequests.SetLoaded, getRef());
+						inputStation.getAkkaActor().tell(HandshakeCapability.StateOverrideRequests.SetLoaded, getRef());
 					}
 					if (mue.getStatus().equals(ServerSideStates.IDLE_LOADED)) {
 						doRun = false;
@@ -74,19 +79,19 @@ public class TestBasicIOStationActorWithTransport {
 	void testBasicOutputStationToIdleEmpty() {
 		new TestKit(system) { 
 			{
-				final ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-				eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
+				ShopfloorLayout layout = new SingleTurntableLayout(system, interMachineEventBus);
+				layout.subscribeToInterMachineEventBus(getRef(), getRef().path().name());
+				layout.initializeAndDiscoverParticipantsForId(getRef(), OUTPUT_STATION);
 
-				VirtualIOStationActorFactory parts = VirtualIOStationActorFactory.getOutputStationForPosition(system, eventBusByRef, false, 35);
-				// we subscribe to the intereventbus to observe basic io station behavior
-				parts.machine.tell(new GenericMachineRequests.Reset(""), getRef()); //RESET
-				logEvent(expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class));
+				MachineConnectedEvent connectedEvent = expectMsgAnyClassOf(Duration.ofSeconds(30), MachineConnectedEvent.class);
+				logEvent(connectedEvent);
+				AkkaActorBackedCoreModelAbstractActor outputStation = connectedEvent.getMachine();
 				boolean doRun = true;
 				while (doRun) {
 					IOStationStatusUpdateEvent mue = expectMsgClass(Duration.ofSeconds(30), IOStationStatusUpdateEvent.class);
 					logEvent(mue);
 					if (mue.getStatus().equals(ServerSideStates.RESETTING)) {
-						parts.proxy.tell(HandshakeCapability.StateOverrideRequests.SetEmpty, getRef());
+						outputStation.getAkkaActor().tell(HandshakeCapability.StateOverrideRequests.SetEmpty, getRef());
 					}
 					if (mue.getStatus().equals(ServerSideStates.IDLE_EMPTY)) {
 						doRun = false;

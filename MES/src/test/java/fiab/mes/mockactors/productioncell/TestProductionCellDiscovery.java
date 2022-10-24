@@ -69,6 +69,7 @@ public class TestProductionCellDiscovery {
 
     @Test
     @Tag("IntegrationTest")
+    @Disabled("Production Cell is not ready for overall integration yet")
     void testVirtualProductionCellDiscovery() {
         Set<String> urlsToBrowse = getTestLayout();
         discoverProductionCell(urlsToBrowse);

@@ -11,7 +11,7 @@ public class ClientSpawnerMessages {
             this.wiringInfo = nodeIds;
         }
 
-        public WiringInfo getNodeIds() {
+        public WiringInfo getWiringInfo() {
             return wiringInfo;
         }
     }

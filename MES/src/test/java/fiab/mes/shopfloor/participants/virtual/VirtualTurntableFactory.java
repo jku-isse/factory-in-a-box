@@ -14,6 +14,7 @@ import fiab.handshake.client.messages.WiringRequest;
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
 import fiab.mes.shopfloor.participants.ParticipantInfo;
 import fiab.mes.shopfloor.participants.PositionMap;
+import fiab.mes.shopfloor.utils.ShopfloorUtils;
 import fiab.mes.shopfloor.utils.TransportRoutingAndMappingInterface;
 import fiab.mes.shopfloor.utils.TurntableCapabilityToPositionMapping;
 import fiab.mes.transport.actor.transportmodule.BasicTransportModuleActor;
@@ -27,8 +28,10 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 
 import java.util.List;
 
+import static fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers.*;
 import static fiab.mes.shopfloor.participants.ParticipantInfo.WRAPPER_POSTFIX;
 import static fiab.mes.shopfloor.participants.ParticipantInfo.localhostOpcUaPrefix;
+import static fiab.mes.shopfloor.utils.ShopfloorUtils.*;
 
 public class VirtualTurntableFactory {
 
@@ -60,30 +63,6 @@ public class VirtualTurntableFactory {
     }
 
     /**
-     * Starts a new turntable instance at an arbitrary free opcua port and a given position on the shopfloor
-     * Then a proxy for machine is spawned that can be used to communicate events
-     *
-     * @param system            The actor system
-     * @param machineId         unique machine name/identifier
-     * @param positionMap       map containing names mapped to positions
-     * @param positionLookup    position lookup
-     * @param routingAndMapping routing
-     * @return machine info with proxy
-     */
-    public static ParticipantInfo initTurntableWithProxyAndReturnInfo(ActorSystem system, String machineId,
-                                                                      TurntableCapabilityToPositionMapping capToPositionMapping,
-                                                                      PositionMap positionMap,
-                                                                      TransportPositionLookupInterface positionLookup,
-                                                                      TransportRoutingAndMappingInterface routingAndMapping) {
-        int opcUaPort = positionMap.get(machineId).getOpcUaPort();
-        Position position = positionMap.getPositionForId(machineId);
-        ActorRef remoteMachine = TurntableFactory.startStandaloneTurntable(system, opcUaPort, machineId);
-        wireTurntableToOtherMachines(remoteMachine, position, capToPositionMapping, positionMap, routingAndMapping);
-        ActorRef proxy = createParticipantProxy(system, machineId, position, opcUaPort, positionLookup, routingAndMapping);
-        return new ParticipantInfo(machineId, position, opcUaPort, remoteMachine, proxy);
-    }
-
-    /**
      * We can use the information provided in routing and mapping combined with the position and capability mapping
      * to automatically wire the turntable to the other participants
      */
@@ -97,66 +76,13 @@ public class VirtualTurntableFactory {
             for (Position targetPos : capToPositionMapping.getAllMappedPositions()) {
                 if (targetPos.equals(selfPos)) continue;  //We don't need to wire ourselves
                 wiringInfo = createWiringInfoForActorAtPosition(targetPos, selfPos, positionMap, routingAndMapping);
-                if(serverHandshakeCapabilities.contains(wiringInfo.getLocalCapabilityId())) continue;   //We skip server nodes
+                if (serverHandshakeCapabilities.contains(wiringInfo.getLocalCapabilityId()))
+                    continue;   //We skip server nodes
                 remoteMachine.tell(new WiringRequest("VirtualTTFactory", wiringInfo), ActorRef.noSender());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Creates the opcua proxy for given machine or human
-     *
-     * @param system    actor system
-     * @param machineId machine id
-     * @param position  position on the shopfloor as String
-     * @param opcUaPort opcua port of remote machine/human
-     * @return proxy
-     */
-    private static ActorRef createParticipantProxy(ActorSystem system, String machineId, Position position, int opcUaPort,
-                                                   TransportPositionLookupInterface positionLookup,
-                                                   TransportRoutingAndMappingInterface routingAndMapping) {
-        //These will be the opcua nodes to look for
-        NodeId capabilityImplNode = NodeId.parse("ns=2;s=" + machineId + "/CAPABILITIES/CAPABILITY");
-        NodeId resetMethod = NodeId.parse("ns=2;s=" + machineId + "/Reset");
-        NodeId stopMethod = NodeId.parse("ns=2;s=" + machineId + "/Stop");
-        NodeId transportReq = NodeId.parse("ns=2;s=" + machineId + "/TransportRequest");
-        NodeId stateVar = NodeId.parse("ns=2;s=" + machineId + "/STATE");
-        //We get the capability
-        AbstractCapability capability = TransportModuleCapability.getTransportCapability();
-
-        try {
-            //We create a client and connect to the machine. Then we use it in the opcua wrapper
-            FiabOpcUaClient client = OPCUAClientFactory.createFIABClientAndConnect(localhostOpcUaPrefix + opcUaPort);
-            TransportModuleOPCUAWrapper opcuaWrapper;
-            MachineEventBus machineEventBus = new MachineEventBus();
-            opcuaWrapper = new TransportModuleOPCUAWrapper(machineEventBus, client, capabilityImplNode, stopMethod, resetMethod, stateVar, transportReq, null);
-            //Create the model
-            Actor modelActor = createParticipantModelActor(machineId, opcUaPort);
-            //Now we find the InterMachineEventBus and finally create the machine Proxy
-            ActorSelection eventBusByRef = system.actorSelection("/user/" + InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-            return system.actorOf(BasicTransportModuleActor.props(eventBusByRef, capability, modelActor, opcuaWrapper, position, machineEventBus, positionLookup, routingAndMapping),
-                    modelActor.getActorName() + WRAPPER_POSTFIX);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
-     * Creates a model actor for given machine or human
-     *
-     * @param opcUaPort opcua port of remote machine/human
-     * @return model actor
-     */
-    private static Actor createParticipantModelActor(String machineName, int opcUaPort) {
-        Actor actor = ActorCoreModel.ActorCoreModelFactory.eINSTANCE.createActor();
-        actor.setID(machineName);
-        actor.setActorName(machineName);
-        actor.setDisplayName(machineName);
-        actor.setUri(localhostOpcUaPrefix + opcUaPort + "/" + machineName);
-        return actor;
     }
 
     private static WiringInfo createWiringInfoForActorAtPosition(Position targetPos, Position selfPos, PositionMap positionMap, TransportRoutingAndMappingInterface routing) throws Exception {
@@ -167,8 +93,20 @@ public class VirtualTurntableFactory {
 
         String remoteCapId = "DefaultHandshakeServerSide";
         String remoteEndpointURL = localhostOpcUaPrefix + positionMap.getOpcUaPortForId(remoteMachineId);
-        String remoteNodeId = "ns=2;" + remoteMachineId + "HANDSHAKE_FU/CAPABILITIES/CAPABILITY";
+        String remoteNodeId = "ns=2;s=" + remoteMachineId + "/HANDSHAKE_FU/CAPABILITIES/CAPABILITY";
         String remoteRole = "RemoteRole1";
+
+        //In case the remote server is an IO station, we need to adjust the remote nodeId to omit /HANDSHAKE_FU/
+        if (remoteMachineId.equals(INPUT_STATION) || remoteMachineId.equals(OUTPUT_STATION)) {
+            remoteNodeId = "ns=2;s=" + remoteMachineId + "/CAPABILITIES/CAPABILITY";
+        }
+        //Turntables use a non-default remote cap id. We assume all machines face the same direction
+        //Under this assumption, we just take the opposite side of the local hs cap id
+        if (remoteMachineId.equals(TURNTABLE_1) || remoteMachineId.equals(TURNTABLE_2)) {
+            String adjacentCapability = getAdjacentTurntableHandshakeCapability(localCapId);
+            remoteCapId = adjacentCapability;
+            remoteNodeId = "ns=2;s=" + remoteMachineId + "/HANDSHAKE_FU_" + adjacentCapability + "/CAPABILITIES/CAPABILITY";
+        }
 
         return WiringInfoBuilder.create()
                 .setLocalCapabilityId(localCapId)
@@ -177,5 +115,24 @@ public class VirtualTurntableFactory {
                 .setRemoteNodeId(remoteNodeId)
                 .setRemoteRole(remoteRole)
                 .build();
+    }
+
+    private static String getAdjacentTurntableHandshakeCapability(String localCapId) {
+        String remoteCapId = "DefaultHandshakeServerSide";
+        switch (localCapId) {
+            case TRANSPORT_MODULE_NORTH_CLIENT:
+                remoteCapId = TRANSPORT_MODULE_SOUTH_SERVER;
+                break;
+            case TRANSPORT_MODULE_EAST_CLIENT:
+                remoteCapId = TRANSPORT_MODULE_WEST_SERVER;
+                break;
+            case TRANSPORT_MODULE_SOUTH_CLIENT:
+                remoteCapId = TRANSPORT_MODULE_NORTH_SERVER;
+                break;
+            case TRANSPORT_MODULE_WEST_CLIENT:
+                remoteCapId = TRANSPORT_MODULE_EAST_SERVER;
+                break;
+        }
+        return remoteCapId;
     }
 }

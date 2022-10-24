@@ -16,13 +16,15 @@ public class TurntableFactory {
                 machineEventBus, new IntraMachineEventBus(), new OpcUaMachineChildFUs(base)), base.getMachineName());
     }
 
-    public static ActorRef startStandaloneTurntable(ActorSystem system, int port, String name) {
-        return startTurntable(system, new MachineEventBus(), port, name);
+    //This server can be discovered by a remote machine
+    public static ActorRef startDiscoverableTurntable(ActorSystem system, int port, String name){
+        OPCUABase base = OPCUABase.createAndStartDiscoverableServer(port, name);
+        return system.actorOf(OpcUaTurntableActor.props(base, base.getRootNode(), base.getMachineName(),
+                new MachineEventBus(), new IntraMachineEventBus(), new OpcUaMachineChildFUs(base)), base.getMachineName());
+
     }
 
-    public static ActorRef startStandaloneTurntable(ActorSystem system, OPCUABase opcuaBase){
-        //TODO add name to actor for easier debugging
-        return system.actorOf(OpcUaTurntableActor.props(opcuaBase, opcuaBase.getRootNode(), opcuaBase.getMachineName(),
-                new MachineEventBus(), new IntraMachineEventBus(), new OpcUaMachineChildFUs(opcuaBase)), opcuaBase.getMachineName());
+    public static ActorRef startStandaloneTurntable(ActorSystem system, int port, String name) {
+        return startTurntable(system, new MachineEventBus(), port, name);
     }
 }

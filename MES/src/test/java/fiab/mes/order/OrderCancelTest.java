@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import fiab.mes.eventbus.InterMachineEventBusWrapperActor;
-import fiab.mes.shopfloor.DefaultTestLayout;
+import fiab.mes.shopfloor.layout.DefaultTestLayout;
+import fiab.mes.shopfloor.layout.ShopfloorLayout;
 import fiab.mes.shopfloor.utils.TransportPositionLookupAndParser;
 import fiab.mes.shopfloor.utils.TransportRoutingAndMappingInterface;
-import fiab.mes.transport.actor.transportsystem.TransportPositionLookupInterface;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
@@ -36,12 +36,9 @@ import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.actor.OrderPlanningActor;
 import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
-import fiab.mes.shopfloor.DefaultLayout;
-import fiab.mes.transport.actor.transportsystem.HardcodedDefaultTransportRoutingAndMapping;
-import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 
-@Tag("IntegrationTest")		//FIXME startup of machines is different now
+@Tag("IntegrationTest")
 class OrderCancelTest {
 
 	protected static ActorSystem system;
@@ -50,7 +47,7 @@ class OrderCancelTest {
 	protected static ActorRef orderPlanningActor;
 	protected static ActorRef coordActor;
 	//protected static DefaultLayout layout;
-	private DefaultTestLayout layout;
+	private ShopfloorLayout layout;
 
 	private static final Logger logger = LoggerFactory.getLogger(OrderCancelTest.class);
 	static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
@@ -63,9 +60,6 @@ class OrderCancelTest {
 		// setup order actors?
 		// add processes to orderplanning actor		
 		system = ActorSystem.create(ROOT_SYSTEM);
-		//HardcodedDefaultTransportRoutingAndMapping routing = new HardcodedDefaultTransportRoutingAndMapping();
-		//DefaultTransportPositionLookup dns = new DefaultTransportPositionLookup();
-		//layout = new DefaultLayout(system);
 		ActorRef interMachineEventBus = system.actorOf(InterMachineEventBusWrapperActor.props(), InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 		layout = new DefaultTestLayout(system, interMachineEventBus);
 		TransportRoutingAndMappingInterface routing = layout.getTransportRoutingAndMapping();
@@ -84,17 +78,15 @@ class OrderCancelTest {
 	}
 
 	@Test //FIXME: machine of order 1 is suddenly not found anymore
-	void testCancelBeforeAssignment() throws Exception {
+	void testCancelBeforeAssignment() {
 		new TestKit(system) { 
-			{ 															
-				//layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				//layout.setupTwoTurntableWith2MachinesAndIO();
-				layout.subscribeToMachineEventBus(getRef(), "Tester");
-				layout.initializeDefaultLayoutWithProxies();
+			{
+				layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+				layout.initializeAndDiscoverParticipants(getRef());
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
 						 isPlannerFunctional = true;
@@ -121,7 +113,7 @@ class OrderCancelTest {
 				boolean order2Done = false;
 				boolean order3Done = false;
 				while (!order1Done || !order2Done || !order3Done) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof OrderEvent) {
 						OrderEvent oe = (OrderEvent) te;
@@ -150,17 +142,15 @@ class OrderCancelTest {
 	}
 	
 	@Test
-	void testCancelBeforeReqTransport() throws Exception {
+	void testCancelBeforeReqTransport() {
 		new TestKit(system) { 
-			{ 															
-				//layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				//layout.setupTwoTurntableWith2MachinesAndIO();
-				layout.subscribeToMachineEventBus(getRef(), "Tester");
-				layout.initializeDefaultLayoutWithProxies();
+			{
+				layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+				layout.initializeAndDiscoverParticipants(getRef());
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), MachineConnectedEvent.class, IOStationStatusUpdateEvent.class, MachineStatusUpdateEvent.class, PlanerStatusMessage.class, TransportSystemStatusMessage.class);
 					logEvent(te);
 					if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlannerState.FULLY_OPERATIONAL)) {
 						 isPlannerFunctional = true;
@@ -183,7 +173,7 @@ class OrderCancelTest {
 				subscribeAndRegisterSinglePrintRedOrder(oid2, getRef());
 				boolean order1Done = false;
 				while (!order1Done ) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(3600), TimedEvent.class); 
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof OrderEvent) {
 						OrderEvent oe = (OrderEvent) te;
@@ -210,13 +200,11 @@ class OrderCancelTest {
 	}
 	
 	@Test
-	void testCancelWhileExecute() throws Exception {
+	void testCancelWhileExecute()  {
 		new TestKit(system) { 
-			{ 															
-				//layout.eventBusByRef.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef() );
-				//layout.setupTwoTurntableWith2MachinesAndIO();
-				layout.subscribeToMachineEventBus(getRef(), "Tester");
-				layout.initializeDefaultLayoutWithProxies();
+			{
+				layout.subscribeToInterMachineEventBus(getRef(), "Tester");
+				layout.initializeAndDiscoverParticipants(getRef());
 				int countConnEvents = 0;
 				boolean isPlannerFunctional = false;
 				while (!isPlannerFunctional || countConnEvents < 8 ) {
@@ -245,7 +233,7 @@ class OrderCancelTest {
 				boolean order2Done = false;
 				
 				while (!order1Done || !order2Done ) {
-					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+					TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(15), TimedEvent.class);
 					logEvent(te);
 					if (te instanceof OrderEvent) {
 						OrderEvent oe = (OrderEvent) te;
@@ -305,19 +293,6 @@ class OrderCancelTest {
 	private void logEvent(TimedEvent event) {
 		logger.info(event.toString());
 	}
-
-//	public static ActorRef getMachineMockActor(int id, SupportedColors color) {
-//		ActorSelection eventBusByRef = system.actorSelection("/user/"+InterMachineEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-//		Actor modelActor = TestMockMachineActor.getDefaultMachineActor(id);
-//		AbstractCapability cap = WellknownPlotterCapability.getColorPlottingCapability(color);
-//		return system.actorOf(MockMachineActor.props(eventBusByRef, cap, modelActor));
-//	}
-	
-//	public RegisterProcessRequest buildRequest(ActorRef senderRef, String oid, int orderCount) {
-//		ProcessCore.Process p = TestMockMachineActor.getSequentialProcess(orderCount+"-");
-//		OrderProcess op = new OrderProcess(p);
-//		return new RegisterProcessRequest(oid, op, senderRef);
-//	}
 	
 	private boolean matches(OrderEvent e, String orderId, OrderEventType type) {
 		return (e.getEventType().equals(type) && e.getOrderId().equals(orderId));

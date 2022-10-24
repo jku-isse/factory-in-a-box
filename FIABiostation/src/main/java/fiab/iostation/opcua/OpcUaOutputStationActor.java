@@ -1,6 +1,8 @@
 package fiab.iostation.opcua;
 
 import akka.actor.Props;
+import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
+import fiab.core.capabilities.handshake.ClientSideStates;
 import fiab.core.capabilities.handshake.HandshakeCapability;
 import fiab.core.capabilities.handshake.IOStationCapability;
 import fiab.core.capabilities.handshake.ServerSideStates;
@@ -32,9 +34,30 @@ public class OpcUaOutputStationActor extends ServerHandshakeFU {
     }
 
     @Override
-    protected void addCapabilities(UaFolderNode clientFuNode) {
-        super.addCapabilities(clientFuNode);
+    public void postStop() throws Exception {
+        super.postStop();
+        base.shutDownOpcUaBaseAsync().thenAccept(a -> log.info("Successfully shut down opc ua server for machine {}", componentId));
+    }
+
+    @Override
+    protected void addCapabilities(UaFolderNode serverFuNode) {
+        super.addCapabilities(serverFuNode);
         addOutputStationCapability(capabilitiesFolder);
+    }
+
+    /**
+     * We override this method here to skip creation of redundant handshake folder
+     * @param serverRootNode output station node
+     */
+    @Override
+    protected void setupOpcUaNodeSet(UaFolderNode serverRootNode) {
+        this.rootNode = serverRootNode;
+
+        status = base.generateStringVariableNode(rootNode,
+                OPCUABasicMachineBrowsenames.STATE_VAR_NAME, ClientSideStates.STOPPED);
+
+        addServerHandshakeOpcUaMethods(rootNode);
+        addCapabilities(rootNode);
     }
 
     protected void addOutputStationCapability(UaFolderNode capabilitiesFolder) {

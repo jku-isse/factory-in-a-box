@@ -1,12 +1,16 @@
 package fiab.mes.assembly.monitoring.message;
 
-public class PartsPickedNotification {
+import fiab.core.capabilities.basicmachine.events.MachineEvent;
+import fiab.core.capabilities.events.TimedEvent;
+
+public class PartsPickedNotification extends TimedEvent {
 
     private final String partId;
     private final String timeStamp;
     private final int amount;
 
     public PartsPickedNotification(String partId, String timeStamp, int amount) {
+        super();
         this.partId = partId;
         this.timeStamp = timeStamp;
         this.amount = amount;

@@ -21,6 +21,11 @@ allprojects {
 //Explicitly specify build order? Gradle seems to build them in the right order for me
 }
 
+subprojects {
+    apply plugin : 'java'
+    test.useJUnitPlatform()
+}
+
 task buildRosMessages {
     doLast {
         exec {
@@ -31,5 +36,13 @@ task buildRosMessages {
                     '--name rosjava ' +
                     'rosjava\n'
         }
+    }
+}
+
+test {
+    //useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags("SystemTest")
+        excludeTags("AcceptanceTest")
     }
 }
