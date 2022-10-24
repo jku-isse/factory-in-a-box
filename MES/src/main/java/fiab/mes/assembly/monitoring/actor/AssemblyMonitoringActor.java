@@ -1,5 +1,10 @@
 package fiab.mes.assembly.monitoring.actor;
 
+import ExtensionsForAssemblyline.AssemblyHumanStep;
+import InstanceExtensionModel.States;
+import InstanceExtensionModel.StepInstanceExtension;
+import PriorityExtensionModel.PriorityExtension;
+import ProcessCore.ProcessStep;
 import akka.actor.AbstractActor;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
@@ -17,6 +22,9 @@ import fiab.opcua.server.OPCUABase;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
 import org.kie.api.logger.KieRuntimeLogger;
 import org.kie.api.runtime.KieSession;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AssemblyMonitoringActor extends AbstractActor {
 
@@ -58,8 +66,38 @@ public class AssemblyMonitoringActor extends AbstractActor {
                 .match(ExtendedRegisterProcessRequest.class, req -> {
                     log.info(req.getRootOrderId());
                     log.info(req.getXmlRoot().toString());
-                    OrderProcess orderProcess = new OrderProcess(req.getXmlRoot().getProcesses().get(0));
-                    monitoringEventBus.tell(new RegisterProcessRequest(req.getRootOrderId(), orderProcess, self()), self());
+                    //OrderProcess orderProcess = new OrderProcess(req.getXmlRoot().getProcesses().get(0));
+                    monitoringEventBus.tell(req, self());
+
+                    //inserting xmlroot as fact to have access to it form the rules
+                    kieSession.insert(req.getXmlRoot());
+                    kieSession.insert(req.getProcess());
+
+                    for (ProcessStep step:req.getProcess().getProcess().getSteps()) {
+                        //INITAL step is "COMPLETED"
+                        if (step.getID().equals("0")){
+                            ((StepInstanceExtension) (step.getExtensions().stream()
+                                    .filter(e -> e.getContent() instanceof StepInstanceExtension).findFirst().get().getContent()))
+                                    .setCurrentState(States.COMPLETED.toString());
+                        }
+
+                        // All steps are initially in the state "INITIAL"
+                        ((StepInstanceExtension) (step.getExtensions().stream()
+                                .filter(e -> e.getContent() instanceof StepInstanceExtension).findFirst().get().getContent()))
+                                .setCurrentState(States.INITIAL.toString());
+
+                        // All steps directly following the "start node" are in the state "AVAILABLE"
+                        List<ProcessStep> predecessorsList = step.getExtensions().stream().map(e -> e.getContent()).filter(e -> e instanceof PriorityExtension)
+                                .flatMap(e -> ((PriorityExtension) e).getPreceedingSteps().stream()).collect(Collectors.toList());
+                        if (predecessorsList.stream().anyMatch(e -> e.getID().equals("0"))){
+                            ((StepInstanceExtension) (step.getExtensions().stream()
+                                    .filter(e -> e.getContent() instanceof StepInstanceExtension).findFirst().get().getContent()))
+                                    .setCurrentState(States.AVAILABLE.toString());
+                        }
+
+                        kieSession.insert(step);
+                        kieSession.fireAllRules();
+                    }
                 })
                 .build();
     }
