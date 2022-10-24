@@ -152,7 +152,51 @@ public class TestMonitoringActor {
 
     @Test
     @Tag("UnitTest")
+    public void testPartToStepAllocationRule() {
+        new TestKit(system) {
+            {
+                monitorEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
+
+                File resourcesDirectory = new File("src/test/resources/process/demoProc.xmi");
+                ExtendedRegisterProcessRequest processRequest = loadExampleProcessFromFile(resourcesDirectory.getAbsolutePath(), getRef());
+
+                monitoringActor.tell(processRequest, getRef());
+                RegisterProcessRequest forwardedRequest = expectMsgClass(RegisterProcessRequest.class);
+                assertEquals(processRequest.getRootOrderId(), forwardedRequest.getRootOrderId());
+
+                assertDoesNotThrow(() -> {
+                    NodeId nodeId = NodeId.parse("ns=2;s=Monitoring/NotifyPartsPicked");
+                    FiabOpcUaClient client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1");
+                    String response = client.callStringMethodBlocking(nodeId, new Variant("33"), new Variant(DateTime.now().toString()), new Variant(String.valueOf(3)));
+                    assertEquals("Ok", response);
+                    //assertEquals(monitoringActor., forwardedRequest.getRootOrderId());
+
+                });
+            }
+        };
+    }
+
+    @Test
+    @Tag("UnitTest")
     public void testOrderProcessForwarding() {
+        new TestKit(system) {
+            {
+                monitorEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
+
+                File resourcesDirectory = new File("src/test/resources/process/xmiOrder20190419092949.xmi");
+                ExtendedRegisterProcessRequest processRequest = loadExampleProcessFromFile(resourcesDirectory.getAbsolutePath(), getRef());
+
+                monitoringActor.tell(processRequest, getRef());
+                RegisterProcessRequest forwardedRequest = expectMsgClass(RegisterProcessRequest.class);
+                assertEquals(processRequest.getRootOrderId(), forwardedRequest.getRootOrderId());
+            }
+        };
+    }
+
+    //TODO
+    @Test
+    @Tag("UnitTest")
+    public void testProcessFactInserting() {
         new TestKit(system) {
             {
                 monitorEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
@@ -170,7 +214,7 @@ public class TestMonitoringActor {
     private ExtendedRegisterProcessRequest loadExampleProcessFromFile(String path, ActorRef sender) {
         String senderId = "MockOrderActor";
         XmlRoot xmlRoot = loadXmi(path);
-        return new ExtendedRegisterProcessRequest(senderId, xmlRoot, sender);
+        return new ExtendedRegisterProcessRequest(senderId, new OrderProcess(xmlRoot.getProcesses().get(0)), xmlRoot, sender);
     }
 
     public XmlRoot loadXmi(String path) {
