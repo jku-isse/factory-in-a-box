@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id "org.gradle.test-retry" version "1.4.1"
 }
 
 group 'fiab.isse'
@@ -31,9 +32,12 @@ test {
     useJUnitPlatform{
         //excludeTags("IntegrationTest")
         excludeTags("SystemTest")
-        maxParallelForks(1) //Should in theory prevent bind exceptions due to gradle starting tests in parallel by default
     }
-
+    retry {
+        maxRetries = 2
+        maxFailures = 20
+        failOnPassedAfterRetry = true
+    }
 }
 
 tasks.register("runUnitTests", Test) {

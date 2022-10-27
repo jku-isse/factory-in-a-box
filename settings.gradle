@@ -2,14 +2,18 @@ rootProject.name = 'factory-in-a-box'
 include 'FIABcore'
 include 'FIABopcuabase'
 include 'FIABhandshake'
+include 'FIABhal'
+include 'FIABroscore'
+include 'FIABfunctionalunit'
+include 'FIABconveyor'
 include 'FIABiostation'
 include 'FIABvirtualplotter'
 include 'FIABturntable'
 include 'FIABfoldingstation'
 include 'FIABproductioncell'
 include 'MES'
-include 'FIABhal'
-include 'FIABfunctionalunit'
-include 'FIABconveyor'
-include 'FIABroscore'
+
+
+
+
 
