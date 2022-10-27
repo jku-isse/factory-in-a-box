@@ -10,6 +10,7 @@ import fiab.functionalunit.connector.FUConnector;
 import fiab.opcua.client.FiabOpcUaClient;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.junit.jupiter.api.*;
+import testutils.PortUtils;
 
 import java.util.concurrent.ExecutionException;
 
@@ -18,18 +19,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Tag("IntegrationTest")
 public class TestConveyorFU {
 
-    private static FUTestInfrastructure infrastructure;
-    private static FUConnector conveyorConnector;
-
-    @BeforeAll
-    public static void setup() {
-        infrastructure = new FUTestInfrastructure(4840);
-        infrastructure.subscribeToIntraMachineEventBus();
-        conveyorConnector = new FUConnector();
-    }
+    private FUTestInfrastructure infrastructure;
+    private FUConnector conveyorConnector;
 
     @BeforeEach
     public void init() throws ExecutionException, InterruptedException {
+        infrastructure = new FUTestInfrastructure(PortUtils.findNextFreePort());
+        infrastructure.subscribeToIntraMachineEventBus();
+        conveyorConnector = new FUConnector();
         infrastructure.initializeActor(ConveyorFU.props(
                 infrastructure.getServer(),
                 infrastructure.getServer().getRootNode(),
@@ -44,10 +41,6 @@ public class TestConveyorFU {
     @AfterEach
     public void teardown() {
         infrastructure.destroyActor();
-    }
-
-    @AfterAll
-    public static void cleanup() {
         infrastructure.shutdownInfrastructure();
     }
 
