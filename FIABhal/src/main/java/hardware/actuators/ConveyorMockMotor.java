@@ -12,18 +12,19 @@ public class ConveyorMockMotor extends MockMotor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private MockSensor sensorLoading;
-    private MockSensor sensorUnloading;
+    private final MockSensor sensorLoading;
+    private final MockSensor sensorUnloading;
 
-    private ScheduledFuture loadingTask;
-    private ScheduledFuture unloadingTask;
-    private long delay;
+    private ScheduledFuture<?> loadingTask;
+    private ScheduledFuture<?> unloadingTask;
+    private final long delay;
 
     public ConveyorMockMotor(MockSensor sensorLoading, MockSensor sensorUnloading, int speed, long delay) {
         super(speed);
         this.sensorLoading = sensorLoading;
         this.sensorUnloading = sensorUnloading;
         this.delay = delay;
+        logger.info("Initialized Conveyor Mock motor");
     }
 
     @Override

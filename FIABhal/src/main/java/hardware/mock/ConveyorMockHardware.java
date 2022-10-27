@@ -10,7 +10,7 @@ public class ConveyorMockHardware extends ConveyorHardware {
 //    @Getter private MockSensor mockSensorLoading = null;
 //    @Getter private MockSensor mockSensorUnloading = null;
     public ConveyorMockHardware() {
-        this(100, 1);
+        this(100, 0);
     }
 
     public ConveyorMockHardware(int speed, long delay) {
