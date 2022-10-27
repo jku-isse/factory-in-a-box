@@ -41,7 +41,9 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         this.intraMachineBus = intraMachineBus;
         this.stateMachine = new ConveyorStateMachine();
         //In case the operating system is windows, we do not want to use EV3 libraries
-        boolean debug = System.getProperty("os.name").toLowerCase().contains("win");
+        //In addition we check if we are using raspbian for our minimal build server
+        boolean debug = System.getProperty("os.name").toLowerCase().contains("win")
+                || System.getProperty("os.name").toLowerCase().contains("rasp");
         this.conveyorHardware = debug ? new ConveyorMockHardware() : new LegoConveyorHardware();
         addActionsToStates();
         publishCurrentState();
