@@ -96,7 +96,7 @@ public class TestConveyorActor {
     }
 
     private void expectConveyorState(ConveyorStates conveyorState) {
-        ConveyorStatusUpdateEvent machineStatusUpdateEvent = getProbe().expectMsgClass(Duration.ofSeconds(30), ConveyorStatusUpdateEvent.class);
+        ConveyorStatusUpdateEvent machineStatusUpdateEvent = getProbe().expectMsgClass(Duration.ofSeconds(10), ConveyorStatusUpdateEvent.class);
         assertEquals(machineStatusUpdateEvent.getStatus(), conveyorState);
     }
 
