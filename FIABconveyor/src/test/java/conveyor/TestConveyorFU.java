@@ -12,6 +12,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.junit.jupiter.api.*;
 import testutils.PortUtils;
 
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,7 +32,7 @@ public class TestConveyorFU {
                 infrastructure.getServer(),
                 infrastructure.getServer().getRootNode(),
                 conveyorConnector,
-                infrastructure.getIntraMachineEventBus()), "ConveyorFU"+infrastructure.getAndIncrementRunCount());
+                infrastructure.getIntraMachineEventBus()), "ConveyorFU" + infrastructure.getAndIncrementRunCount());
 
         getProbe().expectMsgClass(ConveyorStatusUpdateEvent.class);  //Skip initial Stopped state
         getClient().connect().get();
@@ -92,7 +93,7 @@ public class TestConveyorFU {
     }
 
     private void expectConveyorState(ConveyorStates conveyorState) {
-        ConveyorStatusUpdateEvent machineStatusUpdateEvent = getProbe().expectMsgClass(ConveyorStatusUpdateEvent.class);
+        ConveyorStatusUpdateEvent machineStatusUpdateEvent = getProbe().expectMsgClass(Duration.ofSeconds(10), ConveyorStatusUpdateEvent.class);
         assertEquals(machineStatusUpdateEvent.getStatus(), conveyorState);
     }
 

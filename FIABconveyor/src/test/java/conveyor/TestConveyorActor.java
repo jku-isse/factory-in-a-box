@@ -14,6 +14,8 @@ import fiab.functionalunit.connector.FUConnector;
 import org.junit.jupiter.api.*;
 import testutils.ActorTestInfrastructure;
 
+import java.time.Duration;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Tag("UnitTest")
@@ -23,26 +25,26 @@ public class TestConveyorActor {
     private static FUConnector conveyorConnector;
 
     @BeforeAll
-    static void setup(){
+    static void setup() {
         infrastructure = new ActorTestInfrastructure();
         infrastructure.subscribeToIntraMachineEventBus();
         conveyorConnector = new FUConnector();
     }
 
     @BeforeEach
-    void init(){
-        infrastructure.initializeActor(ConveyorActor.props(conveyorConnector,infrastructure.getIntraMachineEventBus()),
-                "ConveyorActor"+infrastructure.getAndIncrementRunCount());
+    void init() {
+        infrastructure.initializeActor(ConveyorActor.props(conveyorConnector, infrastructure.getIntraMachineEventBus()),
+                "ConveyorActor" + infrastructure.getAndIncrementRunCount());
         expectConveyorState(ConveyorStates.STOPPED);    //The conveyor always starts in stopped
     }
 
     @AfterEach
-    void teardown(){
+    void teardown() {
         infrastructure.destroyActor();
     }
 
     @AfterAll
-    static void cleanup(){
+    static void cleanup() {
         infrastructure.shutdownInfrastructure();
     }
 
@@ -94,15 +96,15 @@ public class TestConveyorActor {
     }
 
     private void expectConveyorState(ConveyorStates conveyorState) {
-        ConveyorStatusUpdateEvent machineStatusUpdateEvent = getProbe().expectMsgClass(ConveyorStatusUpdateEvent.class);
+        ConveyorStatusUpdateEvent machineStatusUpdateEvent = getProbe().expectMsgClass(Duration.ofSeconds(10), ConveyorStatusUpdateEvent.class);
         assertEquals(machineStatusUpdateEvent.getStatus(), conveyorState);
     }
 
-    private TestKit getProbe(){
+    private TestKit getProbe() {
         return infrastructure.getProbe();
     }
 
-    private ActorRef actorRef(){
+    private ActorRef actorRef() {
         return infrastructure.getActorRef();
     }
 }
