@@ -7,6 +7,7 @@ version '1.0'
 
 allprojects {
     repositories {
+        //gradlePluginPortal()
         mavenCentral()
         maven { url "https://jitpack.io" }
         flatDir {

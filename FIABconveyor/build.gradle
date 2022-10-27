@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id "org.gradle.test-retry" version "1.4.1"
 }
 
 group 'fiab.isse'
@@ -30,6 +31,11 @@ test {
     //useJUnitPlatform()
     useJUnitPlatform{
         excludeTags("SystemTest")
+    }
+    retry {
+        maxRetries = 2
+        maxFailures = 20
+        failOnPassedAfterRetry = true
     }
 }
 
