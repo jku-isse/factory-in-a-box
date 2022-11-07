@@ -44,9 +44,10 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         this.stateMachine = new ConveyorStateMachine();
         //In case the operating system is windows, we do not want to use EV3 libraries
         //In addition we check if we are using raspbian for our minimal build server
-        String osName = System.getProperty("os.name");
-        boolean debug = !osName.toLowerCase(Locale.ROOT).contains("ev3");
-        log.info("ConveyorActor detected os {}, using mock hardware? {}", osName, debug);
+        String userName = System.getProperty("user.name");
+        log.info("User Name {}", userName);
+        boolean debug = !userName.equalsIgnoreCase("robot");    //All EV3 distros use this as default username
+        log.info("ConveyorActor using mock hardware? {}", debug);
         this.conveyorHardware = debug ? new ConveyorMockHardware() : new LegoConveyorHardware();
         addActionsToStates();
         publishCurrentState();

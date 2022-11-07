@@ -39,6 +39,7 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
     protected TurningHardware turningHardware;
 
     protected TransportDestinations currentDestination = TransportDestinations.UNKNOWN;
+    protected int gearRatio = 3;    //The current hardware has approx. a 3:1 gear ratio we need to consider
 
     public static Props props(FUConnector turningConnector, IntraMachineEventBus intraMachineEventBus) {
         return Props.create(TurningActor.class, () -> new TurningActor(turningConnector, intraMachineEventBus));
@@ -52,10 +53,12 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
         this.stateMachine = new TurningStateMachine();
         this.positionMap = new HashMap<>();
         mapMotorAnglesToPositions();
-        //In case the operating system is windows, we do not want to use EV3 libraries
-        String osName = System.getProperty("os.name");
-        boolean debug = !osName.toLowerCase().contains("ev3");
-        log.info("TurningActor detected os {}, using Mock hardware? {}", osName, debug);
+        //In case the operating system not ev3, we do not want to use EV3 libraries
+        //For now this hack will let us build on any os where username is not robot
+        String userName = System.getProperty("user.name");
+        log.info("User Name {}", userName);
+        boolean debug = !userName.equalsIgnoreCase("robot");    //All EV3 distros use this as default username
+        log.info("TurningActor using Mock hardware? {}", debug);
         this.turningHardware = debug ? new TurningMockHardware() : new LegoTurningHardware();
         addActionsToStates();
         publishCurrentState();
@@ -125,6 +128,7 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
 
     public void turnToDestination() {
         log.info("Starting turning to destination: " + currentDestination);
+        turningHardware.getTurningMotor().setSpeed(200);    //Resets each time after tacho count reset
         switch (currentDestination) {
             case NORTH:
                 if (!turningHardware.isInHomePosition()) {
@@ -188,9 +192,9 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
     }
 
     private void mapMotorAnglesToPositions() {
-        positionMap.put(TransportDestinations.NORTH, 0);
-        positionMap.put(TransportDestinations.EAST, 100); //In theory 90, but not in reality
-        positionMap.put(TransportDestinations.SOUTH, 160); //In theory 180, but not in reality
-        positionMap.put(TransportDestinations.WEST, 240); //In theory 270, but not in reality
+        positionMap.put(TransportDestinations.NORTH, 0 * gearRatio);
+        positionMap.put(TransportDestinations.EAST, 100 * gearRatio); //In theory 90, but not in reality
+        positionMap.put(TransportDestinations.SOUTH, 160 * gearRatio); //In theory 180, but not in reality
+        positionMap.put(TransportDestinations.WEST, 240 * gearRatio); //In theory 270, but not in reality
     }
 }
