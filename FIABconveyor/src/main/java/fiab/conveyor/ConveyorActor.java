@@ -23,6 +23,8 @@ import hardware.ConveyorHardware;
 import hardware.lego.LegoConveyorHardware;
 import hardware.mock.ConveyorMockHardware;
 
+import java.util.Locale;
+
 public class ConveyorActor extends AbstractActor implements ConveyorCapability, StatePublisher {
 
     protected final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
@@ -42,8 +44,8 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         this.stateMachine = new ConveyorStateMachine();
         //In case the operating system is windows, we do not want to use EV3 libraries
         //In addition we check if we are using raspbian for our minimal build server
-        boolean debug = System.getProperty("os.name").toLowerCase().contains("win")
-                || System.getProperty("os.name").toLowerCase().contains("rasp");
+        boolean debug = !System.getProperty("os.name").equalsIgnoreCase("ev3");
+        log.info("Using mock motors/sensors? {}", debug);
         this.conveyorHardware = debug ? new ConveyorMockHardware() : new LegoConveyorHardware();
         addActionsToStates();
         publishCurrentState();
