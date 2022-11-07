@@ -53,7 +53,9 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
         this.positionMap = new HashMap<>();
         mapMotorAnglesToPositions();
         //In case the operating system is windows, we do not want to use EV3 libraries
-        boolean debug = !System.getProperty("os.name").toLowerCase().contains("ev3");
+        String osName = System.getProperty("os.name");
+        boolean debug = !osName.toLowerCase().contains("ev3");
+        log.info("TurningActor detected os {}, using Mock hardware? {}", osName, debug);
         this.turningHardware = debug ? new TurningMockHardware() : new LegoTurningHardware();
         addActionsToStates();
         publishCurrentState();
