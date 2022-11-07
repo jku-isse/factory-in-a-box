@@ -11,10 +11,6 @@ public class TestRemoteTurntable {  //TODO test remote machine
 
     private FiabOpcUaClient client;
 
-    @BeforeAll
-    public static void init(){
-    }
-
     @BeforeEach
     public void setup(){
         try {
@@ -27,11 +23,6 @@ public class TestRemoteTurntable {  //TODO test remote machine
     @AfterEach
     public void teardown(){
         client.disconnectClient();
-    }
-
-    @AfterAll
-    public static void cleanup(){
-
     }
 
     @Test

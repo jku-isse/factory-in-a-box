@@ -11,6 +11,7 @@ import fiab.opcua.server.OPCUABase;
 import fiab.turntable.opcua.OpcUaTurntableActor;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.junit.jupiter.api.*;
+import testutils.PortUtils;
 
 import static fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,26 +19,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Tag("IntegrationTest")
 public class TestTurntableWiringOpcUa {
 
-    private static ActorSystem system;
+    private ActorSystem system;
 
+    private int hsBasePort;
     private OPCUABase hsBase;
     private ActorRef remoteHandshakeNorth;
     private ActorRef remoteHandshakeSouth;
     private ActorRef remoteHandshakeEast;
     private ActorRef remoteHandshakeWest;
 
+    private int ttBasePort;
     private OPCUABase ttBase;
     private ActorRef turntable;
 
-    @BeforeAll
-    public static void init() {
-        system = ActorSystem.create();
-    }
-
     @BeforeEach
     public void setup() {
-        ttBase = OPCUABase.createAndStartLocalServer(4840, "VirtualTurntable");
-        hsBase = OPCUABase.createAndStartLocalServer(4841, "HandshakeDevice");
+        system = ActorSystem.create();
+        ttBasePort = PortUtils.findNextFreePort();
+        hsBasePort = PortUtils.findNextFreePort();
+        ttBase = OPCUABase.createAndStartLocalServer(ttBasePort, "VirtualTurntable");
+        hsBase = OPCUABase.createAndStartLocalServer(hsBasePort, "HandshakeDevice");
 
         remoteHandshakeNorth = system.actorOf(ServerHandshakeFU.propsForStandaloneFU(hsBase, hsBase.getRootNode(), TRANSPORT_MODULE_NORTH_SERVER));
         remoteHandshakeEast = system.actorOf(ServerHandshakeFU.propsForStandaloneFU(hsBase, hsBase.getRootNode(), TRANSPORT_MODULE_EAST_SERVER));
@@ -58,17 +59,13 @@ public class TestTurntableWiringOpcUa {
         remoteHandshakeWest.tell(PoisonPill.getInstance(), ActorRef.noSender());
 
         turntable.tell(PoisonPill.getInstance(), ActorRef.noSender());
-    }
-
-    @AfterAll
-    public static void cleanup() {
         system.terminate();
     }
 
     @Test
     public void testWiringFromFileSuccessful() {
         Assertions.assertDoesNotThrow(() -> {
-            FiabOpcUaClient client = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:4840");
+            FiabOpcUaClient client = OPCUAClientFactory.createFIABClient("opc.tcp://127.0.0.1:" + ttBasePort);
             client.connectFIABClient().get();
             String prefix = HandshakeCapability.CLIENT_CAPABILITY_ID + "_";
             NodeId northHSRoot = client.getNodeIdForBrowseName(prefix + TRANSPORT_MODULE_NORTH_CLIENT);
@@ -81,6 +78,10 @@ public class TestTurntableWiringOpcUa {
             NodeId remoteEndpoint = client.getChildNodeByBrowseName(wiringInfoFolder, "REMOTE_ENDPOINT_URL");
             NodeId remoteNodeId = client.getChildNodeByBrowseName(wiringInfoFolder, "REMOTE_NODE_ID");
             NodeId remoteRole = client.getChildNodeByBrowseName(wiringInfoFolder, "REMOTE_ROLE");
+
+            while(client.readStringVariableNode(remoteCapId).isEmpty()) {
+                //Wait for wiring to be applied
+            }
 
             assertEquals("NORTH_CLIENT", client.readStringVariableNode(localCapId));
             assertEquals("NORTH_SERVER", client.readStringVariableNode(remoteCapId));

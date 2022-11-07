@@ -33,7 +33,6 @@ public class TestTurntableOpcUa {
 
     private FUTestInfrastructure testFixture;
     private TestKit remoteHandshakeProbe;
-    private IntraMachineEventBus remoteIntraMachineBus;
     private ActorRef serverHandshakeActor;
     private WiringInfo wiringInfoNorth;
     private WiringInfo wiringInfoEast;
@@ -55,8 +54,8 @@ public class TestTurntableOpcUa {
     @BeforeEach
     public void setup() {
         testFixture = new FUTestInfrastructure(PortUtils.findNextFreePort());
-        int port = testFixture.getPort() + testFixture.getAndIncrementRunCount() + 1; //Skip 4840 since this is the port of the Turntable
-        remoteIntraMachineBus = new IntraMachineEventBus();
+        int port = testFixture.getPort() + 1; //Skip 4840 since this is the port of the Turntable
+        IntraMachineEventBus remoteIntraMachineBus = new IntraMachineEventBus();
         OPCUABase base = OPCUABase.createAndStartLocalServer(port, "RemoteDevice");
         serverHandshakeActor = testFixture.getSystem().actorOf(ServerHandshakeFU.props(base, base.getRootNode(),
                 "RemoteHandshakeServer", new FUConnector(), remoteIntraMachineBus));

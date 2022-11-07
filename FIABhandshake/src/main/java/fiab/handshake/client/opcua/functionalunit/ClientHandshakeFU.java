@@ -149,7 +149,7 @@ public class ClientHandshakeFU extends ClientSideHandshakeActor {
     private void addWiringInfo(UaFolderNode clientFuNode) {
         UaFolderNode wiringFolder = base.generateFolder(clientFuNode, "WIRING_INFO");
         wiringNodes = new UaWiringInfoNodes();
-        UaVariableNode localCapNode = base.generateStringVariableNode(wiringFolder, "LOCAL_CAP_ID", "");
+        UaVariableNode localCapNode = base.generateStringVariableNode(wiringFolder, "LOCAL_CAP_ID", capabilityInstanceId);
         UaVariableNode remoteCapNode = base.generateStringVariableNode(wiringFolder, "REMOTE_CAP_ID", "");
         UaVariableNode remoteEndpointNode = base.generateStringVariableNode(wiringFolder, "REMOTE_ENDPOINT_URL", "");
         UaVariableNode remoteNodeIdNode = base.generateStringVariableNode(wiringFolder, "REMOTE_NODE_ID", "");

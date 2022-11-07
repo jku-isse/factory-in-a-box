@@ -15,6 +15,7 @@ import fiab.turntable.turning.statemachine.TurningStates;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.junit.jupiter.api.*;
+import testutils.PortUtils;
 
 import java.util.concurrent.ExecutionException;
 
@@ -23,8 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Tag("IntegrationTest")
 public class TestTurningFU {
 
-    private static FUTestInfrastructure infrastructure;
-    private static FUConnector turningConnector;
+    private FUTestInfrastructure infrastructure;
 
     //Playground
     public static void main(String[] args) {
@@ -33,15 +33,16 @@ public class TestTurningFU {
         system.actorOf(TurningFU.props(base, base.getRootNode(), new FUConnector(), new IntraMachineEventBus()));
     }
 
-    @BeforeAll
+    /*@BeforeAll
     public static void setup() {
-        infrastructure = new FUTestInfrastructure(4851);
-        infrastructure.subscribeToIntraMachineEventBus();
-        turningConnector = new FUConnector();
-    }
+
+    }*/
 
     @BeforeEach
     public void init() throws ExecutionException, InterruptedException {
+        infrastructure = new FUTestInfrastructure(PortUtils.findNextFreePort());
+        infrastructure.subscribeToIntraMachineEventBus();
+        FUConnector turningConnector = new FUConnector();
         infrastructure.initializeActor(TurningFU.props(
                 infrastructure.getServer(),
                 infrastructure.getServer().getRootNode(),
@@ -55,12 +56,13 @@ public class TestTurningFU {
     @AfterEach
     public void teardown() {
         infrastructure.destroyActor();
-    }
-
-    @AfterAll
-    public static void cleanup() {
         infrastructure.shutdownInfrastructure();
     }
+
+    /*@AfterAll
+    public static void cleanup() {
+        infrastructure.shutdownInfrastructure();
+    }*/
 
     @Test
     public void testResetSuccess() throws Exception {

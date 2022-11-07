@@ -19,17 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TestTurningActor {
 
     private static ActorTestInfrastructure infrastructure;
-    private static FUConnector turningConnector;
-
-    @BeforeAll
-    public static void setup() {
-        infrastructure = new ActorTestInfrastructure();
-        infrastructure.subscribeToIntraMachineEventBus();
-        turningConnector = new FUConnector();
-    }
 
     @BeforeEach
     public void init() {
+        infrastructure = new ActorTestInfrastructure();
+        infrastructure.subscribeToIntraMachineEventBus();
+        FUConnector turningConnector = new FUConnector();
         infrastructure.initializeActor(TurningActor.props(turningConnector,infrastructure.getIntraMachineEventBus()),
                 "Turning"+infrastructure.getAndIncrementRunCount());
         expectTurningState(TurningStates.STOPPED);
@@ -38,10 +33,6 @@ public class TestTurningActor {
     @AfterEach
     public void teardown() {
         infrastructure.destroyActor();
-    }
-
-    @AfterAll
-    public static void cleanup() {
         infrastructure.shutdownInfrastructure();
     }
 

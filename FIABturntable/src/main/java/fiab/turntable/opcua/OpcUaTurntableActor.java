@@ -39,7 +39,6 @@ public class OpcUaTurntableActor extends TurntableCoordinatorActor {
     private final UaFolderNode rootNode;
     private final String machineId;
     private UaVariableNode status;
-    private ActorRef wiringActor;
 
     public OpcUaTurntableActor(OPCUABase base, UaFolderNode rootNode, String machineId,
                                MachineEventBus machineEventBus, IntraMachineEventBus intraMachineEventBus, MachineChildFUs infrastructure) {
@@ -47,7 +46,7 @@ public class OpcUaTurntableActor extends TurntableCoordinatorActor {
         this.base = base;
         this.rootNode = rootNode;
         this.machineId = machineId;
-        this.wiringActor = context().actorOf(WiringActor.props(self(), machineId), machineId+"WiringActor");
+        context().actorOf(WiringActor.props(self(), machineId), machineId + "WiringActor");
         setupOpcUaNodeSet(rootNode);
     }
 

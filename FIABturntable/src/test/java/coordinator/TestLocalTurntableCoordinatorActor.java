@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Tag("UnitTest")
 public class TestLocalTurntableCoordinatorActor {
 
-    private static ActorTestInfrastructure infrastructure;
+    private ActorTestInfrastructure infrastructure;
     private List<ActorRef> fuActors;
 
     private TestKit intraMachineProbe;
@@ -73,14 +73,9 @@ public class TestLocalTurntableCoordinatorActor {
     private ServerNotificationConnector clientHsNotificationConnector;
     private ServerResponseConnector clientHsResponseConnector;
 
-
-    @BeforeAll
-    public static void setup() {
-        infrastructure = new ActorTestInfrastructure();
-    }
-
     @BeforeEach
     public void init() {
+        infrastructure = new ActorTestInfrastructure();
         fuActors = new ArrayList<>();
         infrastructure.subscribeToMachineEventBus();
         MachineTestChildFUs fus = initializeTurntableInfraStructureWithAttachedProxies();
@@ -99,10 +94,6 @@ public class TestLocalTurntableCoordinatorActor {
         infrastructure.getMachineEventBus().unsubscribe(getProbe().getRef());
         infrastructure.destroyActor();
         unsubscribeFromAllConnectors();
-    }
-
-    @AfterAll
-    public static void cleanup() {
         infrastructure.shutdownInfrastructure();
     }
 

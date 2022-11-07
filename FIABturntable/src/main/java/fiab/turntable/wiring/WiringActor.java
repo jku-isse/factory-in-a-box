@@ -12,16 +12,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.client.messages.WiringRequest;
 import fiab.handshake.client.messages.WiringUpdateNotification;
-import fiab.turntable.message.ApplyWiringFromFile;
-import fiab.turntable.message.SaveWiringToFile;
+import fiab.turntable.message.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class WiringActor extends AbstractActor {
 
@@ -39,9 +38,11 @@ public class WiringActor extends AbstractActor {
         this.parent = parent;
         log.info("WiringActor started. Searching applicable wiring for machine with name " + machineName);
         this.cachedWiringInfo = readWiringInfoFromFile(machineName);
-        if(cachedWiringInfo.isEmpty()) {
+        if(!cachedWiringInfo.isEmpty()) {
             log.info("Applying wiring info from file");
             applyWiringInfo();
+        }else{
+            log.warning("No suitable wiring found for machine with name {}, skipping ...", machineName);
         }
     }
 
@@ -53,6 +54,9 @@ public class WiringActor extends AbstractActor {
                 })
                 .match(SaveWiringToFile.class, msg -> {
                     saveWiringInfoToFile(msg.getFileName(), cachedWiringInfo);
+                })
+                .match(DeleteWiringInfoFile.class, msg -> {
+                    deleteWiringInfoFile(msg.getFileName());
                 })
                 .match(WiringUpdateNotification.class, msg -> {
                     cachedWiringInfo.put(msg.getMachineId(), msg.getWiringInfo());
@@ -66,10 +70,8 @@ public class WiringActor extends AbstractActor {
         try {
             File file = new File(fileName + wiringInfoSuffix);
             log.info("Searching for wiring info file in path: " + file.getAbsolutePath());
-            return objectMapper.<HashMap<String, WiringInfo>>readValue(file, new TypeReference<HashMap<String, WiringInfo>>() {
-            });
+            return objectMapper.<HashMap<String, WiringInfo>>readValue(file, new TypeReference<HashMap<String, WiringInfo>>() {});
         } catch (IOException e) {
-            //e.printStackTrace();
             log.warning("Couldn't find wiring info with name " + fileName + wiringInfoSuffix + ". Continuing without wiring info...");
             return new HashMap<>();
         }
@@ -84,9 +86,23 @@ public class WiringActor extends AbstractActor {
     private void saveWiringInfoToFile(String fileName, Map<String, WiringInfo> wiringInfoMap) {
         ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         try {
+            log.info("Persisted new wiringInfo in {}", fileName + wiringInfoSuffix);
             objectMapper.writeValue(new FileOutputStream(fileName + wiringInfoSuffix), wiringInfoMap);
+            sender().tell(new WiringSavedNotification(), self());
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void deleteWiringInfoFile(String fileName) {
+        String fullFileName = fileName+wiringInfoSuffix;
+        try {
+            Files.deleteIfExists(Path.of(fullFileName));
+            log.info("Deleted WiringInfo file {}", fullFileName);
+            sender().tell(new WiringDeletedNotification(), self());
+        } catch (IOException e) {
+            e.printStackTrace();
+            sender().tell(new WiringDeletedNotification(false), self());
         }
     }
 }
