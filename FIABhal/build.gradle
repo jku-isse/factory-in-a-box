@@ -13,6 +13,7 @@ repositories {
 dependencies {
     implementation "com.github.ev3dev-lang-java:ev3dev-lang-java:2.5.3"
 
+    testImplementation 'org.awaitility:awaitility:4.2.0'
     testImplementation "ch.qos.logback:logback-classic:1.2.3"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'

@@ -3,10 +3,7 @@ package hardware.actuators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * This is a Mock implementation of a Motor. It can be used for testing, although it does not account for
@@ -25,7 +22,7 @@ public class MockMotor extends Motor {
 
     public MockMotor(int speed) {
         super();
-        executorService = new ScheduledThreadPoolExecutor(1);
+            executorService = new ScheduledThreadPoolExecutor(4);
         motorSpeed = speed;
         currentAngle = 0;
     }
@@ -43,10 +40,10 @@ public class MockMotor extends Motor {
         super.forward();
         forwardTask = executorService.scheduleAtFixedRate(
                 () -> {
-                    logger.info("===| Moving forward with speed: " + motorSpeed);
-                    currentAngle++;
+                    logger.info("===| Moving forward with speed: " + motorSpeed + ". Current angle: " + currentAngle);
+                    currentAngle += Math.max(1, motorSpeed/10);
                 },
-                0, 1000, TimeUnit.MILLISECONDS);
+                0, 100, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -54,10 +51,10 @@ public class MockMotor extends Motor {
         super.backward();
         backwardTask = executorService.scheduleAtFixedRate(
                 () -> {
-                    logger.info("===| Moving backward with speed: " + motorSpeed);
-                    currentAngle--;
+                    logger.info("===| Moving backward with speed: " + motorSpeed + ". Current angle: " + currentAngle);
+                    currentAngle += Math.max(1, motorSpeed/10);
                 },
-                0, 1000, TimeUnit.MILLISECONDS);
+                0, 100, TimeUnit.MILLISECONDS);
     }
 
     @Override
