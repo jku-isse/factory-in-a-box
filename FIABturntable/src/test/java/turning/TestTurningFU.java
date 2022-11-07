@@ -17,6 +17,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.junit.jupiter.api.*;
 import testutils.PortUtils;
 
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,7 +48,7 @@ public class TestTurningFU {
                 infrastructure.getServer(),
                 infrastructure.getServer().getRootNode(),
                 turningConnector,
-                infrastructure.getIntraMachineEventBus()), "TurningFU"+infrastructure.getAndIncrementRunCount());
+                infrastructure.getIntraMachineEventBus()), "TurningFU" + infrastructure.getAndIncrementRunCount());
 
         getProbe().expectMsgClass(TurningStatusUpdateEvent.class);  //Skip initial Stopped state
         client().connect().get();
@@ -159,7 +160,7 @@ public class TestTurningFU {
     }
 
     private void expectTurningState(TurningStates turningStates) {
-        TurningStatusUpdateEvent machineStatusUpdateEvent = getProbe().expectMsgClass(TurningStatusUpdateEvent.class);
+        TurningStatusUpdateEvent machineStatusUpdateEvent = getProbe().expectMsgClass(Duration.ofSeconds(10), TurningStatusUpdateEvent.class);
         assertEquals(machineStatusUpdateEvent.getStatus(), turningStates);
     }
 

@@ -13,20 +13,22 @@ import fiab.turntable.turning.messages.TurningStatusUpdateEvent;
 import fiab.turntable.turning.statemachine.TurningStates;
 import org.junit.jupiter.api.*;
 
+import java.time.Duration;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Tag("UnitTest")
 public class TestTurningActor {
 
-    private static ActorTestInfrastructure infrastructure;
+    private ActorTestInfrastructure infrastructure;
 
     @BeforeEach
     public void init() {
         infrastructure = new ActorTestInfrastructure();
         infrastructure.subscribeToIntraMachineEventBus();
         FUConnector turningConnector = new FUConnector();
-        infrastructure.initializeActor(TurningActor.props(turningConnector,infrastructure.getIntraMachineEventBus()),
-                "Turning"+infrastructure.getAndIncrementRunCount());
+        infrastructure.initializeActor(TurningActor.props(turningConnector, infrastructure.getIntraMachineEventBus()),
+                "Turning" + infrastructure.getAndIncrementRunCount());
         expectTurningState(TurningStates.STOPPED);
     }
 
@@ -119,7 +121,7 @@ public class TestTurningActor {
     @Test
     public void testTurnToWestSuccess() {
         resetTurningActor();
-        actorRef().tell(new TurnRequest(infrastructure.eventSourceId,TransportDestinations.WEST),
+        actorRef().tell(new TurnRequest(infrastructure.eventSourceId, TransportDestinations.WEST),
                 ActorRef.noSender());
         expectTurningState(TurningStates.STARTING);
         expectTurningState(TurningStates.EXECUTING);
@@ -134,7 +136,7 @@ public class TestTurningActor {
     }
 
     private void expectTurningState(TurningStates turningStates) {
-        TurningStatusUpdateEvent machineStatusUpdateEvent = probe().expectMsgClass(TurningStatusUpdateEvent.class);
+        TurningStatusUpdateEvent machineStatusUpdateEvent = probe().expectMsgClass(Duration.ofSeconds(5), TurningStatusUpdateEvent.class);
         assertEquals(machineStatusUpdateEvent.getStatus(), turningStates);
     }
 
