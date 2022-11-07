@@ -12,11 +12,11 @@ import java.util.concurrent.TimeUnit;
 public class TurningMockMotor extends MockMotor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private MockSensor sensorHoming;
-    private long delay;
+    private final MockSensor sensorHoming;
+    private final long delay;
     private boolean isTurningForward, isTurningBackward;
-    private ScheduledThreadPoolExecutor executor;
-    private ScheduledFuture timerTask;
+    private final ScheduledThreadPoolExecutor executor;
+    private ScheduledFuture<?> timerTask;
 
     public TurningMockMotor(MockSensor sensorHoming, int speed) {
         super(speed);
@@ -25,13 +25,13 @@ public class TurningMockMotor extends MockMotor {
         isTurningForward = false;
         isTurningBackward = false;
         sensorHoming.setDetectedInput(false);
-        executor = new ScheduledThreadPoolExecutor(2);
+        executor = new ScheduledThreadPoolExecutor(4);
     }
 
     @Override
     public void forward() {
         super.forward();
-        logger.info("Calling forward on ConveyorMockMotor...");
+        logger.info("Calling forward on TurningMockMotor...");
         isTurningForward = true;
         isTurningBackward = false;
     }
@@ -39,7 +39,7 @@ public class TurningMockMotor extends MockMotor {
     @Override
     public void backward() {
         super.backward();
-        logger.info("Calling backward on ConveyorMockMotor...");
+        logger.info("Calling backward on TurningMockMotor...");
         isTurningForward = false;
         isTurningBackward = true;
         timerTask = executor.schedule(() -> {
@@ -49,7 +49,7 @@ public class TurningMockMotor extends MockMotor {
 
     @Override
     public void stop() {
-        logger.info("Calling stop on ConveyorMockMotor...");
+        logger.info("Calling stop on TurningMockMotor...");
         super.stop();
         if (timerTask != null) {
             timerTask.cancel(true);

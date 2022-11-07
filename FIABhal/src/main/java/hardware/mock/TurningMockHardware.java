@@ -10,8 +10,9 @@ public class TurningMockHardware extends TurningHardware {
      * Constructs a default implementation of a mock instance
      */
     public TurningMockHardware() {
-        sensorHoming = new MockSensor();
-        turningMotor = new TurningMockMotor((MockSensor) sensorHoming, 100);
+        //sensorHoming = new MockSensor();
+        //turningMotor = new TurningMockMotor((MockSensor) sensorHoming, 100);
+        this(100);
     }
 
     /**
