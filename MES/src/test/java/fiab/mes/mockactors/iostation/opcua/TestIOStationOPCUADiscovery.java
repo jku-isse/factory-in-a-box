@@ -157,18 +157,10 @@ class TestIOStationOPCUADiscovery {
                 // setup discoveryactor
                 DefaultTransportPositionLookup lookup = new DefaultTransportPositionLookup();
                 Map<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<AbstractMap.SimpleEntry<String, ProvOrReq>, CapabilityCentricActorSpawnerInterface>();
-                capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
-                    @Override
-                    public ActorRef createActorSpawner(ActorContext context) {
-                        return context.actorOf(LocalIOStationActorSpawner.props(lookup));
-                    }
-                });
-                capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
-                    @Override
-                    public ActorRef createActorSpawner(ActorContext context) {
-                        return context.actorOf(LocalIOStationActorSpawner.props(lookup));
-                    }
-                });
+                capURI2Spawning.put(new AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED),
+                        context -> context.actorOf(LocalIOStationActorSpawner.props(lookup)));
+                capURI2Spawning.put(new AbstractMap.SimpleEntry<>(IOStationCapability.OUTPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED),
+                        context -> context.actorOf(LocalIOStationActorSpawner.props(lookup)));
                 ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
                 discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(endpointURL, capURI2Spawning), getRef());
 

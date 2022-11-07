@@ -34,7 +34,7 @@ import fiab.mes.planer.msg.PlanerStatusMessage;
 import fiab.mes.planer.msg.PlanerStatusMessage.PlannerState;
 import fiab.mes.transport.actor.transportsystem.TransportSystemCoordinatorActor;
 
-@Tag("IntegrationTest")		//FIXME startup of machines is different now
+@Tag("IntegrationTest")		//FIXME handshake (wiring) seems to be incorrect
 class OrderPlanningActorTest {
 
 	protected ActorSystem system;
@@ -59,7 +59,7 @@ class OrderPlanningActorTest {
 		layout = new DefaultTestLayout(system, interMachineEventBus);
 		TransportRoutingAndMappingInterface routing = layout.getTransportRoutingAndMapping();
 		TransportPositionLookupAndParser dns = layout.getTransportPositionLookup();
-		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 1), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
+		coordActor = system.actorOf(TransportSystemCoordinatorActor.props(routing, dns, 2), TransportSystemCoordinatorActor.WELLKNOWN_LOOKUP_NAME);
 		orderEventBus = system.actorOf(OrderEventBusWrapperActor.props(), OrderEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
 
 		orderPlanningActor = system.actorOf(OrderPlanningActor.props(), OrderPlanningActor.WELLKNOWN_LOOKUP_NAME);

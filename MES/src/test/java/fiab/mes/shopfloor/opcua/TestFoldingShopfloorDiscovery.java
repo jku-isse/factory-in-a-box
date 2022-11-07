@@ -25,6 +25,8 @@ import fiab.mes.order.actor.OrderEntryActor;
 import fiab.mes.order.ecore.ProduceFoldingProcess;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.mes.planer.msg.PlanerStatusMessage;
+import fiab.mes.shopfloor.layout.DefaultTestLayout;
+import fiab.mes.shopfloor.layout.ShopfloorLayout;
 import fiab.mes.transport.msg.TransportSystemStatusMessage;
 import fiab.opcua.CapabilityImplementationMetadata;
 import org.junit.jupiter.api.*;
@@ -35,25 +37,27 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestFoldingShopfloorDiscovery {
 
-    private static ActorSystem system;
-    private static String ROOT_SYSTEM = "routes";
-    private static ActorSelection machineEventBus;
-    private static ActorSelection orderEventBus;
-    private static ActorSelection orderEntryActor;
-    private static CompletionStage<ServerBinding> binding;
+    private ActorSystem system;
+    private String ROOT_SYSTEM = "routes";
+    private ActorSelection machineEventBus;
+    private ActorSelection orderEventBus;
+    private ActorSelection orderEntryActor;
+    private CompletionStage<ServerBinding> binding;
 
-    private static final Logger logger = LoggerFactory.getLogger(OrderEmittingTestServerWithOPCUA.class);
+    private final Logger logger = LoggerFactory.getLogger(OrderEmittingTestServerWithOPCUA.class);
     static HashMap<String, AkkaActorBackedCoreModelAbstractActor> knownActors = new HashMap<>();
 //	private static OrderProcess process;
 
-    @BeforeAll
-    static void setUpBeforeClass() throws Exception {
+    @BeforeEach
+    void setUp() {
         system = ActorSystem.create(ROOT_SYSTEM);
 
         binding = ShopfloorStartup.startup(null, 2, system);
@@ -63,12 +67,8 @@ public class TestFoldingShopfloorDiscovery {
 
     }
 
-    @BeforeEach
-    void setUp() throws Exception {
-    }
-
-    @AfterAll
-    public static void teardown() {
+    @AfterEach
+    public void teardown() {
         binding
                 .thenCompose(ServerBinding::unbind) // trigger unbinding from the port
                 .thenAccept(unbound -> {
@@ -79,89 +79,78 @@ public class TestFoldingShopfloorDiscovery {
     }
 
     @Test
-    @Tag("IntegrationTest") //FIXME boot up virtual machines before test
+    @Tag("IntegrationTest")     //FIXME use folding layout for test
     void testVirtualShopfloorParticipantDiscovery() {
-        Set<String> urlsToBrowse = getLocalhostLayout();
-        discoverShopfloorParticipants(urlsToBrowse);
+        new TestKit(system) {
+            {
+                assertDoesNotThrow(() ->{
+                    ShopfloorLayout layout = new DefaultTestLayout(system, machineEventBus.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get());
+
+                    orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
+                    machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
+
+                    layout.initializeAndDiscoverParticipants(getRef());
+                    int countConnEvents = 0;
+                    boolean isPlannerFunctional = false;
+                    boolean isTransportFunctional = false;
+                    while (!isPlannerFunctional || countConnEvents < layout.getParticipants().size() || !isTransportFunctional) {
+                        TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+                        logEvent(te);
+                        if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
+                            isPlannerFunctional = true;
+                        }
+                        if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
+                            isTransportFunctional = true;
+                        }
+                        if (te instanceof MachineConnectedEvent) {
+                            countConnEvents++;
+                            knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+                        }
+                    }
+                    assertEquals(layout.getParticipants().size(), countConnEvents);
+                });
+            }
+        };
+        //Set<String> urlsToBrowse = getLocalhostLayout();
+
+        //discoverShopfloorParticipants(urlsToBrowse);
     }
 
     @Test
-    @Tag("SystemTest")
+    @Tag("SystemTest")  //FIXME use folding layout for test
     void testShopfloorParticipantDiscovery() {
-        Set<String> urlsToBrowse = getRealLayout();
-        discoverShopfloorParticipants(urlsToBrowse);
-    }
-
-    private void discoverShopfloorParticipants(Set<String> urlsToBrowse) {
         new TestKit(system) {
             {
-                System.out.println("test frontend responses by emitting orders with sequential process");
+                assertDoesNotThrow(() ->{
+                    ShopfloorLayout layout = new DefaultTestLayout(system, machineEventBus.resolveOne(Duration.ofSeconds(3)).toCompletableFuture().get());
 
-                orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
-                machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
+                    orderEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
+                    machineEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("OrderMock", "*")), getRef());
 
-                //Set<String> urlsToBrowse = getLocalhostLayout();
-                //Set<String> urlsToBrowse = getRealLayout();
-                Map<AbstractMap.SimpleEntry<String, CapabilityImplementationMetadata.ProvOrReq>, CapabilityCentricActorSpawnerInterface> capURI2Spawning = new HashMap<>();
-                ShopfloorConfigurations.addDefaultSpawners(capURI2Spawning);
-
-                urlsToBrowse.forEach(url -> {
-                    ActorRef discovAct1 = system.actorOf(CapabilityDiscoveryActor.props());
-                    try {
-                        discovAct1.tell(new CapabilityDiscoveryActor.BrowseRequest(url, capURI2Spawning), getRef());
-                        TimeUnit.SECONDS.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    layout.runDiscovery(getRef());
+                    int countConnEvents = 0;
+                    boolean isPlannerFunctional = false;
+                    boolean isTransportFunctional = false;
+                    while (!isPlannerFunctional || countConnEvents < layout.getParticipants().size() || !isTransportFunctional) {
+                        TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
+                        logEvent(te);
+                        if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
+                            isPlannerFunctional = true;
+                        }
+                        if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
+                            isTransportFunctional = true;
+                        }
+                        if (te instanceof MachineConnectedEvent) {
+                            countConnEvents++;
+                            knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
+                        }
                     }
-
+                    assertEquals(layout.getParticipants().size(), countConnEvents);
                 });
-
-                int countConnEvents = 0;
-                boolean isPlannerFunctional = false;
-                boolean isTransportFunctional = false;
-                while (!isPlannerFunctional || countConnEvents < urlsToBrowse.size() || !isTransportFunctional) {
-                    TimedEvent te = expectMsgAnyClassOf(Duration.ofSeconds(30), TimedEvent.class);
-                    logEvent(te);
-                    if (te instanceof PlanerStatusMessage && ((PlanerStatusMessage) te).getState().equals(PlanerStatusMessage.PlannerState.FULLY_OPERATIONAL)) {
-                        isPlannerFunctional = true;
-                    }
-                    if (te instanceof TransportSystemStatusMessage && ((TransportSystemStatusMessage) te).getState().equals(TransportSystemStatusMessage.State.FULLY_OPERATIONAL)) {
-                        isTransportFunctional = true;
-                    }
-                    if (te instanceof MachineConnectedEvent) {
-                        countConnEvents++;
-                        knownActors.put(((MachineConnectedEvent) te).getMachineId(), ((MachineConnectedEvent) te).getMachine());
-                    }
-
-                    /*if (te instanceof MachineStatusUpdateEvent) {
-                        if (((MachineStatusUpdateEvent) te).getStatus().equals(BasicMachineStates.STOPPED))
-                            Optional.ofNullable(knownActors.get(((MachineStatusUpdateEvent) te).getMachineId()))
-                                    .ifPresent(actor -> actor.getAkkaActor()
-                                            .tell(new GenericMachineRequests.Reset(((MachineStatusUpdateEvent) te).getMachineId()), getRef())
-                                    );
-                    }*/
-                }
-                assertEquals(urlsToBrowse.size(), knownActors.size());
-
-                /*CountDownLatch count = new CountDownLatch(1);
-                while (count.getCount() > 0) {
-                    String oid = "P" + String.valueOf(count.getCount() + "-");
-                    OrderProcess op1 = new OrderProcess(ProduceFoldingProcess.getSequentialBoxProcess(oid));
-                    RegisterProcessRequest req = new RegisterProcessRequest(oid, op1, getRef());
-                    orderEntryActor.tell(req, getRef());
-
-                    count.countDown();
-                    Thread.sleep(3000);
-                }
-                System.out.println("Finished with emitting orders. Press ENTER to end test!");
-                int i = -1;
-                while(i < 0){
-                    i = System.in.read();
-                }
-                System.out.println("Test completed by keyboard input " + i);*/
             }
         };
-
+        //Set<String> urlsToBrowse = getRealLayout();
+        //discoverShopfloorParticipants(urlsToBrowse);
     }
 
     public Set<String> getLocalhostLayout() {
