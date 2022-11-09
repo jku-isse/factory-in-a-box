@@ -129,7 +129,7 @@ public class ServerHandshakeFU extends ServerSideHandshakeActor {
                 capabilityId);
         base.generateStringVariableNode(serverHandshakeCapNode,
                 OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE,
-                OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_REQUIRED);
+                OPCUACapabilitiesAndWiringInfoBrowsenames.ROLE_VALUE_PROVIDED);
     }
 
     @Override
