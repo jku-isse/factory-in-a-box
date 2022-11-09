@@ -341,7 +341,7 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
                 item.getReadValueId().getNodeId(), value.getValue());
         if (value.getValue().isNotNull()) {
             String stateAsString = value.getValue().getValue().toString();
-            System.out.println(stateAsString);
+            //System.out.println(stateAsString);
             try {
                 ServerSideStates state = ServerSideStates.valueOf(stateAsString);
                 notifySubscribers(state);
