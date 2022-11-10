@@ -11,13 +11,17 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.junit.jupiter.api.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Tag("SystemTest")
-public class TestRemoteTurntable {  //TODO test remote machine
+public class TestRemoteTurntable {
 
-    private final String remoteEndpointUrl = "opc.tcp://192.168.133.122:4840";
+    private final String remoteEndpointUrl = "opc.tcp://192.168.133.128:4840";
     private FiabOpcUaClient client;
 
     @BeforeEach
@@ -84,6 +88,22 @@ public class TestRemoteTurntable {  //TODO test remote machine
             waitForMachineToReachState(BasicMachineStates.IDLE);
             client.callStringMethodBlocking(TurningFUOpcUaNodes.turnToNodeId, new Variant("WEST"));
             waitForTurningFUToReachState(TurningStates.COMPLETE);
+        });
+    }
+
+    @Test
+    public void testRemoteTurningStepwise(){
+        Random random = new Random();
+        List<String> directions = List.of("NORTH", "EAST", "SOUTH", "WEST");
+        assertDoesNotThrow(() -> {
+            for(int i = 0; i < 100; i++) {
+                prepareMachineForTest();
+                client.callStringMethodBlocking(TurntableOpcUaNodes.resetNode);
+                waitForMachineToReachState(BasicMachineStates.IDLE);
+                client.callStringMethodBlocking(TurningFUOpcUaNodes.turnToNodeId,
+                        new Variant(directions.get(random.nextInt(4))));
+                waitForTurningFUToReachState(TurningStates.COMPLETE);
+            }
         });
     }
 

@@ -60,6 +60,7 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
         boolean debug = !userName.equalsIgnoreCase("robot");    //All EV3 distros use this as default username
         log.info("TurningActor using Mock hardware? {}", debug);
         this.turningHardware = debug ? new TurningMockHardware() : new LegoTurningHardware();
+        this.turningHardware.getTurningMotor().setSpeed(200);
         addActionsToStates();
         publishCurrentState();
     }
@@ -120,6 +121,7 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
     public void checkIfHomingPositionReached() {
         if (turningHardware.isInHomePosition()) {
             turningHardware.stopTurningMotor();
+            turningHardware.getTurningMotor().resetTachoCount();
             fireIfPossible(RESETTING_DONE);
         } else {
             self().tell(InternalTurningRequests.CHECK_RESET_POSITION_REACHED, self());
@@ -149,7 +151,8 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
 
     public void checkDestinationReached() {
         if (stateMachine.isInState(TurningStates.EXECUTING)
-                && turningHardware.getMotorAngle() == positionMap.get(currentDestination)) {
+                && hasReachedTargetRotation(turningHardware.getMotorAngle(), positionMap.get(currentDestination), 5)) {    //After calling rotate, the motor will stop upon reaching it's destination
+            //&& turningHardware.getMotorAngle() == positionMap.get(currentDestination)) {
             turningHardware.stopTurningMotor();
             log.info("Turning Position " + currentDestination + " reached");
             fireIfPossible(COMPLETE);
@@ -162,6 +165,12 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
         } else {
             self().tell(InternalTurningRequests.CHECK_DESTINATION_REACHED, self());
         }
+    }
+
+    private boolean hasReachedTargetRotation(int value, int target, int delta) {
+        int lowerBound = target - delta;
+        int upperBound = target + delta;
+        return lowerBound <= value && value <= upperBound;
     }
 
     public void finishTurning() {
@@ -183,6 +192,8 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
         log.info("Received trigger: " + trigger.toString());
         if (stateMachine.canFire(trigger))
             stateMachine.fire(trigger);
+        else
+            log.warning("Failed transition from state {} using trigger {}", stateMachine.getState(), trigger);
     }
 
     private void publishCurrentState() {
@@ -193,8 +204,8 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
 
     private void mapMotorAnglesToPositions() {
         positionMap.put(TransportDestinations.NORTH, 0 * gearRatio);
-        positionMap.put(TransportDestinations.EAST, 100 * gearRatio); //In theory 90, but not in reality
-        positionMap.put(TransportDestinations.SOUTH, 160 * gearRatio); //In theory 180, but not in reality
-        positionMap.put(TransportDestinations.WEST, 240 * gearRatio); //In theory 270, but not in reality
+        positionMap.put(TransportDestinations.EAST, 90 * gearRatio + 10); //In theory 90, but not in reality
+        positionMap.put(TransportDestinations.SOUTH, 180 * gearRatio - 15); //In theory 180, but not in reality
+        positionMap.put(TransportDestinations.WEST, 270 * gearRatio - 30); //In theory 270, but not in reality
     }
 }
