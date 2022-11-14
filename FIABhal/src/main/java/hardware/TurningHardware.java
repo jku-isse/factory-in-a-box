@@ -33,7 +33,7 @@ public abstract class TurningHardware {
     }
 
     public void rotateMotorToAngle(int angle){
-        turningMotor.rotate(angle);
+        turningMotor.rotateTo(angle);
     }
 
     public int getMotorAngle(){
