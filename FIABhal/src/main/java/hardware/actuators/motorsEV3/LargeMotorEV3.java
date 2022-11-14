@@ -91,4 +91,9 @@ public class LargeMotorEV3 extends Motor {
         largeRegulatedMotor.resetTachoCount();
         largeRegulatedMotor.hold();
     }
+
+    @Override
+    public boolean isRunning() {
+        return largeRegulatedMotor.isMoving();
+    }
 }
