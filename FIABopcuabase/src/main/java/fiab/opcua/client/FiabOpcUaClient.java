@@ -23,10 +23,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -114,7 +111,8 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
                     log.info("Found node for browseName " + browseName + ": " + node.getNodeId());
                     return node.getNodeId();
                 } else {
-                    if (node.getNodeId().getNamespaceIndex().intValue() > 0) {
+                    if (Objects.requireNonNull(node.getBrowseName().getName()).equalsIgnoreCase("Objects") ||
+                            node.getNodeId().getNamespaceIndex().intValue() > 0) {
                         //We skip this node for performance reasons, might be incompatible with 4diac
                         result = browseRecursive(node.getNodeId(), browseName);
                     }
