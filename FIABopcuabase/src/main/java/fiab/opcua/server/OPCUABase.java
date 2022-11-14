@@ -88,8 +88,6 @@ public class OPCUABase extends ManagedNamespaceWithLifecycle implements Runnable
         setUpServerStructure(); //All folders, nodes and Methods set in the SetUp Method
         try {
             server.startup().get();
-//			actor.tell(this, ActorRef.noSender());
-//			actor.tell(MessageTypes.SubscribeToStateUpdates, ActorRef.noSender());
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -122,25 +120,6 @@ public class OPCUABase extends ManagedNamespaceWithLifecycle implements Runnable
         rootNode = folderNode;
         //actor.tell(this, ActorRef.noSender());
     }
-
-//	protected void onStartup() {
-//		super.onStartup();
-//
-//		// Create a root folder and add it to the node manager
-//		NodeId folderNodeId = newNodeId(machineName);
-//
-//		UaFolderNode folderNode = new UaFolderNode(getNodeContext(), folderNodeId,
-//				newQualifiedName(machineName), LocalizedText.english(machineName));
-//
-//		getNodeManager().addNode(folderNode);
-//
-//		// Make sure our new folder shows up under the server's Objects folder.
-//		folderNode.addReference(new Reference(folderNode.getNodeId(), Identifiers.Organizes,
-//				Identifiers.ObjectsFolder.expanded(), false));
-//
-//		rootNode = folderNode;
-//		//actor.tell(this, ActorRef.noSender());
-//	}
 
     public CompletableFuture<OpcUaServer> shutDownOpcUaBaseAsync() {
         shutdown();
