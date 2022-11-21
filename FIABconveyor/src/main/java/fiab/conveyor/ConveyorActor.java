@@ -49,6 +49,7 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         boolean debug = !userName.equalsIgnoreCase("robot");    //All EV3 distros use this as default username
         log.info("ConveyorActor using mock hardware? {}", debug);
         this.conveyorHardware = debug ? new ConveyorMockHardware() : new LegoConveyorHardware();
+        this.conveyorHardware.getConveyorMotor().setSpeed(600);
         addActionsToStates();
         publishCurrentState();
     }

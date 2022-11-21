@@ -24,6 +24,7 @@ import hardware.mock.TurningMockHardware;
 
 import static fiab.turntable.turning.statemachine.TurningTriggers.*;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,7 +57,7 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
         //In case the operating system not ev3, we do not want to use EV3 libraries
         //For now this hack will let us build on any os where username is not robot
         String userName = System.getProperty("user.name");
-        log.info("User Name {}", userName);
+        log.debug("User Name {}", userName);
         boolean debug = !userName.equalsIgnoreCase("robot");    //All EV3 distros use this as default username
         log.info("TurningActor using Mock hardware? {}", debug);
         this.turningHardware = debug ? new TurningMockHardware() : new LegoTurningHardware();
@@ -101,9 +102,8 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
 
     public void doResetting() {
         currentDestination = TransportDestinations.UNKNOWN;
-        if (!turningHardware.isInHomePosition()) {
-            turningHardware.startMotorBackward();
-        }
+        turningHardware.getTurningMotor().setSpeed(200);
+        turningHardware.startMotorBackward();
         checkIfHomingPositionReached();
     }
 
@@ -120,11 +120,20 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
 
     public void checkIfHomingPositionReached() {
         if (turningHardware.isInHomePosition()) {
-            turningHardware.stopTurningMotor();
-            turningHardware.getTurningMotor().resetTachoCount();
-            fireIfPossible(RESETTING_DONE);
+            resetMotorToZero();
+            context().system().scheduler().scheduleOnce(Duration.ofMillis(100), () -> {
+                fireIfPossible(RESETTING_DONE);
+            }, context().dispatcher());
         } else {
-            self().tell(InternalTurningRequests.CHECK_RESET_POSITION_REACHED, self());
+            if (!turningHardware.getTurningMotor().isRunning()) {
+                log.info("Motor was not moving, retrying");
+                context().system().scheduler().scheduleOnce(Duration.ofMillis(500), () -> {
+                    turningHardware.startMotorBackward();   //In case something prevented us from moving the motor before
+                    self().tell(InternalTurningRequests.CHECK_RESET_POSITION_REACHED, self());
+                }, context().dispatcher());
+            } else {
+                 self().tell(InternalTurningRequests.CHECK_RESET_POSITION_REACHED, self());
+            }
         }
     }
 
@@ -133,9 +142,7 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
         turningHardware.getTurningMotor().setSpeed(200);    //Resets each time after tacho count reset
         switch (currentDestination) {
             case NORTH:
-                if (!turningHardware.isInHomePosition()) {
-                    turningHardware.startMotorBackward();
-                }
+                turningHardware.startMotorBackward();
                 break;
             case EAST:  //For now we do the same for all others
             case SOUTH:
@@ -151,30 +158,39 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
 
     public void checkDestinationReached() {
         if (stateMachine.isInState(TurningStates.EXECUTING)
-                && hasReachedTargetRotation(turningHardware.getMotorAngle(), positionMap.get(currentDestination), 5)) {    //After calling rotate, the motor will stop upon reaching it's destination
+                && hasReachedTargetRotation(5)) {    //After calling rotate, the motor will stop upon reaching it's destination
             //&& turningHardware.getMotorAngle() == positionMap.get(currentDestination)) {
-            turningHardware.stopTurningMotor();
-            log.info("Turning Position " + currentDestination + " reached");
+            log.info("Turning Position {} reached", currentDestination);
             fireIfPossible(COMPLETE);
         } else if (stateMachine.isInState(TurningStates.EXECUTING) && currentDestination == TransportDestinations.NORTH
                 && turningHardware.isInHomePosition()) {    //We check the sensor instead when moving north
-            turningHardware.stopTurningMotor();
+            resetMotorToZero();
             log.info("Turning Position " + currentDestination + " reached");
-            turningHardware.resetMotorAngleToZero();
             fireIfPossible(COMPLETE);
         } else {
+            /*if (stateMachine.isInState(TurningStates.EXECUTING)
+                    && !hasReachedTargetRotation(5)
+                    && !turningHardware.getTurningMotor().isRunning()) { //We are close, but have not reached our destination
+                log.info("Turning Position {} missed, retrying with target {} and current angle {}",
+                        currentDestination, positionMap.get(currentDestination), turningHardware.getTurningMotor().getRotationAngle());
+                turningHardware.rotateMotorToAngle(positionMap.get(currentDestination));    //Retry
+            }*/
             self().tell(InternalTurningRequests.CHECK_DESTINATION_REACHED, self());
         }
     }
 
-    private boolean hasReachedTargetRotation(int value, int target, int delta) {
+    private boolean hasReachedTargetRotation(int delta) {
+        int motorAngle = turningHardware.getMotorAngle();
+        int target = positionMap.get(currentDestination);
         int lowerBound = target - delta;
         int upperBound = target + delta;
-        return lowerBound <= value && value <= upperBound;
+        return lowerBound <= motorAngle && motorAngle <= upperBound;
     }
 
     public void finishTurning() {
-        fireIfPossible(COMPLETING_DONE);
+        context().system().scheduler().scheduleOnce(Duration.ofMillis(100), () -> {
+            fireIfPossible(COMPLETING_DONE);
+        }, context().dispatcher());
     }
 
     /**
@@ -207,5 +223,11 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
         positionMap.put(TransportDestinations.EAST, 90 * gearRatio + 10); //In theory 90, but not in reality
         positionMap.put(TransportDestinations.SOUTH, 180 * gearRatio - 15); //In theory 180, but not in reality
         positionMap.put(TransportDestinations.WEST, 270 * gearRatio - 30); //In theory 270, but not in reality
+    }
+
+    private void resetMotorToZero() {
+        turningHardware.stopTurningMotor();
+        turningHardware.getTurningMotor().resetTachoCount();
+        turningHardware.getTurningMotor().setSpeed(200);
     }
 }
