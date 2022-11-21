@@ -4,6 +4,8 @@ import ev3dev.actuators.lego.motors.EV3LargeRegulatedMotor;
 import hardware.actuators.Motor;
 import lejos.hardware.port.Port;
 import lejos.utility.Delay;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is an implementation for the EV3 Large Motor. It provides all functionality any motor
@@ -11,6 +13,7 @@ import lejos.utility.Delay;
  */
 public class LargeMotorEV3 extends Motor {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final EV3LargeRegulatedMotor largeRegulatedMotor;
 
     public LargeMotorEV3(Port motorPort) {
@@ -28,6 +31,7 @@ public class LargeMotorEV3 extends Motor {
         largeRegulatedMotor.hold();
         //largeRegulatedMotor.brake();
         largeRegulatedMotor.forward();
+        logger.debug("Called forward on motor");
     }
 
     /**
@@ -39,6 +43,7 @@ public class LargeMotorEV3 extends Motor {
         largeRegulatedMotor.hold();
         //largeRegulatedMotor.brake();
         largeRegulatedMotor.backward();
+        logger.debug("Called backward on motor");
     }
 
     @Override
@@ -46,6 +51,7 @@ public class LargeMotorEV3 extends Motor {
         super.rotate(angle);
         largeRegulatedMotor.hold();
         largeRegulatedMotor.rotate(angle);
+        logger.debug("Called rotate on motor");
     }
 
     @Override
@@ -53,6 +59,7 @@ public class LargeMotorEV3 extends Motor {
         super.rotateTo(angle);
         largeRegulatedMotor.hold();
         largeRegulatedMotor.rotateTo(angle, true);
+        logger.debug("Called rotateTo on motor");
     }
 
     @Override
@@ -68,6 +75,7 @@ public class LargeMotorEV3 extends Motor {
         super.stop();
         largeRegulatedMotor.stop();
         largeRegulatedMotor.hold();
+        logger.debug("Called stop on motor");
     }
 
     /**
@@ -76,6 +84,7 @@ public class LargeMotorEV3 extends Motor {
     @Override
     public void setSpeed(int speed) {
         largeRegulatedMotor.setSpeed(speed);
+        logger.debug("Set speed on motor to {}", speed);
     }
 
     /**
@@ -90,10 +99,11 @@ public class LargeMotorEV3 extends Motor {
     public void resetTachoCount() {
         largeRegulatedMotor.resetTachoCount();
         largeRegulatedMotor.hold();
+        logger.debug("Reset tacho count on motor");
     }
 
     @Override
     public boolean isRunning() {
-        return largeRegulatedMotor.isMoving();
+        return largeRegulatedMotor.isMoving() && !largeRegulatedMotor.isStalled();
     }
 }

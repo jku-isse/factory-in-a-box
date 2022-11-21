@@ -5,7 +5,7 @@ package hardware.actuators;
  */
 public abstract class Motor {
 
-    private boolean isRunning;
+    protected boolean isRunning;
 
     protected Motor() {
         isRunning = false;

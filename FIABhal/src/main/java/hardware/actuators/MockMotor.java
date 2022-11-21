@@ -22,7 +22,7 @@ public class MockMotor extends Motor {
 
     public MockMotor(int speed) {
         super();
-            executorService = new ScheduledThreadPoolExecutor(4);
+        executorService = new ScheduledThreadPoolExecutor(4);
         motorSpeed = speed;
         currentAngle = 0;
     }
@@ -41,7 +41,7 @@ public class MockMotor extends Motor {
         forwardTask = executorService.scheduleAtFixedRate(
                 () -> {
                     logger.info("===| Moving forward with speed: " + motorSpeed + ". Current angle: " + currentAngle);
-                    currentAngle += Math.max(1, motorSpeed/10);
+                    currentAngle += Math.max(1, motorSpeed / 10);
                 },
                 0, 100, TimeUnit.MILLISECONDS);
     }
@@ -52,7 +52,7 @@ public class MockMotor extends Motor {
         backwardTask = executorService.scheduleAtFixedRate(
                 () -> {
                     logger.info("===| Moving backward with speed: " + motorSpeed + ". Current angle: " + currentAngle);
-                    currentAngle += Math.max(1, motorSpeed/10);
+                    currentAngle += Math.max(1, motorSpeed / 10);
                 },
                 0, 100, TimeUnit.MILLISECONDS);
     }
@@ -64,10 +64,34 @@ public class MockMotor extends Motor {
                     logger.info("===| Rotating to angle: " + angle +
                             " with speed " + motorSpeed + ". Current angle: " + currentAngle);
                     if (currentAngle < angle) {
+                        isRunning = true;
                         //Arbitrary numbers used to simulate fast motor turning to position
                         currentAngle = (int) (currentAngle + Math.max((Math.abs(currentAngle - angle) * 0.8), 1));
                     } else if (currentAngle > angle) {
+                        isRunning = true;
                         currentAngle = currentAngle - Math.max((Math.abs(currentAngle - angle) / 2), 1);
+                    }else{
+                        isRunning = false;
+                    }
+                },
+                0, motorSpeed, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public void rotateTo(int angle) {
+        rotateTask = executorService.scheduleAtFixedRate(
+                () -> {
+                    logger.info("===| Rotating to angle: " + angle +
+                            " with speed " + motorSpeed + ". Current angle: " + currentAngle);
+                    if (currentAngle < angle) {
+                        isRunning = true;
+                        //Arbitrary numbers used to simulate fast motor turning to position
+                        currentAngle = (int) (currentAngle + Math.max((Math.abs(currentAngle - angle) * 0.8), 1));
+                    } else if (currentAngle > angle) {
+                        isRunning = true;
+                        currentAngle = (int) (currentAngle - Math.max((Math.abs(currentAngle - angle) * 0.8), 1));
+                    }else{
+                        isRunning = false;
                     }
                 },
                 0, motorSpeed, TimeUnit.MILLISECONDS);
