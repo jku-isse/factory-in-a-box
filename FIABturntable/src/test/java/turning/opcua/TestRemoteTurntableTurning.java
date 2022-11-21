@@ -1,17 +1,14 @@
-package coordinator.opcua;
+package turning.opcua;
 
-import akka.actor.ActorSystem;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.opcua.client.FiabOpcUaClient;
 import fiab.opcua.client.OPCUAClientFactory;
-import fiab.turntable.TurntableFactory;
 import fiab.turntable.turning.statemachine.TurningStates;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.junit.jupiter.api.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -19,9 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Tag("SystemTest")
-public class TestRemoteTurntable {
+public class TestRemoteTurntableTurning {
 
-    private final String remoteEndpointUrl = "opc.tcp://192.168.133.128:4840";
+    //This endpoint must match the robot endpoint
+    private final String remoteEndpointUrl = "opc.tcp://192.168.133.139:4840";
     private FiabOpcUaClient client;
 
     @BeforeEach
@@ -92,11 +90,12 @@ public class TestRemoteTurntable {
     }
 
     @Test
-    public void testRemoteTurningStepwise(){
+    public void testRemoteTurningStepwise() {
+        //Do a number of random rotations and see if any issue occurs
         Random random = new Random();
         List<String> directions = List.of("NORTH", "EAST", "SOUTH", "WEST");
         assertDoesNotThrow(() -> {
-            for(int i = 0; i < 100; i++) {
+            for (int i = 0; i < 20; i++) {
                 prepareMachineForTest();
                 client.callStringMethodBlocking(TurntableOpcUaNodes.resetNode);
                 waitForMachineToReachState(BasicMachineStates.IDLE);
