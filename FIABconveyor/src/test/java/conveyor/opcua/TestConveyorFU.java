@@ -1,4 +1,4 @@
-package conveyor;
+package conveyor.opcua;
 
 import akka.actor.ActorRef;
 import akka.testkit.javadsl.TestKit;

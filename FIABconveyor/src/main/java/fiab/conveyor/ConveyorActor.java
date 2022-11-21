@@ -98,9 +98,12 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
     }
 
     protected void checkConveyorFullyLoaded() {
-        if (conveyorHardware.isLoadingSensorDetectingPallet() && stateMachine.getState() == ConveyorStates.LOADING)
+        if (conveyorHardware.isLoadingSensorDetectingPallet() && stateMachine.getState() == ConveyorStates.LOADING) {
+            conveyorHardware.stopConveyorMotor();
             fireIfPossible(ConveyorTriggers.LOADING_DONE);
-        else self().tell(InternalConveyorRequests.CHECK_FOR_FULLY_LOADED, self());
+        } else {
+            self().tell(InternalConveyorRequests.CHECK_FOR_FULLY_LOADED, self());
+        }
     }
 
     @Override
@@ -113,8 +116,11 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         if (!conveyorHardware.isLoadingSensorDetectingPallet()
                 && !conveyorHardware.isUnloadingSensorDetectingPallet()
                 && stateMachine.getState() == ConveyorStates.UNLOADING) {
+            conveyorHardware.stopConveyorMotor();
             fireIfPossible(ConveyorTriggers.UNLOADING_DONE);
-        } else self().tell(InternalConveyorRequests.CHECK_FOR_FULLY_UNLOADED, self());
+        } else {
+            self().tell(InternalConveyorRequests.CHECK_FOR_FULLY_UNLOADED, self());
+        }
     }
 
     protected void fireIfPossible(ConveyorTriggers trigger) {
