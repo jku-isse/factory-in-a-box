@@ -7,7 +7,7 @@ public class TurntableApplication {
 
     public static void main(String[] args) {
         if(args.length != 1){
-             System.out.println("Turntable needs to be instantiated using a name that preferably matches a wiring info");
+             System.out.println("Turntable needs to be instantiated using a name that ideally matches a wiring info");
              System.exit(-1);
         }
         String ttName = args[0];
