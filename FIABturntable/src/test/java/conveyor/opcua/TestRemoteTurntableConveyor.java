@@ -54,7 +54,7 @@ public class TestRemoteTurntableConveyor {
             client.callStringMethodBlocking(TurntableOpcUaNodes.resetNode);
             waitForMachineToReachState(BasicMachineStates.IDLE);
             client.callStringMethodBlocking(ConveyorFUOpcUaNodes.loadNodeId);
-            waitForConveyorFUToReachState(ConveyorStates.IDLE_EMPTY);
+            waitForConveyorFUToReachState(ConveyorStates.IDLE_FULL);
         });
     }
 
@@ -73,16 +73,14 @@ public class TestRemoteTurntableConveyor {
     public void testRemoteConveyorStepwise() {
         //Load and Unload n times and see if issue occurs. Start with unloaded conveyor
         assertDoesNotThrow(() -> {
+            prepareMachineForTest();
             for (int i = 0; i < 20; i++) {
-                prepareMachineForTest();
                 client.callStringMethodBlocking(TurntableOpcUaNodes.resetNode);
                 waitForMachineToReachState(BasicMachineStates.IDLE);
                 if (i % 2 == 0) {
-                    //FIXME
                     client.callStringMethodBlocking(ConveyorFUOpcUaNodes.loadNodeId);
                     waitForConveyorFUToReachState(ConveyorStates.IDLE_FULL);
                 }else{
-                    //FIXME
                     client.callStringMethodBlocking(ConveyorFUOpcUaNodes.unloadNodeId);
                     waitForConveyorFUToReachState(ConveyorStates.IDLE_EMPTY);
                 }
