@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 
+import static fiab.mes.assembly.utils.AssemblyTestUtils.loadExampleProcessFromFile;
 import static fiab.mes.shopfloor.participants.ParticipantInfo.localhostOpcUaPrefix;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,12 +65,10 @@ public class TestMonitoringActor {
     @BeforeEach
     public void setup() {
         system = ActorSystem.create("MonitoringUnitTest");
-        KieServices ks = KieServices.get();
-        KieContainer kc = ks.getKieClasspathContainer();
-        KieSession kieSession = kc.newKieSession("MonitoringKeySession");
+        KieSession kieSession = AssemblyMonitoringActor.startNewKieSession();
 
         monitorEventBus = system.actorOf(AssemblyMonitoringEventBusWrapperActor.props(), AssemblyMonitoringEventBusWrapperActor.WRAPPER_ACTOR_LOOKUP_NAME);
-        monitoringActor = system.actorOf(AssemblyMonitoringActor.props(OPCUABase.createAndStartLocalServer(4840, "Monitoring"), kieSession));
+        monitoringActor = system.actorOf(AssemblyMonitoringActor.props(OPCUABase.createAndStartLocalServer(4840, "Monitoring"), kieSession), "AssemblyMonitoringActor");
     }
 
     @AfterEach
@@ -169,8 +168,8 @@ public class TestMonitoringActor {
                     FiabOpcUaClient client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1");
                     String response = client.callStringMethodBlocking(nodeId, new Variant("33"), new Variant(DateTime.now().toString()), new Variant(String.valueOf(3)));
                     assertEquals("Ok", response);
-                    //assertEquals(monitoringActor., forwardedRequest.getRootOrderId());
-
+                    //Object result = expectMsgClass(Object.class);//assertEquals(monitoringActor., forwardedRequest.getRootOrderId());
+                    //System.out.println(result);
                 });
             }
         };
@@ -183,7 +182,7 @@ public class TestMonitoringActor {
             {
                 monitorEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
-                File resourcesDirectory = new File("src/test/resources/process/xmiOrder20190419092949.xmi");
+                File resourcesDirectory = new File("src/test/resources/process/demoProc.xmi");
                 ExtendedRegisterProcessRequest processRequest = loadExampleProcessFromFile(resourcesDirectory.getAbsolutePath(), getRef());
 
                 monitoringActor.tell(processRequest, getRef());
@@ -193,7 +192,6 @@ public class TestMonitoringActor {
         };
     }
 
-    //TODO
     @Test
     @Tag("UnitTest")
     public void testProcessFactInserting() {
@@ -201,7 +199,7 @@ public class TestMonitoringActor {
             {
                 monitorEventBus.tell(new SubscribeMessage(getRef(), new MESSubscriptionClassifier("Tester", "*")), getRef());
 
-                File resourcesDirectory = new File("src/test/resources/process/xmiOrder20190419092949.xmi");
+                File resourcesDirectory = new File("src/test/resources/process/demoProc.xmi");
                 ExtendedRegisterProcessRequest processRequest = loadExampleProcessFromFile(resourcesDirectory.getAbsolutePath(), getRef());
 
                 monitoringActor.tell(processRequest, getRef());
@@ -209,38 +207,6 @@ public class TestMonitoringActor {
                 assertEquals(processRequest.getRootOrderId(), forwardedRequest.getRootOrderId());
             }
         };
-    }
-
-    private ExtendedRegisterProcessRequest loadExampleProcessFromFile(String path, ActorRef sender) {
-        String senderId = "MockOrderActor";
-        XmlRoot xmlRoot = loadXmi(path);
-        return new ExtendedRegisterProcessRequest(senderId, new OrderProcess(xmlRoot.getProcesses().get(0)), xmlRoot, sender);
-    }
-
-    public XmlRoot loadXmi(String path) {
-        FileDataSource src = new FileDataSource(path);
-        addPackages(src);
-        XmlRoot root = null;
-        try {
-            root = src.getShopfloorData().get(0);
-            return root;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return root;
-    }
-
-    public void addPackages(FileDataSource src) {
-        src.registerPackage(ActorCoreModelPackage.eNS_URI, ActorCoreModelPackage.eINSTANCE);
-        src.registerPackage(ActorprocessPackage.eNS_URI, ActorprocessPackage.eINSTANCE);
-        src.registerPackage(PartCoreModelPackage.eNS_URI, PartCoreModelPackage.eINSTANCE);
-        src.registerPackage(LinkedCoreModelActorToPartPackage.eNS_URI, LinkedCoreModelActorToPartPackage.eINSTANCE);
-        src.registerPackage(PartprocessPackage.eNS_URI, PartprocessPackage.eINSTANCE);
-        src.registerPackage(ExtensionsForAssemblylinePackage.eNS_URI, ExtensionsForAssemblylinePackage.eINSTANCE);
-        src.registerPackage(InstanceExtensionModelPackage.eNS_URI, InstanceExtensionModelPackage.eINSTANCE);
-        src.registerPackage(ExtensionsCoreModelPackage.eNS_URI, ExtensionsCoreModelPackage.eINSTANCE);
-        src.registerPackage(VariabilityExtensionModelPackage.eNS_URI, VariabilityExtensionModelPackage.eINSTANCE);
-        src.registerPackage(PriorityExtensionModelPackage.eNS_URI, PriorityExtensionModelPackage.eINSTANCE);
     }
 
     private AbstractCapability prepareRoboticArmCapability() {
