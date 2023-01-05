@@ -66,12 +66,13 @@ public class MockMotor extends Motor {
                     if (currentAngle < angle) {
                         isRunning = true;
                         //Arbitrary numbers used to simulate fast motor turning to position
-                        currentAngle = (int) (currentAngle + Math.max((Math.abs(currentAngle - angle) * 0.8), 1));
+                        currentAngle = (currentAngle + Math.max((int)(Math.abs(currentAngle - angle) * 0.8), 1));
                     } else if (currentAngle > angle) {
                         isRunning = true;
                         currentAngle = currentAngle - Math.max((Math.abs(currentAngle - angle) / 2), 1);
                     }else{
                         isRunning = false;
+                        rotateTask.cancel(true);
                     }
                 },
                 0, motorSpeed, TimeUnit.MILLISECONDS);
@@ -86,12 +87,13 @@ public class MockMotor extends Motor {
                     if (currentAngle < angle) {
                         isRunning = true;
                         //Arbitrary numbers used to simulate fast motor turning to position
-                        currentAngle = (int) (currentAngle + Math.max((Math.abs(currentAngle - angle) * 0.8), 1));
+                        currentAngle = (currentAngle + Math.max((int)(Math.abs(currentAngle - angle) * 0.8), 1));
                     } else if (currentAngle > angle) {
                         isRunning = true;
                         currentAngle = (int) (currentAngle - Math.max((Math.abs(currentAngle - angle) * 0.8), 1));
                     }else{
                         isRunning = false;
+                        rotateTask.cancel(true);
                     }
                 },
                 0, motorSpeed, TimeUnit.MILLISECONDS);
