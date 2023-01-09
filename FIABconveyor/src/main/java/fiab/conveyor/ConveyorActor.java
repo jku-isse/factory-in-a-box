@@ -78,6 +78,7 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         this.stateMachine.configure(ConveyorStates.LOADING).onEntry(this::loadConveyor);
         this.stateMachine.configure(ConveyorStates.UNLOADING).onEntry(this::unloadConveyor);
         this.stateMachine.configure(ConveyorStates.IDLE_EMPTY).onEntry(this::verifyConveyorMotorIsNotRunning);  //For some reason the motor may keep spinning?
+        this.stateMachine.configure(ConveyorStates.IDLE_FULL).onEntry(this::verifyConveyorMotorIsNotRunning);  //For some reason the motor may keep spinning?
     }
 
     @Override
