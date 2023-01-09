@@ -37,8 +37,8 @@ public class TestOpcUaWiring {
         int serverPort = PortUtils.findNextFreePort();
         OPCUABase clientOpcUaBase = OPCUABase.createAndStartLocalServer(clientPort, "TestDevice");
         OPCUABase serverOpcUaBase = OPCUABase.createAndStartLocalServer(serverPort, "ServerHandshakeMachine");
-        system.actorOf(ServerHandshakeFU.propsForStandaloneFU(serverOpcUaBase, serverOpcUaBase.getRootNode(), "DefaultServerSideHandshake"));
-        system.actorOf(ClientHandshakeFU.propsForStandaloneFU(clientOpcUaBase, clientOpcUaBase.getRootNode(), "NORTH_CLIENT"));
+        system.actorOf(ServerHandshakeFU.propsForStandaloneFU(serverOpcUaBase, serverOpcUaBase.getRootNode(), "DefaultServerSideHandshake"), "serverHs");
+        system.actorOf(ClientHandshakeFU.propsForStandaloneFU(clientOpcUaBase, clientOpcUaBase.getRootNode(), "NORTH_CLIENT"), "clientHs");
         try {
             this.client = OPCUAClientFactory.createFIABClientAndConnect("opc.tcp://127.0.0.1:" + clientPort);
         } catch (Exception e) {
