@@ -120,20 +120,20 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
 
     public void checkIfHomingPositionReached() {
         if (turningHardware.isInHomePosition()) {
-            resetMotorToZero();
+            stopAndResetTachoCount();
             context().system().scheduler().scheduleOnce(Duration.ofMillis(100), () -> {
                 fireIfPossible(RESETTING_DONE);
             }, context().dispatcher());
         } else {
-            if (!turningHardware.getTurningMotor().isRunning()) {
+            /*if (!turningHardware.getTurningMotor().isRunning()) {
                 log.info("Motor was not moving, retrying");
                 context().system().scheduler().scheduleOnce(Duration.ofMillis(500), () -> {
                     turningHardware.startMotorBackward();   //In case something prevented us from moving the motor before
                     self().tell(InternalTurningRequests.CHECK_RESET_POSITION_REACHED, self());
                 }, context().dispatcher());
-            } else {
-                 self().tell(InternalTurningRequests.CHECK_RESET_POSITION_REACHED, self());
-            }
+            } else {*/
+            self().tell(InternalTurningRequests.CHECK_RESET_POSITION_REACHED, self());
+            //}
         }
     }
 
@@ -157,24 +157,17 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
     }
 
     public void checkDestinationReached() {
-        if (stateMachine.isInState(TurningStates.EXECUTING)
+        if (stateMachine.isInState(TurningStates.EXECUTING) && currentDestination == TransportDestinations.NORTH
+                && turningHardware.isInHomePosition()) {    //We check the sensor instead when moving north
+            stopAndResetTachoCount();
+            log.info("Turning Position " + currentDestination + " reached");
+            fireIfPossible(COMPLETE);
+        } else if (stateMachine.isInState(TurningStates.EXECUTING) && currentDestination != TransportDestinations.NORTH
                 && hasReachedTargetRotation(5)) {    //After calling rotate, the motor will stop upon reaching it's destination
             //&& turningHardware.getMotorAngle() == positionMap.get(currentDestination)) {
             log.info("Turning Position {} reached", currentDestination);
             fireIfPossible(COMPLETE);
-        } else if (stateMachine.isInState(TurningStates.EXECUTING) && currentDestination == TransportDestinations.NORTH
-                && turningHardware.isInHomePosition()) {    //We check the sensor instead when moving north
-            resetMotorToZero();
-            log.info("Turning Position " + currentDestination + " reached");
-            fireIfPossible(COMPLETE);
         } else {
-            /*if (stateMachine.isInState(TurningStates.EXECUTING)
-                    && !hasReachedTargetRotation(5)
-                    && !turningHardware.getTurningMotor().isRunning()) { //We are close, but have not reached our destination
-                log.info("Turning Position {} missed, retrying with target {} and current angle {}",
-                        currentDestination, positionMap.get(currentDestination), turningHardware.getTurningMotor().getRotationAngle());
-                turningHardware.rotateMotorToAngle(positionMap.get(currentDestination));    //Retry
-            }*/
             self().tell(InternalTurningRequests.CHECK_DESTINATION_REACHED, self());
         }
     }
@@ -225,9 +218,9 @@ public class TurningActor extends AbstractActor implements TurningCapability, St
         positionMap.put(TransportDestinations.WEST, 270 * gearRatio - 30); //In theory 270, but not in reality
     }
 
-    private void resetMotorToZero() {
+    private void stopAndResetTachoCount() {
         turningHardware.stopTurningMotor();
         turningHardware.getTurningMotor().resetTachoCount();
-        turningHardware.getTurningMotor().setSpeed(200);
+        turningHardware.getTurningMotor().setSpeed(200);    //After tacho reset we need to set speed again
     }
 }
