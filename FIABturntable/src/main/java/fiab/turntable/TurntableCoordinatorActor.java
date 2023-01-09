@@ -43,6 +43,8 @@ import fiab.turntable.turning.messages.TurnRequest;
 import fiab.turntable.turning.messages.TurningStatusUpdateEvent;
 import fiab.turntable.turning.statemachine.TurningStates;
 
+import java.time.Duration;
+
 
 public class TurntableCoordinatorActor extends AbstractActor implements TransportModuleCapability, StatePublisher {
 
@@ -223,10 +225,10 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
         }
     }
 
-    protected void handleConveyorStatusUpdate(ConveyorStatusUpdateEvent msg){
+    protected void handleConveyorStatusUpdate(ConveyorStatusUpdateEvent msg) {
         log.info("ConveyorFU sent update " + msg.getStatus());
         fuStateInfo.setConveyorFuState(msg.getStatus());
-        if(msg.getStatus().equals(ConveyorStates.STOPPING) && isTurntableInWorkingState()){
+        if (msg.getStatus().equals(ConveyorStates.STOPPING) && isTurntableInWorkingState()) {
             fireIfPossible(TurntableTriggers.STOP);
         }
     }
@@ -341,6 +343,10 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
     }
 
     protected void complete() {
+        //For now, we use a fixed delay, this can be improved by listening to remote HS to complete
+        context().system().scheduler().scheduleOnce(Duration.ofSeconds(2), () -> {
+            fireIfPossible(TurntableTriggers.COMPLETING_DONE);
+        }, context().dispatcher());
         fireIfPossible(TurntableTriggers.COMPLETING_DONE);
     }
 
