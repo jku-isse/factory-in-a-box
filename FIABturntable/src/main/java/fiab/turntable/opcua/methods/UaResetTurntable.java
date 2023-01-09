@@ -18,7 +18,7 @@ public class UaResetTurntable extends AbstractMethodInvocationHandler {
 	final Duration timeout = Duration.ofSeconds(2);
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
-	private ActorRef actor;
+	private final ActorRef actor;
 	
     public UaResetTurntable(UaMethodNode methodNode, ActorRef actor) {
         super(methodNode); 
