@@ -1,4 +1,4 @@
-package fiab.handshake.client.opcua.client;
+package fiab.handshake.client.opcua.clientproxy;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;

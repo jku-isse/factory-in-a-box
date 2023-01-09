@@ -1,4 +1,4 @@
-package fiab.handshake.client.opcua.client;
+package fiab.handshake.client.opcua.clientproxy;
 
 import akka.actor.*;
 import akka.event.Logging;
@@ -50,7 +50,8 @@ public class OpcUaServerHandshakeProxy extends AbstractActor implements FUStateO
         this.responseConnector = responseConnector;
         this.notificationConnector = notificationConnector;
         this.componentId = self().path().name();
-        this.spawnerActor = context().actorOf(ClientSpawnerActor.props(), componentId + "ClientSpawnerActor");
+        this.spawnerActor = context().actorOf(ClientSpawnerActor.props()
+                        .withDispatcher("akka.actor.handshake-blocking-dispatcher"), componentId + "ClientSpawnerActor");
         this.waitingForClientInstance = false;
         FUSubscriptionClassifier classifier = new FUSubscriptionClassifier(componentId, "*");
         remoteRequestBus.subscribe(self(), classifier);
@@ -66,6 +67,7 @@ public class OpcUaServerHandshakeProxy extends AbstractActor implements FUStateO
                 .match(WiringRequest.class, req -> createNewClientInstance(req.getInfo()))
                 .match(ClientSpawnerMessages.ClientCreationFailed.class, msg -> notifyAboutClientCreationFailure())
                 .match(ClientSpawnerMessages.ClientCreated.class, msg -> setClientAndAddObserver(msg))
+                .match(ClientSpawnerMessages.ClientCreationCancelled.class, msg -> {/*Should we handle this here?*/})
                 //Messages related to handshake
                 .match(SubscribeToUpdatesRequest.class, req -> subscribeToRemoteState())
                 .match(UnsubscribeToUpdatesRequest.class, req -> unsubscribeFromRemoteState())
@@ -172,7 +174,9 @@ public class OpcUaServerHandshakeProxy extends AbstractActor implements FUStateO
 
     @Override
     public void notifyAboutStateChange(Object currentState) {
-        //notificationConnector.publish((ServerHandshakeStatusUpdateEvent) currentState);
-        notificationConnector.publish(new ServerHandshakeStatusUpdateEvent(componentId, (ServerSideStates) currentState));
+        ServerHandshakeStatusUpdateEvent statusUpdateEvent;
+        statusUpdateEvent = new ServerHandshakeStatusUpdateEvent(componentId, ServerSideStates.valueOf(currentState.toString()));
+        log.info("Received subscription value update: " + statusUpdateEvent);
+        notificationConnector.publish(statusUpdateEvent);
     }
 }
