@@ -3,24 +3,16 @@ package fiab.handshake.client.opcua;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import fiab.core.capabilities.handshake.HandshakeCapability;
-import fiab.core.capabilities.transport.TurntableModuleWellknownCapabilityIdentifiers;
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.core.capabilities.wiring.WiringInfoBuilder;
-import fiab.functionalunit.connector.FUConnector;
-import fiab.functionalunit.connector.IntraMachineEventBus;
-import fiab.handshake.client.opcua.client.ClientSpawnerActor;
-import fiab.handshake.client.opcua.client.ClientSpawnerMessages;
-import fiab.handshake.connector.ServerNotificationConnector;
-import fiab.handshake.connector.ServerResponseConnector;
+import fiab.handshake.client.opcua.clientproxy.ClientSpawnerActor;
+import fiab.handshake.client.opcua.clientproxy.ClientSpawnerMessages;
 import fiab.handshake.server.opcua.functionalunit.ServerHandshakeFU;
 import fiab.opcua.client.FiabOpcUaClient;
 import fiab.opcua.server.OPCUABase;
-import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.junit.jupiter.api.*;
 
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
