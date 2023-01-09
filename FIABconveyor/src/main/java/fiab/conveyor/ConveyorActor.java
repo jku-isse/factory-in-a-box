@@ -77,6 +77,7 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         this.stateMachine.configure(ConveyorStates.RESETTING).onEntry(this::doResetting);
         this.stateMachine.configure(ConveyorStates.LOADING).onEntry(this::loadConveyor);
         this.stateMachine.configure(ConveyorStates.UNLOADING).onEntry(this::unloadConveyor);
+        this.stateMachine.configure(ConveyorStates.IDLE_EMPTY).onEntry(this::verifyConveyorMotorIsNotRunning);  //For some reason the motor may keep spinning?
     }
 
     @Override
@@ -121,6 +122,12 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
             fireIfPossible(ConveyorTriggers.UNLOADING_DONE);
         } else {
             self().tell(InternalConveyorRequests.CHECK_FOR_FULLY_UNLOADED, self());
+        }
+    }
+
+    protected void verifyConveyorMotorIsNotRunning(){
+        if(conveyorHardware.getConveyorMotor().isRunning()){
+             conveyorHardware.stopConveyorMotor();
         }
     }
 
