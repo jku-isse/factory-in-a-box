@@ -116,13 +116,16 @@ public class TestTurntableOpcUa {
             expectCoordinatorState(BasicMachineStates.STARTING);
             expectCoordinatorState(BasicMachineStates.EXECUTE);
 
-            testFixture.getClient().callStringMethod(TurntableNorthHandshakeOpcUaNodes.initHandover);
-            testFixture.getClient().callStringMethod(TurntableNorthHandshakeOpcUaNodes.startHandover);
+            while(!testFixture.getClient().readStringVariableNode(TurntableNorthHandshakeOpcUaNodes.statusNode).startsWith("IDLE")){
+                //Wait for server hs fu to reach idle or find a better way to implement this (fishForMessage?)
+            }
+            testFixture.getClient().callStringMethodBlocking(TurntableNorthHandshakeOpcUaNodes.initHandover);
+            testFixture.getClient().callStringMethodBlocking(TurntableNorthHandshakeOpcUaNodes.startHandover);
             while(!testFixture.getClient().readStringVariableNode(TurntableSouthHandshakeOpcUaNodes.statusNode).startsWith("IDLE")){
                 //Wait for server hs fu to reach idle or find a better way to implement this (fishForMessage?)
             }
-            testFixture.getClient().callStringMethod(TurntableSouthHandshakeOpcUaNodes.initHandover);
-            testFixture.getClient().callStringMethod(TurntableSouthHandshakeOpcUaNodes.startHandover);
+            testFixture.getClient().callStringMethodBlocking(TurntableSouthHandshakeOpcUaNodes.initHandover);
+            testFixture.getClient().callStringMethodBlocking(TurntableSouthHandshakeOpcUaNodes.startHandover);
 
             expectCoordinatorState(BasicMachineStates.COMPLETING);
             expectCoordinatorState(BasicMachineStates.COMPLETE);
@@ -140,9 +143,11 @@ public class TestTurntableOpcUa {
                     TRANSPORT_MODULE_NORTH_SERVER, TRANSPORT_MODULE_EAST_CLIENT, "order-1", "1");
             expectCoordinatorState(BasicMachineStates.STARTING);
             expectCoordinatorState(BasicMachineStates.EXECUTE);
-
-            testFixture.getClient().callStringMethod(TurntableNorthHandshakeOpcUaNodes.initHandover);
-            testFixture.getClient().callStringMethod(TurntableNorthHandshakeOpcUaNodes.startHandover);
+            while(!testFixture.getClient().readStringVariableNode(TurntableNorthHandshakeOpcUaNodes.statusNode).startsWith("IDLE")){
+                //Wait for server hs fu to reach idle or find a better way to implement this (fishForMessage?)
+            }
+            testFixture.getClient().callStringMethodBlocking(TurntableNorthHandshakeOpcUaNodes.initHandover);
+            testFixture.getClient().callStringMethodBlocking(TurntableNorthHandshakeOpcUaNodes.startHandover);
 
             serverHandshakeActor.tell(new ResetRequest(testFixture.eventSourceId), ActorRef.noSender());
             expectCoordinatorState(BasicMachineStates.COMPLETING);
@@ -173,8 +178,8 @@ public class TestTurntableOpcUa {
             while(!testFixture.getClient().readStringVariableNode(TurntableSouthHandshakeOpcUaNodes.statusNode).startsWith("IDLE")){
                 //Wait for server hs fu to reach idle or find a better way to implement this (fishForMessage?)
             }
-            testFixture.getClient().callStringMethod(TurntableSouthHandshakeOpcUaNodes.initHandover);
-            testFixture.getClient().callStringMethod(TurntableSouthHandshakeOpcUaNodes.startHandover);
+            testFixture.getClient().callStringMethodBlocking(TurntableSouthHandshakeOpcUaNodes.initHandover);
+            testFixture.getClient().callStringMethodBlocking(TurntableSouthHandshakeOpcUaNodes.startHandover);
 
             expectCoordinatorState(BasicMachineStates.COMPLETING);
             expectCoordinatorState(BasicMachineStates.COMPLETE);

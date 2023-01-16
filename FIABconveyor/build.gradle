@@ -53,3 +53,10 @@ tasks.register("runIntegrationTests", Test) {
     }
     mustRunAfter check
 }
+
+tasks.register("runSystemTests", Test){
+    useJUnitPlatform{
+        includeTags "SystemTest"
+    }
+    mustRunAfter check
+}

@@ -1,4 +1,4 @@
-package fiab.handshake.client.opcua.client;
+package fiab.handshake.client.opcua.clientproxy;
 
 import fiab.core.capabilities.wiring.WiringInfo;
 import fiab.handshake.client.opcua.RemoteServerHandshakeNodeIds;

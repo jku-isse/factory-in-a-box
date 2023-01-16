@@ -25,7 +25,7 @@ import fiab.core.capabilities.handshake.server.UnsubscribeToUpdatesRequest;
 import fiab.handshake.client.messages.ClientHandshakeStatusUpdateEvent;
 import fiab.handshake.client.messages.WiringRequest;
 import fiab.handshake.client.opcua.RemoteServerHandshakeNodeIds;
-import fiab.handshake.client.opcua.client.ClientSpawnerMessages;
+import fiab.handshake.client.opcua.clientproxy.ClientSpawnerMessages;
 import fiab.handshake.connector.ServerNotificationConnector;
 import fiab.handshake.connector.ServerResponseConnector;
 import fiab.handshake.server.messages.ServerHandshakeResponseEvent;
@@ -62,10 +62,10 @@ public class ClientSideHandshakeActor extends AbstractActor implements BasicFUBe
 
     protected final String componentId;
     protected final IntraMachineEventBus intraMachineEventBus;
-    private final FUConnector requestBus;
-    private final FUConnector serverRequestBus;
-    private final ServerNotificationConnector serverNotificationBus;
-    private final ServerResponseConnector serverResponseBus;
+    protected final FUConnector requestBus;
+    protected final FUConnector serverRequestBus;
+    protected final ServerNotificationConnector serverNotificationBus;
+    protected final ServerResponseConnector serverResponseBus;
 
     private final RemoteServerHandshakeInfo remoteHsInfo;
     protected final ClientSideStateMachine stateMachine;

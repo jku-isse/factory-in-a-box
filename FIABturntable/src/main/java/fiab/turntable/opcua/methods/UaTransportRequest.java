@@ -27,7 +27,7 @@ public class UaTransportRequest extends AbstractMethodInvocationHandler {
 	final Duration timeout = Duration.ofSeconds(2);
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
-	private ActorRef actor;
+	private final ActorRef actor;
 	
     public static final Argument RESPONSE = new Argument(
             "start response",
@@ -95,7 +95,7 @@ public class UaTransportRequest extends AbstractMethodInvocationHandler {
 			String orderId = (String) inputValues[2].getValue();
 			String reqId = (String) inputValues[3].getValue();
 			TransportRequest itmr = new TransportRequest(capIdFrom, capIdTo, orderId, reqId);
-			
+
 			resp = ask(actor, itmr, timeout).toCompletableFuture().get();
 			if (resp instanceof MachineStatusUpdateEvent) {
 				 resp = ((MachineStatusUpdateEvent) resp).getStatus();

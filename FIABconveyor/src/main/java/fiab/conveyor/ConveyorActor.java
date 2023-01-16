@@ -49,6 +49,7 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         boolean debug = !userName.equalsIgnoreCase("robot");    //All EV3 distros use this as default username
         log.info("ConveyorActor using mock hardware? {}", debug);
         this.conveyorHardware = debug ? new ConveyorMockHardware() : new LegoConveyorHardware();
+        this.conveyorHardware.getConveyorMotor().setSpeed(600);
         addActionsToStates();
         publishCurrentState();
     }
@@ -76,6 +77,8 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         this.stateMachine.configure(ConveyorStates.RESETTING).onEntry(this::doResetting);
         this.stateMachine.configure(ConveyorStates.LOADING).onEntry(this::loadConveyor);
         this.stateMachine.configure(ConveyorStates.UNLOADING).onEntry(this::unloadConveyor);
+        this.stateMachine.configure(ConveyorStates.IDLE_EMPTY).onEntry(this::verifyConveyorMotorIsNotRunning);  //For some reason the motor may keep spinning?
+        this.stateMachine.configure(ConveyorStates.IDLE_FULL).onEntry(this::verifyConveyorMotorIsNotRunning);  //For some reason the motor may keep spinning?
     }
 
     @Override
@@ -98,9 +101,12 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
     }
 
     protected void checkConveyorFullyLoaded() {
-        if (conveyorHardware.isLoadingSensorDetectingPallet() && stateMachine.getState() == ConveyorStates.LOADING)
+        if (conveyorHardware.isLoadingSensorDetectingPallet() && stateMachine.getState() == ConveyorStates.LOADING) {
+            conveyorHardware.stopConveyorMotor();
             fireIfPossible(ConveyorTriggers.LOADING_DONE);
-        else self().tell(InternalConveyorRequests.CHECK_FOR_FULLY_LOADED, self());
+        } else {
+            self().tell(InternalConveyorRequests.CHECK_FOR_FULLY_LOADED, self());
+        }
     }
 
     @Override
@@ -113,8 +119,17 @@ public class ConveyorActor extends AbstractActor implements ConveyorCapability, 
         if (!conveyorHardware.isLoadingSensorDetectingPallet()
                 && !conveyorHardware.isUnloadingSensorDetectingPallet()
                 && stateMachine.getState() == ConveyorStates.UNLOADING) {
+            conveyorHardware.stopConveyorMotor();
             fireIfPossible(ConveyorTriggers.UNLOADING_DONE);
-        } else self().tell(InternalConveyorRequests.CHECK_FOR_FULLY_UNLOADED, self());
+        } else {
+            self().tell(InternalConveyorRequests.CHECK_FOR_FULLY_UNLOADED, self());
+        }
+    }
+
+    protected void verifyConveyorMotorIsNotRunning(){
+        if(conveyorHardware.getConveyorMotor().isRunning()){
+             conveyorHardware.stopConveyorMotor();
+        }
     }
 
     protected void fireIfPossible(ConveyorTriggers trigger) {

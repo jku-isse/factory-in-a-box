@@ -5,6 +5,7 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.github.oxo42.stateless4j.StateMachine;
+import fiab.conveyor.statemachine.ConveyorStates;
 import fiab.core.capabilities.BasicMachineStates;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
 import fiab.core.capabilities.StatePublisher;
@@ -41,6 +42,8 @@ import fiab.turntable.turning.TurningCapability;
 import fiab.turntable.turning.messages.TurnRequest;
 import fiab.turntable.turning.messages.TurningStatusUpdateEvent;
 import fiab.turntable.turning.statemachine.TurningStates;
+
+import java.time.Duration;
 
 
 public class TurntableCoordinatorActor extends AbstractActor implements TransportModuleCapability, StatePublisher {
@@ -99,7 +102,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
                     handleTurningStatusUpdate(msg);
                 })
                 .match(ConveyorStatusUpdateEvent.class, msg -> {
-                    fuStateInfo.setConveyorFuState(msg.getStatus());
+                    handleConveyorStatusUpdate(msg);
                 })
                 .match(ServerHandshakeStatusUpdateEvent.class, msg -> {
                     handleServerStatusUpdate(msg);
@@ -110,7 +113,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
                 .match(WiringRequest.class, msg -> {
                     handleWiringRequest(msg);
                 })
-                .match(WiringUpdateNotification.class, msg ->{
+                .match(WiringUpdateNotification.class, msg -> {
                     //TODO, maybe just reuse WiringRequest?
                 })
                 .build();
@@ -173,12 +176,16 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
         boolean isHsSourcePresent = fuStateInfo.getHandshakeEndpointInfo().getHandshakeForCapId(req.getCapabilityInstanceIdFrom()).isPresent();
         boolean isHsDestinationPresent = fuStateInfo.getHandshakeEndpointInfo().getHandshakeForCapId(req.getCapabilityInstanceIdTo()).isPresent();
         if (isHsSourcePresent && isHsDestinationPresent) {
+            sender().tell(new MachineStatusUpdateEvent(componentId, OPCUABasicMachineBrowsenames.STATE_VAR_NAME,
+                    "ACK Transport Request", stateMachine.getState()), self());
             fireIfPossible(TurntableTriggers.EXECUTE);
         } else {
             if (!isHsSourcePresent)
                 log.warning("Could not find suitable handshake for capId " + req.getCapabilityInstanceIdFrom());
             if (!isHsDestinationPresent)
                 log.warning("Could not find suitable handshake for capId " + req.getCapabilityInstanceIdTo());
+            sender().tell(new MachineStatusUpdateEvent(componentId, OPCUABasicMachineBrowsenames.STATE_VAR_NAME,
+                    "Abort Transport Request", stateMachine.getState()), self());
             fireIfPossible(TurntableTriggers.STOP);
         }
     }
@@ -213,6 +220,17 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
         if (msg.getStatus().equals(TurningStates.IDLE)) {
             if (process.isInState(ProcessStates.TURNING_DEST)) turnToDestination();
         }
+        if (msg.getStatus().equals(TurningStates.STOPPING) && isTurntableInWorkingState()) {
+            fireIfPossible(TurntableTriggers.STOP);
+        }
+    }
+
+    protected void handleConveyorStatusUpdate(ConveyorStatusUpdateEvent msg) {
+        log.info("ConveyorFU sent update " + msg.getStatus());
+        fuStateInfo.setConveyorFuState(msg.getStatus());
+        if (msg.getStatus().equals(ConveyorStates.STOPPING) && isTurntableInWorkingState()) {
+            fireIfPossible(TurntableTriggers.STOP);
+        }
     }
 
     protected void handleServerStatusUpdate(ServerHandshakeStatusUpdateEvent msg) {
@@ -229,6 +247,9 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
             if (process.isInState(ProcessStates.HANDSHAKE_DEST))
                 fireProcessStepTransition(ProcessTriggers.CONVEY_DESTINATION);
         }
+        if (msg.getStatus().equals(ServerSideStates.STOPPING) && isTurntableInWorkingState()) {
+            fireIfPossible(TurntableTriggers.STOP);
+        }
     }
 
     protected void handleClientStatusUpdate(ClientHandshakeStatusUpdateEvent msg) {
@@ -239,6 +260,9 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
             //We can start the handshake now
             if (process.isInState(ProcessStates.HANDSHAKE_SOURCE)) performHandshakeSource();
             if (process.isInState(ProcessStates.HANDSHAKE_DEST)) performHandshakeDestination();
+        }
+        if (msg.getStatus().equals(ClientSideStates.STOPPING) && isTurntableInWorkingState()) {
+            fireIfPossible(TurntableTriggers.STOP);
         }
     }
 
@@ -319,6 +343,10 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
     }
 
     protected void complete() {
+        //For now, we use a fixed delay, this can be improved by listening to remote HS to complete
+        context().system().scheduler().scheduleOnce(Duration.ofSeconds(2), () -> {
+            fireIfPossible(TurntableTriggers.COMPLETING_DONE);
+        }, context().dispatcher());
         fireIfPossible(TurntableTriggers.COMPLETING_DONE);
     }
 
@@ -342,6 +370,11 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
         } else {
             return TransportDestinations.UNKNOWN;
         }
+    }
+
+    private boolean isTurntableInWorkingState() {
+        return stateMachine.getState() != BasicMachineStates.STOPPING
+                && stateMachine.getState() != BasicMachineStates.STOPPED;
     }
 
     private void fireProcessStepTransition(ProcessTriggers trigger) {

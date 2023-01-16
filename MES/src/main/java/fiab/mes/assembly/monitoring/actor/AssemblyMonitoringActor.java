@@ -23,7 +23,9 @@ import fiab.mes.order.msg.OrderEvent;
 import fiab.mes.order.msg.RegisterProcessRequest;
 import fiab.opcua.server.OPCUABase;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
+import org.kie.api.KieServices;
 import org.kie.api.logger.KieRuntimeLogger;
+import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 
 import java.util.List;
@@ -42,6 +44,12 @@ public class AssemblyMonitoringActor extends AbstractActor {
 
     public static Props props(OPCUABase server, KieSession kieSession) {
         return Props.create(AssemblyMonitoringActor.class, () -> new AssemblyMonitoringActor(server, kieSession));
+    }
+
+    public static KieSession startNewKieSession(){
+        KieServices ks = KieServices.get();
+        KieContainer kc = ks.getKieClasspathContainer();
+        return kc.newKieSession("MonitoringKeySession");
     }
 
     public AssemblyMonitoringActor(OPCUABase server, KieSession kieSession) {

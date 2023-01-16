@@ -23,10 +23,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -36,6 +33,7 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final List<FUStateObserver> observers;
+    private Object lastUpdateEvent;
 
     /**
      * Extension of the OpcUaClient. It provides some easy to use methods specific to this project
@@ -43,11 +41,11 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
     public FiabOpcUaClient(OpcUaClientConfig config, UaStackClient stackClient) {
         super(config, stackClient);
         observers = new ArrayList<>();
+        lastUpdateEvent = null;
     }
 
     /**
      * Factory method that creates a client based on a config.
-     *
      *
      * @param config containing securityTempDir, endpoints, certificates, etc.
      * @return new Client
@@ -114,7 +112,8 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
                     log.info("Found node for browseName " + browseName + ": " + node.getNodeId());
                     return node.getNodeId();
                 } else {
-                    if (node.getNodeId().getNamespaceIndex().intValue() > 0) {
+                    if (Objects.requireNonNull(node.getBrowseName().getName()).equalsIgnoreCase("Objects") ||
+                            node.getNodeId().getNamespaceIndex().intValue() > 0) {
                         //We skip this node for performance reasons, might be incompatible with 4diac
                         result = browseRecursive(node.getNodeId(), browseName);
                     }
@@ -299,6 +298,9 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
             for (UaMonitoredItem item : items) {
                 if (item.getStatusCode().isGood()) {
                     log.info("item created for nodeId={}", item.getReadValueId().getNodeId());
+                    if (lastUpdateEvent != null) {  //There seems to be a bug where the new subscriber does not receive the initial value
+                        notifySubscribers(lastUpdateEvent);
+                    }
                 } else {
                     log.warn("failed to create item for nodeId={} (status={})",
                             item.getReadValueId().getNodeId(), item.getStatusCode());
@@ -321,8 +323,9 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
     /**
      *
      */
-    public void disconnectClient(){
+    public void disconnectClient() {
         try {
+            lastUpdateEvent = null;
             disconnect().get();
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error while disconnecting client, please check the stackTrace for possible causes");
@@ -340,11 +343,12 @@ public class FiabOpcUaClient extends OpcUaClient implements FUStateChangedSubjec
         log.info("subscription value received: item={}, value={}",
                 item.getReadValueId().getNodeId(), value.getValue());
         if (value.getValue().isNotNull()) {
-            String stateAsString = value.getValue().getValue().toString();
-            //System.out.println(stateAsString);
+            Object state = value.getValue().getValue();
+            String stateAsString = state.toString();
+            System.out.println(stateAsString);
             try {
-                ServerSideStates state = ServerSideStates.valueOf(stateAsString);
-                notifySubscribers(state);
+                lastUpdateEvent = state;    //Store for new subscribers
+                notifySubscribers(lastUpdateEvent);
             } catch (java.lang.IllegalArgumentException e) {
                 log.error("Received Unknown State: " + e.getMessage());
             }

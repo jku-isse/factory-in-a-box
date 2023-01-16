@@ -80,4 +80,9 @@ public class MediumMotorEV3 extends Motor {
     public void resetTachoCount() {
         mediumRegulatedMotor.resetTachoCount();
     }
+
+    @Override
+    public boolean isRunning() {
+        return mediumRegulatedMotor.isMoving();
+    }
 }

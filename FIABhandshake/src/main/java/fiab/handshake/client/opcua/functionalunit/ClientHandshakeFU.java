@@ -2,6 +2,7 @@ package fiab.handshake.client.opcua.functionalunit;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import akka.dispatch.MessageDispatcher;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.OPCUABasicMachineBrowsenames;
@@ -15,7 +16,7 @@ import fiab.handshake.client.ClientSideHandshakeActor;
 import fiab.handshake.client.messages.WiringRequest;
 import fiab.handshake.client.messages.WiringUpdateNotification;
 import fiab.handshake.client.opcua.UaWiringInfoNodes;
-import fiab.handshake.client.opcua.client.OpcUaServerHandshakeProxy;
+import fiab.handshake.client.opcua.clientproxy.OpcUaServerHandshakeProxy;
 import fiab.handshake.client.opcua.methods.*;
 import fiab.handshake.client.statemachine.ClientSideHandshakeTriggers;
 import fiab.handshake.connector.ServerNotificationConnector;
@@ -58,9 +59,6 @@ public class ClientHandshakeFU extends ClientSideHandshakeActor {
     private ActorRef clientWrapper;
 
     private final String capabilityInstanceId;
-    private final FUConnector serverRequestBus;
-    private final ServerResponseConnector serverResponseBus;
-    private final ServerNotificationConnector serverNotificationBus;
 
     protected UaVariableNode status = null;
     protected UaWiringInfoNodes wiringNodes;
@@ -80,9 +78,6 @@ public class ClientHandshakeFU extends ClientSideHandshakeActor {
         this.rootNode = root;
         this.capabilityInstanceId = handshakeId;
         this.fuPrefix = createBasePathForFU(rootNode);
-        this.serverRequestBus = serverRequestBus;
-        this.serverResponseBus = serverResponseBus;
-        this.serverNotificationBus = serverNotificationBus;
         createRemoteServerProxy();
         setupOpcUaNodeSet();
     }
