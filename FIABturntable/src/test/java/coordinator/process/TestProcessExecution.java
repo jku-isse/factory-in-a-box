@@ -18,7 +18,7 @@ public class TestProcessExecution {
 
     @BeforeEach
     public void setup(){
-        process = new ProcessStateMachine(new FUStateInfo(null));
+        process = new ProcessStateMachine(new FUStateInfo());
     }
 
     @Test

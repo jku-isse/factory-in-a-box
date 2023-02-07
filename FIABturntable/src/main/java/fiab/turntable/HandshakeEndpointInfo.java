@@ -13,16 +13,6 @@ public class HandshakeEndpointInfo {
 
     protected Map<String, LocalEndpointStatus> handshakeEPs = new HashMap<>();
 
-    private final ActorRef self;
-
-    protected HandshakeEndpointInfo(ActorRef self) {
-        this.self = self;
-    }
-
-//		public HandshakeEndpointInfo(Map<String,LocalEndpointStatus> handshakeEPs) {
-//			this.handshakeEPs = handshakeEPs;
-//		}
-
     public Optional<LocalEndpointStatus> getHandshakeForCapId(String capabilityId) {
         if (capabilityId != null && handshakeEPs.containsKey(capabilityId))
             return Optional.ofNullable(handshakeEPs.get(capabilityId));

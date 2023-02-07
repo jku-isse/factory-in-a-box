@@ -20,16 +20,16 @@ public class FUStateInfo implements FUStateChangedSubject {
     private ConveyorStates conveyorFuState;
     private HandshakeEndpointInfo handshakeEndpointInfo;
 
-    public FUStateInfo(ActorRef actorRef) {
-        this(actorRef, TurningStates.STOPPED, ConveyorStates.STOPPED);
+    public FUStateInfo() {
+        this(TurningStates.STOPPED, ConveyorStates.STOPPED);
     }
 
-    public FUStateInfo(ActorRef actorRef, TurningStates turningFuState, ConveyorStates conveyorFuState) {
+    public FUStateInfo(TurningStates turningFuState, ConveyorStates conveyorFuState) {
         observers = new HashSet<>();
         isTransportAreaEmpty = true;    //We assume it is empty, but it will change once conveyor is idle
         this.turningFuState = turningFuState;
         this.conveyorFuState = conveyorFuState;
-        this.handshakeEndpointInfo = new HandshakeEndpointInfo(actorRef);
+        this.handshakeEndpointInfo = new HandshakeEndpointInfo();
     }
 
     public boolean isTransportAreaEmpty() {

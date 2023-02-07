@@ -66,7 +66,7 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
 
     public TurntableCoordinatorActor(MachineEventBus machineEventBus, IntraMachineEventBus intraMachineEventBus, MachineChildFUs infrastructure) {
         this.componentId = self().path().name();
-        this.fuStateInfo = new FUStateInfo(self());
+        this.fuStateInfo = new FUStateInfo();
         this.machineEventBus = machineEventBus;
         this.intraMachineBus = intraMachineEventBus;
         this.stateMachine = new TurntableStateMachine(fuStateInfo);
