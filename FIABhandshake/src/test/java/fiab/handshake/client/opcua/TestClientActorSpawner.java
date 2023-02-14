@@ -98,8 +98,8 @@ public class TestClientActorSpawner {
             {
                 spawner.tell(new ClientSpawnerMessages.CreateNewClient(wiringInfo), probe.getRef());
                 system.scheduler()
-                        //If this test passes try decreasing the delay before looking for other errors
-                        .scheduleOnce(Duration.ofMillis(100),    //50 ms lets the spawner do something, but not complete
+                        //If this test fails, try decreasing the delay before looking for other errors
+                        .scheduleOnce(Duration.ofMillis(50),    //50 ms lets the spawner do something, but not complete
                                 () -> spawner.tell(new ClientSpawnerMessages.CancelClientCreation(), probe.getRef()),
                                 system.dispatcher());
 
