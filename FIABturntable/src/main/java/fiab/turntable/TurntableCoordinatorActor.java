@@ -113,9 +113,10 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
                 .match(WiringRequest.class, msg -> {
                     handleWiringRequest(msg);
                 })
-                .match(WiringUpdateNotification.class, msg -> {
+                /*.match(WiringUpdateNotification.class, msg -> {
                     //TODO, maybe just reuse WiringRequest?
-                })
+                })*/
+                .matchAny(msg -> log.warning("Could not process message {}", msg))
                 .build();
     }
 
@@ -199,14 +200,15 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
     }
 
     protected void handleWiringRequest(WiringRequest msg) {
-        log.info("Applying wiringInfo for local hs cap: {}, to endpoint at: {}",
-                msg.getInfo().getLocalCapabilityId(), msg.getInfo().getRemoteEndpointURL());
+        log.info("Applying wiringInfo for local hs cap: {}, to endpoint at: {}. Full wiringInfo: {}",
+                msg.getInfo().getLocalCapabilityId(), msg.getInfo().getRemoteEndpointURL(), msg.getInfo());
         FUConnector handshakeConn;
         //While each handshake has the local capability e.g. NORTH_CLIENT, it is necessary
         //to add HANDSHAKE_FU_ as a prefix as the handshake actor has this id
         String handshakeConnectorId = msg.getInfo().getLocalCapabilityId();
         handshakeConn = machineChildFUs.getFUConnectorForCapabilityId(handshakeConnectorId);
         if (handshakeConn != null) {
+            log.info("Publishing wiringInfo {} to connector: {}", msg.getInfo().getLocalCapabilityId(), handshakeConn);
             handshakeConn.publish(msg);
         } else {
             log.warning("Could not find compatible eventBus to publish WiringRequest for local capId="
