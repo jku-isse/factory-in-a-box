@@ -11,6 +11,7 @@ include 'FIABvirtualplotter'
 include 'FIABturntable'
 include 'FIABfoldingstation'
 include 'FIABproductioncell'
+include 'FIABlayoutagent'
 include 'MES'
 
 

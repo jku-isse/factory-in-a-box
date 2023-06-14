@@ -156,6 +156,7 @@ public class ClientSideHandshakeActor extends AbstractActor implements BasicFUBe
      * @param info wiring info
      */
     protected void setWiringInfo(WiringInfo info) {
+        log.info("Updating wiring info to: " + info);
         this.wiringInfo = info;
     }
 

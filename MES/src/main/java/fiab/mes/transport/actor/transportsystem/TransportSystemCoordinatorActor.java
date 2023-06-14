@@ -40,7 +40,7 @@ import fiab.mes.transport.msg.TransportSystemStatusMessage;
 
 public class TransportSystemCoordinatorActor extends AbstractActor {
 
-	private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+	private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 	public static final String WELLKNOWN_LOOKUP_NAME = "TransportSystemCoordinatorActor";
 
 	static public Props props(TransportRoutingInterface routing, TransportPositionLookupInterface dns, int expectedTTs, String lookupPrefix) {
@@ -124,6 +124,7 @@ public class TransportSystemCoordinatorActor extends AbstractActor {
 		        	externalHistory.sendHistoryResponseTo(req, getSender(), self);
 		        })
 				// TODO: include transportModuleErrorEvent/Message
+				.matchAny(msg -> log.debug("TransportCoordinator received unknown message: {}", msg))
 				.build();
 	}
 	

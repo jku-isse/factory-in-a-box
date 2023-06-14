@@ -110,6 +110,7 @@ public class PlotterCoordinatorActor extends AbstractActor implements WellknownP
     public void handlePlotRequest(PlotRequest request) {
         this.currentPlotRequest = request;
         fireIfPossible(PlotterTriggers.START);
+        sender().tell(new MachineStatusUpdateEvent(this.componentId, "state", "status update",stateMachine.getState()), self());
         loadImage(request.getImageId());
         performLoadingHandshake();
     }

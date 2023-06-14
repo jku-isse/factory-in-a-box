@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import fiab.functionalunit.connector.MachineEventBus;
+import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.productioncell.FoldingProductionCell;
 import fiab.mes.transport.actor.transportsystem.DefaultTransportPositionLookup;
 import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
@@ -82,6 +83,7 @@ public class LocalIOStationActorSpawner extends AbstractActor {
                     discovery.tell(req, getSelf());
                     getContext().stop(getSelf());
                 })
+                .matchAny(msg -> {log.debug("IOSpawner {} ignoring message: {}", self().path().name(), msg);})
                 .build();
     }
 

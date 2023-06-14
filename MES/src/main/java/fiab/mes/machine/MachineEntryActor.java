@@ -4,10 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
-import akka.actor.Props;
+import akka.actor.*;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import fiab.core.capabilities.basicmachine.events.MachineEvent;
@@ -49,10 +46,15 @@ public class MachineEntryActor extends AbstractActor {
 					forwardToMachineActor(req);
 				})
 				.match(MachineConnectedEvent.class, me -> {
+					log.info("MachineConnected event for: {}", me.getMachine().getId());
 					machineActors.put(me.getMachine().getId(), me.getMachine().getAkkaActor());
 				})
 				.match(MachineDisconnectedEvent.class, me -> {
-					machineActors.remove(me.getMachine().getId());
+					if(machineActors.containsKey(me.getMachineId())) {
+						machineActors.remove(me.getMachineId());
+					}else{
+						log.warning("Unknown machine tried to disconnect: {}", me.getMachineId());
+					}
 				})
 				.match(MachineEvent.class, e -> {
 					latestChange.put(e.getMachineId(), e);

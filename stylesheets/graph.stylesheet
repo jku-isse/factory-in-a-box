@@ -1,0 +1,22 @@
+graph {
+    fill-color: #CAF9FF;
+}
+
+node.wiringEndpoint {
+    shape: rounded-box;
+    size: 15px, 15px;
+    fill-color: #004295;
+    stroke-color: black;
+    text-mode: normal;
+    text-alignment: right;
+}
+
+node.machine {
+    shape: circle;
+    size: 25px, 25px;
+    fill-mode: gradient-diagonal1;
+    fill-color: #002C63;
+    stroke-color: black;
+    text-mode: normal;
+    text-alignment: under;
+}

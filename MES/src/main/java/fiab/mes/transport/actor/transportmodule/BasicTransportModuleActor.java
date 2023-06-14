@@ -130,7 +130,14 @@ public class BasicTransportModuleActor extends AbstractActor {
                     eventBusByRef.tell(new MachineDisconnectedEvent(machineId), self());
                     getContext().stop(getSelf());
                 })
+                .matchAny(msg -> log.debug("Proxy for {} received unknown message {}", machineId, msg))
                 .build();
+    }
+
+    @Override
+    public void postStop() throws Exception {
+        super.postStop();
+        intraBus.unsubscribe(self);
     }
 
     private void init() {

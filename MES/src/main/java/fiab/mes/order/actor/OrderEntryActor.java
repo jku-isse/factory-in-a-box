@@ -77,6 +77,7 @@ public class OrderEntryActor extends AbstractActor{
 			        	}
 			        })
 			        .match(OrderEvent.class, e -> {
+						log.info("Order {} status update: {}", e.getOrderId(), e.getEventType());
 			        	this.latestChange.put(e.getOrderId(), e);
 			        })
 			        .match(CancelOrTerminateOrder.class, req -> {

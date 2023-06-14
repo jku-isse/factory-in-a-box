@@ -119,7 +119,14 @@ public class BasicMachineActor extends AbstractActor{
 		        	log.warning(String.format("Lost connection to machine in state: %s, sending disconnected event and shutting down actor", this.currentState));		        	
 					eventBusByRef.tell(new MachineDisconnectedEvent(machineId), self());					
 				})
+				.matchAny(msg -> log.debug("Proxy for {} received unknown message {}", machineId, msg))
 		        .build();
+	}
+
+	@Override
+	public void postStop() throws Exception {
+		super.postStop();
+		intraBus.unsubscribe(self);
 	}
 
 	private void init() {

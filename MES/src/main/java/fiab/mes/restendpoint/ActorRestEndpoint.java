@@ -136,8 +136,7 @@ public class ActorRestEndpoint extends AllDirectives{
 						id = URLDecoder.decode(req.getId(), "UTF-8");
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
-					}	
-					
+					}
 					switch (req.getAction()) {
 							case "stop":
 								machineEntryActor.tell(new GenericMachineRequests.Stop(id), null);

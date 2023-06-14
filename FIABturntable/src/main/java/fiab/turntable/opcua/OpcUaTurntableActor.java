@@ -46,7 +46,7 @@ public class OpcUaTurntableActor extends TurntableCoordinatorActor {
         this.base = base;
         this.rootNode = rootNode;
         this.machineId = machineId;
-        context().actorOf(WiringActor.props(self(), machineId), machineId + "WiringActor");
+        context().actorOf(WiringActor.props(self(), machineId).withDispatcher("akka.actor.wiring-blocking-dispatcher"), machineId + "WiringActor");
         setupOpcUaNodeSet(rootNode);
     }
 

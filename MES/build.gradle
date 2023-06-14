@@ -13,7 +13,7 @@ repositories {
         url "https://github.com/rosjava/rosjava_mvn_repo/raw/master"
     }
     flatDir {
-        dirs '/libs'
+        dirs '../libs'
     }
 }
 
@@ -56,6 +56,21 @@ dependencies {
 
     implementation "at.pro2future:ProcessUtil:0.0.1-SNAPSHOT"
 
+    // https://mvnrepository.com/artifact/org.graphstream/gs-core
+    testImplementation 'org.graphstream:gs-core:2.0'
+    // https://mvnrepository.com/artifact/org.scala-lang.modules/scala-collection-compat
+    testImplementation 'org.scala-lang.modules:scala-collection-compat_2.12:2.10.0'
+    // https://mvnrepository.com/artifact/org.boofcv/boofcv-core
+    testImplementation 'org.boofcv:boofcv-core:0.41'
+    // https://mvnrepository.com/artifact/org.boofcv/boofcv-swing
+    testImplementation 'org.boofcv:boofcv-swing:0.41'
+    // https://mvnrepository.com/artifact/org.graphstream/gs-ui-swing
+    testImplementation 'org.graphstream:gs-ui-swing:2.0'
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-module-scala
+    testImplementation 'com.fasterxml.jackson.module:jackson-module-scala_2.12:2.14.1'
+    //testImplementation(files("../libs/shopfloorlayoutagent_2.12-1.0.0.jar"))
+    testImplementation(project(":FIABlayoutagent"))
+    testImplementation(testFixtures(project(":FIABfunctionalunit")))
     testImplementation "org.slf4j:slf4j-simple:1.7.28"
     testImplementation "com.typesafe.akka:akka-testkit_${akkaTarget}:${akkaVersion}"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'

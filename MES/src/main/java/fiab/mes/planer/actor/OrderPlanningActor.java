@@ -146,6 +146,7 @@ public class OrderPlanningActor extends AbstractActor {
                             " and target actor " + msg.getTargetActor().getModelActor().getActorName());
                     doOrderRelocationFromToMachine(msg.getOrderId(), msg.getTargetActor());
                 })
+                .matchAny(msg -> log.info("OrderPlanner Received unexpected message: {}" + msg))
                 .build();
     }
 

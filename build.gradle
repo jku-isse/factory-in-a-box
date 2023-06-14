@@ -16,7 +16,7 @@ allprojects {
     }
     ext {
         //add more common version numbers accross modules here
-        akkaTarget = '2.12' //Change to 2.13 if possible. This is the scala version
+        akkaTarget = '2.12' //Change to 2.13 if possible. This is the scala version (Requires a higher java version afaik)
         akkaVersion = '2.6.17'
     }
 //Explicitly specify build order? Gradle seems to build them in the right order for me

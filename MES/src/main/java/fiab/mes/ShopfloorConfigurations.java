@@ -173,7 +173,7 @@ public class ShopfloorConfigurations {
         capURI2Spawning.put(new AbstractMap.SimpleEntry<>(IOStationCapability.INPUTSTATION_CAPABILITY_URI, CapabilityImplementationMetadata.ProvOrReq.PROVIDED), new CapabilityCentricActorSpawnerInterface() {
             @Override
             public ActorRef createActorSpawner(ActorContext context) {
-                return context.actorOf(LocalIOStationActorSpawner.props(transportPositionParser));
+                return context.actorOf(LocalIOStationActorSpawner.props(transportPositionParser), "IOSpawner");
             }
         });
     }

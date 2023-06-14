@@ -82,6 +82,7 @@ public class DefaultTestLayout extends ShopfloorLayout{
         mapping.mapCapabilityToPosition(TRANSPORT_MODULE_WEST_CLIENT, positionMap.getPositionForId(INPUT_STATION));
         mapping.mapCapabilityToPosition(TRANSPORT_MODULE_SOUTH_CLIENT, positionMap.getPositionForId(PLOTTER_GREEN));
         mapping.mapCapabilityToPosition(TRANSPORT_MODULE_NORTH_CLIENT, positionMap.getPositionForId(PLOTTER_BLACK));
+        mapping.mapCapabilityToPosition(TRANSPORT_MODULE_SELF, positionMap.getPositionForId(TURNTABLE_1));
         return mapping;
     }
 
@@ -92,6 +93,7 @@ public class DefaultTestLayout extends ShopfloorLayout{
         mapping.mapCapabilityToPosition(TRANSPORT_MODULE_WEST_CLIENT, positionMap.getPositionForId(TURNTABLE_1));
         mapping.mapCapabilityToPosition(TRANSPORT_MODULE_SOUTH_CLIENT, positionMap.getPositionForId(PLOTTER_RED));
         mapping.mapCapabilityToPosition(TRANSPORT_MODULE_NORTH_CLIENT, positionMap.getPositionForId(PLOTTER_BLUE));
+        mapping.mapCapabilityToPosition(TRANSPORT_MODULE_SELF, positionMap.getPositionForId(TURNTABLE_2));
         return mapping;
     }
 

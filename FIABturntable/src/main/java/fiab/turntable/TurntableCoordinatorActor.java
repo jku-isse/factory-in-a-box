@@ -79,8 +79,8 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
         subscribeToConnectors();
         addActionsToStates();
         addActionsToProcessSteps();
-        publishCurrentState(this.stateMachine.getState());
         machineChildFUs.setupInfrastructure(context(), intraMachineBus);
+        publishCurrentState(this.stateMachine.getState());
     }
 
     private void subscribeToConnectors() {
@@ -199,8 +199,9 @@ public class TurntableCoordinatorActor extends AbstractActor implements Transpor
     }
 
     protected void handleWiringRequest(WiringRequest msg) {
-        log.info("Applying wiringInfo for local hs cap: {}, to endpoint at: {}",
-                msg.getInfo().getLocalCapabilityId(), msg.getInfo().getRemoteEndpointURL());
+        log.info("Applying wiringInfo for local hs cap: {}, to endpoint at: {}, remote cap: {}, remote nodeId: {}",
+                msg.getInfo().getLocalCapabilityId(), msg.getInfo().getRemoteEndpointURL(),
+                msg.getInfo().getRemoteCapabilityId(), msg.getInfo().getRemoteNodeId());
         FUConnector handshakeConn;
         //While each handshake has the local capability e.g. NORTH_CLIENT, it is necessary
         //to add HANDSHAKE_FU_ as a prefix as the handshake actor has this id

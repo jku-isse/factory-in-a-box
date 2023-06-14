@@ -76,8 +76,7 @@ public class VirtualTurntableFactory {
             for (Position targetPos : capToPositionMapping.getAllMappedPositions()) {
                 if (targetPos.equals(selfPos)) continue;  //We don't need to wire ourselves
                 wiringInfo = createWiringInfoForActorAtPosition(targetPos, selfPos, positionMap, routingAndMapping);
-                if (serverHandshakeCapabilities.contains(wiringInfo.getLocalCapabilityId()))
-                    continue;   //We skip server nodes
+                if (serverHandshakeCapabilities.contains(wiringInfo.getLocalCapabilityId())) continue;   //We skip server nodes
                 remoteMachine.tell(new WiringRequest("VirtualTTFactory", wiringInfo), ActorRef.noSender());
             }
         } catch (Exception e) {

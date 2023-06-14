@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 //import org.eclipse.milo.opcua.sdk.client.api.nodes.Node;
 import fiab.functionalunit.connector.IntraMachineEventBus;
 import fiab.functionalunit.connector.MachineEventBus;
+import fiab.mes.machine.msg.MachineConnectedEvent;
 import fiab.mes.transport.actor.transportsystem.TransportPositionParser;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
 import org.eclipse.milo.opcua.stack.core.NamespaceTable;
@@ -76,6 +77,7 @@ public class LocalPlotterActorSpawner extends AbstractActor {
                     discovery.tell(req, getSelf());
                     getContext().stop(getSelf());
                 })
+                .matchAny(msg -> {log.debug("PlotterSpawner {} ignoring message: {}", self().path().name(), msg);})
                 .build();
     }
 

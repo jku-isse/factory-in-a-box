@@ -73,7 +73,7 @@ tasks.register("runIntegrationTests", Test) {
     mustRunAfter check
 }
 
-jar{
+/*jar{
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE     //Since there would be mutliple reference.conf files
     manifest {
         attributes 'Description': 'This application starts up an InputStationActor using ROS'
@@ -86,4 +86,21 @@ jar{
     exclude 'META-INF/*.RSA'
     exclude 'META-INF/*.SF'
     exclude 'META-INF/*.DSA'
+}*/
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Description': 'This application starts up an InputStationActor using ROS'
+        attributes 'Main-Class': 'fiab.InputStationROSApplication'
+    }
+    archiveClassifier = "all"
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    from {
+        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
 }
